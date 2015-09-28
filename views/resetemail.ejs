@@ -1,0 +1,20 @@
+<html>
+<head>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <style>
+        body        { padding-top:20px; word-wrap:break-word; }
+    </style>
+</head>
+
+<body>
+<div class="container">
+<div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Reset password for Textual Communities</h1>
+    </div>
+<p>Dear <%= username %> at <%= email %> </p>
+<p>Someone (we hope, you) has requested a new password for Textual Communities.  If you did not request or do not need a new password, please ignore this message.</p>
+<p>Follow <a href="<%= url %>/resetpw?hash=<%= hash %>">this link to reset your password</a> for access to Textual Communities. This link is valid for one hour only from the time this message was sent.</p
+</div>
+</body>
+</html>

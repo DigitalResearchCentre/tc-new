@@ -1,0 +1,21 @@
+<html>
+<head>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <style>
+        body        { padding-top:20px; word-wrap:break-word; }
+    </style>
+</head>
+
+<body>
+<div class="container">
+<div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span> Authenticate Textual Communities account</h1>
+    </div>
+<p>Dear <%= username %> at <%= email %> </p>
+<p>Someone (we hope, you) has opened an account on Textual Communities associated with the address  <%= email %>.  If you did not try to open this account, please ignore this message.</p>
+<p>Follow <a href="<%= url %>/auth/authenticateTC?hash=<%= hash %>">this link to comfirm your account</a> with Textual Communities. This link is valid for one hour only from the time this message was sent.</p
+<p>Good luck with Textual Communities.</p>
+</div>
+</body>
+</html>

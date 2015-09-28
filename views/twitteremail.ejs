@@ -1,0 +1,51 @@
+<!-- views/login.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Textual Communities Authentication: set up Twitter</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+    <style>
+        body        { padding-top:80px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<div class="col-sm-6 col-sm-offset-3">
+
+    <h1><span class="fa fa-sign-in"></span> Twitter account for <%= name %>: email needed</h1>
+	<p>Textual Communities needs an email address to identify you, and to send you messages. </p>
+    <!-- show any messages that come back with authentication -->
+    <% if (message.length > 0) { %>
+        <div class="alert alert-danger"><%= message %></div>
+    <% } %>
+    <!-- New password FORM -->
+    <form action="/twitteremail" method="post">
+    	 <div class="form-group"  style="display:none">
+            <input type="text" name="displayName" value="<%= name %>">
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="text" class="form-control" name="email">
+        </div>
+          <div class="form-group">
+            <label>Confirm Email</label>
+            <input type="text" class="form-control" name="emailconfirm">
+        </div>
+       <button type="submit" class="btn btn-warning btn-lg">Set  email address</button> &nbsp; &nbsp; &nbsp;<a href="/twittercancel">
+  <input type="button" value="Cancel" class="btn btn-warning btn-lg" style="background-color: white; color: #f0ad4e" onmouseover="this.style.background='#F5F5F5';" onmouseout="this.style.background='white';">
+</a>
+    </form>
+
+    <hr>
+
+    <p><a href="/">Home</a>.</p>
+
+
+</div>
+
+</div>
+</body>
+</html>

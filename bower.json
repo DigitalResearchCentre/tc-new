@@ -1,0 +1,16 @@
+{
+  "name": "tc",
+  "description": "",
+  "version": "0.0.1",
+  "homepage": "http://textualcommunities.usask.ca",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "angular": "~1.4.5",
+    "angular-resource": "~1.4.5",
+    "angular-route": "~1.4.5",
+    "angular-sanitize": "~1.4.5",
+    "bootstrap": "~3.3.2",
+    "jquery": "~2.1.1"
+  }
+}

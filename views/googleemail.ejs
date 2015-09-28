@@ -1,0 +1,63 @@
+<!-- views/login.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Textual Communities Authentication: set up Google</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+    <style>
+        body        { padding-top:80px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<div class="col-sm-6 col-sm-offset-3">
+
+    <h1><span class="fa fa-sign-in"></span> Google account for <%= google.name %>: email identification</h1>
+	<p>There is no Textual Communities account identified by the primary email <%= google.email %> of the Google account you just selected. <br/><br/>
+	<b>EITHER</b> choose to associate this Google account with an existing Textual Communities account identified by the email:</p>
+    <!-- show any messages that come back with authentication -->
+    <% if (message.length > 0) { %>
+        <div class="alert alert-danger"><%= message %></div>
+    <% } %>
+    <!-- New password FORM -->
+    <form action="/googlelinkemail" method="post">
+    	 <div class="form-group"  style="display:none">
+            <input type="text" name="displayName" value="<%= google.name %>">
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="text" class="form-control" name="email">
+        </div>
+          <div class="form-group">
+            <label>Confirm Email</label>
+            <input type="text" class="form-control" name="emailconfirm">
+        </div>
+       <div style="text-align:right"><button type="submit" class="btn btn-warning btn-lg" >Choose  email address</button> </div>
+       <div><p>&nbsp;</p></div>
+       <div><b>OR</b> Start a new Textual Communities account identified by the email <%= google.email %> </div>
+    <div style="text-align:right">
+<a href="/googlenew"> <input type="button" value="New account" class="btn btn-warning btn-lg" >
+</a>
+</div>
+       <div><p>&nbsp;</p></div>
+       <div><b>OR</b> Cancel </div>
+<div style="text-align:right"><a href="/googlecancel"> <input type="button" value="Cancel" class="btn btn-warning btn-lg" style="background-color: white; color: #f0ad4e" onmouseover="this.style.background='#F5F5F5';" onmouseout="this.style.background='white';">
+</a>
+</div>
+
+
+    </form>
+
+    <hr>
+
+    <p><a href="/">Home</a>.</p>
+
+
+</div>
+
+</div>
+</body>
+</html>

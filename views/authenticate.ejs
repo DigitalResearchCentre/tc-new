@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+    <title>Node Authentication</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <style>
+        body        { padding-top:30px; word-wrap:break-word; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+		<div class="page-header text-center">
+			<h1><span class="fa fa-anchor"></span> Authentication for <%= user.local.name %></h1>
+			 <% if (context == "facebook") {%>
+			 	<p>You are now registered for Textual Communities via Facebook, and your account is associated with the email <b><%= user.local.email %></b>.</p>
+			 <%}%>
+			 <% if (context == "undefined") {%>
+			 	<p>You are registered with Textual Communities, and your account is associated with the email <b><%= user.local.email %></b>. We now need to authenticate that this email belongs to you.</p>
+			 <%}%>
+			<p>An email has been sent to <%= user.local.email %>, containing a link to authenticate your Textual Communities account.</p>
+			<p>It may take a few minutes for the email to arrive. Check your spam folder if you do not see it.</p>
+		</div>
+
+</div>
+</body>
+</html>

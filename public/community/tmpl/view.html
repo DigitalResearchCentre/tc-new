@@ -1,0 +1,47 @@
+<div x-auto-height class="view" ng-controller="ViewCtrl">
+  <div class="sidebar">
+    <ul class="tree">
+      <li ng-repeat="doc in community.documents" 
+        ng-class="{'collapse-node': !doc.expand}">
+        <div>
+          <span class="icon" aria-hidden="true"
+            ng-click="toggleNode(doc)"></span>
+          <a href="#/community/{{community._id}}/view/{{doc._id}}">
+            {{doc.name}}
+          </a>
+        </div>
+        <ul>
+          <li ng-repeat="page in doc.children">
+            <a href=
+              "#/community/{{community._id}}/view/{{doc._id}}/{{page._id}}">
+              {{page.name}}
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div class="resizer vertical"
+    x-resizer="vertical" x-resizer-width="5" 
+    x-resizer-min="100" x-resizer-max="300"
+    x-resizer-left=".sidebar" x-resizer-right=".viewer">
+  </div>
+
+  <div class="viewer" ng-controller="ViewerCtrl">
+    <div class="image-viewer">
+        
+    </div>
+    <div class="resizer horizontal"
+      x-resizer="horizontal" x-resizer-height="5"
+      x-resizer-min="100"
+      x-resizer-top=".image-viewer" x-resizer-bottom=".text-viewer">
+    </div>
+    <div class="text-viewer">
+      <textarea ng-model="text"></textarea>
+      <button ng-click="save()">save</button>
+      <button ng-click="commit()">commit</button>
+    </div>
+  </div>
+</div>
+
+

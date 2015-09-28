@@ -1,0 +1,18 @@
+<div class="title">{{community.name}}</div>
+<nav><ul>
+  <li><a href="#/community/{{community._id}}/home" 
+      ng-class="{selected: tab == 'home'}">Home</a>
+  </li>
+  <li><a href="#/community/{{community._id}}/about" 
+      ng-class="{selected: tab == 'about'}">About</a></li>
+  <li><a href="#/community/{{community._id}}/view" 
+      ng-class="{selected: tab == 'view'}">View</a></li>
+  <li><a href="#">Wiki</a></li>
+  <li><a href="#">Blog</a></li>
+  <li><a href="#">Bulletin Board</a></li>
+  <li><a href="#">Manage</a></li>
+</ul></nav>
+<img src="{{community.img}}"/>
+
+
+
