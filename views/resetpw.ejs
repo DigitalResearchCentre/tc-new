@@ -22,7 +22,7 @@
     <% } %>
 	<p>For <%= name %> at <%= email %></p>
     <!-- New password FORM -->
-    <form action="/resetpw" method="post">
+    <form action="/auth/resetpw" method="post">
     	 <div class="form-group"  style="display:none">
             <input type="text" name="displayName" value="<%= name %>">
         </div>

@@ -9,7 +9,7 @@ var express = require('express')
 // =====================================
 // HOME PAGE (with login links) ========
 // =====================================
-router.get('/', function(req, res) {
+/* router.get('/', function(req, res) {
   console.log(req.isAuthenticated());
   if (req.isAuthenticated()) {
     console.log(req.user);
@@ -17,7 +17,11 @@ router.get('/', function(req, res) {
   } else {
     res.json({});
   }
-});
+}); */
+router.get('/', function(req, res) {
+        res.render('index.ejs'); // load the index.ejs file
+    });
+
 
 // =====================================
 // LOGIN ===============================
@@ -31,8 +35,8 @@ router.get('/login', function(req, res) {
 
 // process the login form
 router.post('/login', passport.authenticate('local-login', {
-  successRedirect : '/profile', // redirect to the secure profile section
-  failureRedirect : '/login', // redirect back to the signup page if there is an error
+  successRedirect : '/auth/profile', // redirect to the secure profile section
+  failureRedirect : '/auth/login', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
 // =====================================
@@ -47,8 +51,8 @@ router.get('/signup', function(req, res) {
 
 // process the signup form	
 router.post('/signup', passport.authenticate('local-signup', {
-  successRedirect : './profile', // redirect to the secure profile section
-  failureRedirect : '/signup', // redirect back to the signup page if there is an error
+  successRedirect : '/auth/profile', // redirect to the secure profile section
+  failureRedirect : '/auth/signup', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
 
@@ -57,7 +61,7 @@ router.post('/signup', passport.authenticate('local-signup', {
 // =====================================
 // called from /profile, if this user is not authenticated
 router.get('/sendauthenticate', function(req, res) {
-  authenticateUser (req.user.local.email, req.user);
+  authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
   // render the page and pass in any flash data if it exists
   res.render('authenticate.ejs', {user: req.user, context: req.query.context} );
 });
@@ -73,7 +77,7 @@ router.get('/authenticateTC', function(req, res) {
         req.user.local.authenticated= "1";
         req.user.local.hash= "";
         req.user.save();
-        res.redirect('/profile');
+        res.redirect('/auth/profile');
       }
     } else {
       res.render('forgothourpassed.ejs', {greeting: 'No user to be authenticated found for that link', greeting2: 'You are likely using an old authentication link. Try logging in again to have a new authentication link sent.', authenticate:"1"});
@@ -125,8 +129,8 @@ router.post('/resetpw',  function(req, res) {
 
 // process the forgot password form
 router.post('/forgot', passport.authenticate('local-forgot', {
-  successRedirect : '/resetpwmsg', // redirect to the secure profile section
-  failureRedirect : '/forgot', // redirect back to the signup page if there is an error
+  successRedirect : '/auth/resetpwmsg', // redirect to the secure profile section
+  failureRedirect : '/auth/forgot', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
 
@@ -155,14 +159,14 @@ router.get('/facebook', passport.authenticate('facebook', { scope : 'email' }));
 // handle the callback after facebook has authenticated the user
 router.get('/facebook/callback', passport.authenticate('facebook', {
   scope : 'email',
-  failureRedirect : '/'
+  failureRedirect : '/auth/'
 }), function(req, res) {
   // The user has authenticated with Facebook.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req, res)) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   } else {
-    res.redirect('/facebookemail');
+    res.redirect('/auth/facebookemail');
   }
 }); 
 
@@ -174,7 +178,7 @@ router.get('/facebookemail', function(req, res) {
   User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
     if (!user) {
       //let's redirect -- ask if we want to associate with an existing account or not
-      res.redirect('/facebooklinkemail');
+      res.redirect('/auth/facebooklinkemail');
     } else {
       //by facebook rules -- this email can ONLY be assoc with one account.  So just link them
       //if there is no facebook account associated with the account -- just link this facebook ac to that
@@ -186,7 +190,7 @@ router.get('/facebookemail', function(req, res) {
         user.save();
         req.logout();
         req.logIn(user, function (err) {
-          if(!err){ res.redirect('/profile'); }else {		//handle error
+          if(!err){ res.redirect('/auth/profile'); }else {		//handle error
           } });
           return;
       }  
@@ -228,7 +232,7 @@ router.post('/facebooklinkemail', function(req, res) {
         //log out current user; log in existingUser
         req.logout();
         req.logIn(existingUser, function (err) {
-          if(!err){ res.redirect('/profile'); } else{		//handle error
+          if(!err){ res.redirect('/auth/profile'); } else{		//handle error
           } });
           return;
       }
@@ -250,7 +254,7 @@ router.get('/facebooknew', function(req, res) {
   req.user.local.password=req.user.generateHash("X"); //place holder
   req.user.local.authenticated= "0";
   req.user.save();
-  res.redirect('/profile?context=facebook'); 
+  res.redirect('/auth/profile?context=facebook'); 
 });
 //cancel this facebook linkage
 router.get('/facebookcancel', function(req, res) {
@@ -275,9 +279,9 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req, res)) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   } else {
-    res.redirect('/twitteremail');
+    res.redirect('/auth/twitteremail');
   }
 }); 
 
@@ -326,7 +330,7 @@ router.post('/twitteremail', function(req, res) {
         req.logout();
         req.logIn(existingUser, function (err) {
           if(!err){
-            res.redirect('/profile');
+            res.redirect('/auth/profile');
           }else{
             //handle error
           }
@@ -344,7 +348,7 @@ router.post('/twitteremail', function(req, res) {
       req.user.local.password=req.user.generateHash("X"); //place holder
       req.user.local.authenticated= "0";
       req.user.save();
-      res.redirect('/profile?context=twitter');
+      res.redirect('/auth/profile?context=twitter');
     }
   });
 });
@@ -368,9 +372,9 @@ router.get('/google/callback', passport.authenticate('google', {
   // is "complete".  If not, send them down a form to fill out more details.
   console.log("hi");
   if (isValidProfile(req, res)) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   } else {
-    res.redirect('/googleemail');
+    res.redirect('/auth/googleemail');
   }
 });
 
@@ -381,7 +385,7 @@ router.get('/googleemail', function(req, res) {
   User.findOne({ 'local.email' :  req.user.google.email }, function(err, user) {
     if (!user) {
       //let's redirect -- ask if we want to associate with an existing account or not
-      res.redirect('/googlelinkemail');
+      res.redirect('/auth/googlelinkemail');
     } else {
       //by google rules -- this email can ONLY be assoc with one account.  So just link them
       //if there is no google account associated with the account -- just link this  ac to that
@@ -393,7 +397,7 @@ router.get('/googleemail', function(req, res) {
         user.save();
         req.logout();
         req.logIn(user, function (err) {
-          if(!err){ res.redirect('/profile'); }else {		//handle error
+          if(!err){ res.redirect('/auth/profile'); }else {		//handle error
           } });
           return;
       }  
@@ -433,7 +437,7 @@ router.post('/googlelinkemail', function(req, res) {
         //log out current user; log in existingUser
         req.logout();
         req.logIn(existingUser, function (err) {
-          if(!err){ res.redirect('/profile'); } else{		//handle error
+          if(!err){ res.redirect('/auth/profile'); } else{		//handle error
           } });
           return;
       }
@@ -454,7 +458,7 @@ router.get('/googlenew', function(req, res) {
   req.user.local.password=req.user.generateHash("X"); //place holder
   req.user.local.authenticated= "0";
   req.user.save();
-  res.redirect('/profile?context=google'); 
+  res.redirect('/auth/profile?context=google'); 
 });
 
 //cancel this google linkage
@@ -476,8 +480,8 @@ router.get('/connect/local', function(req, res) {
   res.render('connect-local.ejs', { message: req.flash('loginMessage') });
 });
 router.post('/connect/local', passport.authenticate('local-signup', {
-  successRedirect : '/profile', // redirect to the secure profile section
-  failureRedirect : '/connect/local', // redirect back to the signup page if there is an error
+  successRedirect : '/auth/profile', // redirect to the secure profile section
+  failureRedirect : '/auth/connect/local', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
 
@@ -488,7 +492,7 @@ router.get('/connect/facebook', passport.authorize('facebook', { scope : 'email'
 
 // handle the callback after facebook has authorized the user
 router.get('/connect/facebook/callback', passport.authorize('facebook', {
-  successRedirect : '/profile',
+  successRedirect : '/auth/profile',
   failureRedirect : '/'
 }));
 
@@ -499,8 +503,8 @@ router.get('/connect/twitter', passport.authorize('twitter', { scope : 'email' }
 
 // handle the callback after twitter has authorized the user
 router.get('/connect/twitter/callback', passport.authorize('twitter', {
-  successRedirect : '/profile',
-  failureRedirect : '/'
+  successRedirect : '/auth/profile',
+  failureRedirect : '/auth/'
 }));
 
 
@@ -511,7 +515,7 @@ router.get('/connect/google', passport.authorize('google', { scope : ['profile',
 
 // the callback after google has authorized the user
 router.get('/connect/google/callback', passport.authorize('google', {
-  successRedirect : '/profile',
+  successRedirect : '/auth/profile',
   failureRedirect : '/'
 }));
 
@@ -528,7 +532,7 @@ router.get('/unlink/local', function(req, res) {
   user.local.email    = undefined;
   user.local.password = undefined;
   user.save(function(err) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   });
 });
 
@@ -537,7 +541,7 @@ router.get('/unlink/facebook', function(req, res) {
   var user            = req.user;
   user.facebook.token = undefined;
   user.save(function(err) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   });
 });
 
@@ -546,7 +550,7 @@ router.get('/unlink/twitter', function(req, res) {
   var user           = req.user;
   user.twitter.token = undefined;
   user.save(function(err) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   });
 });
 
@@ -555,7 +559,7 @@ router.get('/unlink/google', function(req, res) {
   var user          = req.user;
   user.google.token = undefined;
   user.save(function(err) {
-    res.redirect('/profile');
+    res.redirect('/auth/profile');
   });
 });
 
@@ -596,11 +600,11 @@ function randomStringAsBase64Url(size) {
   return base64url(crypto.randomBytes(size));
 }
 
-function authenticateUser (email, user) {
+function authenticateUser (email, user, thisUrl) {
   console.log("to "+email+" dir "+__dirname);
   var ejs = require('ejs'), fs = require('fs'), str = fs.readFileSync(__dirname + '/../views/authenticatemail.ejs', 'utf8'); 
   var hash=randomStringAsBase64Url(20);
-  var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: ''});
+  var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: thisUrl});
   //console.log( TCAddresses.replyto+" "+TCAddresses.from);
   user.local.timestamp=new Date().getTime();
   user.local.hash=hash;

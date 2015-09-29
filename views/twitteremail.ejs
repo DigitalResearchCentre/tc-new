@@ -21,7 +21,7 @@
         <div class="alert alert-danger"><%= message %></div>
     <% } %>
     <!-- New password FORM -->
-    <form action="/twitteremail" method="post">
+    <form action="/auth/twitteremail" method="post">
     	 <div class="form-group"  style="display:none">
             <input type="text" name="displayName" value="<%= name %>">
         </div>
@@ -34,7 +34,7 @@
             <label>Confirm Email</label>
             <input type="text" class="form-control" name="emailconfirm">
         </div>
-       <button type="submit" class="btn btn-warning btn-lg">Set  email address</button> &nbsp; &nbsp; &nbsp;<a href="/twittercancel">
+       <button type="submit" class="btn btn-warning btn-lg">Set  email address</button> &nbsp; &nbsp; &nbsp;<a href="/auth/twittercancel">
   <input type="button" value="Cancel" class="btn btn-warning btn-lg" style="background-color: white; color: #f0ad4e" onmouseover="this.style.background='#F5F5F5';" onmouseout="this.style.background='white';">
 </a>
     </form>

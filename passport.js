@@ -153,7 +153,7 @@ configAuth = config.auth;
 
       // all is well, go send an email here!
       else {
-        resetpass(email, user, done);
+        resetpass(email, user, done,  req.protocol + '://' + req.get('host'));
         user.save(function(err) {
           if (err)
             throw err;
@@ -397,7 +397,7 @@ function randomStringAsBase64Url(size) {
   return base64url(crypto.randomBytes(size));
 }
 
-function resetpass (email, user, done) {
+function resetpass (email, user, done, thisURL) {
   console.log("to "+email+" dir "+__dirname);
   var ejs = require('ejs')
     , fs = require('fs')
@@ -406,7 +406,7 @@ function resetpass (email, user, done) {
     , rendered
   ; 
   rendered = ejs.render(str, {
-    email:email, hash:hash, username:user.local.name, url: nodeJSurl
+    email:email, hash:hash, username:user.local.name, url: thisURL
   });
   console.log( TCAddresses.replyto+" "+TCAddresses.from);
   user.local.timestamp=new Date().getTime();

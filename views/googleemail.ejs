@@ -22,7 +22,7 @@
         <div class="alert alert-danger"><%= message %></div>
     <% } %>
     <!-- New password FORM -->
-    <form action="/googlelinkemail" method="post">
+    <form action="/auth/googlelinkemail" method="post">
     	 <div class="form-group"  style="display:none">
             <input type="text" name="displayName" value="<%= google.name %>">
         </div>
@@ -39,7 +39,7 @@
        <div><p>&nbsp;</p></div>
        <div><b>OR</b> Start a new Textual Communities account identified by the email <%= google.email %> </div>
     <div style="text-align:right">
-<a href="/googlenew"> <input type="button" value="New account" class="btn btn-warning btn-lg" >
+<a href="/auth/googlenew"> <input type="button" value="New account" class="btn btn-warning btn-lg" >
 </a>
 </div>
        <div><p>&nbsp;</p></div>
