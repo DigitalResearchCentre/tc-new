@@ -3,6 +3,7 @@ var express = require('express')
   , router = express.Router()
   , models = require('../models')
   , Community = models.Community
+  , User = models.User
 ;
 
 var Resource = function(router, name, opts) {
@@ -92,7 +93,29 @@ _.assign(Resource.prototype, {
 });
 
 
-new Resource(router, 'communities', {model: Community, id: 'community'});
+new Resource(router, 'communities', {
+  model: Community, id: 'community', 
+  create: function(req, res) {
+    if (req.isAuthenticated()) {
+      var obj = new this.model(req.body);
+      obj.save(function(err) {
+        if (err) {
+          res.send(err);
+        } else {
+          req.user.memberships.push({
+            community: obj._id,
+            role: User.LEADER,
+          });
+          req.user.save(function() {
+            res.json(obj);
+          })
+        }
+      });
+    }
+  }
+});
+
+new Resource(router, 'users', {model: User, id: 'user'});
 
 router.get('/auth', function(req, res) {
   if (req.isAuthenticated()) {
