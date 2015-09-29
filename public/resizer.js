@@ -5,28 +5,13 @@ var resizer = function($document) {
   return {
     restrict: 'A',
     link: function($scope, $element, $attrs) {
-      var $parent = $element.parent()
+      var $parent = $($element.parent())
         , $left = $($attrs.resizerLeft, $parent)
         , $right = $($attrs.resizerRight, $parent)
         , $top = $($attrs.resizerTop, $parent)
         , $bottom = $($attrs.resizerBottom, $parent)
+        , offset = $parent.offset()
       ;
-
-      $element.css({
-        position: 'relative',
-      });
-
-      if ($attrs.resizer == 'vertical') {
-        $element.css({
-          top: 0, 
-          height: '100%',
-        });
-      } else {
-        $element.css({
-          left: 0, 
-          width: '100%',
-        });
-      }
 
       function mouseup() {
         $document.unbind('mousemove', mousemove);
@@ -45,34 +30,23 @@ var resizer = function($document) {
 
       function mousemove(event) {
         if ($attrs.resizer == 'vertical') {
-          var x = getSize(event.pageX, $attrs.resizerMin, $attrs.resizerMax);
+          var x = getSize(event.pageX - offset.left, 
+                          $attrs.resizerMin, $attrs.resizerMax)
+            , leftWidth = x - $element[0].offsetWidth / 2
+            , fullWidth = $left[0].offsetWidth + $right[0].offsetWidth
+          ;
 
-          $element.css({
-            left: x + 'px'
-          });
-
-
-          $left.css({
-            width: x + 'px'
-          });
-          $right.css({
-            left: (x + parseInt($attrs.resizerWidth)) + 'px'
-          });
-
+          $left.css('flex', '1');
+          $right.css('flex', ((fullWidth - leftWidth) / leftWidth).toString());
         } else {
-          var y = getSize(window.innerHeight - event.pageY, 
-                          $attrs.resizerMin, $attrs.resizerMax);
+          var y = getSize(event.pageY - offset.top,
+                          $attrs.resizerMin, $attrs.resizerMax)
+            , topHeight = y - $element[0].offsetHeight / 2
+            , fullHeight = $top[0].offsetHeight + $bottom[0].offsetHeight
+          ;
 
-          $element.css({
-            bottom: y + 'px'
-          });
-
-          $top.css({
-            bottom: (y + parseInt($attrs.resizerHeight)) + 'px'
-          });
-          $bottom.css({
-            height: y + 'px'
-          });
+          $top.css('flex', '1');
+          $bottom.css('flex', ((fullHeight-topHeight) / topHeight).toString());
         }
       }
  
@@ -82,7 +56,6 @@ var resizer = function($document) {
         $document.on('mousemove', mousemove);
         $document.on('mouseup', mouseup);
       });
-
     }
   };
 };

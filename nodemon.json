@@ -1,4 +1,4 @@
 {
   "verbose": true,
-  "ignore": ["test/*", "fixtures/*", ".git/*", "client/*"]
+  "ignoreRoot": [".git", "public", "test"]
 }
