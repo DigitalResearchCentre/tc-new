@@ -44,6 +44,7 @@ tcApp.controller('AppCtrl', [
   $scope.hideHeader = false;
   $scope.app = TCService.app;
   $scope.communities = Community.query();
+  window.app = TCService.app;
 
   $scope.login = function() {
     TCService.login('test', 'password');
