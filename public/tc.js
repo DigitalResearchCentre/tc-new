@@ -264,7 +264,7 @@ function TCService($resource) {
     'login': {method: 'POST'},
   });
 
-  var AuthUser = $resource('/auth/', {
+  var AuthUser = $resource('/api/auth/', {
     fields: JSON.stringify('memberships.community'),
   });
 

@@ -57,7 +57,7 @@ _.assign(Resource.prototype, {
     var query = this.getQuery(req);
     query.exec(function(err, objs) {
       if (err) {
-        res.send(err)
+        res.send(err);
       } else {
         res.json(objs);
       }
@@ -77,7 +77,7 @@ _.assign(Resource.prototype, {
     var query = this.getQuery(req).findOne({_id: req.params[this.options.id]});
     query.exec(function(err, obj) {
       if (err) {
-        res.send(err)
+        res.send(err);
       } else {
         res.json(obj);
       }
@@ -93,5 +93,14 @@ _.assign(Resource.prototype, {
 
 
 new Resource(router, 'communities', {model: Community, id: 'community'});
+
+router.get('/auth', function(req, res) {
+  if (req.isAuthenticated()) {
+    res.json(req.user);
+  } else {
+    res.json({});
+  }
+});
+
 
 module.exports = router;
