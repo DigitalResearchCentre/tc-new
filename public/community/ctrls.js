@@ -27,7 +27,8 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
 
     $scope.submit = function() {
       community.$save(function() {
-        $location.path('/community/' + community._id + '/home');
+        console.log(community);
+        //$location.path('/community/' + community._id + '/home');
       });
     };
 };
@@ -94,10 +95,27 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 
+var ManageCtrl = function($scope, $routeParams, TCService) {
+  var community = $scope.$parent.community
+    , Doc = TCService.Doc
+    , doc = new Doc()
+  ;
+  $scope.doc = doc;
+  $scope.text = 'hello';
+
+  $scope.submit = function() {
+    TCService.commit(null, $scope.text);
+
+  }
+};
+ManageCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
+
+
 module.exports = {
   CommunityCtrl: CommunityCtrl,
   CreateCommunityCtrl: CreateCommunityCtrl,
   ViewCtrl: ViewCtrl,
   ViewerCtrl: ViewerCtrl,
+  ManageCtrl: ManageCtrl,
 };
 

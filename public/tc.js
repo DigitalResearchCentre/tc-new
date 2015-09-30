@@ -157,36 +157,43 @@ function foo() {
   
 }
 
+
 function commit(page, text) {
   var xmlDoc = parseXML(text);
   var i = 1;
   var xpath;
   var iter;
+  
+  xpath = '//body/div[@n]';
+  window.xx = xmlDoc;
+  return;
 
-  while (true) {
-    xpath = '//text()[count(preceding::lb)=' + i + ']';
-    var iter = xmlDoc.evaluate(
-        xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-    var lb = iter.iterateNext();
-    if (lb) {
-      var doc = page.children[i-1];
-      if (!doc) {
-        doc = {
-          children: [],
-        };
-        page.children.push(doc);
-      }
-      doc.name = i - 1;
-      while (lb) {
-        if (lb.nodeValue.trim()) {
-          lb.doc = doc;
-          doc.children.push(lb.nodeValue.trim());
+  if (page) {
+    while (true) {
+      xpath = '//text()[count(preceding::lb)=' + i + ']';
+      var iter = xmlDoc.evaluate(
+          xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+      var lb = iter.iterateNext();
+      if (lb) {
+        var doc = page.children[i-1];
+        if (!doc) {
+          doc = {
+            children: [],
+          };
+          page.children.push(doc);
         }
-        lb = iter.iterateNext();
+        doc.name = i - 1;
+        while (lb) {
+          if (lb.nodeValue.trim()) {
+            lb.doc = doc;
+            doc.children.push(lb.nodeValue.trim());
+          }
+          lb = iter.iterateNext();
+        }
+        i += 1;
+      } else {
+        break;
       }
-      i += 1;
-    } else {
-      break;
     }
   }
   var work = {
@@ -251,7 +258,17 @@ function TCService($resource) {
         });
         return community;
       },
-    }
+    },
+    'save':   {
+      method:'POST',
+      transformResponse: function(data) {
+        var community = angular.fromJson(data);
+        // auto sync 
+        app.communities.push(community);
+        app.authUser.$get();
+        return community;
+      },
+    },
   });
 
   var Doc = $resource('/docs/:id', {
@@ -260,7 +277,7 @@ function TCService($resource) {
     'patch': {method: 'PATCH'},
   });
 
-  var Login = $resource('/login/', null, {
+  var Login = $resource('/auth/login/', null, {
     'login': {method: 'POST'},
   });
 
@@ -270,13 +287,14 @@ function TCService($resource) {
 
   var app = {
     authUser: AuthUser.get(),
+    communities: Community.query(),
   };
 
 
   var TC = {
     app: app,
-    login: function(username, password) {
-      Login.login({username: username, password: password}, function(user) {
+    login: function(email, password) {
+      Login.login({email: email, password: password}, function(user) {
         app.authUser = AuthUser.get();
       });
     },
@@ -298,6 +316,7 @@ function TCService($resource) {
       }
       return cache;
     },
+    parseXML: parseXML,
     xml2json: xml2json,
     json2xml: json2xml,
     json2xmlDoc: json2xmlDoc,

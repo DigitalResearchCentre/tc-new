@@ -8,6 +8,7 @@ communityModule
   .controller('CreateCommunityCtrl', ctrls.CreateCommunityCtrl)
   .controller('ViewCtrl', ctrls.ViewCtrl)
   .controller('ViewerCtrl', ctrls.ViewerCtrl)
+  .controller('ManageCtrl', ctrls.ManageCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))
 ;
