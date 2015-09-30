@@ -7,7 +7,8 @@ var express = require('express')
   , User = models.User
 ;
 
-var Resource = function(opts) {
+var Resource = function(model, opts) {
+  this.model = model;
   this.options = _.assign({}, opts);
 };
 _.assign(Resource.prototype, {
@@ -22,7 +23,7 @@ _.assign(Resource.prototype, {
     ;
 
     router.route('/' + name + '/:' + options.id)
-      .get(this.detail())
+      .get(this.detail(options))
       .put(this.update())
       .delete(this.remove())
     ;
@@ -33,9 +34,10 @@ _.assign(Resource.prototype, {
       , select = JSON.parse(urlQuery.select || 'null')
       , sort = JSON.parse(urlQuery.sort || 'null')
       , fields = JSON.parse(urlQuery.fields || 'null')
+      , model = this.model
       , query
     ;
-    query = this.model.find(find);
+    query = model.find(find);
     if (select) {
       query = query.select(select);
     }
@@ -47,50 +49,10 @@ _.assign(Resource.prototype, {
     }
     return query;
   },
-  list: function() {
-    return _.bind(function(req, res, next) {
-      var query = this.getQuery(req);
-      async.waterfall([
-        query.exec,
-      ], this.sendData(req, res, next));
-    }, this);
-  },
-  create: function() {
-    return _.bind(function(req, res) {
-      var obj = new this.model(req.body);
-      obj.save(function(err) {
-        if (err) {
-          res.send(err);
-        } else {
-          res.json(obj);
-        }
-      });
-    }, this);
-  },
-  detail: function() {
-    return _.bind(function(req, res) {
-      var query = this.getQuery(req).findOne({
-        _id: req.params[this.options.id]
-      });
-      query.exec(function(err, obj) {
-        if (err) {
-          res.send(err);
-        } else {
-          res.json(obj);
-        }
-      });
-    }, this);
-  },
-  update: function() {
-    return function() {
-      
-    }
-  },
-  remove: function() {
-    return function() {
-      
-    }
-    
+  save: function(obj, req, res, next) {
+    return function(cb) {
+      obj.save(cb);
+    };
   },
   sendData: function(req, res, next) {
     return function(err, data) {
@@ -99,83 +61,81 @@ _.assign(Resource.prototype, {
       } else {
         res.json(data);
       }
-    }
-  }
+    };
+  },
+  list: function() {
+    return _.bind(function(req, res, next) {
+      var query = this.getQuery(req);
+      async.waterfall([
+        _.bind(query.exec, query),
+      ], this.sendData(req, res, next));
+    }, this);
+  },
+  create: function() {
+    return _.bind(function(req, res, next) {
+      var obj = new this.model(req.body);
+      async.waterfall([
+        this.save(obj, req, res, next),
+      ], this.sendData(req, res, next));
+    }, this);
+  },
+  detail: function(options) {
+    return _.bind(function(req, res, next) {
+      var query = this.getQuery(req).findOne({
+        _id: req.params[options.id]
+      });
+      async.waterfall([
+        _.bind(query.exec, query),
+      ], this.sendData(req, res, next));
+    }, this);
+  },
+  update: function() {
+    return function() {
+      
+    };
+  },
+  remove: function() {
+    return function() {
+      
+    };
+    
+  },
 });
 
 
 var CommunityResource = _.inherit(Resource, function(opts) {
-  Resource.call(this, _.assign({model: Community}, opts));
+  Resource.call(this, Community, opts);
 }, {
-  create: function() {
-    return function(req, res, next) {
-      var obj = new this.model(req.body);
+  save: function(obj, req, res, next) {
+    return function(cb) {
       var user = req.user;
       async.waterfall([
-        obj.save,
+        _.bind(obj.save, obj),
         function(cb) {
           user.memberships.push({
             community: obj._id,
             role: User.LEADER,
           });
           user.save(cb);
-        }
-      ], function(err) {
-        if (err) {
-          next(err);
-        } else {
-          res.json(obj);
-        }
-      });
-
-      obj.save(function(err) {
-        if (err) {
-          next(err);
-        } else {
-                  }
-      });
-    }
-   
-  }
-
-});
-new Resource(router, 'communities', {
-  model: Community, id: 'community', 
-  create: function(req, res) {
-    if (req.isAuthenticated()) {
-      var obj = new this.model(req.body);
-      obj.save(function(err) {
-        if (err) {
-          res.send(err);
-        } else {
-          req.user.memberships.push({
-            community: obj._id,
-            role: User.LEADER,
-          });
-          req.user.save(function() {
-            res.json(obj);
-          });
-        }
-      });
-    }
-  }
+        },
+      ], cb);
+    };
+  },
 });
 
-var userResource = new Resource({model: User});
+var userResource = new Resource(User);
 userResource.serve(router, 'users', {id: 'user'});
 
-new CommunityResource({model: Community}).serve(router, 'communities', {
-  id: 'community',
-});
+new CommunityResource().serve(router, 'communities', {id: 'community'});
 
-router.get('/auth', function(req, res) {
+router.get('/auth', function(req, res, next) {
   if (req.isAuthenticated()) {
     req.params.user = req.user._id;
     next();
   } else {
     res.json({});
   }
-}, userResource.detail());
+}, userResource.detail({id: 'user'}));
 
 
 module.exports = router;
