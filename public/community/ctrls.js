@@ -24,7 +24,7 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
       , community = new Community()
     ;
     $scope.community = community;
-
+	$scope.community.public="0";
     $scope.submit = function() {
       community.$save(function() {
         $location.path('/community/' + community._id + '/home');

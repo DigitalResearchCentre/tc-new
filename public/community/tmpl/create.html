@@ -16,10 +16,21 @@
       ng-model="community.longName">
   </div>
   <div class="form-group">
-    <label>Description</label>
-    <input type="text" class="form-control" placeholder="Description"
-      ng-model="community.description">
+    <label>Description</label><span class="community-create-inf" title="tell me">?</span>
+    <textarea class="form-control" placeholder="Description"
+      ng-model="community.description"></textarea> 
   </div>
-  <button type="button" class="btn btn-default" ng-click="submit()"
+  <div class="form-group">
+    <label>Accessible to others</label><br/>
+     <label>
+    		<input type="radio" name="accessComm" ng-model="community.public" value="1">
+    Public  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+  </label>
+  <label>
+    <input type="radio"  name="accessComm" ng-model="community.public" value="0">
+    Private 
+  </label> <span class="community-create-inf" title="Public: eveyone can see this community; Private (the defaul): only you and people you invite can see it">?</span>
+  </div>
+ <button type="button" class="btn btn-default" ng-click="submit()"
     >Create</button>
 </form>

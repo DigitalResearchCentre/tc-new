@@ -11,6 +11,7 @@ var CommunitySchema = new Schema({
   longName: String,
   description: String,
   fonts: [String],
+  public: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
   works: [{type: ObjectId, ref: 'Work'}],
 });
