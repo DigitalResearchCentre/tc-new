@@ -9,6 +9,17 @@ _.mixin({
 
     return child;
   },
+  dfs: function (node, fn) {
+    var queue = []
+      , cur
+    ;
+    queue.push(node);
+    while(queue.length > 0) {
+      cur = queue.pop();
+      fn(cur);
+      _.forEachRight(cur.children, _.bind(queue.push, queue));
+    }
+  },
 });
 
 module.exports = _;

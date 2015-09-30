@@ -1,7 +1,7 @@
 var _ = require('lodash')
   , $ = require('jquery')
 ;
-
+require('../utils/mixin');
 
 function createObjTree(node, queue) {
   var obj = {
@@ -22,7 +22,7 @@ function createObjTree(node, queue) {
       });
       break;
     case node.TEXT_NODE:
-      obj = node.nodeValue.trim();
+      obj.children = [node.nodeValue.trim()];
       break;
     case node.COMMENT_NODE:
       obj.children = [node.nodeValue.trim()];
@@ -41,8 +41,8 @@ function createObjTree(node, queue) {
 
 
 function loadObjTree(xmlDoc, parentEl, obj, queue) {
-  if (_.isString(obj)) {
-    childEl = xmlDoc.createTextNode(obj);
+  if (obj.name === '#text') {
+    childEl = xmlDoc.createTextNode(obj.children[0]);
   } else if (obj.name === '#comment') {
     childEl = xmlDoc.createComment(obj.children[0] || '');
   } else {
@@ -79,9 +79,8 @@ function xmlDoc2json(xmlDoc) {
       , parent = item.parent
       , child = createObjTree(item.child, queue)
     ;
-    if (child) {
-      parent.children.push(child);
-    }
+    parent.children.push(child);
+    child.parent = parent;
   }
   return obj;
 }
@@ -157,13 +156,61 @@ function foo() {
   
 }
 
-
 function commit(page, text) {
-  var xmlDoc = parseXML(text)
-    , node
-    , iter
+  var textObj = xml2json(text)
+    , texts = []
+    , docTags = ['pb', 'cb', 'lb']
+    , queue = []
+    , docRoot = {children: []}
+    , prevDoc, iter, node
   ;
+ 
+  _.dfs(textObj, function(node, i) {
+    var index = docTags.indexOf(node.name);
+    if (index > -1) {
+      var curDoc = {
+        children: [],
+      };
+      if (!prevDoc) {
+        docRoot.children.push(curDoc);
+      } else {
+        if (docTags.indexOf(prevDoc.label) < index) {
+          queue.push(prevDoc);
+        }
+        while (queue.length > 0 && 
+              docTags.indexOf(queue[queue.length-1].label) >= index) {
+          queue.pop();
+        }
+        if (queue.length > 0) {
+          queue[queue.length - 1].children.push(curDoc)
+        }
+        prevDoc = curDoc;
+      }
+    }
+
+
+    if (node.name === '#text') {
+      var textIndex = texts.length
+        , sibling
+      ;
+      if (prevDoc) {
+        sibling = _.last(prevDoc.children);
+        if (sibling.texts) {
+          sibling.texts.push(textIndex);
+        } else {
+          prevDoc.children.push({
+            texts: [textIndex],
+          });
+        }
+      }
+      texts.push(node.children[0]);
+      node.parent.children[i] = {texts: [textIndex]};
+    } else {
+    }
+   
+  });
   
+  /*
   window.xmlDoc = xmlDoc;
 
   _.each([
@@ -175,11 +222,13 @@ function commit(page, text) {
       , cur = iter.iterateNext()
     ;
     while (cur) {
-      cur.setAttribute('det:type', 'work');
+      cur.setAttribute('det:entity', 'work');
       cur = iter.iterateNext();
     }
   });
+
   _.each([
+    '//pb',
     '//cb',
     '//lb',
   ], function(xpath) {
@@ -195,19 +244,24 @@ function commit(page, text) {
   
   iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
   node = iter.iterateNext();
-  var prev = null;
-  var doc = {children: []};
-  var work = {};
   while (node) {
-    prev == null
-    node.parentNode == prev;
+    
     node.parentNode == prev.parentNode;
 
     if (node.nodeType === node.ELEMENT_NODE) {
       if (node.getAttribute('det:type') === 'doc') {
-        doc.children.push({
-          children: [''],
-        });
+        node.nodeName
+        docChild = {
+          children: []
+        };
+        if (node.getAttribute('n')) {
+          docChild.name = node.getAttribute('n');
+        }
+        docParent.children.push(docChild);
+      } else (node.getAttribute('det:type') === 'work'){
+        if (prev === null) {
+          workParent = workRoot;
+        }
       }
 
     } else if (node.nodeType === node.TEXT_NODE) {
@@ -291,6 +345,7 @@ function commit(page, text) {
   }
   console.log(page);
   console.log(work);
+  */
 }
 
 
