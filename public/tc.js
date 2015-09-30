@@ -159,14 +159,64 @@ function foo() {
 
 
 function commit(page, text) {
-  var xmlDoc = parseXML(text);
-  var i = 1;
-  var xpath;
-  var iter;
+  var xmlDoc = parseXML(text)
+    , node
+    , iter
+  ;
   
-  xpath = '//body/div[@n]';
-  window.xx = xmlDoc;
-  return;
+  window.xmlDoc = xmlDoc;
+
+  _.each([
+    '//body/div[@n]',
+    '//body/div[@n]/head[@n]',
+    '//body/div[@n]/ab[@n]',
+  ], function(xpath) {
+    var iter = xmlDoc.evaluate(xpath, xmlDoc)
+      , cur = iter.iterateNext()
+    ;
+    while (cur) {
+      cur.setAttribute('det:type', 'work');
+      cur = iter.iterateNext();
+    }
+  });
+  _.each([
+    '//cb',
+    '//lb',
+  ], function(xpath) {
+    var iter = xmlDoc.evaluate(
+        xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
+      , cur = iter.iterateNext()
+    ;
+    while (cur) {
+      cur.setAttribute('det:type', 'doc');
+      cur = iter.iterateNext();
+    }
+  });
+  
+  iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
+  node = iter.iterateNext();
+  var prev = null;
+  var doc = {children: []};
+  var work = {};
+  while (node) {
+    prev == null
+    node.parentNode == prev;
+    node.parentNode == prev.parentNode;
+
+    if (node.nodeType === node.ELEMENT_NODE) {
+      if (node.getAttribute('det:type') === 'doc') {
+        doc.children.push({
+          children: [''],
+        });
+      }
+
+    } else if (node.nodeType === node.TEXT_NODE) {
+
+    }
+    prev = node;
+    node = iter.iterateNext()
+  }
+
 
   if (page) {
     while (true) {
