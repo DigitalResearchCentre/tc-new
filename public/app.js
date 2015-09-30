@@ -43,11 +43,13 @@ tcApp.controller('AppCtrl', [
 
   $scope.hideHeader = false;
   $scope.app = TCService.app;
-  $scope.communities = Community.query();
+  var authUser = TCService.app.authUser;
 
-  $scope.login = function() {
-    TCService.login('test', 'password');
-  };
+  authUser.$promise.then(function() {
+    if (!authUser.local) {
+      TCService.login('boy198512@gmail.com', 'test');
+    }
+  });
   $scope.logout = function() {
     TCService.logout();
   };

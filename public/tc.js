@@ -157,36 +157,93 @@ function foo() {
   
 }
 
-function commit(page, text) {
-  var xmlDoc = parseXML(text);
-  var i = 1;
-  var xpath;
-  var iter;
 
-  while (true) {
-    xpath = '//text()[count(preceding::lb)=' + i + ']';
+function commit(page, text) {
+  var xmlDoc = parseXML(text)
+    , node
+    , iter
+  ;
+  
+  window.xmlDoc = xmlDoc;
+
+  _.each([
+    '//body/div[@n]',
+    '//body/div[@n]/head[@n]',
+    '//body/div[@n]/ab[@n]',
+  ], function(xpath) {
+    var iter = xmlDoc.evaluate(xpath, xmlDoc)
+      , cur = iter.iterateNext()
+    ;
+    while (cur) {
+      cur.setAttribute('det:type', 'work');
+      cur = iter.iterateNext();
+    }
+  });
+  _.each([
+    '//cb',
+    '//lb',
+  ], function(xpath) {
     var iter = xmlDoc.evaluate(
-        xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-    var lb = iter.iterateNext();
-    if (lb) {
-      var doc = page.children[i-1];
-      if (!doc) {
-        doc = {
-          children: [],
-        };
-        page.children.push(doc);
+        xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
+      , cur = iter.iterateNext()
+    ;
+    while (cur) {
+      cur.setAttribute('det:type', 'doc');
+      cur = iter.iterateNext();
+    }
+  });
+  
+  iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
+  node = iter.iterateNext();
+  var prev = null;
+  var doc = {children: []};
+  var work = {};
+  while (node) {
+    prev == null
+    node.parentNode == prev;
+    node.parentNode == prev.parentNode;
+
+    if (node.nodeType === node.ELEMENT_NODE) {
+      if (node.getAttribute('det:type') === 'doc') {
+        doc.children.push({
+          children: [''],
+        });
       }
-      doc.name = i - 1;
-      while (lb) {
-        if (lb.nodeValue.trim()) {
-          lb.doc = doc;
-          doc.children.push(lb.nodeValue.trim());
+
+    } else if (node.nodeType === node.TEXT_NODE) {
+
+    }
+    prev = node;
+    node = iter.iterateNext()
+  }
+
+
+  if (page) {
+    while (true) {
+      xpath = '//text()[count(preceding::lb)=' + i + ']';
+      var iter = xmlDoc.evaluate(
+          xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+      var lb = iter.iterateNext();
+      if (lb) {
+        var doc = page.children[i-1];
+        if (!doc) {
+          doc = {
+            children: [],
+          };
+          page.children.push(doc);
         }
-        lb = iter.iterateNext();
+        doc.name = i - 1;
+        while (lb) {
+          if (lb.nodeValue.trim()) {
+            lb.doc = doc;
+            doc.children.push(lb.nodeValue.trim());
+          }
+          lb = iter.iterateNext();
+        }
+        i += 1;
+      } else {
+        break;
       }
-      i += 1;
-    } else {
-      break;
     }
   }
   var work = {
@@ -251,7 +308,17 @@ function TCService($resource) {
         });
         return community;
       },
-    }
+    },
+    'save':   {
+      method:'POST',
+      transformResponse: function(data) {
+        var community = angular.fromJson(data);
+        // auto sync 
+        app.communities.push(community);
+        app.authUser.$get();
+        return community;
+      },
+    },
   });
 
   var Doc = $resource('/docs/:id', {
@@ -260,7 +327,7 @@ function TCService($resource) {
     'patch': {method: 'PATCH'},
   });
 
-  var Login = $resource('/login/', null, {
+  var Login = $resource('/auth/login/', null, {
     'login': {method: 'POST'},
   });
 
@@ -270,13 +337,14 @@ function TCService($resource) {
 
   var app = {
     authUser: AuthUser.get(),
+    communities: Community.query(),
   };
 
 
   var TC = {
     app: app,
-    login: function(username, password) {
-      Login.login({username: username, password: password}, function(user) {
+    login: function(email, password) {
+      Login.login({email: email, password: password}, function(user) {
         app.authUser = AuthUser.get();
       });
     },
@@ -298,6 +366,7 @@ function TCService($resource) {
       }
       return cache;
     },
+    parseXML: parseXML,
     xml2json: xml2json,
     json2xml: json2xml,
     json2xmlDoc: json2xmlDoc,

@@ -1,129 +1,50 @@
-var express = require('express')
-  , _ = require('lodash')
+var _ = require('lodash')
+  , async = require('async')
+  , express = require('express')
   , router = express.Router()
+  , Resource = require('./resource')
   , models = require('../models')
   , Community = models.Community
   , User = models.User
 ;
 
-var Resource = function(router, name, opts) {
-  this.router = router;
-  this.options = _.assign({
-    id: 'id',
-    list: this.list,
-    create: this.create,
-    detail: this.detail,
-    update: this.update,
-    remove: this.remove,
-  }, opts);
-  this.resource(name);
-};
-_.assign(Resource.prototype, {
-  resource: function(name) {
-    var options = this.options;
-    this.model = options.model;
-
-    this.router.route('/' + name)
-      .get(_.bind(options.list, this))
-      .post(_.bind(options.create, this))
-    ;
-
-    this.router.route('/' + name + '/:' + options.id)
-      .get(_.bind(options.detail, this))
-      .put(_.bind(options.update, this))
-      .delete(_.bind(options.remove, this))
-    ;
-  },
-  getQuery: function(req) {
-    var urlQuery = req.query || {}
-      , find = JSON.parse(urlQuery.find || '{}')
-      , select = JSON.parse(urlQuery.select || 'null')
-      , sort = JSON.parse(urlQuery.sort || 'null')
-      , fields = JSON.parse(urlQuery.fields || 'null')
-      , query
-    ;
-    query = this.model.find(find);
-    if (select) {
-      query = query.select(select);
-    }
-    if (sort) {
-      query = query.sort(sort);
-    }
-    if (fields) {
-      query = query.populate(fields);
-    }
-    return query;
-  },
-  list: function(req, res) {
-    var query = this.getQuery(req);
-    query.exec(function(err, objs) {
-      if (err) {
-        res.send(err);
-      } else {
-        res.json(objs);
-      }
-    });
-  },
-  create: function(req, res) {
-    var obj = new this.model(req.body);
-    obj.save(function(err) {
-      if (err) {
-        res.send(err);
-      } else {
-        res.json(obj);
-      }
-    });
-  },
-  detail: function(req, res) {
-    var query = this.getQuery(req).findOne({_id: req.params[this.options.id]});
-    query.exec(function(err, obj) {
-      if (err) {
-        res.send(err);
-      } else {
-        res.json(obj);
-      }
-    });
-  },
-  update: function() {
-    
-  },
-  remove: function() {
-    
-  },
-});
-
-
-new Resource(router, 'communities', {
-  model: Community, id: 'community', 
-  create: function(req, res) {
-    if (req.isAuthenticated()) {
-      var obj = new this.model(req.body);
-      obj.save(function(err) {
-        if (err) {
-          res.send(err);
-        } else {
-          req.user.memberships.push({
-            community: obj._id,
+var CommunityResource = _.inherit(Resource, function(opts) {
+  Resource.call(this, Community, opts);
+}, {
+  save: function(community, req, res, next) {
+    return function(cb) {
+      var user = req.user;
+      async.waterfall([
+        _.bind(community.save, community),
+        function(community, numberAffected, cb) {
+          user.memberships.push({
+            community: community._id,
             role: User.LEADER,
           });
-          req.user.save(function() {
-            res.json(obj);
-          })
-        }
-      });
-    }
-  }
+          cb(null);
+        },
+        _.bind(user.save, user),
+        function(user, numberAffected, cb) {
+          cb(null, community);
+        },
+      ], cb);
+    };
+  },
 });
 
-new Resource(router, 'users', {model: User, id: 'user'});
+var userResource = new Resource(User, {id: 'user'});
+userResource.serve(router, 'users');
 
-router.get('/auth', function(req, res) {
+new CommunityResource({id: 'community'}).serve(router, 'communities');
+
+router.get('/auth', function(req, res, next) {
   if (req.isAuthenticated()) {
-    res.json(req.user);
+    req.params.user = req.user._id;
+    next();
   } else {
     res.json({});
   }
-});
+}, userResource.detail());
 
 
 module.exports = router;

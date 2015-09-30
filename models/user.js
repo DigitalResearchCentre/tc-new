@@ -51,10 +51,8 @@ userSchema.methods.validPassword = function(password) {
   return bcrypt.compareSync(password, this.local.password);
 };
 
+userSchema.statics.LEADER = 'LEADER';
+
 // create the model for users and expose it to our app
-var User = mongoose.model('User', userSchema);
-User.ROLE = {
-  LEADER: 'LEADER',
-};
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);
 

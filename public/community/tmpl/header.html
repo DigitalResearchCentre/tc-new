@@ -10,7 +10,8 @@
   <li><a href="#">Wiki</a></li>
   <li><a href="#">Blog</a></li>
   <li><a href="#">Bulletin Board</a></li>
-  <li><a href="#">Manage</a></li>
+  <li><a href="#/community/{{community._id}}/manage" 
+      ng-class="{selected: tab == 'manage'}">Manage</a></li>
 </ul></nav>
 <img src="{{community.img}}"/>
 
