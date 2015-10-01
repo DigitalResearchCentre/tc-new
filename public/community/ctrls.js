@@ -104,9 +104,14 @@ var ManageCtrl = function($scope, $routeParams, TCService) {
   $scope.text = 'hello';
 
   $scope.submit = function() {
-    TCService.commit(null, $scope.text);
-
-  }
+    if (!doc._id) {
+      doc.$save(function() {
+        TCService.commit(doc, $scope.text);
+      });
+    } else {
+      TCService.commit(doc, $scope.text);
+    }
+  };
 };
 ManageCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
