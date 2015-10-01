@@ -27,6 +27,7 @@ _.assign(Resource.prototype, {
     router.route('/' + name + '/:' + options.id)
       .get(this.detail())
       .put(options.auth.update, this.update())
+      .patch(options.auth.update, this.patch())
       .delete(options.auth.delete, this.remove())
     ;
   },
@@ -58,8 +59,20 @@ _.assign(Resource.prototype, {
     }
     return query;
   },
-  save: function(obj, req, res, next) {
+  beforeCreate: function(req, res, next) {
+    var obj = new this.model(req.body);
     return function(cb) {
+      cb(null, obj);
+    };
+  },
+  beforeUpdate: function(req, res, next) {
+    return function(obj, cb) {
+      obj.set(req.body);
+      cb(null, obj);
+    };
+  },
+  execSave: function(req, res, next) {
+    return function(obj, cb) {
       obj.save(cb);
     };
   },
@@ -82,17 +95,16 @@ _.assign(Resource.prototype, {
   },
   create: function() {
     return _.bind(function(req, res, next) {
-      var obj = new this.model(req.body);
       async.waterfall([
-        this.save(obj, req, res, next),
+        this.beforeCreate(req, res, next),
+        this.execSave(req, res, next),
       ], this.sendData(req, res, next));
     }, this);
   },
-  detail: function(opts) {
-    var options = _.assign({}, this.options, opts);
+  detail: function() {
     return _.bind(function(req, res, next) {
       var query = this.getQuery(req).findOne({
-        _id: req.params[options.id]
+        _id: req.params[this.options.id]
       });
       async.waterfall([
         _.bind(query.exec, query),
@@ -100,15 +112,41 @@ _.assign(Resource.prototype, {
     }, this);
   },
   update: function() {
-    return function() {
-      
-    };
+    return _.bind(function(req, res, next) {
+      var query = this.getQuery(req).findOne({
+        _id: req.params[this.options.id]
+      });
+      async.waterfall([
+        _.bind(query.exec, query),
+        this.beforeUpdate(req, res, next),
+        this.execSave(req, res, next),
+      ], this.sendData(req, res, next));
+    }, this);
+  },
+  patch: function() {
+    return _.bind(function(req, res, next) {
+      var query = this.getQuery(req).findOne({
+        _id: req.params[this.options.id],
+      });
+      async.waterfall([
+        _.bind(query.exec, query),
+        this.beforeUpdate(req, res, next),
+        this.execSave(req, res, next),
+      ], this.sendData(req, res, next));
+    }, this);
   },
   remove: function() {
-    return function() {
-      
-    };
-    
+    return _.bind(function(req, res, next) {
+      this.getQuery(req).remove({
+        _id: req.params[this.options.id]
+      }, function(err) {
+        if (err) {
+          next(err);
+        } else {
+          res.json({message: 'Successfully deleted'});
+        }
+      });
+    }, this);
   },
 });
 

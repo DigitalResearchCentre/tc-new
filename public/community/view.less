@@ -1,0 +1,87 @@
+.view {
+    .flex-row;
+    .sidebar {
+        flex: 1;
+
+        >* {
+            display: inline-block;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.tree {
+
+            li {
+                padding-left: 16px;
+                >div>.icon {
+                    .glyphicon;
+                    .glyphicon-triangle-bottom;
+                }
+            }
+
+            li.collapse-node {
+
+                >div>.icon {
+                    .glyphicon-triangle-right;
+                }
+
+                >ul {
+                    display: none;
+                }
+            }
+
+        }
+
+    }
+
+    .viewer {
+        flex: 5;
+        .flex-column;
+
+        .image-viewer {
+            flex: 1;
+        }
+
+        .text-viewer {
+            flex: 1;
+            .flex-column;
+
+            .transcript-header {
+                flex: 0 0 23px;
+            }
+
+            .transcript {
+                flex: 1 1 0;
+                .flex-column;
+
+                >textarea {
+                    flex: 0 0 0;
+                }
+
+                .CodeMirror {
+                    flex: 1 1 0;
+                    .flex-column;
+                    overflow-x: hidden;
+                    overflow-y: auto;
+
+                    >* {
+                        flex: 0 0 0;
+                    }
+                    
+                    >.CodeMirror-scroll {
+                        flex: 1 1 0;
+                    }
+                }
+            }
+
+            .buttons {
+                flex: 0 0 26px;
+            }
+
+        }
+    }
+}
+

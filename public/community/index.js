@@ -11,6 +11,7 @@ communityModule
   .controller('ManageCtrl', ctrls.ManageCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))
+  .directive('codemirror', require('./codemirror'))
 ;
 
 module.exports = communityModule;

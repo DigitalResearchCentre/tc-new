@@ -79,8 +79,10 @@ function xmlDoc2json(xmlDoc) {
       , parent = item.parent
       , child = createObjTree(item.child, queue)
     ;
+    if (_.isNumber(item.child.textIndex)) {
+      child.textIndex = item.child.textIndex;
+    }
     parent.children.push(child);
-    child.parent = parent;
   }
   return obj;
 }
@@ -117,22 +119,6 @@ function iterate(iter, cb) {
   }
 }
 
-function commit2(text) {
-  var xmlDoc = parseXML(text)
-    , docTags = ['lb']
-    , workTags = ['div', 'l']
-    , iter
-  ;
-
-  //lb[count(preceding::
-  _.each(docTags, function(tag) {
-    iter = xmlDoc.evaluate()
-  });
-
-  text = {};
-  doc = {};
-  work = {};
-}
 
 function foo() {
   var d1 = {
@@ -151,203 +137,118 @@ function foo() {
     ]
   };
   var doc = {}
-    , texts = doc.getTexts();
+    , texts = doc.getTexts()
   ;
   
 }
 
-function commit(page, text) {
-  var textObj = xml2json(text)
-    , texts = []
+function commit(docResource, text, opts) {
+  var texts = []
+    , xmlDoc = parseXML(text)
     , docTags = ['pb', 'cb', 'lb']
-    , queue = []
     , docRoot = {children: []}
-    , prevDoc, iter, node
+    , workRoot = {children: []}
+    , queue
+    , teiRoot 
+    , prevDoc
   ;
- 
-  _.dfs(textObj, function(node, i) {
-    var index = docTags.indexOf(node.name);
-    if (index > -1) {
-      var curDoc = {
-        children: [],
-      };
-      if (!prevDoc) {
-        docRoot.children.push(curDoc);
-      } else {
-        if (docTags.indexOf(prevDoc.label) < index) {
-          queue.push(prevDoc);
-        }
-        while (queue.length > 0 && 
-              docTags.indexOf(queue[queue.length-1].label) >= index) {
-          queue.pop();
-        }
-        if (queue.length > 0) {
-          queue[queue.length - 1].children.push(curDoc)
-        }
-        prevDoc = curDoc;
-      }
-    }
-
-
-    if (node.name === '#text') {
-      var textIndex = texts.length
-        , sibling
-      ;
-      if (prevDoc) {
-        sibling = _.last(prevDoc.children);
-        if (sibling.texts) {
-          sibling.texts.push(textIndex);
-        } else {
-          prevDoc.children.push({
-            texts: [textIndex],
-          });
-        }
-      }
-      texts.push(node.children[0]);
-      node.parent.children[i] = {texts: [textIndex]};
-    } else {
-    }
-   
-  });
-  
-  /*
-  window.xmlDoc = xmlDoc;
+  xmlDoc.work = workRoot;
 
   _.each([
     '//body/div[@n]',
     '//body/div[@n]/head[@n]',
     '//body/div[@n]/ab[@n]',
+    '//body/div[@n]/l[@n]',
   ], function(xpath) {
     var iter = xmlDoc.evaluate(xpath, xmlDoc)
       , cur = iter.iterateNext()
+      , parent
+      , work
     ;
-    while (cur) {
-      cur.setAttribute('det:entity', 'work');
-      cur = iter.iterateNext();
-    }
-  });
-
-  _.each([
-    '//pb',
-    '//cb',
-    '//lb',
-  ], function(xpath) {
-    var iter = xmlDoc.evaluate(
-        xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null)
-      , cur = iter.iterateNext()
-    ;
-    while (cur) {
-      cur.setAttribute('det:type', 'doc');
-      cur = iter.iterateNext();
-    }
-  });
-  
-  iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
-  node = iter.iterateNext();
-  while (node) {
-    
-    node.parentNode == prev.parentNode;
-
-    if (node.nodeType === node.ELEMENT_NODE) {
-      if (node.getAttribute('det:type') === 'doc') {
-        node.nodeName
-        docChild = {
-          children: []
-        };
-        if (node.getAttribute('n')) {
-          docChild.name = node.getAttribute('n');
-        }
-        docParent.children.push(docChild);
-      } else (node.getAttribute('det:type') === 'work'){
-        if (prev === null) {
-          workParent = workRoot;
-        }
-      }
-
-    } else if (node.nodeType === node.TEXT_NODE) {
-
-    }
-    prev = node;
-    node = iter.iterateNext()
-  }
-
-
-  if (page) {
-    while (true) {
-      xpath = '//text()[count(preceding::lb)=' + i + ']';
-      var iter = xmlDoc.evaluate(
-          xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-      var lb = iter.iterateNext();
-      if (lb) {
-        var doc = page.children[i-1];
-        if (!doc) {
-          doc = {
-            children: [],
-          };
-          page.children.push(doc);
-        }
-        doc.name = i - 1;
-        while (lb) {
-          if (lb.nodeValue.trim()) {
-            lb.doc = doc;
-            doc.children.push(lb.nodeValue.trim());
-          }
-          lb = iter.iterateNext();
-        }
-        i += 1;
-      } else {
-        break;
-      }
-    }
-  }
-  var work = {
-    children: [],
-  };
-  var parent = work;
-  xpath = '//div';
-  iter = xmlDoc.evaluate(
-      xpath, xmlDoc, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-  var cur = iter.iterateNext();
-      window.cur = cur;
-      window.xx = xmlDoc;
-
-
-  while(cur) {
-    var child = {
-      children: [],
-    };
-    child.name = cur.getAttribute('n');
-    parent.children.push(child);
-
-    ii = xmlDoc.evaluate(
-      './/l', cur, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-    c = ii.iterateNext();
-    while (c) {
-      var cc = {
+    while(cur) {
+      work = {
+        name: cur.getAttribute('n') || '',
         children: [],
       };
-      cc.name = c.getAttribute('n');
-      child.children.push(cc);
-      iii = xmlDoc.evaluate(
-        './/text()', c, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
-      t = iii.iterateNext();
-      while (t) {
-        if (t.nodeValue.trim()) {
-          cc.children.push(t.nodeValue);
+      cur.work = work;
+      parent = cur.parentNode;
+      while (parent) {
+        if (parent.work) {
+          parent.work.children.push(work);
+          break;
         }
-        t = iii.iterateNext();
+        parent = parent.parentNode;
       }
-
-      c = ii.iterateNext();
+      cur = iter.iterateNext();
     }
+  });
 
-    cur = iter.iterateNext();
+  var iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
+  var node = iter.nextNode();
+  var label;
+  queue = [docRoot];
+  while (node) {
+    if (node.nodeType === node.ELEMENT_NODE) {
+      var index = docTags.indexOf(node.nodeName);
+      // if node is doc
+      if (index > -1) {
+        var curDoc = {
+          label: node.nodeName,
+          children: [],
+        };
+        if (node.getAttribute('n')) {
+          curDoc.name = node.getAttribute('n');
+        }
+        if (!prevDoc) {
+          docRoot.children.push(curDoc);
+        } else {
+          if (docTags.indexOf(prevDoc.label) < index) {
+            queue.push(prevDoc);
+          }
+          while (queue.length > 0) {
+            label = _.last(queue).label;
+            if (!label || docTags.indexOf(label) < index) {
+              break;
+            }
+            queue.pop();
+          }
+          if (queue.length > 0) {
+            queue[queue.length - 1].children.push(curDoc);
+          }
+        }
+        prevDoc = curDoc;
+      }
+    } else if (node.nodeType === node.TEXT_NODE) {
+      var textIndex = texts.length
+        , sibling
+      ;
+      if (prevDoc) {
+        sibling = _.last(prevDoc.children);
+        if (sibling && sibling.texts) {
+          sibling.texts.push(textIndex);
+        } else {
+          prevDoc.children.push({
+            texts: [textIndex],
+            children: [],
+          });
+        }
+      }
+      texts.push(node.nodeValue.trim());
+      node.textIndex = textIndex;
+    }
+    node = iter.nextNode();
   }
-  console.log(page);
-  console.log(work);
-  */
-}
 
+  teiRoot = xmlDoc2json(xmlDoc);
+
+  docResource.commit = {
+    tei: teiRoot,
+    doc: docRoot,
+    work: workRoot,
+    texts: texts,
+  };
+  docResource.$update(_.assign({}, opts));
+}
 
 function TCService($resource) {
   MODEL_CACHE = {};
@@ -376,10 +277,11 @@ function TCService($resource) {
     },
   });
 
-  var Doc = $resource('/docs/:id', {
+  var Doc = $resource('/api/docs/:id', {
     id: '@_id',
   }, {
     'patch': {method: 'PATCH'},
+    'update': {method: 'PUT'},
   });
 
   var Login = $resource('/auth/login/', null, {
