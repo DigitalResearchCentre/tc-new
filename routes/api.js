@@ -8,13 +8,15 @@ var _ = require('lodash')
   , User = models.User
   , Doc = models.Doc
   , Revision = models.Revision
+  , TextNode = models.TextNode
 ;
 
 var CommunityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Community, opts);
 }, {
-  execSave: function(community, req, res, next) {
-    return function(cb) {
+  execSave: function(req, res, next) {
+    return function(community) {
+      var cb = _.last(arguments);
       var user = req.user;
       async.waterfall([
         _.bind(community.save, community),
@@ -107,6 +109,8 @@ router.get('/docs/:id/texts', function(req, res, next) {
     ancestors: docId
   }, function(err, docs) {
     res.json(docs);
+
+    
     
   });
 });
