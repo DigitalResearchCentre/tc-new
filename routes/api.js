@@ -45,9 +45,50 @@ var DocResource = _.inherit(Resource, function(opts) {
   }
 }, {
   execSave: function(req, res, next) {
-    return function(obj, cb) {
-      console.log(obj);
-      obj.save(cb);
+    return function(obj, callback) {
+      async.parallel([
+        function(cb) {
+          if (req.body.revision) {
+            var revision = new Revision({
+              doc: obj._id,
+              text: req.body.revision,
+            });
+            revision.save(cb);
+            doc.revision.push(revision._id);
+          } else {
+            cb(null);
+          }
+        },
+        function(cb) {
+          if (req.body.community) {
+            var query = Community.findOne({
+              _id: req.body.community
+            });
+            async.waterfall([
+              _.bind(query.exec, query),
+              function(community, cb) {
+                community.documents.push(obj._id);
+                community.save(cb);
+              },
+            ], cb);
+          } else {
+            cb(null);
+          }
+        },
+        function(cb) {
+          if (req.body.commit) {
+            obj.commit(req.body.commit, cb);
+          } else {
+            cb(null);
+          }
+        }
+      ], function(err, results) {
+        if (err) {
+          callback(err);
+        } else {
+          obj.save(callback);
+        }
+      });
     };
   },
 });

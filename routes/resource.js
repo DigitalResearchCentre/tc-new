@@ -27,6 +27,7 @@ _.assign(Resource.prototype, {
     router.route('/' + name + '/:' + options.id)
       .get(this.detail())
       .put(options.auth.update, this.update())
+      .patch(options.auth.update, this.patch())
       .delete(options.auth.delete, this.remove())
     ;
   },
@@ -122,11 +123,30 @@ _.assign(Resource.prototype, {
       ], this.sendData(req, res, next));
     }, this);
   },
+  patch: function() {
+    return _.bind(function(req, res, next) {
+      var query = this.getQuery(req).findOne({
+        _id: req.params[this.options.id],
+      });
+      async.waterfall([
+        _.bind(query.exec, query),
+        this.beforeUpdate(req, res, next),
+        this.execSave(req, res, next),
+      ], this.sendData(req, res, next));
+    }, this);
+  },
   remove: function() {
-    return function() {
-      
-    };
-    
+    return _.bind(function(req, res, next) {
+      this.getQuery(req).remove({
+        _id: req.params[this.options.id]
+      }, function(err) {
+        if (err) {
+          next(err);
+        } else {
+          res.json({message: 'Successfully deleted'});
+        }
+      });
+    }, this);
   },
 });
 

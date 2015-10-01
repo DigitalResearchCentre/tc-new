@@ -63,34 +63,23 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
   $scope.page = null;
   if (pageId) {
     $scope.page = page = TCService.get(pageId, Doc);
-    $scope.text = '';
     if (!page.revisions || _.isString(_.last(page.revisions))) {
       $scope.page.$get({
         fields: JSON.stringify({path: 'revisions'}),
-      }, function() {
-        var revision = _.last(page.revisions);
-        if (revision) {
-          $scope.text = revision.text;
-        }
       });
-    } else {
-      var revision = _.last(page.revisions);
-      if (revision) {
-        $scope.text = revision.text;
-      }
     }
   }
   $scope.save = function() {
-    Doc.patch({id: page._id}, {text: $scope.text}, function() {
+    console.log($scope);
+    Doc.patch({id: page._id}, {revision: $scope.text}, function() {
       page.$get();
     });
   };
   $scope.commit = function() {
     var text = $scope.text;
     TCService.commit($scope.page, text);
-    /*
-    */
   };
+
 };
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
@@ -105,7 +94,9 @@ var ManageCtrl = function($scope, $routeParams, TCService) {
 
   $scope.submit = function() {
     if (!doc._id) {
+      doc.community = community;
       doc.$save(function() {
+        community.documents.push(doc);
         TCService.commit(doc, $scope.text);
       });
     } else {

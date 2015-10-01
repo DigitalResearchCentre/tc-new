@@ -196,6 +196,9 @@ function commit(docResource, text) {
           label: node.nodeName,
           children: [],
         };
+        if (node.getAttribute('n')) {
+          curDoc.name = node.getAttribute('n');
+        }
         if (!prevDoc) {
           docRoot.children.push(curDoc);
         } else {
@@ -244,7 +247,6 @@ function commit(docResource, text) {
     work: workRoot,
     texts: texts,
   };
-  console.log(docResource);
   docResource.$update();
 }
 

@@ -37,9 +37,22 @@
       x-resizer-top=".image-viewer" x-resizer-bottom=".text-viewer">
     </div>
     <div class="text-viewer">
-      <textarea ng-model="text"></textarea>
-      <button ng-click="save()">save</button>
-      <button ng-click="commit()">commit</button>
+      <div class="transcript-header">
+        <select>
+        </select>
+        <label>Compare With: </label>
+        <select>
+        </select>
+      </div>
+      <div x-codemirror class="transcript">
+        <textarea></textarea>
+      </div>
+      <div class="buttons">
+        <button type="button" class="btn btn-default btn-xs" 
+          ng-click="save()">save</button>
+        <button type="button" class="btn btn-default btn-xs"
+          ng-click="commit()">commit</button>
+      </div>
     </div>
   </div>
 </div>

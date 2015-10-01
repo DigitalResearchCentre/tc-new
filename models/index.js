@@ -121,54 +121,58 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
   texts: [{type: ObjectId, ref: 'TextNode'}],
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
-_.assign(DocSchema.methods, baseDoc.methods);
+_.assign(DocSchema.methods, baseDoc.methods, {
+  commit: function(commit, callback) {
+    var docRoot = commit.doc
+      , workRoot = commit.work
+      , teiRoot = commit.tei
+      , texts = commit.texts
+      , doc = this
+      , queue
+      , cur, curDoc
+      , docs = []
+      , works = []
+      , teis = []
+    ;
+    texts = _.map(texts, function(text) {
+      return new TextNode({text: text});
+    }) || [];
+    doc._children = docRoot.children || [];
+    queue = [doc];
 
-DocSchema.virtual('commit').set(function(commit, callback) {
-  var docRoot = commit.doc
-    , workRoot = commit.work
-    , teiRoot = commit.tei
-    , texts = commit.texts
-    , doc = this
-    , queue
-    , cur, curDoc
-    , docs = []
-    , works = []
-    , teis = []
-  ;
-  texts = _.map(texts, function(text) {
-    return new TextNode({text: text});
-  }) || [];
-  doc._children = docRoot.children || [];
-  queue = [doc];
-
-  function _mapChild(child) {
-    var childDoc = new Doc(child);
-    childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
-    childDoc.texts = _.map(child.texts, function(textIndex) {
-      return texts[textIndex]._id;
-    });
-    childDoc._children = child.children;
-    queue.push(childDoc);
-    return childDoc;
-  }
-
-  while (queue.length > 0) {
-    curDoc = queue.shift();
-    curDoc.children = _.map(curDoc._children, _mapChild);
-    docs.push(curDoc);
-  }
-
-  async.each(
-    texts.concat(docs).concat(works).concat(teis), 
-    function(obj, cb) {
-      obj.save(function(err) {
-        cb(err);
+    function _mapChild(child, i) {
+      var childDoc = new Doc(child);
+      if (!childDoc.name) {
+        childDoc.name = '' + (i + 1);
+      }
+      childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
+      childDoc.texts = _.map(child.texts, function(textIndex) {
+        return texts[textIndex]._id;
       });
-    }, 
-    callback
-  );
-});
+      childDoc._children = child.children;
+      queue.push(childDoc);
+      return childDoc;
+    }
 
+    while (queue.length > 0) {
+      curDoc = queue.shift();
+      curDoc.children = _.map(curDoc._children, _mapChild);
+      docs.push(curDoc);
+    }
+
+    async.each(
+      texts.concat(docs).concat(works).concat(teis), 
+      function(obj, cb) {
+        obj.save(function(err) {
+          console.log(obj);
+          console.log(err);
+          cb(err);
+        });
+      }, 
+      callback
+    );
+  }
+});
 
 var Doc = mongoose.model('Doc', DocSchema);
 
