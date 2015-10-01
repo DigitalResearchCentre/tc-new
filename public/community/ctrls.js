@@ -24,12 +24,22 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
       , community = new Community()
     ;
     $scope.community = community;
-	$scope.community.public="0";
-    $scope.submit = function() {
-      community.$save(function() {
-        console.log(community);
-        //$location.path('/community/' + community._id + '/home');
-      });
+	$scope.community.public=false;
+	$scope.community.accept=false;
+     $scope.submit = function() { //is everything in order? if not, send messages and warnings
+     	$scope.message="";
+     	if (!community.name) {$scope.message="Community name cannot be blank"}
+     	else if (!community.abbr) {$scope.message="Community abbreviation cannot be blank"}
+    	else if (community.name.length>19) {$scope.message="Community name "+community.name+" must be less than 20 characters"}
+    	else if (community.abbr.length>4)  {$scope.message="Community abbreviation "+community.abbr+" must be less than 5 characters"}
+    	else if (community.longName.length>80) {$scope.message="Community long name "+community.longName+" must be less than 80 characters"}
+		if ($scope.message.length>0) {
+    		$location.path('/community/new');
+    	} else {
+       	 	community.$save(function() {
+        		$location.path('/community/' + community._id + '/home');
+	    	 });
+	    };
     };
 };
 CreateCommunityCtrl.$inject = [

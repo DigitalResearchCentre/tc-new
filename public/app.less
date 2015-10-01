@@ -3,16 +3,20 @@
 
 .flex-column {
     display: flex;
+    display:-webkit-flex;
     flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
+    -webkit-flex-direction: column;
     align-content: stretch;
+    -webkit-align-items: flex-stretch;
 }
 
 .flex-row {
     .flex-column;
     flex-direction: row;
-}
+	-webkit-flex-direction: row;
+    webkit-justify-content: flex-stretch;
+    align-items: stretch;
+ }
 
 html, body {
     width: 100%;
@@ -40,24 +44,45 @@ body {
 
 
     .header {
-        .title {
+        .titleComm {
             display: inline-block;
             height: 100%;
+            text-align: center;
+			vertical-align: middle;
             padding: 0 13px;
             margin: 1px 0;
             font-family: Arial;
             font-size: 24px;
             background-color: white;
             line-height: 50px;
+            width: 200px;
         }
+        .titleTC {
+            display: inline-block;
+            height: 100%;
+            text-align: center;
+			vertical-align: middle;
+            padding: 0 13px;
+            margin: 1px 0;
+            font-family: Arial;
+            font-size: 24px;
+            background-color: white;
+            line-height: 50px;
+            width: 300px;
+        }
+
     }
 
     .tc-header {
         flex: 0 0 50px;
         #TCHead {
             display: flex;
+            float: right;
+            display:-webkit-flex;
             justify-content:  flex-end;
+            webkit-justify-content: flex-end;
             align-items: center;
+            -webkit-align-items: flex-stretch;
         }
     }
 
@@ -68,13 +93,15 @@ body {
         .community-header {
             flex: 0 0 54px;
             display: flex;
+            isplay:-webkit-flex;
             flex-direction: row;
+            -webkit-flex-direction: row;
             align-items: flex-start;
+            -webkit-align-items: flex-start;
             border-width: 1px;
             border-style: solid;
-            margin: 4px 0;
+            margin: 8px 10px 8px 0;
             background-color: #3f3f3f;
-
         }
 
         .community-content {
@@ -134,13 +161,13 @@ body {
     nav {
         margin: 0 10px 0 10px;
         padding: 0;
-
+        float: right;
+		
         ul {
             display: inline-block;
             position: relative;
             top: 0;
             margin: 0 0 0 8px;
-            border-style: solid;
             border-width: 1px;
             border-color: #3f3f3f;
             list-style: none;
@@ -188,9 +215,7 @@ body {
                 }
 
             }
-
-
-            ul {
+	         ul {
                 display: none;
 		background: #5f6975; border-radius: 0px; padding: 0;
 		position: absolute; top: 100%; right: 0px; text-align: center;
@@ -199,12 +224,12 @@ body {
                     float: none; 
                     border-top: 1px solid #6b727c;
                     border-bottom: 1px solid #575f6a; position: relative;
-
-                    a {
+					  a {
                         padding: 5px 10px;
+                        position:relative;
                         white-space: nowrap;
                         color: #fff;
-
+						 z-index:-1;
                         &:hover {
                             background: #4b545f;
                         }
@@ -213,10 +238,17 @@ body {
             }
         }
     }
-
+	nav.TCHul {
+		    border-width: 1px;
+            border-style: solid;
+            line-height: 1;
+	}
     nav.TCHul ul li a {
         display: block;
+        position: relative;
         color: black;
+        opacity:1;
+         z-index:1;
     }
 
     #editHolder {

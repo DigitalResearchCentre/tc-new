@@ -1,5 +1,6 @@
-<div class="title">{{community.name}}</div>
-<nav><ul>
+<div class="titleComm">{{community.name}}</div>
+<nav class="communitynav">
+<ul>
   <li><a href="#/community/{{community._id}}/home" 
       ng-class="{selected: tab == 'home'}">Home</a>
   </li>
@@ -13,7 +14,7 @@
   <li><a href="#/community/{{community._id}}/manage" 
       ng-class="{selected: tab == 'manage'}">Manage</a></li>
 </ul></nav>
-<img src="{{community.img}}"/>
+<img class="communityimage" src="{{community.img}}"/>
 
 
 

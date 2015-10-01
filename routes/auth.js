@@ -587,7 +587,7 @@ function isLoggedIn(req, res, next) {
 //also check here for fb, google?: is this new account linked to a user when it is already linked to another local user?
 //or do that later
 function isValidProfile(req, res, next) {
-  console.log("who I am in authenticate: "+req.user);
+//  console.log("who I am in authenticate: "+req.user);
   if (Object.keys(req.user.local).length===0 || typeof req.user.local.email === "undefined") return false;
   return true;
 }
