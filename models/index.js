@@ -147,7 +147,9 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       }
       childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
       childDoc.texts = _.map(child.texts, function(textIndex) {
-        return texts[textIndex]._id;
+        var text = texts[textIndex];
+        text.docs = childDoc.ancestors.concat(childDoc._id);
+        return text._id;
       });
       childDoc._children = child.children;
       queue.push(childDoc);
@@ -165,7 +167,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       function(obj, cb) {
         obj.save(function(err) {
           console.log(obj);
-          console.log(err);
           cb(err);
         });
       }, 

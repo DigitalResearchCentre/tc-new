@@ -7,6 +7,7 @@ var _ = require('lodash')
   , Community = models.Community
   , User = models.User
   , Doc = models.Doc
+  , Revision = models.Revision
 ;
 
 var CommunityResource = _.inherit(Resource, function(opts) {
@@ -42,7 +43,7 @@ var DocResource = _.inherit(Resource, function(opts) {
   this.options.auth.create = function(req, res, next) {
     next();
     
-  }
+  };
 }, {
   execSave: function(req, res, next) {
     return function(obj, callback) {
@@ -54,7 +55,7 @@ var DocResource = _.inherit(Resource, function(opts) {
               text: req.body.revision,
             });
             revision.save(cb);
-            doc.revision.push(revision._id);
+            obj.revisions.push(revision._id);
           } else {
             cb(null);
           }
@@ -98,7 +99,17 @@ userResource.serve(router, 'users');
 
 new CommunityResource({id: 'community'}).serve(router, 'communities');
 
-new DocResource({id: 'doc'}).serve(router, 'docs');
+var docResource = new DocResource({id: 'doc'});
+docResource.serve(router, 'docs');
+router.get('/docs/:id/texts', function(req, res, next) {
+  var docId = req.params.id;
+  Doc.find({
+    ancestors: docId
+  }, function(err, docs) {
+    res.json(docs);
+    
+  });
+});
 
 router.get('/auth', function(req, res, next) {
   if (req.isAuthenticated()) {
@@ -115,7 +126,7 @@ module.exports = router;
 /*
 <text>
 <body>
-<pb/>
+<pb n="1r"/>
   <head>
   head
   </head>
@@ -135,7 +146,7 @@ module.exports = router;
   <div>
     <l>
       foo
-      <pb/>
+      <pb n="1v"/>
       <lb/>
       bar
     </l>

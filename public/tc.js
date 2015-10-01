@@ -142,7 +142,7 @@ function foo() {
   
 }
 
-function commit(docResource, text) {
+function commit(docResource, text, opts) {
   var texts = []
     , xmlDoc = parseXML(text)
     , docTags = ['pb', 'cb', 'lb']
@@ -247,7 +247,7 @@ function commit(docResource, text) {
     work: workRoot,
     texts: texts,
   };
-  docResource.$update();
+  docResource.$update(_.assign({}, opts));
 }
 
 function TCService($resource) {

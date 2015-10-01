@@ -58,9 +58,26 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
   var params = $routeParams.params.split('/')
     , Doc = TCService.Doc
     , pageId = params[2]
+    , databaseRevision = {created: 'Version in database'}
     , page
   ;
   $scope.page = null;
+  $scope.selectedRevision = null;
+  $scope.transcript = '';
+  $scope.revisions = [
+  ];
+  $scope.$watch('page.revisions', function() {
+    $scope.revisions = [];
+    console.log(page.revisions);
+    _.forEachRight(page.revisions, function(revision) {
+      if (!_.isString(revision)) {
+        $scope.revisions.push(revision);
+      }
+    });
+    $scope.revisions.push(databaseRevision) ;
+    console.log($scope.revisions);
+    $scope.selectedRevision = $scope.revisions[0];
+  });
   if (pageId) {
     $scope.page = page = TCService.get(pageId, Doc);
     if (!page.revisions || _.isString(_.last(page.revisions))) {
@@ -70,14 +87,19 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     }
   }
   $scope.save = function() {
-    console.log($scope);
-    Doc.patch({id: page._id}, {revision: $scope.text}, function() {
-      page.$get();
+    var page = $scope.page;
+    Doc.patch({id: page._id}, {
+      revision: $scope.selectedRevision.text
+    }, function() {
+      $scope.page.$get({
+        fields: JSON.stringify({path: 'revisions'}),
+      });
     });
   };
   $scope.commit = function() {
-    var text = $scope.text;
-    TCService.commit($scope.page, text);
+    TCService.commit($scope.page, $scope.selectedRevision.text, {
+      fields: JSON.stringify({path: 'revisions'}),
+    });
   };
 
 };

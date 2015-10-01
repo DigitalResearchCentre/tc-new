@@ -4,16 +4,27 @@ var CodeMirror = require('codemirror/lib/codemirror')
 
 var codemirror = function() {
   return {
+    require: '?ngModel',
     restrict: 'A',
-    controller: function($scope, $element) {
-      var editor = CodeMirror.fromTextArea($('textarea', $element)[0], {
-        lineWrapping: true,
-        lineNumbers: true,
-      });
-      $scope.$watch('text', function() {
-        editor.setValue($scope.text || '');
-      });
-      editor.setValue($scope.text || '');
+
+    compile: function(tElement, tAttrs, transclude) {
+      return function(scope, iElement, iAttrs, ngModel) {
+        var editor = CodeMirror.fromTextArea($('textarea', iElement)[0], {
+          lineWrapping: true,
+          lineNumbers: true,
+        });
+        ngModel.$render = function() {
+          editor.setValue(ngModel.$viewValue || '');
+        };
+        editor.on('change', function(instance) {
+          var newValue = instance.getValue();
+          if (newValue !== ngModel.$viewValue) {
+            scope.$evalAsync(function() {
+              ngModel.$setViewValue(newValue);
+            });
+          }
+        });
+      };
     },
   };
 };

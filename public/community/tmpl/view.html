@@ -38,16 +38,19 @@
     </div>
     <div class="text-viewer">
       <div class="transcript-header">
-        <select>
+        <select ng-model="selectedRevision" 
+          ng-options="revision.created for revision in revisions">
         </select>
         <label>Compare With: </label>
         <select>
+          <option ng-repeat="revision in page.revisions">
+            {{revision.created}}</option>
         </select>
       </div>
-      <div x-codemirror class="transcript">
+      <div x-codemirror class="transcript" ng-model="selectedRevision.text">
         <textarea></textarea>
       </div>
-      <div class="buttons">
+      <div class="buttons" ng-if="page">
         <button type="button" class="btn btn-default btn-xs" 
           ng-click="save()">save</button>
         <button type="button" class="btn btn-default btn-xs"
