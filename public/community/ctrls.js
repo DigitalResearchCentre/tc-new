@@ -53,16 +53,6 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
     $scope.community.public=false;
     $scope.community.accept=false;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
-<<<<<<< HEAD
-    $scope.message=checkCommunity(TCService.app.communities, community);
-		if ($scope.message!="") {
-    		$location.path('/community/new');
-    	} else {
-    			community.$save(function() {
-        		$location.path('/community/' + community._id + '/home');
-	    	 });
-	    };
-=======
       console.log(TCService);
       $scope.message=checkCommunity(TCService.app.communities, community);
       if ($scope.message!="") {
@@ -72,7 +62,6 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
           $location.path('/community/' + community._id + '/home');
         });
       };
->>>>>>> cf3070e58385ec912a41c61644be48b8d2ebb979
     };
 };
 CreateCommunityCtrl.$inject = [
