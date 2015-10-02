@@ -60,8 +60,7 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
 	  $scope.community.public=false;
 	  $scope.community.accept=false;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
-      console.log(TCService);
-     	$scope.message=checkCommunity(TCService.app.communities, community);
+    $scope.message=checkCommunity(TCService.app.communities, community);
 		if ($scope.message!="") {
     		$location.path('/community/new');
     	} else {
@@ -143,8 +142,28 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 };
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
+var ManageCtrl = function($scope, $routeParams, $location, TCService) {
+    var communityId = $routeParams.communityId;
+    community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
+    $scope.community = community;
+    console.log(community);
+    $scope.submit = function() { //is everything in order? if not, send messages and warnings
+    $scope.message=checkCommunity(TCService.app.communities, community);
+		if ($scope.message!="") {
+    		$location.path('/community/'+communityId+'/manage');
+    	} else {
+    			community.$save(function() {
+        		$location.path('/community/' + communityId + '/manage');
+	    	 });
+	    };
+    };
+};
 
-var ManageCtrl = function($scope, $routeParams, TCService) {
+ManageCtrl.$inject = [
+  '$scope', '$routeParams', '$location', 'TCService'];
+
+
+/* var ManageCtrl = function($scope, $routeParams, TCService) {
   var community = $scope.$parent.community
     , Doc = TCService.Doc
     , doc = new Doc()
@@ -165,7 +184,7 @@ var ManageCtrl = function($scope, $routeParams, TCService) {
   };
 };
 ManageCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
-
+*/
 
 module.exports = {
   CommunityCtrl: CommunityCtrl,
