@@ -2,6 +2,8 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
 </script>
+<script src="ng-file-upload-shim.min.js"></script>
+<script src="ng-file-upload.min.js"></script>
 <h3 class="community-create">Create community for {{app.authUser.local.name}}</h3>
 <form action="" class="community-form">
 <div ng-if="message.length>0" class="alert alert-danger">
@@ -33,6 +35,9 @@
 	<span ng-hide="community.public==false">
     	<input type="checkbox" ng-model="community.accept" ng-disabled="community.public==false">Anyone can ask to join
     </span>
+   </div>
+   <div ng-app="fileUpload" ng-controller="UpLoadCtrl">
+      <button ngf-select="upload($file)">Upload on file select</button>
    </div>
  <button type="button" class="btn btn-warning btn-lg" ng-click="submit()"
     >Create</button>

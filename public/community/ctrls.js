@@ -1,3 +1,24 @@
+//file upload stuff
+var upLoadFile = angular.module('fileUpload', ['ngFileUpload']);
+
+upLoadFile.controller('UpLoadCtrl', ['$scope', 'Upload', function ($scope, Upload) {
+    // upload later on form submit or something similar
+    // upload on file select or drop
+    $scope.upload = function (file) {
+        Upload.upload({
+            url: 'upload/url',
+            data: {file: file, 'username': $scope.username}
+        }).then(function (resp) {
+            console.log('Success ' + resp.config.file.name + 'uploaded. Response: ' + resp.data);
+        }, function (resp) {
+            console.log('Error status: ' + resp.status);
+        }, function (evt) {
+            var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+            console.log('progress: ' + progressPercentage + '% ' + evt.config.file.name);
+        });
+    };
+}]);
+
 var CommunityCtrl = function($scope, $routeParams, TCService) {
     var params = $routeParams.params
       , communityId = $routeParams.communityId
@@ -18,24 +39,29 @@ var CommunityCtrl = function($scope, $routeParams, TCService) {
 };
 CommunityCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
+function checkCommunity (communities, community) {
+    var message="";
+    if (communities.filter(function (obj){return obj.name === community.name;})[0]) {message="Community name "+community.name+" already exists"}
+    else if (communities.filter(function (obj){return obj.abbr === community.abbr;})[0]) {message="Community abbreviation "+community.abbr+" already exists"}
+    else if (!community.name) {message="Community name cannot be blank"}
+    else if (!community.abbr) {message="Community abbreviation cannot be blank"}
+    else if (community.name.length>19) {message="Community name "+community.name+" must be less than 20 characters"}
+    else if (community.abbr.length>4)  {message="Community abbreviation "+community.abbr+" must be less than 5 characters"}
+    else if (community.longName.length>80) {message="Community long name "+community.longName+" must be less than 80 characters"}
+    return message;
+}
+
 var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
     var params = $routeParams.params
       , Community = TCService.Community
       , community = new Community()
     ;
-
     $scope.community = community;
-	$scope.community.public=false;
-	$scope.community.accept=false;
-     $scope.submit = function() { //is everything in order? if not, send messages and warnings
-     	$scope.message="";
-     	if (TCService.app.communities.filter(function (obj){return obj.name === community.name;})[0]) {$scope.message="Community name "+community.name+" already exists"}
-     	else if (TCService.app.communities.filter(function (obj){return obj.abbr === community.abbr;})[0]) {$scope.message="Community abbreviation "+community.abbr+" already exists"}
-     	else if (!community.name) {$scope.message="Community name cannot be blank"}
-     	else if (!community.abbr) {$scope.message="Community abbreviation cannot be blank"}
-    	else if (community.name.length>19) {$scope.message="Community name "+community.name+" must be less than 20 characters"}
-    	else if (community.abbr.length>4)  {$scope.message="Community abbreviation "+community.abbr+" must be less than 5 characters"}
-    	else if (community.longName.length>80) {$scope.message="Community long name "+community.longName+" must be less than 80 characters"}
+	  $scope.community.public=false;
+	  $scope.community.accept=false;
+    $scope.submit = function() { //is everything in order? if not, send messages and warnings
+      console.log(TCService);
+     	$scope.message=checkCommunity(TCService.app.communities, community);
 		if ($scope.message!="") {
     		$location.path('/community/new');
     	} else {
@@ -45,6 +71,7 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
 	    };
     };
 };
+
 CreateCommunityCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 

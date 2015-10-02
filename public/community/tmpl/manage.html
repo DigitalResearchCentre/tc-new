@@ -1,8 +1,11 @@
 <div x-auto-height class="manage" ng-controller="ManageCtrl">
-<form action="">
+  <div ng-include="'community/tmpl/create.html'" class="community-content">
+  </div>
+
+<!--form action="">
   <div class="form-group">
     <label>Name</label>
-    <input type="text" class="form-control" placeholder="Name" 
+    <input type="text" class="form-control" placeholder="Name"
       ng-model="doc.name">
   </div>
   <div class="form-group">
@@ -12,5 +15,5 @@
   </div>
   <button type="button" class="btn btn-default" ng-click="submit()"
     >Create</button>
-</form>
+</form -->
 </div>
