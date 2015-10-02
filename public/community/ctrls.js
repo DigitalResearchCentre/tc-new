@@ -72,28 +72,26 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     , Doc = TCService.Doc
     , pageId = params[2]
     , databaseRevision = {created: 'Version in database'}
-    , page
   ;
   $scope.page = null;
   $scope.selectedRevision = null;
   $scope.transcript = '';
-  $scope.revisions = [
-  ];
+  $scope.revisions = [];
+
   $scope.$watch('page.revisions', function() {
+    var page = $scope.page || {};
     $scope.revisions = [];
-    console.log(page.revisions);
     _.forEachRight(page.revisions, function(revision) {
       if (!_.isString(revision)) {
         $scope.revisions.push(revision);
       }
     });
     $scope.revisions.push(databaseRevision) ;
-    console.log($scope.revisions);
     $scope.selectedRevision = $scope.revisions[0];
   });
   if (pageId) {
-    $scope.page = page = TCService.get(pageId, Doc);
-    if (!page.revisions || _.isString(_.last(page.revisions))) {
+    $scope.page = TCService.get(pageId, Doc);
+    if (!$scope.page.revisions || _.isString(_.last($scope.page.revisions))) {
       $scope.page.$get({
         fields: JSON.stringify({path: 'revisions'}),
       });

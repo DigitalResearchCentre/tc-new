@@ -104,13 +104,21 @@ new CommunityResource({id: 'community'}).serve(router, 'communities');
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');
 router.get('/docs/:id/texts', function(req, res, next) {
-  var docId = req.params.id;
-  Doc.find({
-    ancestors: docId
-  }, function(err, docs) {
-    res.json(docs);
-
-    
+  var docId = req.params.id
+    , fields = JSON.parse(req.query.fields || '""')
+    , select = '-docs'
+  ;
+  if (_.includes(fields, 'works')) {
+    select += ' works';
+  }
+  if (_.includes(fields, 'teis')) {
+    select += ' teis';
+  }
+  Doc.find({ancestors: docId}).populate({
+    path: 'texts',
+    select: select,
+  }).exec(function(err, data) {
+    res.json(data);
     
   });
 });
