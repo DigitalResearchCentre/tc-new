@@ -14,6 +14,9 @@
     "jquery": "~2.1.1"
   },
   "devDependencies": {
-    "codemirror": "~5.7.0"
+    "codemirror": "~5.7.0",
+    "ng-file-upload-shim": "~8.0.6",
+    "ng-file-upload": "~8.0.6",
+    "font-awesome": "~4.4.0"
   }
 }

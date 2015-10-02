@@ -132,7 +132,6 @@ router.get('/auth', function(req, res, next) {
   }
 }, userResource.detail());
 
-
 module.exports = router;
 
 /*
