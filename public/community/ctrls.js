@@ -23,20 +23,23 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
       , Community = TCService.Community
       , community = new Community()
     ;
+
     $scope.community = community;
 	$scope.community.public=false;
 	$scope.community.accept=false;
      $scope.submit = function() { //is everything in order? if not, send messages and warnings
      	$scope.message="";
-     	if (!community.name) {$scope.message="Community name cannot be blank"}
+     	if (TCService.app.communities.filter(function (obj){return obj.name === community.name;})[0]) {$scope.message="Community name "+community.name+" already exists"}
+     	else if (TCService.app.communities.filter(function (obj){return obj.abbr === community.abbr;})[0]) {$scope.message="Community abbreviation "+community.abbr+" already exists"}
+     	else if (!community.name) {$scope.message="Community name cannot be blank"}
      	else if (!community.abbr) {$scope.message="Community abbreviation cannot be blank"}
     	else if (community.name.length>19) {$scope.message="Community name "+community.name+" must be less than 20 characters"}
     	else if (community.abbr.length>4)  {$scope.message="Community abbreviation "+community.abbr+" must be less than 5 characters"}
     	else if (community.longName.length>80) {$scope.message="Community long name "+community.longName+" must be less than 80 characters"}
-		if ($scope.message.length>0) {
+		if ($scope.message!="") {
     		$location.path('/community/new');
     	} else {
-       	 	community.$save(function() {
+    			community.$save(function() {
         		$location.path('/community/' + community._id + '/home');
 	    	 });
 	    };
@@ -146,4 +149,3 @@ module.exports = {
   ViewerCtrl: ViewerCtrl,
   ManageCtrl: ManageCtrl,
 };
-

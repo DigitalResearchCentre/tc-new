@@ -14,6 +14,7 @@ var CommunitySchema = new Schema({
   fonts: [String],
   public: Boolean,
   accept: Boolean,
+  image: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
   works: [{type: ObjectId, ref: 'Work'}],
 });
@@ -106,7 +107,7 @@ var BaseNodeSchema = function(modelName) {
     },
     methods: {
       getText: function() {
-      }, 
+      },
     }
   };
 };
@@ -164,13 +165,13 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     }
 
     async.each(
-      texts.concat(docs).concat(works).concat(teis), 
+      texts.concat(docs).concat(works).concat(teis),
       function(obj, cb) {
         obj.save(function(err) {
           console.log(obj);
           cb(err);
         });
-      }, 
+      },
       callback
     );
   }
@@ -206,4 +207,3 @@ module.exports = {
   Tei: Tei,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
-

@@ -1,6 +1,6 @@
 <script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> 
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
 </script>
 <h3 class="community-create">Create community for {{app.authUser.local.name}}</h3>
 <form action="" class="community-form">
@@ -9,7 +9,7 @@
 </div>
   <div class="form-group">
     <label>Name</label>
-    <input type="text" class="form-control" placeholder="Name (20 characters maximum)" 
+    <input type="text" class="form-control" placeholder="Name (20 characters maximum)"
       ng-model="community.name">
   </div>
   <div class="form-group">
@@ -25,37 +25,15 @@
   <div class="form-group">
     <label>Description</label><span class="community-create-inf" title="tell me">?</span>
     <textarea class="form-control" placeholder="Description (you can include HTML)"
-      ng-model="community.description"></textarea> 
+      ng-model="community.description"></textarea>
   </div>
   <div class="form-group">
     <label>Accessible to others</label><br/>
-    <input type="checkbox" ng-model="community.public">Everyone can see it
-    <input type="checkbox" ng-model="community.accept" ng-disabled="community.public==false">Anyone can ask to join
+    <input type="checkbox" ng-model="community.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
+	<span ng-hide="community.public==false">
+    	<input type="checkbox" ng-model="community.accept" ng-disabled="community.public==false">Anyone can ask to join
+    </span>
    </div>
-
-  <!-- div class="form-group">
-    <label>Accessible to others</label><br/>
-     <label>
-    		<input type="radio" name="accessComm" ng-model="community.public" value="1">
-    Public  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-  </label>
-  <label>
-    <input type="radio"  name="accessComm" ng-model="community.public" value="0">
-    Private 
-  </label> <span class="community-create-inf" title="Public: everyone can see this community; Private (the default): only you and people you invite can see it">?</span>
-  </div>
-  < div class="form-group">
-    <label>Can others ask to join?</label><br/>
-     <label>
-    		<input type="radio" name="othersJoin" ng-model="community.accept" value="1">
-    Yes  &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-  </label>
-  <label>
-    <input type="radio"  name="othersJoin" ng-model="community.accept" value="0">
-    No 
-  </label> <span class="community-create-inf" title="Yes: people can ask to join this community; No: you have to invite others">?</span>
-  </div -->
-
  <button type="button" class="btn btn-warning btn-lg" ng-click="submit()"
     >Create</button>
 </form>

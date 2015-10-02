@@ -35,7 +35,7 @@ router.get('/login', function(req, res) {
 
 // process the login form
 router.post('/login', passport.authenticate('local-login', {
-  successRedirect : '/auth/profile', // redirect to the secure profile section
+  successRedirect : '/', // redirect to the secure profile section
   failureRedirect : '/auth/login', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
@@ -164,7 +164,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   // The user has authenticated with Facebook.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req, res)) {
-    res.redirect('/auth/profile');
+    res.redirect('/');
   } else {
     res.redirect('/auth/facebookemail');
   }
@@ -279,7 +279,7 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req, res)) {
-    res.redirect('/auth/profile');
+    res.redirect('/');
   } else {
     res.redirect('/auth/twitteremail');
   }
@@ -372,7 +372,7 @@ router.get('/google/callback', passport.authenticate('google', {
   // is "complete".  If not, send them down a form to fill out more details.
   console.log("hi");
   if (isValidProfile(req, res)) {
-    res.redirect('/auth/profile');
+    res.redirect('/');
   } else {
     res.redirect('/auth/googleemail');
   }
@@ -480,7 +480,7 @@ router.get('/connect/local', function(req, res) {
   res.render('connect-local.ejs', { message: req.flash('loginMessage') });
 });
 router.post('/connect/local', passport.authenticate('local-signup', {
-  successRedirect : '/auth/profile', // redirect to the secure profile section
+  successRedirect : '/', // redirect to the secure profile section
   failureRedirect : '/auth/connect/local', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
@@ -601,7 +601,6 @@ function randomStringAsBase64Url(size) {
 }
 
 function authenticateUser (email, user, thisUrl) {
-  console.log("to "+email+" dir "+__dirname);
   var ejs = require('ejs'), fs = require('fs'), str = fs.readFileSync(__dirname + '/../views/authenticatemail.ejs', 'utf8'); 
   var hash=randomStringAsBase64Url(20);
   var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: thisUrl});
