@@ -24,22 +24,29 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
       , community = new Community()
     ;
     $scope.community = community;
-	$scope.community.public=false;
-	$scope.community.accept=false;
-     $scope.submit = function() { //is everything in order? if not, send messages and warnings
-     	$scope.message="";
-     	if (!community.name) {$scope.message="Community name cannot be blank"}
-     	else if (!community.abbr) {$scope.message="Community abbreviation cannot be blank"}
-    	else if (community.name.length>19) {$scope.message="Community name "+community.name+" must be less than 20 characters"}
-    	else if (community.abbr.length>4)  {$scope.message="Community abbreviation "+community.abbr+" must be less than 5 characters"}
-    	else if (community.longName.length>80) {$scope.message="Community long name "+community.longName+" must be less than 80 characters"}
-		if ($scope.message.length>0) {
-    		$location.path('/community/new');
-    	} else {
-       	 	community.$save(function() {
-        		$location.path('/community/' + community._id + '/home');
-	    	 });
-	    };
+    $scope.community.public=false;
+    $scope.community.accept=false;
+    $scope.submit = function() { //is everything in order? if not, send messages and warnings
+      $scope.message="";
+      if (!community.name) {
+        $scope.message="Community name cannot be blank";
+      } else if (!community.abbr) {
+        $scope.message="Community abbreviation cannot be blank";
+      } else if (community.name.length>19) {
+        $scope.message="Community name "+community.name+" must be less than 20 characters";
+      } else if (community.abbr.length>4)  {
+        $scope.message="Community abbreviation "+community.abbr+" must be less than 5 characters";
+      } else if (community.longName.length>80) {
+        $scope.message="Community long name "+community.longName+" must be less than 80 characters";
+      }
+
+      if ($scope.message.length>0) {
+        $location.path('/community/new');
+      } else {
+        community.$save(function() {
+          $location.path('/community/' + community._id + '/home');
+        });
+      }
     };
 };
 CreateCommunityCtrl.$inject = [
@@ -69,28 +76,26 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     , Doc = TCService.Doc
     , pageId = params[2]
     , databaseRevision = {created: 'Version in database'}
-    , page
   ;
   $scope.page = null;
   $scope.selectedRevision = null;
   $scope.transcript = '';
-  $scope.revisions = [
-  ];
+  $scope.revisions = [];
+
   $scope.$watch('page.revisions', function() {
+    var page = $scope.page || {};
     $scope.revisions = [];
-    console.log(page.revisions);
     _.forEachRight(page.revisions, function(revision) {
       if (!_.isString(revision)) {
         $scope.revisions.push(revision);
       }
     });
     $scope.revisions.push(databaseRevision) ;
-    console.log($scope.revisions);
     $scope.selectedRevision = $scope.revisions[0];
   });
   if (pageId) {
-    $scope.page = page = TCService.get(pageId, Doc);
-    if (!page.revisions || _.isString(_.last(page.revisions))) {
+    $scope.page = TCService.get(pageId, Doc);
+    if (!$scope.page.revisions || _.isString(_.last($scope.page.revisions))) {
       $scope.page.$get({
         fields: JSON.stringify({path: 'revisions'}),
       });

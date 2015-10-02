@@ -122,6 +122,24 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
   texts: [{type: ObjectId, ref: 'TextNode'}],
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
+
+function _loadChildren(curDoc, queue, texts) {
+  return _.map(curDoc._children, function(child, i) {
+    var childDoc = new Doc(child);
+    if (!childDoc.name) {
+      childDoc.name = '' + (i + 1);
+    }
+    childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
+    childDoc.texts = _.map(child.texts, function(textIndex) {
+      var text = texts[textIndex];
+      text.docs = childDoc.ancestors.concat(childDoc._id);
+      return text._id;
+    });
+    childDoc._children = child.children;
+    queue.push(childDoc);
+    return childDoc;
+  });
+}
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(commit, callback) {
     var docRoot = commit.doc
@@ -140,28 +158,19 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     }) || [];
     doc._children = docRoot.children || [];
     queue = [doc];
-
-    function _mapChild(child, i) {
-      var childDoc = new Doc(child);
-      if (!childDoc.name) {
-        childDoc.name = '' + (i + 1);
-      }
-      childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
-      childDoc.texts = _.map(child.texts, function(textIndex) {
-        var text = texts[textIndex];
-        text.docs = childDoc.ancestors.concat(childDoc._id);
-        return text._id;
-      });
-      childDoc._children = child.children;
-      queue.push(childDoc);
-      return childDoc;
-    }
-
     while (queue.length > 0) {
       curDoc = queue.shift();
-      curDoc.children = _.map(curDoc._children, _mapChild);
+      curDoc.children = _loadChildren(curDoc, queue, texts);
       docs.push(curDoc);
     }
+
+    queue = [teiRoot];
+    while (queue.length > 0) {
+      curDoc = queue.shift();
+      curDoc.children = _loadChildren(curDoc, queue, texts);
+      docs.push(curDoc);
+    }
+
 
     async.each(
       texts.concat(docs).concat(works).concat(teis), 
