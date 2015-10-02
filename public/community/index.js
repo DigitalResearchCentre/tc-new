@@ -1,6 +1,6 @@
 var angular = require('angular');
 
-var communityModule = angular.module('community', [])
+var communityModule = angular.module('community', ['ngFileUpload'])
   , ctrls = require('./ctrls')
 ;
 communityModule
@@ -9,6 +9,7 @@ communityModule
   .controller('ViewCtrl', ctrls.ViewCtrl)
   .controller('ViewerCtrl', ctrls.ViewerCtrl)
   .controller('ManageCtrl', ctrls.ManageCtrl)
+  .controller('UpLoadCtrl', ctrls.UpLoadCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))
   .directive('codemirror', require('./codemirror'))

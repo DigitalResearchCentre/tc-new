@@ -1,23 +1,16 @@
 //file upload stuff
-var upLoadFile = angular.module('fileUpload', ['ngFileUpload']);
-
-upLoadFile.controller('UpLoadCtrl', ['$scope', 'Upload', function ($scope, Upload) {
+var UpLoadCtrl = function ($scope) {
     // upload later on form submit or something similar
     // upload on file select or drop
     $scope.upload = function (file) {
-        Upload.upload({
-            url: 'upload/url',
-            data: {file: file, 'username': $scope.username}
-        }).then(function (resp) {
-            console.log('Success ' + resp.config.file.name + 'uploaded. Response: ' + resp.data);
-        }, function (resp) {
-            console.log('Error status: ' + resp.status);
-        }, function (evt) {
-            var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
-            console.log('progress: ' + progressPercentage + '% ' + evt.config.file.name);
-        });
+      var fileReader = new FileReader();
+      fileReader.onload = function(evt) {
+        $scope.$parent.community.image = evt.target.result;
+      }
+      fileReader.readAsDataURL(file);
     };
-}]);
+}
+UpLoadCtrl.$inject = ['$scope'];
 
 var CommunityCtrl = function($scope, $routeParams, TCService) {
     var params = $routeParams.params
@@ -57,9 +50,10 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
       , community = new Community()
     ;
     $scope.community = community;
-	  $scope.community.public=false;
-	  $scope.community.accept=false;
+    $scope.community.public=false;
+    $scope.community.accept=false;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
+<<<<<<< HEAD
     $scope.message=checkCommunity(TCService.app.communities, community);
 		if ($scope.message!="") {
     		$location.path('/community/new');
@@ -68,9 +62,19 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
         		$location.path('/community/' + community._id + '/home');
 	    	 });
 	    };
+=======
+      console.log(TCService);
+      $scope.message=checkCommunity(TCService.app.communities, community);
+      if ($scope.message!="") {
+        $location.path('/community/new');
+      } else {
+        community.$save(function() {
+          $location.path('/community/' + community._id + '/home');
+        });
+      };
+>>>>>>> cf3070e58385ec912a41c61644be48b8d2ebb979
     };
 };
-
 CreateCommunityCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 
@@ -192,4 +196,5 @@ module.exports = {
   ViewCtrl: ViewCtrl,
   ViewerCtrl: ViewerCtrl,
   ManageCtrl: ManageCtrl,
+  UpLoadCtrl: UpLoadCtrl,
 };

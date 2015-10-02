@@ -1,5 +1,6 @@
 @import '~codemirror/lib/codemirror.css';
 @import '~bootstrap/less/bootstrap';
+@import '~font-awesome/less/font-awesome';
 @icon-font-path: '~bootstrap/fonts/';
 
 .flex-column {
@@ -14,7 +15,7 @@
 .flex-row {
     .flex-column;
     flex-direction: row;
-	-webkit-flex-direction: row;
+    -webkit-flex-direction: row;
     webkit-justify-content: flex-stretch;
     align-items: stretch;
  }
@@ -95,18 +96,21 @@ body {
 
         .community-header {
             flex: 0 0 54px;
-            display: flex;
-            isplay:-webkit-flex;
-            flex-direction: row;
-            -webkit-flex-direction: row;
+            .flex-row;
             align-items: flex-start;
             -webkit-align-items: flex-start;
+            justify-content: space-between;
+            -webkit-justify-content: space-between;
             border-width: 1px;
             border-style: solid;
             margin: 8px 10px 8px 0;
             background-color: #3f3f3f;
 
             nav > ul {
+                height: 52px;
+            }
+
+            .communityimage {
                 height: 52px;
             }
         }
