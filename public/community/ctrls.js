@@ -1,26 +1,65 @@
-//file upload stuff
 var UpLoadCtrl = function ($scope) {
     // upload later on form submit or something similar
     // upload on file select or drop
     $scope.upload = function (file) {
-      var fileReader = new FileReader();
+        var fileReader = new FileReader();
       fileReader.onload = function(evt) {
         $scope.$parent.community.image = evt.target.result;
+        $scope.$parent.community.haspicture=true;
       }
       fileReader.readAsDataURL(file);
     };
+    $scope.nullImage = function () {
+      $scope.$parent.community.image ="";
+      $scope.$parent.community.image =false;
+    }
 }
 UpLoadCtrl.$inject = ['$scope'];
 
+var MemberCtrl = function($scope, $routeParams, $location, TCService) {
+    var params = $routeParams.params
+      , communityId = $routeParams.communityId
+      , Community = TCService.Community
+      , community
+    ;
+    var user=TCService.app.authUser;
+    $scope.tab = params.split('/').shift();
+    $scope.community = community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
+    $scope.isMember=false;
+    $scope.isLeader=false;
+    $scope.isCreator=false;
+    $scope.canJoin=false;
+    $scope.isTranscriber=false;
+    if (user.local)  {
+      var memberships = TCService.app.authUser.memberships;
+      var matchedmem=memberships.filter(function (obj){return obj.community._id === communityId;})[0];
+      if (matchedmem)  {
+        $scope.isMember=true;  //I am a member of this community
+        if (matchedmem.role=="LEADER") $scope.isLeader=true;
+        if (matchedmem.role=="CREATOR") $scope.isCreator=true;
+        if (matchedmem.role=="TRANSCRIBER") $scope.isTranscriber=true;
+      } else if (community.accept) $scope.canJoin=true;
+    } else {
+      if (community.accept) $scope.canJoin=true;
+    }
+    $scope.join= function() {
+        //go join this community!!!
+        $location.path('/community/' + communityId + '/join');
+    }
+}
+MemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
+
+
+//figure out: am I a member of this community, its leader.. what
 var CommunityCtrl = function($scope, $routeParams, TCService) {
     var params = $routeParams.params
       , communityId = $routeParams.communityId
       , Community = TCService.Community
       , community
     ;
+    var user=TCService.app.authUser;
     $scope.tab = params.split('/').shift();
     $scope.community = community = TCService.get(communityId, Community);
-
     if (!community.status) {
       $scope.community.$get({
         fields: JSON.stringify([
@@ -34,8 +73,10 @@ CommunityCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 function checkCommunity (communities, community) {
     var message="";
-    if (communities.filter(function (obj){return obj.name === community.name;})[0]) {message="Community name "+community.name+" already exists"}
-    else if (communities.filter(function (obj){return obj.abbr === community.abbr;})[0]) {message="Community abbreviation "+community.abbr+" already exists"}
+    var matchedname=communities.filter(function (obj){return obj.name === community.name;})[0];
+    var matchedabbrev=communities.filter(function (obj){return obj.abbr === community.abbr;})[0];
+    if (matchedname && matchedname._id!=community._id) {message="Community name "+community.name+" already exists"}
+    else if (matchedabbrev && matchedabbrev._id!=community._id) {message="Community abbreviation "+community.abbr+" already exists"}
     else if (!community.name) {message="Community name cannot be blank"}
     else if (!community.abbr) {message="Community abbreviation cannot be blank"}
     else if (community.name.length>19) {message="Community name "+community.name+" must be less than 20 characters"}
@@ -49,19 +90,24 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
       , Community = TCService.Community
       , community = new Community()
     ;
+    community.public=false;
+    community.accept=false;
+    community.autoaccept= false;
+    community.alldolead= false;
+    community.haspicture= false;
+    community.creator= TCService.app.authUser._id;
     $scope.community = community;
-    $scope.community.public=false;
-    $scope.community.accept=false;
+    $scope.isCreate=true;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
-      console.log(TCService);
       $scope.message=checkCommunity(TCService.app.communities, community);
-      if ($scope.message!="") {
-        $location.path('/community/new');
-      } else {
-        community.$save(function() {
-          $location.path('/community/' + community._id + '/home');
-        });
-      };
+        if ($scope.message!="") {
+          $location.path('/community/new');
+        } else {
+          community.$save(function() {
+        //    if (picFile) community.image= picFile.$
+            $location.path('/community/' + community._id + '/home');
+          });
+        };
     };
 };
 CreateCommunityCtrl.$inject = [
@@ -72,7 +118,6 @@ var ViewCtrl = function($scope, $routeParams, TCService) {
     , Doc = TCService.Doc
   ;
   $scope.docId = params[1];
-
   $scope.toggleNode = function(doc) {
     var expand = doc.expand = !doc.expand;
     if (!doc.children || _.isString(doc.children[0])) {
@@ -137,9 +182,9 @@ ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 var ManageCtrl = function($scope, $routeParams, $location, TCService) {
     var communityId = $routeParams.communityId;
-    community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
+    var community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
     $scope.community = community;
-    console.log(community);
+    $scope.isCreate=false;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
     $scope.message=checkCommunity(TCService.app.communities, community);
 		if ($scope.message!="") {
@@ -186,4 +231,5 @@ module.exports = {
   ViewerCtrl: ViewerCtrl,
   ManageCtrl: ManageCtrl,
   UpLoadCtrl: UpLoadCtrl,
+  MemberCtrl: MemberCtrl
 };

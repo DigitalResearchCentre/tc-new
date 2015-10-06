@@ -7,6 +7,7 @@ communityModule
   .controller('CommunityCtrl', ctrls.CommunityCtrl)
   .controller('CreateCommunityCtrl', ctrls.CreateCommunityCtrl)
   .controller('ViewCtrl', ctrls.ViewCtrl)
+  .controller('MemberCtrl', ctrls.MemberCtrl)
   .controller('ViewerCtrl', ctrls.ViewerCtrl)
   .controller('ManageCtrl', ctrls.ManageCtrl)
   .controller('UpLoadCtrl', ctrls.UpLoadCtrl)

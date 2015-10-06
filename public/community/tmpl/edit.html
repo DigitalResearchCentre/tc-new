@@ -1,8 +1,4 @@
-<script>
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
-    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-</script>
-<form action="" class="community-form">
+<form class="community-form" name="communityForm">
 <div ng-if="message.length>0" class="alert alert-danger">
     {{message}}
 </div>
@@ -27,12 +23,40 @@
       ng-model="community.description"></textarea>
   </div>
   <div class="form-group">
-    <label>Accessible to others</label><br/>
+    <label>Accessible to others</label> <br/>
     <input type="checkbox" ng-model="community.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
-	<span ng-hide="community.public==false">
+	 <span ng-hide="community.public==false">
     	<input type="checkbox" ng-model="community.accept" ng-disabled="community.public==false">Anyone can ask to join
     </span>
+    <span ng-hide="community.accept==false||community.public==false">
+     	<input type="checkbox" ng-model="community.autoaccept" ng-disabled="community.accept==false">Anyone asking joins
+     </span>
+     <span ng-hide="community.autoaccept==false||community.public==false||community.accept==false">
+      	<input type="checkbox" ng-model="community.alldolead" ng-disabled="community.autoaccept==false">Everyone joining leads
+      </span>
    </div>
- <button type="button" class="btn btn-warning btn-lg" ng-click="submit()"
+<div class="form-group"  ng-controller="UpLoadCtrl">
+  <div ng-show="!community.image">
+       <label>Choose community image (max. 300x50)</label> <br/>
+       <input type="file" ngf-select ng-model="picFile" name="file"
+               accept="image/*" ngf-max-size="100KB" ngf-max-height="50" ngf-max-width="300" required>
+        <span ng-show="communityForm.file.$error.maxSize">File too large
+            ({{picFile.size / 1000|number:1}} KB): max {{picFile.$errorParam}}</span>
+        <span ng-show="communityForm.file.$error.maxHeight">Image too high
+                ({{picFile.$ngfHeight}} pixels): max {{picFile.$errorParam}}</span>
+        <span ng-show="communityForm.file.$error.maxWidth">Image too wide
+                ({{picFile.$ngfWidth}} pixels): max {{picFile.$errorParam}}</span>
+        <img ng-show="communityForm.file.$valid" ngf-thumbnail="!picFile.$error && picFile" style="width: 300px; height: 50px; margin-top: 5px; margin-left:10px">
+        &nbsp;&nbsp;<button type="button" ng-click="picFile = null" ng-show="picFile">Remove</button>&nbsp;&nbsp;
+        <button type="button" ng-click="upload(picFile)" ng-show="picFile">Confirm</button>
+  </div>
+  <div ng-show="community.haspicture">
+    <label>Change community image (max. 300x50)</label> <br/>
+    <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null; community.image=""; community.haspicture=false; nullImage()">Remove</button>
+  </div>
+</div>
+ <button ng-show="isCreate" type="button" class="btn btn-warning btn-lg" ng-click="submit()"
     >Create</button>
+    <button ng-show="!isCreate" type="button" class="btn btn-warning btn-lg" ng-click="submit()"
+       >Update</button>
 </form>

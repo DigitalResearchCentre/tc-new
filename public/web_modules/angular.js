@@ -6,6 +6,4 @@ require('angular-sanitize');
 require('angular-resource');
 require('ng-file-upload-shim');
 require('ng-file-upload');
-
 module.exports = angular;
-

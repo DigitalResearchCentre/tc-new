@@ -1,5 +1,5 @@
 <div class="titleComm">{{community.name}}</div>
-<nav class="communitynav">
+<nav class="communitynav" ng-controller="MemberCtrl">
 <ul>
   <li><a href="#/community/{{community._id}}/home"
       ng-class="{selected: tab == 'home'}">Home</a>
@@ -11,7 +11,7 @@
   <li><a href="#">Wiki</a></li>
   <li><a href="#">Blog</a></li>
   <li><a href="#">Bulletin Board</a></li>
-  <li><a href="#/community/{{community._id}}/manage"
+  <li ng-show="isMember"><a href="#/community/{{community._id}}/manage"
       ng-class="{selected: tab == 'manage'}">Manage</a></li>
 </ul></nav>
-<img class="communityimage" src="{{community.image}}"/>
+<div ng-show="community.haspicture"><img class="communityimage" src="{{community.image}}"/></div>

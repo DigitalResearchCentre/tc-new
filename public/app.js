@@ -10,7 +10,7 @@ require('test');
 
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
-  'ngRoute', 'ngResource', 'ngSanitize', 
+  'ngRoute', 'ngResource', 'ngSanitize',
   require('./community').name,
 ]);
 
@@ -32,19 +32,18 @@ tcApp
     })
     .otherwise({
       templateUrl:'home.html'
-    }); 
+    });
   })
   .factory('TCService', TCService)
 ;
 
 tcApp.controller('AppCtrl', [
   '$scope', 'TCService', function($scope, TCService) {
-  var Community = TCService.Community; 
+  var Community = TCService.Community;
 
   $scope.hideHeader = false;
   $scope.app = TCService.app;
   var authUser = TCService.app.authUser;
-
   authUser.$promise.then(function() {
     if (!authUser.local) {
       TCService.login('boy198512@gmail.com', 'test');
@@ -54,4 +53,3 @@ tcApp.controller('AppCtrl', [
     TCService.logout();
   };
 }]);
-

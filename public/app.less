@@ -48,29 +48,20 @@ body {
     .header {
         .titleComm {
             display: inline-block;
-            height: 100%;
+            height: 96%;
             text-align: center;
-			vertical-align: middle;
+			      vertical-align: middle;
             padding: 0 13px;
             margin: 1px 0;
             font-family: Arial;
-            font-size: 24px;
+            font-size: 18px;
             background-color: white;
             line-height: 50px;
             width: 200px;
         }
         .titleTC {
-            display: inline-block;
-            height: 100%;
-            text-align: center;
-			vertical-align: middle;
-            padding: 0 13px;
-            margin: 1px 0;
-            font-family: Arial;
-            font-size: 24px;
             background-color: white;
-            line-height: 50px;
-            width: 300px;
+            color: black;
         }
 
     }
@@ -103,13 +94,16 @@ body {
             -webkit-justify-content: space-between;
             border-width: 1px;
             border-style: solid;
+            border-radius: 5px;
             margin: 8px 10px 8px 0;
-            background-color: #3f3f3f;
+            background-color: #CBBCBC;
 
             nav > ul {
                 height: 52px;
             }
-
+            .communitynav {
+                margin-right: auto;
+            }
             .communityimage {
                 height: 52px;
             }
@@ -156,7 +150,7 @@ body {
         margin: 0 10px 0 10px;
         padding: 0;
         float: right;
-		
+
         ul {
             display: inline-block;
             position: relative;
@@ -164,6 +158,7 @@ body {
             margin: 0 0 0 8px;
             border-width: 1px;
             border-color: #3f3f3f;
+            padding-left: 0;
             list-style: none;
             font-family: Arial;
 
@@ -178,9 +173,9 @@ body {
                 position: relative;
 
                 a {
-                    display: block; 
-                    padding: 16px;
-                    color: #bdbdbd; text-decoration: none;
+                    display: block;
+                    padding: 16px 5px 16px 5px;
+                    color: black; text-decoration: none;
 
                     &.selected {
                         display: block;
@@ -204,7 +199,12 @@ body {
                     }
 
                     a {
-                        color: #fff;
+                        color: red;
+                        text-decoration: none;
+                    }
+                    &>ul li a {
+                        color: black;
+                        text-decoration: none;
                     }
                 }
 
@@ -215,34 +215,47 @@ body {
 		position: absolute; top: 100%; right: 0px; text-align: center;
 
                 li {
-                    float: none; 
+                    float: none;
                     border-top: 1px solid #6b727c;
                     border-bottom: 1px solid #575f6a; position: relative;
-					  a {
-                        padding: 5px 10px;
-                        position:relative;
-                        white-space: nowrap;
-                        color: #fff;
-						 z-index:-1;
-                        &:hover {
-                            background: #4b545f;
-                        }
+					               a {
+                              padding: 5px 10px;
+                              position:relative;
+                              white-space: nowrap;
+                              z-index:-1;
+                              &:hover {
+                                  background: #4b545f;
+                                }
                     }
                 }
             }
         }
     }
+  div.TCManageDiv {margin-left: auto; margin-right: auto; }
+  nav.TCManage {
+		    border-width: 1px;
+        border-radius: 5px;
+        border-style: solid;
+        line-height: 0.25;
+        float: none;
+        margin:0 auto 0 auto;
+        width:700px;
+	}
+  nav.TCManage ul ul li a{z-index:0; padding:10px; &:hover {color:red}}
 	nav.TCHul {
 		    border-width: 1px;
-            border-style: solid;
-            line-height: 1;
+        border-radius: 5px;
+        border-style: solid;
+        line-height: 1;
 	}
     nav.TCHul ul li a {
         display: block;
         position: relative;
         color: black;
         opacity:1;
-         z-index:1;
+        z-index:1;
+        &:hover {color:red};
+        &.selected {color:red}
     }
 
     #editHolder {
@@ -268,6 +281,8 @@ body {
         position: absolute; left:100px; top: 0px; background-color:#f1f1f1;
     }
 }
-
-
-
+div.description {
+  width: 700px;
+  margin-left:auto;
+  margin-right:auto;
+}

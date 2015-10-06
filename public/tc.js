@@ -9,7 +9,7 @@ function createObjTree(node, queue) {
     children: [],
   };
   switch (node.nodeType) {
-    case node.ELEMENT_NODE: 
+    case node.ELEMENT_NODE:
       var attrs = {};
       _.each(node.attributes, function(attr) {
         attrs[attr.name] = attr.value;
@@ -139,7 +139,7 @@ function foo() {
   var doc = {}
     , texts = doc.getTexts()
   ;
-  
+
 }
 
 function commit(docResource, text, opts) {
@@ -149,7 +149,7 @@ function commit(docResource, text, opts) {
     , docRoot = {children: []}
     , workRoot = {children: []}
     , queue
-    , teiRoot 
+    , teiRoot
     , prevDoc
   ;
   xmlDoc.work = workRoot;
@@ -269,7 +269,7 @@ function TCService($resource) {
       method:'POST',
       transformResponse: function(data) {
         var community = angular.fromJson(data);
-        // auto sync 
+        // auto sync
         app.communities.push(community);
         app.authUser.$get();
         return community;
@@ -303,11 +303,13 @@ function TCService($resource) {
     login: function(email, password) {
       Login.login({email: email, password: password}, function(user) {
         app.authUser = AuthUser.get();
+        app.isLoggedIn=true;
       });
     },
     logout: function() {
       $resource('/logout/').get();
       app.authUser = {};
+      app.isLoggedIn=false;
     },
     get: function(id, Model) {
       var cache, obj;
