@@ -206,7 +206,7 @@ var ManageCtrl = function($scope, $routeParams, $location, TCService) {
     		$location.path('/community/'+community._id+'/manage');
     	} else {
     			community.$save(function() {
-        		$location.path('/community/' + communityId + '/manage');
+        		$location.path('/community/' + community._id + '/manage');
 	    	 });
 	    };
     };

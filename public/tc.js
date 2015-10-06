@@ -149,6 +149,7 @@ function commit(docResource, text, opts) {
     , docRoot = {children: []}
     , workRoot = {children: []}
     , queue
+    , teiRoot
     , prevDoc
   ;
   xmlDoc.work = workRoot;
