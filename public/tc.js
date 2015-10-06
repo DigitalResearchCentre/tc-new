@@ -149,7 +149,6 @@ function commit(docResource, text, opts) {
     , docRoot = {children: []}
     , workRoot = {children: []}
     , queue
-    , teiRoot
     , prevDoc
   ;
   xmlDoc.work = workRoot;
@@ -239,10 +238,8 @@ function commit(docResource, text, opts) {
     node = iter.nextNode();
   }
 
-  teiRoot = xmlDoc2json(xmlDoc);
-
   docResource.commit = {
-    tei: teiRoot,
+    tei: xmlDoc2json(xmlDoc),
     doc: docRoot,
     work: workRoot,
     texts: texts,

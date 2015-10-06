@@ -144,6 +144,26 @@ function _loadChildren(curDoc, queue, texts) {
     return childDoc;
   });
 }
+
+
+function _loadWorkChildren(curWork, queue, texts) {
+  return _.map(curWork._children, function(child, i) {
+    var childDoc = new Work(child);
+    if (!childDoc.name) {
+      childDoc.name = '' + (i + 1);
+    }
+    childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
+    childDoc.texts = _.map(child.texts, function(textIndex) {
+      var text = texts[textIndex];
+      text.docs = childDoc.ancestors.concat(childDoc._id);
+      return text._id;
+    });
+    childDoc._children = child.children;
+    queue.push(childDoc);
+    return childDoc;
+  });
+ 
+}
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(commit, callback) {
     var docRoot = commit.doc
@@ -152,7 +172,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       , texts = commit.texts
       , doc = this
       , queue
-      , cur, curDoc
+      , cur, curDoc, curWork
       , docs = []
       , works = []
       , teis = []
@@ -168,24 +188,32 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       docs.push(curDoc);
     }
 
-    queue = [teiRoot];
+    if (workRoot._id) {
+      curWork = workRoot;
+    } else {
+      curWork = new Work(workRoot);
+      curWork._children = workRoot.children;
+    }
+    queue = [curWork];
     while (queue.length > 0) {
-      curDoc = queue.shift();
-      curDoc.children = _loadChildren(curDoc, queue, texts);
-      docs.push(curDoc);
+      curWork = queue.shift();
+      curWork.children = _loadWorkChildren(curWork, queue, texts);
+
     }
 
+    return callback();
+    /*
 
     async.each(
       texts.concat(docs).concat(works).concat(teis),
       function(obj, cb) {
         obj.save(function(err) {
-          console.log(obj);
           cb(err);
         });
       },
       callback
     );
+    */
   }
 });
 

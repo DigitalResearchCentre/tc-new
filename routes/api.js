@@ -137,25 +137,17 @@ module.exports = router;
 /*
 <text>
 <body>
-<pb n="1r"/>
-  <head>
-  head
-  </head>
-  <ab>
-  ab1
-  </ab>
-  <ab>
-  ab2
-  </ab>
-  <lb/>
-  <l>
-  hello
-  <lb/>
-  world
-  </l>
-  <lb/>
-  <div>
-    <l>
+  <div n="div1">
+    <pb n="1r"/>
+    <head n="h1"> head </head>
+    <ab n="ab1"> ab1 </ab>
+    <ab n="ab2"> ab2 </ab>
+    <lb/>
+    <l n="1"> hello <lb/> world </l>
+    <lb/>
+  </div>
+  <div n="div2">
+    <l n="1">
       foo
       <pb n="1v"/>
       <lb/>

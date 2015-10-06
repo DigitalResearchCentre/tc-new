@@ -33,6 +33,7 @@ _.assign(Resource.prototype, {
   },
   isAuthenticated: function(req, res, next) {
     if (req.isAuthenticated()) {
+      console.log(req.user);
       next();
     } else {
       res.sendStatus(403);
