@@ -198,14 +198,12 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 var ManageCtrl = function($scope, $routeParams, $location, TCService) {
-    var communityId = $routeParams.communityId;
-    var community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
-    $scope.community = community;
+    var community = $scope.community = $scope.$parent.community;
     $scope.isCreate=false;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
     $scope.message=checkCommunity(TCService.app.communities, community);
 		if ($scope.message!="") {
-    		$location.path('/community/'+communityId+'/manage');
+    		$location.path('/community/'+community._id+'/manage');
     	} else {
     			community.$save(function() {
         		$location.path('/community/' + communityId + '/manage');
@@ -218,7 +216,8 @@ ManageCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 
 
-/* var ManageCtrl = function($scope, $routeParams, TCService) {
+var CreateDocCtrl = function($scope, $routeParams, TCService) {
+  console.log('CreateDocCtrl');
   var community = $scope.$parent.community
     , Doc = TCService.Doc
     , doc = new Doc()
@@ -238,12 +237,12 @@ ManageCtrl.$inject = [
     }
   };
 };
-ManageCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
-*/
+CreateDocCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 module.exports = {
   CommunityCtrl: CommunityCtrl,
   CreateCommunityCtrl: CreateCommunityCtrl,
+  CreateDocCtrl: CreateDocCtrl,
   ViewCtrl: ViewCtrl,
   ViewerCtrl: ViewerCtrl,
   ManageCtrl: ManageCtrl,

@@ -11,6 +11,7 @@ communityModule
   .controller('ProfileMemberCtrl', ctrls.ProfileMemberCtrl)
   .controller('ViewerCtrl', ctrls.ViewerCtrl)
   .controller('ManageCtrl', ctrls.ManageCtrl)
+  .controller('CreateDocCtrl', ctrls.CreateDocCtrl)
   .controller('UpLoadCtrl', ctrls.UpLoadCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))
