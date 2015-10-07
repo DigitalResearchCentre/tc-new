@@ -14,7 +14,7 @@
         <img height="26" id="arrowImg"/>
       </a>
     </div>
-    <div class="header" style="margin-left:auto; width:800px; margin-top:5px; margin-right:5px">
+    <div class="header" style="margin-left:auto; width:800px; margin-bottom: 5px; margin-top:1px; margin-right:0; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black; height: 37px; border-bottom-left-radius: 4px; border-top-left-radius: 4px">
       <nav class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
@@ -28,7 +28,7 @@
         </div>
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="#">Home</a></li>
+            <li><a href="#/home">Home</a></li>
             <li><a href="#">About</a></li>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Public Communities <span class="caret"></span></a>
@@ -40,7 +40,7 @@
               </ul>
             </li>
             <li ng-if="!app.authUser.local.name">
-              <a href="/auth/">Sign Up/Log In</a>
+              <a href="/auth/"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
             </li>
             <li ng-if="app.authUser.local.name" class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Communities <span class="caret"></span></a>
@@ -60,6 +60,7 @@
               <ul class="dropdown-menu">
                 <li><a href="#" ng-click="logout()">Log Out</a></li>
                 <li><a href="/auth/profile">Login Profile</a></li>
+                <li><a href="#/profile">Member Profile</a></li>
               </ul>
             </li>
           </ul>

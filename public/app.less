@@ -42,8 +42,7 @@ body {
             height: 7px;
         }
     }
-
-
+    .tc-content {padding: 0}
     .header {
         .titleComm {
             display: inline-block;
@@ -61,10 +60,9 @@ body {
         .titleTC {
             background-color: white;
             color: black;
+            padding: 5px 5px;
         }
-
     }
-
     .tc-header {
         flex: 0 0 54px;
         padding: 4px 0 2px;
@@ -79,7 +77,7 @@ body {
         }
     }
 
-    .tc-content {
+    .t {
         flex: 1 100%;
         padding: 2px;
         .flex-column;
@@ -96,10 +94,6 @@ body {
             border-radius: 5px;
             margin: 8px 10px 8px 0;
             background-color: #CBBCBC;
-
-            .communityimage {
-                height: 52px;
-            }
         }
 
         .community-content {
@@ -168,14 +162,23 @@ div.description {
   margin-right:auto;
 }
 
-@media only screen and (max-width:760px){
+@media only screen and (max-width:760px) {
     .header{
         width:100%!important;
-  }
+   }
 }
 
+.navbar-brand {height:34px !important; }
 .navbar {height:35px !important; min-height: 30px !important; }
 .navbar-nav > li > a {
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
+    padding-top: 7px ;
+    padding-bottom: 7px;
+  }
+.navbar-nav > li  a:hover {background-color: #B0B0B0  !important;}
+.navbar-nav > li  {background-color: #EBEBEE ;}
+.navbar-header  {height:41px;}
+.navbar-default {background-color: #EBEBEE;}
+.navbar {
+  .container-fluid {padding-right:0}
 }
+.navbar-toggle {top:-8px; background-color: #D0D0D0}

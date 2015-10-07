@@ -16,6 +16,21 @@ var UpLoadCtrl = function ($scope) {
 }
 UpLoadCtrl.$inject = ['$scope'];
 
+var ProfileMemberCtrl = function($scope, $routeParams, $location, TCService) {
+    var params = $routeParams.params
+      , communityId = $routeParams.communityId
+      , Community = TCService.Community
+      , community
+    ;
+    var user=TCService.app.authUser;
+//    $scope.tab = params.split('/').shift(); do we need this?
+    if (user.local)  {
+      $scope.memberships = TCService.app.authUser.memberships;
+      $scope.nmemberships=$scope.memberships.length;
+    }
+}
+ProfileMemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
+
 var MemberCtrl = function($scope, $routeParams, $location, TCService) {
     var params = $routeParams.params
       , communityId = $routeParams.communityId
@@ -23,15 +38,17 @@ var MemberCtrl = function($scope, $routeParams, $location, TCService) {
       , community
     ;
     var user=TCService.app.authUser;
-    $scope.tab = params.split('/').shift();
+//    $scope.tab = params.split('/').shift(); do we need this?
     $scope.community = community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
     $scope.isMember=false;
     $scope.isLeader=false;
     $scope.isCreator=false;
     $scope.canJoin=false;
     $scope.isTranscriber=false;
+    $scope.nmemberships=0;
     if (user.local)  {
       var memberships = TCService.app.authUser.memberships;
+      $scope.nmemberships=memberships.length;
       var matchedmem=memberships.filter(function (obj){return obj.community._id === communityId;})[0];
       if (matchedmem)  {
         $scope.isMember=true;  //I am a member of this community
@@ -231,5 +248,6 @@ module.exports = {
   ViewerCtrl: ViewerCtrl,
   ManageCtrl: ManageCtrl,
   UpLoadCtrl: UpLoadCtrl,
-  MemberCtrl: MemberCtrl
+  MemberCtrl: MemberCtrl,
+  ProfileMemberCtrl: ProfileMemberCtrl,
 };

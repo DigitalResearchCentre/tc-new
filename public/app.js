@@ -19,6 +19,9 @@ tcApp
     $routeProvider.when('/', {
       templateUrl:'home.html'
     })
+    .when('/profile', {
+      templateUrl: 'profile.html'
+    })
     .when('/about', {
       templateUrl: 'about.html'
     })

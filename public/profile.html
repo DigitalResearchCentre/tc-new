@@ -1,0 +1,12 @@
+<div ng-controller="ProfileMemberCtrl" style="margin-right:auto; margin-left:auto; width:700px">
+  <h2>Profile for {{app.authUser.local.name}}</h2>
+  <p>You are associated with the email {{app.authUser.local.email}}</p>
+  <p>You belong to {{nmemberships}} communities:</p>
+  <table style="border-spacing: 30px 10px; border-collapse: separate;">
+    <tr><th>Name</th><th>Long name</th><th>Role</th><th>When joined</th></tr>
+    <tr ng-repeat="membership in memberships" class="commMembership">
+      <td>{{membership.community.name}}</td><td>{{membership.community.longName}}</td><td>{{membership.role}}</td><td>{{membership.created | date:'h:mma, dd/MM/yyyy'}}</td>
+    <td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td>
+    </tr>
+  </table>
+</div>
