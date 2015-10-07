@@ -23,7 +23,7 @@ var CommunityResource = _.inherit(Resource, function(opts) {
         function(community, numberAffected, cb) {
           user.memberships.push({
             community: community._id,
-            role: User.LEADER,
+            role: User.CREATOR,
           });
           cb(null);
         },
