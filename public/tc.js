@@ -263,6 +263,9 @@ function TCService($resource) {
         return community;
       },
     },
+    'update': {
+      method: 'PUT',
+    },
     'save':   {
       method:'POST',
       transformResponse: function(data) {

@@ -67,6 +67,11 @@ module.exports = function(options) {
       new ResolverPlugin(new ResolverPlugin.DirectoryDescriptionFilePlugin(
         'bower.json', ['main']
       )), 
+      new webpack.ProvidePlugin({
+          $: "jquery",
+          jQuery: "jquery",
+          "window.jQuery": "jquery"
+      }),
       // prevent webpack accident include server security information
       new IgnorePlugin(new RegExp('config\/prod.*')),
       new webpack.optimize.CommonsChunkPlugin({

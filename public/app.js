@@ -5,12 +5,13 @@ var $ = require('jquery')
   , TCService = require('tc')
 ;
 require('./app.less');
+require('bootstrap');
 
 require('test');
 
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
-  'ngRoute', 'ngResource', 'ngSanitize',
+  'ngRoute', 'ngResource', 'ngSanitize', 'jdFontselect',
   require('./community').name,
 ]);
 

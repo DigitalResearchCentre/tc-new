@@ -6,4 +6,6 @@ require('angular-sanitize');
 require('angular-resource');
 require('ng-file-upload-shim');
 require('ng-file-upload');
+require('angular-fontselect/dist/libs/webfontloader');
+require('angular-fontselect/dist/angular-fontselect');
 module.exports = angular;

@@ -47,12 +47,12 @@
         <span ng-show="communityForm.file.$error.maxWidth">Image too wide
                 ({{picFile.$ngfWidth}} pixels): max {{picFile.$errorParam}}</span>
         <img ng-show="communityForm.file.$valid" ngf-thumbnail="!picFile.$error && picFile" style="width: 300px; height: 50px; margin-top: 5px; margin-left:10px">
-        &nbsp;&nbsp;<button type="button" ng-click="picFile = null" ng-show="picFile">Remove</button>&nbsp;&nbsp;
+        &nbsp;&nbsp;<button type="button" ng-click="picFile = null;" ng-show="picFile">Remove</button>&nbsp;&nbsp;
         <button type="button" ng-click="upload(picFile)" ng-show="picFile">Confirm</button>
   </div>
   <div ng-show="community.haspicture">
     <label>Change community image (max. 300x50)</label> <br/>
-    <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null; community.image=""; community.haspicture=false; nullImage()">Remove</button>
+    <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null;community.image='';community.haspicture=false; nullImage()">Remove</button>
   </div>
 </div>
  <button ng-show="isCreate" type="button" class="btn btn-warning btn-lg" ng-click="submit()"

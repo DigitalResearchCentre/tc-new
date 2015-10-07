@@ -11,7 +11,8 @@
     "angular-route": "~1.4.5",
     "angular-sanitize": "~1.4.5",
     "bootstrap": "~3.3.2",
-    "jquery": "~2.1.1"
+    "jquery": "~2.1.1",
+    "angular-fontselect": "~0.12.2"
   },
   "devDependencies": {
     "codemirror": "~5.7.0",
