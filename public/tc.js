@@ -308,7 +308,7 @@ function TCService($resource) {
       });
     },
     logout: function() {
-      $resource('/logout/').get();
+      $resource('/auth/logout/').get();
       app.authUser = {};
       app.isLoggedIn=false;
     },
