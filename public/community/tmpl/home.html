@@ -1,7 +1,7 @@
 <div ng-controller="MemberCtrl" style="margin-right:auto; margin-left:auto; width:700px">
   <div ng-show="canJoin" style="text-align: center">Become a member of this community
-    <button type="button" class="btn btn-warning btn-sm" ng-click="join()">Join</button>
-
+    <button type="button" class="btn btn-primary btn-sm" ng-click="join()">Join</button>
+  </div>
 <h3 style="text-align: center">{{community.longName}}</h3>
 <div ng-bind-html="community.description" class="description"></div>
 <div ng-show="!canJoin">No! I can't join.  I am a TC member already of this community, or it is not accepting members</div>

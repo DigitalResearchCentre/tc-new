@@ -15,11 +15,11 @@
 	   <script language="javascript">
   			  window.location.href = "/auth/sendauthenticate?context=<%= context %>"
 		</script>
-     <% } else { %> 
+     <% } else { %>
 		<div class="page-header text-center">
 			<h1><span class="fa fa-anchor"></span> Linked logins for Textual Communities for <%= user.local.email %></h1>
 			<a href="/auth/logout" class="btn btn-default btn-sm">Logout</a>&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="/" class="btn btn-default btn-sm">Home</a>
+			<a href="/#/profile" class="btn btn-default btn-sm">Home</a>
 		</div>
 		<p>Textual Communities is using the email address <%= user.local.email %> to identify you and the communities to which you belong. You can use social media to log in to this account by linking accounts here.
 		</p>
@@ -39,7 +39,7 @@
 						</p>
 						<p><b>Authenticated account</b></p>
 						<p>Forgot/reset password? <a href="/forgot">request password</a>.</p>
-					
+
 						<!-- a href="/changeid" class="btn btn-default">Change email</a -->
 					<% } else { %>
 					<% } %>

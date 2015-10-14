@@ -15,6 +15,7 @@ communityModule
   .controller('UpLoadCtrl', ctrls.UpLoadCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))
+  .directive('readMore', require('../readmore'))
   .directive('codemirror', require('./codemirror'))
 ;
 

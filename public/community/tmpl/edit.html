@@ -1,4 +1,4 @@
-<form class="community-form" name="communityForm">
+<div>
 <div ng-if="message.length>0" class="alert alert-danger">
     {{message}}
 </div>
@@ -7,10 +7,13 @@
     <input type="text" class="form-control" placeholder="Name (20 characters maximum)"
       ng-model="community.name">
   </div>
-  <div class="form-group">
+  <div class="form-group" ng-show="isCreate===true">
     <label>Abbreviation</label>
     <input type="text" class="form-control" placeholder="Abbreviation (4 characters maximum)"
       ng-model="community.abbr">
+  </div>
+  <div class="form-group" ng-show="isCreate===false">
+    <label>Abbreviation</label> <span> {{community.abbr}}  (cannot alter)</span>
   </div>
   <div class="form-group">
     <label>Long Name</label>
@@ -36,27 +39,39 @@
       </span>
    </div>
 <div class="form-group"  ng-controller="UpLoadCtrl">
-  <div ng-show="!community.image">
+  <form ng-show="!community.image" name="communityForm" >
        <label>Choose community image (max. 300x50)</label> <br/>
-       <input type="file" ngf-select ng-model="picFile" name="file"
-               accept="image/*" ngf-max-size="100KB" ngf-max-height="50" ngf-max-width="300" required>
-        <span ng-show="communityForm.file.$error.maxSize">File too large
-            ({{picFile.size / 1000|number:1}} KB): max {{picFile.$errorParam}}</span>
-        <span ng-show="communityForm.file.$error.maxHeight">Image too high
-                ({{picFile.$ngfHeight}} pixels): max {{picFile.$errorParam}}</span>
-        <span ng-show="communityForm.file.$error.maxWidth">Image too wide
-                ({{picFile.$ngfWidth}} pixels): max {{picFile.$errorParam}}</span>
-        <img ng-show="communityForm.file.$valid" ngf-thumbnail="!picFile.$error && picFile" style="width: 300px; height: 50px; margin-top: 5px; margin-left:10px">
-        &nbsp;&nbsp;<button type="button" ng-click="picFile = null;" ng-show="picFile">Remove</button>&nbsp;&nbsp;
-        <button type="button" ng-click="upload(picFile)" ng-show="picFile">Confirm</button>
-  </div>
+       <div  style="width: 500px; margin-left:auto; margin-right:auto">
+         <input type="file" ngf-select ng-model="picFile" name="file"
+                 accept="image/*" ngf-max-size="100KB" ngf-max-height="34" ngf-max-width="300" required>
+          <span ng-show="communityForm.file.$error.maxSize">File too large
+              ({{picFile.size / 1000|number:1}} KB): max {{picFile.$errorParam}}</span>
+          <span ng-show="communityForm.file.$error.maxHeight">Image too high
+                  ({{picFile.$ngfHeight}} pixels): max {{picFile.$errorParam}}</span>
+          <span ng-show="communityForm.file.$error.maxWidth">Image too wide
+                  ({{picFile.$ngfWidth}} pixels): max {{picFile.$errorParam}}</span>
+          <img ng-show="communityForm.file.$valid" ngf-thumbnail="!picFile.$error && picFile" style="width: 300px; height: 35px; margin-top: 5px; margin-left:10px">
+          &nbsp;&nbsp;<button type="button" ng-click="picFile = null;" ng-show="picFile">Remove</button>&nbsp;&nbsp;
+          <button type="button" ng-click="upload(picFile)" ng-show="picFile">Confirm</button>
+      </div>
+  </form>
   <div ng-show="community.haspicture">
-    <label>Change community image (max. 300x50)</label> <br/>
-    <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null;community.image='';community.haspicture=false; nullImage()">Remove</button>
+    <label>Change community image (max. 300x35)</label>
+    <div  style="width: 500px; margin-left:auto; margin-right:auto">
+      <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null;community.image='';community.haspicture=false; nullImage()">Remove</button>
+    </div>
   </div>
 </div>
- <button ng-show="isCreate" type="button" class="btn btn-warning btn-lg" ng-click="submit()"
+<div class="form-group">
+  <label>Default font in viewer</label>
+    <div  style="width:300px; margin-left:auto; margin-right:auto"><jd-fontselect /></div>
+</div>
+<hr>
+  <div  style="width: 200px; margin-left:auto; margin-right:auto">
+    <button ng-show="isCreate===true" type="button" class="btn btn-primary btn-md" ng-click="submit()"
     >Create</button>
-    <button ng-show="!isCreate" type="button" class="btn btn-warning btn-lg" ng-click="submit()"
+    <button ng-show="isCreate===false" type="button" class="btn btn-primary btn-md" ng-click="update()"
        >Update</button>
+  </div>
 </form>
+</div>

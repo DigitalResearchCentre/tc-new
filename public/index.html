@@ -6,116 +6,72 @@
   </head>
   <body ng-app="TCApp" ng-controller="AppCtrl"
     ng-class="{'hide-header': hideHeader}">
-    <div id="Minimize">
-      <a ng-click="hideHeader = !hideHeader" id="editArrow"
-        title="{{hideHeader ? 'Show' : 'Hide'}} headers">
-        <img height="26" id="arrowImg"/>
-      </a>
-    </div>
-    <div class="header" style="margin-left:auto; width:800px; margin-bottom: 5px; margin-top:1px; margin-right:0; border-left: 1px solid black; border-top: 1px solid black; border-bottom: 1px solid black; height: 37px; border-bottom-left-radius: 4px; border-top-left-radius: 4px">
-      <nav class="navbar navbar-default">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand titleTC" href="#">Textual Communities</a>
-        </div>
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <ul class="nav navbar-nav navbar-right">
-            <li><a href="#/home">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Public Communities <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li ng-repeat="community in app.communities" ng-show="community.public">
-                  <a href="#/community/{{community._id}}/home">
-                    {{community.name}}</a>
-                </li>
-              </ul>
-            </li>
-            <li ng-if="!app.authUser.local.name">
-              <a href="/auth/"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
-            </li>
-            <li ng-if="app.authUser.local.name" class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Communities <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li>
-                  <a href="#/community/new">Create New Community</a>
-                </li>
-                <li role="separator" class="divider"></li>
-                <li ng-repeat="membership in app.authUser.memberships">
-                  <a href="#/community/{{membership.community._id}}/home">
-                    {{membership.community.name}}</a>
-                </li>
-              </ul>
-            </li>
-            <li ng-if="app.authUser.local.name" class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{app.authUser.local.name}} <span class="caret"></span></a>
-              <ul class="dropdown-menu">
-                <li><a href="#" ng-click="logout()">Log Out</a></li>
-                <li><a href="/auth/profile">Login Profile</a></li>
-                <li><a href="#/profile">Member Profile</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </div>
-
-
-    <!-- div class="header tc-header">
+    <div class="tc-header">
       <div id="Minimize">
         <a ng-click="hideHeader = !hideHeader" id="editArrow"
           title="{{hideHeader ? 'Show' : 'Hide'}} headers">
           <img height="26" id="arrowImg"/>
         </a>
       </div>
-      <div class="TCHead" id="TCHead">
-        <div class="rh"><span class="titleTC">Textual Communities</span></div>
-        <nav class="TCHul">
-          <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li>
-              <a href="#">Public Communities</a>
-              <ul>
-                <li ng-repeat="community in app.communities" ng-show="community.public">
-                  <a href="#/community/{{community._id}}/home">
-                    {{community.name}}</a>
-                </li>
-              </ul>
-            </li>
-            <li ng-if="!app.authUser.local.name">
-              <a href="/auth/">Sign Up/Log In</a>
-            </li>
-            <li ng-if="app.authUser.local.name"><a href="#">My Communities</a>
-              <ul>
-                <li>
-                  <a href="#/community/new">Create New Community</a>
-                </li>
-                <li ng-repeat="membership in app.authUser.memberships">
-                  <a href="#/community/{{membership.community._id}}/home">
-                    {{membership.community.name}}</a>
-                </li>
-              </ul>
-            </li>
-            <li ng-if="app.authUser.local.name">
-              <a href="#">{{app.authUser.local.name}}</a>
-              <ul>
-                <li><a href="#" ng-click="logout()">Log Out</a></li>
-                <li><a href="/auth/profile" >Login Profile</a></li>
-           </ul>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </div-->
-    <!-- here is where the body goes -->
+      <div class="headerTC">
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Textual Communities</a>
+          </div>
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="#/home">Home</a></li>
+              <li><a href="#">About</a></li>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Public Communities <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li ng-repeat="community in app.communities" ng-show="community.public">
+                    <a href="#/community/{{community._id}}/home">
+                      {{community.name}}</a>
+                  </li>
+                </ul>
+              </li>
+              <li ng-if="!app.authUser.local.name">
+                <a href="/auth/"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
+              </li>
+              <li ng-if="app.authUser.local.name && !app.authUser.memberships.length">
+                <a href="#/community/new">Create New Community</a>
+              </li>
+              <li ng-show="app.authUser.memberships.length" ng-if="app.authUser.local.name" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Communities <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="#/community/new">Create New Community</a>
+                  </li>
+                  <li ng-show="app.authUser.memberships.length" role="separator" class="divider"></li>
+                  <li ng-repeat="membership in app.authUser.memberships">
+                    <a href="#/community/{{membership.community._id}}/home">
+                      {{membership.community.name}}</a>
+                  </li>
+                </ul>
+              </li>
+              <li ng-if="app.authUser.local.name" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{app.authUser.local.name}} <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" ng-click="logout()">Log Out</a></li>
+                  <li><a href="/auth/profile">Login Profile</a></li>
+                  <li><a href="#/profile">Member Profile</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
+
     <!-- let us have the community header first, if we have one. else, just give us the main tc -->
     <div ng-view class="tc-content"></div>
 

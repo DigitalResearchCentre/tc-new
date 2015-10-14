@@ -1,49 +1,51 @@
-<div x-auto-height class="manage" ng-controller="MemberCtrl">
-  <div class="TCManageDiv" id="TCManage" ng-show="isLeader || isCreator">
-      <nav class="TCManage">
-        <ul>
-          <li><a href="#">Documents ▾</a>
-              <ul>
-                  <li><a href="#">Add XML Document</a></li>
-                  <li><a href="#">Add Image Zip</a></li>
-                  <li><a href="#">Delete Document</a></li>
-                  <li><a href="#">Edit Document Pages</a></li>
-                  <li><a href="#">Rename Document</a></li>
-                  <li><a href="#">Get Document XML</a></li>
-              </ul>
-          </li>
-          <li><a href="#">Segmenting ▾</a>
-              <ul>
-                  <li><a href="#">Generic Document Parts</a></li>
-                  <li><a href="#">Generic Entity Parts</a></li>
-                  <li><a href="#">Single Document Parts</a></li>
-              </ul>
-          </li>
-          <li><a href="#">Auxiliary Files ▾</a>
-              <ul>
-                  <li><a href="#">DTD/Schema</a></li>
-                  <li><a href="#">Viewer CSS</a></li>
-                  <li><a href="#">Viewer Javascript</a></li>
-              </ul>
-          </li>
-          <li><a href="#">Community Members ▾</a>
-              <ul>
-                  <li><a href="#">Membership</a></li>
-                  <li><a href="#">Assign Transcriptions</a></li>
-                  <li><a href="#">Invite Members</a></li>
-              </ul>
-          </li>
-          <li><a href="#">Community Managment ▾</a>
-              <ul>
-                  <li><a href="#">History</a></li>
-                  <li ng-show="isCreator"><a href="#">Delete Community</a></li>
-              </ul>
-          </li>
-        </ul>
+<div x-auto-height class="manage" ng-controller="ManageCtrl">
+  <div class="headerManage" ng-show="isLeader===true || isCreator===true" ng-controller="MemberCtrl">
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <ul class="nav navbar-nav">
+            <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Add XML Document</a></li>
+                    <li><a href="#">Add Image Zip</a></li>
+                    <li><a href="#">Delete Document</a></li>
+                    <li><a href="#">Edit Document Pages</a></li>
+                    <li><a href="#">Rename Document</a></li>
+                    <li><a href="#">Get Document XML</a></li>
+                </ul>
+            </li>
+            <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Segmenting<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Generic Document Parts</a></li>
+                    <li><a href="#">Generic Entity Parts</a></li>
+                    <li><a href="#">Single Document Parts</a></li>
+                </ul>
+            </li>
+            <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Auxiliary Files<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#">DTD/Schema</a></li>
+                    <li><a href="#">Viewer CSS</a></li>
+                    <li><a href="#">Viewer Javascript</a></li>
+                </ul>
+            </li>
+            <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Members<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#">Membership</a></li>
+                    <li><a href="#">Assign Transcriptions</a></li>
+                    <li><a href="#">Invite Members</a></li>
+                </ul>
+            </li>
+            <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Management<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="#/community/{{communityId}}/manage">Settings</a></li>
+                    <li><a href="#">History</a></li>
+                    <li ng-show="isCreator===true"><a href="#">Delete Community</a></li>
+                </ul>
+            </li>
+          </ul>
+        </div>
       </nav>
     </div>
 
   <div ng-include="'community/tmpl/edit.html'" class="community-content">
   </div>
 </div>
-
