@@ -30,12 +30,12 @@ router.get('/', function(req, res) {
 router.get('/login', function(req, res) {
 
   // render the page and pass in any flash data if it exists
-  res.render('login.ejs', { message: req.flash('loginMessage'), email:"" }); 
+  res.render('login.ejs', { message: req.flash('loginMessage'), email:"" });
 });
 
 // process the login form
 router.post('/login', passport.authenticate('local-login', {
-  successRedirect : '/', // redirect to the secure profile section
+  successRedirect : '/#/profile', // redirect to the secure profile section
   failureRedirect : '/auth/login', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
@@ -49,7 +49,7 @@ router.get('/signup', function(req, res) {
   res.render('signup.ejs', { message: req.flash('signupMessage') });
 });
 
-// process the signup form	
+// process the signup form
 router.post('/signup', passport.authenticate('local-signup', {
   successRedirect : '/auth/profile', // redirect to the secure profile section
   failureRedirect : '/auth/signup', // redirect back to the signup page if there is an error
@@ -164,11 +164,11 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   // The user has authenticated with Facebook.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req, res)) {
-    res.redirect('/');
+    res.redirect('/#/profile');
   } else {
     res.redirect('/auth/facebookemail');
   }
-}); 
+});
 
 router.get('/facebookemail', function(req, res) {
   //can only be here because facebook has registered user, but as yet not associated with any main email
@@ -193,15 +193,15 @@ router.get('/facebookemail', function(req, res) {
           if(!err){ res.redirect('/auth/profile'); }else {		//handle error
           } });
           return;
-      }  
+      }
       else res.render('error.ejs', { message: "Error linking Facebook account", name:req.user.facebook.name, email: req.user.facebook.email }); //should not happen! if there is a fb for this user we should be in it now
 
     }
   });
 });
 
-    
-router.get('/facebooklinkemail', function(req, res) { 
+
+router.get('/facebooklinkemail', function(req, res) {
   res.render('facebookemail.ejs', { message: req.flash('facebookMessage'), facebook:req.user.facebook });
 });
 
@@ -211,7 +211,7 @@ router.post('/facebooklinkemail', function(req, res) {
     res.render('facebookemail.ejs', { message: "Email '"+req.body.email+"' and confirm email '"+req.body.emailconfirm+"' do not match. Try again", facebook:req.user.facebook});
     return;
   }
-  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;  
+  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   if (!req.body.email.match(mailformat)) {
     res.render('facebookemail.ejs', { message: "'"+req.body.email+"' is not a valid email. Try again", facebook:req.user.facebook});
     return;
@@ -228,7 +228,7 @@ router.post('/facebooklinkemail', function(req, res) {
         User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
           deleteUser.remove({});
         });
-        existingUser.save();     		 		
+        existingUser.save();
         //log out current user; log in existingUser
         req.logout();
         req.logIn(existingUser, function (err) {
@@ -254,14 +254,14 @@ router.get('/facebooknew', function(req, res) {
   req.user.local.password=req.user.generateHash("X"); //place holder
   req.user.local.authenticated= "0";
   req.user.save();
-  res.redirect('/auth/profile?context=facebook'); 
+  res.redirect('/auth/profile?context=facebook');
 });
 //cancel this facebook linkage
 router.get('/facebookcancel', function(req, res) {
   User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.redirect('/'); 
+  res.redirect('/');
 });
 
 
@@ -279,13 +279,13 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req, res)) {
-    res.redirect('/');
+    res.redirect('/#/profile');
   } else {
     res.redirect('/auth/twitteremail');
   }
-}); 
+});
 
-//we don't have a twitter email! get one 
+//we don't have a twitter email! get one
 router.get('/twitteremail', function(req, res) {
   // render the page and pass in any flash data if it exists
   res.render('twitteremail.ejs', { message: req.flash('twitterMessage'), name:req.user.twitter.displayName });
@@ -306,7 +306,7 @@ router.post('/twitteremail', function(req, res) {
     res.render('twitteremail.ejs', { message: "Email '"+req.body.email+"' and confirm email '"+req.body.emailconfirm+"' do not match. Try again", name:req.user.twitter.displayName});
     return;
   }
-  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;  
+  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   if (!req.body.email.match(mailformat)) {
     res.render('twitteremail.ejs', { message: "'"+req.body.email+"' is not a valid email. Try again", name:req.user.twitter.displayName});
     return;
@@ -372,7 +372,7 @@ router.get('/google/callback', passport.authenticate('google', {
   // is "complete".  If not, send them down a form to fill out more details.
   console.log("hi");
   if (isValidProfile(req, res)) {
-    res.redirect('/');
+    res.redirect('/#/profile');
   } else {
     res.redirect('/auth/googleemail');
   }
@@ -400,23 +400,23 @@ router.get('/googleemail', function(req, res) {
           if(!err){ res.redirect('/auth/profile'); }else {		//handle error
           } });
           return;
-      }  
+      }
       else res.render('error.ejs', { message: "Error linking Google account", name:req.user.google.name, email: req.user.google.email }); //should not happen! if there is a google for this user we should be in it now
     }
   });
 });
-    
-router.get('/googlelinkemail', function(req, res) { 
+
+router.get('/googlelinkemail', function(req, res) {
   res.render('googleemail.ejs', { message: req.flash('googleMessage'), google:req.user.google });
 });
-    
+
 router.post('/googlelinkemail', function(req, res) {
   // render the page and pass in any flash data if it exists
   if (req.body.email!=req.body.emailconfirm) {
     res.render('googleemail.ejs', { message: "Email '"+req.body.email+"' and confirm email '"+req.body.emailconfirm+"' do not match. Try again", google:req.user.google});
     return;
   }
-  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;  
+  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   if (!req.body.email.match(mailformat)) {
     res.render('googleemail.ejs', { message: "'"+req.body.email+"' is not a valid email. Try again", google:req.user.google});
     return;
@@ -433,7 +433,7 @@ router.post('/googlelinkemail', function(req, res) {
         User.findOne({'google.id': req.user.google.id}, function(err, deleteUser) {
           deleteUser.remove({});
         });
-        existingUser.save();     		 		
+        existingUser.save();
         //log out current user; log in existingUser
         req.logout();
         req.logIn(existingUser, function (err) {
@@ -458,7 +458,7 @@ router.get('/googlenew', function(req, res) {
   req.user.local.password=req.user.generateHash("X"); //place holder
   req.user.local.authenticated= "0";
   req.user.save();
-  res.redirect('/auth/profile?context=google'); 
+  res.redirect('/auth/profile?context=google');
 });
 
 //cancel this google linkage
@@ -466,7 +466,7 @@ router.get('/googlecancel', function(req, res) {
   User.findOne({'google.id': req.user.google.id}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.redirect('/'); 
+  res.redirect('/');
 });
 
 
@@ -480,7 +480,7 @@ router.get('/connect/local', function(req, res) {
   res.render('connect-local.ejs', { message: req.flash('loginMessage') });
 });
 router.post('/connect/local', passport.authenticate('local-signup', {
-  successRedirect : '/', // redirect to the secure profile section
+  auth : '/auth', // redirect to the secure profile section
   failureRedirect : '/auth/connect/local', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
@@ -492,7 +492,7 @@ router.get('/connect/facebook', passport.authorize('facebook', { scope : 'email'
 
 // handle the callback after facebook has authorized the user
 router.get('/connect/facebook/callback', passport.authorize('facebook', {
-  successRedirect : '/auth/profile',
+  successRedirect : '/#/profile',
   failureRedirect : '/'
 }));
 
@@ -503,7 +503,7 @@ router.get('/connect/twitter', passport.authorize('twitter', { scope : 'email' }
 
 // handle the callback after twitter has authorized the user
 router.get('/connect/twitter/callback', passport.authorize('twitter', {
-  successRedirect : '/auth/profile',
+  successRedirect : '/#/profile',
   failureRedirect : '/auth/'
 }));
 
@@ -515,7 +515,7 @@ router.get('/connect/google', passport.authorize('google', { scope : ['profile',
 
 // the callback after google has authorized the user
 router.get('/connect/google/callback', passport.authorize('google', {
-  successRedirect : '/auth/profile',
+  successRedirect : '/#/profile',
   failureRedirect : '/'
 }));
 
@@ -574,7 +574,7 @@ router.get('/logout', function(req, res) {
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
 
-  // if user is authenticated in the session, carry on 
+  // if user is authenticated in the session, carry on
   if (req.isAuthenticated())
     return next();
 
@@ -601,7 +601,7 @@ function randomStringAsBase64Url(size) {
 }
 
 function authenticateUser (email, user, thisUrl) {
-  var ejs = require('ejs'), fs = require('fs'), str = fs.readFileSync(__dirname + '/../views/authenticatemail.ejs', 'utf8'); 
+  var ejs = require('ejs'), fs = require('fs'), str = fs.readFileSync(__dirname + '/../views/authenticatemail.ejs', 'utf8');
   var hash=randomStringAsBase64Url(20);
   var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: thisUrl});
   //console.log( TCAddresses.replyto+" "+TCAddresses.from);
@@ -610,7 +610,7 @@ function authenticateUser (email, user, thisUrl) {
   user.save();
   TCMailer.nodemailerMailgun.sendMail({
     from: TCAddresses.from,
-    to: email, 
+    to: email,
     subject: 'Authenticate your Textual Communities account',
     'h:Reply-To': TCAddresses.replyto,
     html: rendered,
@@ -622,6 +622,3 @@ function authenticateUser (email, user, thisUrl) {
 
 
 module.exports = router;
-
-
-
