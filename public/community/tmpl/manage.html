@@ -1,8 +1,8 @@
 <div x-auto-height class="manage" ng-controller="ManageCtrl">
   <div class="headerManage" ng-show="isLeader===true || isCreator===true" ng-controller="MemberCtrl">
       <nav class="navbar navbar-default">
-        <div class="container-fluid">
-          <ul class="nav navbar-nav">
+          <ul class="nav navbar-nav navbar-left">
+            <li><span class="hmbrand">Manage ></span></li>
             <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
                 <ul class="dropdown-menu">
                     <li><a href="#">Add XML Document</a></li>
@@ -42,10 +42,9 @@
                 </ul>
             </li>
           </ul>
-        </div>
       </nav>
     </div>
 
-  <div ng-include="'community/tmpl/edit.html'" class="community-content">
+  <div ng-include="'community/tmpl/edit.html'" class="community-edit">
   </div>
 </div>

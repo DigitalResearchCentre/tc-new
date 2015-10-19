@@ -8,13 +8,10 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">{{community.name}}</a>
+          <a class="navbar-brand" href="#/community/{{community._id}}/home" ng-class="{selected: tab == 'home'}">{{community.name}}</a>
       </div>
       <div class="collapse navbar-collapse" id="header-navbar-collapse-1">
         <ul class="nav navbar-nav">
-          <li><a href="#/community/{{community._id}}/home"
-              ng-class="{selected: tab == 'home'}">Home</a>
-          </li>
           <li><a href="#/community/{{community._id}}/about"
               ng-class="{selected: tab == 'about'}">About</a></li>
           <li><a href="#/community/{{community._id}}/view"
@@ -32,20 +29,3 @@
     </div>
 </nav>
 </div>
-  <!-- div ng-show="community.haspicture"><img class="communityimage" src="{{community.image}}"/></div-->
-
-<!-- ul>
-  <li><a href="#/community/{{community._id}}/home"
-      ng-class="{selected: tab == 'home'}">Home</a>
-  </li>
-  <li><a href="#/community/{{community._id}}/about"
-      ng-class="{selected: tab == 'about'}">About</a></li>
-  <li><a href="#/community/{{community._id}}/view"
-      ng-class="{selected: tab == 'view'}">View</a></li>
-  <li><a href="#">Wiki</a></li>
-  <li><a href="#">Blog</a></li>
-  <li><a href="#">Bulletin Board</a></li>
-  <li ng-show="isMember"><a href="#/community/{{community._id}}/manage"
-      ng-class="{selected: tab == 'manage'}">Manage</a></li>
-</ul></nav>
-<div ng-show="community.haspicture"><img class="communityimage" src="{{community.image}}"/></div-->
