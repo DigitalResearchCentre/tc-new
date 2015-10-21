@@ -330,6 +330,9 @@ function TCService($resource) {
     xml2json: xml2json,
     json2xml: json2xml,
     json2xmlDoc: json2xmlDoc,
+    sendMail: function(mailOptions, cb) {
+      $.post('/api/sendmail', mailOptions, cb);
+    },
     commit: commit,
     Community: Community,
     Doc: Doc,

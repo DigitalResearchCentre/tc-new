@@ -236,8 +236,6 @@ var NodeSchemaSchema = new Schema({
   name: String,
 });
 
-
-
 module.exports = {
   Community: mongoose.model('Community', CommunitySchema),
   User:  require('./user'),

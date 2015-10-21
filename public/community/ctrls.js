@@ -6,34 +6,39 @@ var UpLoadCtrl = function ($scope) {
       fileReader.onload = function(evt) {
         $scope.$parent.community.image = evt.target.result;
         $scope.$parent.community.haspicture=true;
-      }
+      };
       fileReader.readAsDataURL(file);
     };
     $scope.nullImage = function () {
       $scope.$parent.community.image ="";
       $scope.$parent.community.image =false;
-    }
-}
+    };
+};
 UpLoadCtrl.$inject = ['$scope'];
 
 var ProfileMemberCtrl = function($scope, $routeParams, $location, TCService) {
     var user=TCService.app.authUser;
     $scope.nmemberships=0;
-    var community;
     $scope.communities=TCService.app.communities;
     $scope.memberships = TCService.app.authUser.memberships;
     if ($scope.memberships) {
       $scope.nmemberships=$scope.memberships.length;
-      for (var i=0; i<$scope.communities.length; i++) {
-          var matched=$scope.memberships.filter(function (obj){return obj.community._id === $scope.communities[i]._id;})[0];
-          if (!matched && $scope.communities[i].accept) {$scope.communities[i].available=1;} else {$scope.communities[i].available=0;}
-      }
+      _.each($scope.communities, function(community) {
+        var matched = $scope.memberships.filter(function (obj){
+          return obj.community._id === community._id;
+        })[0];
+        if (!matched && community.accept) {
+          community.available=1;
+        } else {
+          community.available=0;
+        }
+      });
     }
     $scope.joinComm= function(communityId) {
         $location.path('/community/' + communityId + '/join');
-    }
+    };
+};
 
-}
 ProfileMemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 
 var MemberCtrl = function($scope, $routeParams, $location, TCService) {
@@ -44,7 +49,11 @@ var MemberCtrl = function($scope, $routeParams, $location, TCService) {
     ;
     var user=TCService.app.authUser;
 //    $scope.tab = params.split('/').shift(); do we need this?
-    $scope.community = community=TCService.app.communities.filter(function (obj){return obj._id === communityId;})[0]
+    $scope.community = community = TCService.app.communities.filter(
+      function (obj){
+        return obj._id === communityId;
+      }
+    )[0];
     $scope.isMember=false; $scope.isLeader=false; $scope.isCreator=false; $scope.canJoin=false; $scope.isTranscriber=false;
     $scope.nmemberships=0;
     $scope.communityId=communityId;
@@ -67,8 +76,8 @@ var MemberCtrl = function($scope, $routeParams, $location, TCService) {
     }
     $scope.join= function() {
         $location.path('/community/' + communityId + '/join');
-    }
-}
+    };
+};
 MemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 
 
@@ -97,13 +106,21 @@ function checkCommunity (communities, community) {
     var message="";
     var matchedname=communities.filter(function (obj){return obj.name === community.name;})[0];
     var matchedabbrev=communities.filter(function (obj){return obj.abbr === community.abbr;})[0];
-    if (matchedname && matchedname._id!=community._id) {message="Community name "+community.name+" already exists"}
-    else if (matchedabbrev && matchedabbrev._id!=community._id) {message="Community abbreviation "+community.abbr+" already exists"}
-    else if (!community.name) {message="Community name cannot be blank"}
-    else if (!community.abbr) {message="Community abbreviation cannot be blank"}
-    else if (community.name.length>19) {message="Community name "+community.name+" must be less than 20 characters"}
-    else if (community.abbr.length>4)  {message="Community abbreviation "+community.abbr+" must be less than 5 characters"}
-    else if (community.longName && community.longName.length>80) {message="Community long name "+community.longName+" must be less than 80 characters"}
+    if (matchedname && matchedname._id!=community._id) {
+      message="Community name "+community.name+" already exists";
+    } else if (matchedabbrev && matchedabbrev._id!=community._id) {
+      message="Community abbreviation "+community.abbr+" already exists";
+    } else if (!community.name) {
+      message="Community name cannot be blank";
+    } else if (!community.abbr) {
+      message="Community abbreviation cannot be blank";
+    } else if (community.name.length>19) {
+      message="Community name "+community.name+" must be less than 20 characters";
+    } else if (community.abbr.length>4)  {
+      message="Community abbreviation "+community.abbr+" must be less than 5 characters";
+    } else if (community.longName && community.longName.length>80) {
+      message="Community long name "+community.longName+" must be less than 80 characters";
+    } 
     return message;
 }
 
@@ -122,7 +139,7 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
     $scope.isCreate=true;
     $scope.submit = function() { //is everything in order? if not, send messages and warnings
       $scope.message=checkCommunity(TCService.app.communities, community);
-        if ($scope.message!="") {
+        if ($scope.message!=="") {
           $location.path('/community/new');
         } else {
           community.$save(function() {
@@ -130,7 +147,7 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
             $scope.isCreate=true;
             $location.path('/community/' + community._id + '/home');
           });
-        };
+        }
     };
 };
 CreateCommunityCtrl.$inject = [
@@ -204,20 +221,19 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 var ManageCtrl = function($scope, $routeParams, $location, TCService) {
-    var community = $scope.community = $scope.$parent.community;
-    $scope.isCreate=false;
-    $scope.update = function() { //is everything in order? if not, send messages and warnings
+  var community = $scope.community = $scope.$parent.community;
+  $scope.isCreate=false;
+  $scope.update = function() { //is everything in order? if not, send messages and warnings
     $scope.message=checkCommunity(TCService.app.communities, community);
-		if ($scope.message!="") {
-    		$location.path('/community/'+community._id+'/manage');
-    	} else {
-    			community.$update(function() {
-        		$location.path('/community/' + community._id + '/manage');
-	    	 });
-	    };
-    };
+    if ($scope.message!=="") {
+      $location.path('/community/'+community._id+'/manage');
+    } else {
+      community.$update(function() {
+        $location.path('/community/' + community._id + '/manage');
+      });
+    }
+  };
 };
-
 ManageCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 

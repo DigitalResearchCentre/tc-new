@@ -9,6 +9,8 @@ require('bootstrap');
 
 require('test');
 
+window.$ = $;
+
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
   'ngRoute', 'ngResource', 'ngSanitize', 'jdFontselect',

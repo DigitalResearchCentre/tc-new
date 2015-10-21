@@ -4,6 +4,7 @@ var _ = require('lodash')
   , router = express.Router()
   , Resource = require('./resource')
   , models = require('../models')
+  , TCMailer = require('../TCMailer')
   , Community = models.Community
   , User = models.User
   , Doc = models.Doc
@@ -131,6 +132,17 @@ router.get('/auth', function(req, res, next) {
     res.json({});
   }
 }, userResource.detail());
+
+
+router.post('/sendmail', function(req, res, next) {
+  TCMailer.nodemailerMailgun.sendMail(req.body, function(err, status) {
+    if (!err) {
+      res.json(status);
+    } else {
+      next(err);
+    }
+  });
+});
 
 module.exports = router;
 
