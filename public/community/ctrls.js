@@ -235,8 +235,8 @@ var ManageCtrl = function($scope, $routeParams, $location, TCService) {
   };
 };
 ManageCtrl.$inject = [
-  '$scope', '$routeParams', '$location', 'TCService'];
-
+  '$scope', '$routeParams', '$location', 'TCService'
+];
 
 var CreateDocCtrl = function($scope, $routeParams, TCService) {
   console.log('CreateDocCtrl');

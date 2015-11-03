@@ -145,7 +145,6 @@ function _loadChildren(curDoc, queue, texts) {
   });
 }
 
-
 function _loadWorkChildren(curWork, queue, texts) {
   return _.map(curWork._children, function(child, i) {
     var childDoc = new Work(child);
@@ -162,14 +161,13 @@ function _loadWorkChildren(curWork, queue, texts) {
     queue.push(childDoc);
     return childDoc;
   });
- 
 }
 _.assign(DocSchema.methods, baseDoc.methods, {
-  commit: function(commit, callback) {
-    var docRoot = commit.doc
-      , workRoot = commit.work
-      , teiRoot = commit.tei
-      , texts = commit.texts
+  commit: function(data, callback) {
+    var docRoot = data.doc
+      , workRoot = data.work
+      , teiRoot = data.tei
+      , texts = data.texts
       , doc = this
       , queue
       , cur, curDoc, curWork
@@ -229,9 +227,6 @@ var TeiSchema = new Schema(baseTei.schema);
 _.assign(TeiSchema.methods, baseTei.methods);
 var Tei = mongoose.model('Tei', TeiSchema);
 
-
-
-
 var NodeSchemaSchema = new Schema({
   name: String,
 });
@@ -245,3 +240,5 @@ module.exports = {
   Tei: Tei,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
+
+
