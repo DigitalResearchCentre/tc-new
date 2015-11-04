@@ -131,7 +131,6 @@ function _loadChildren(cls, cur, queue, texts, bindText) {
   // TODO: what if work is not new
   return _.map(cur._children, function(data, i) {
     var child = new cls(data);
-    console.log(child);
     if (!child.name) {
       child.name = '' + (i + 1);
     }
@@ -180,7 +179,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
           );
           docs.push(curDoc);
         }
-        console.log('work--------------------');
 
         //  Work
         if (workRoot._id) {
@@ -190,7 +188,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
           curWork._children = workRoot.children;
         }
         queue = [curWork];
-        console.log(curWork);
         while (queue.length > 0) {
           curWork = queue.shift();
           curWork.children = _loadChildren(
@@ -203,7 +200,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         }
 
         //  XML
-        console.log('xml--------------------');
         if (xmlRoot._id) {
           curEl = xmlRoot;
         } else {
