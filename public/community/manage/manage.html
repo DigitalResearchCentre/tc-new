@@ -5,7 +5,8 @@
         <li><span class="hmbrand">Manage ></span></li>
         <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#">Add XML Document</a></li>
+            <li><a href="#{{manageBaseUrl + 'add-xml-document'}}">
+                Add XML Document</a></li>
             <li><a href="#">Add Image Zip</a></li>
             <li><a href="#">Delete Document</a></li>
             <li><a href="#">Edit Document Pages</a></li>
@@ -45,6 +46,6 @@
     </nav>
   </div>
 
-  <div ng-include="'community/tmpl/edit.html'" class="community-edit">
+  <div ng-include="'community/manage/tmpl/' + tmpl + '.html'">
   </div>
 </div>

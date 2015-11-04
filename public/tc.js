@@ -51,7 +51,9 @@ function loadObjTree(xmlDoc, parentEl, obj, queue) {
       childEl.setAttribute(k, v);
     });
     _.each(obj.children, function(child) {
-      queue.push({parent: childEl, child: child});
+      if (!_.isString(child)) {
+        queue.push({parent: childEl, child: child});
+      }
     });
   }
   parentEl.appendChild(childEl);
@@ -220,6 +222,7 @@ function commit(docResource, text, opts) {
       }
     } else if (node.nodeType === node.TEXT_NODE) {
       var textIndex = texts.length
+        , parentNode = node.parentElement
         , sibling
       ;
       if (prevDoc) {
@@ -233,6 +236,18 @@ function commit(docResource, text, opts) {
           });
         }
       }
+
+      while (parentNode) {
+        if (parentNode.work) {
+          parentNode.work.children.push({
+            texts: [textIndex],
+            children: [],
+          });
+          break;
+        }
+        parentNode = parentNode.parentElement;
+      }
+
       texts.push(node.nodeValue.trim());
       node.textIndex = textIndex;
     }
@@ -240,7 +255,7 @@ function commit(docResource, text, opts) {
   }
 
   docResource.commit = {
-    tei: xmlDoc2json(xmlDoc),
+    xml: xmlDoc2json(xmlDoc),
     doc: docRoot,
     work: workRoot,
     texts: texts,
@@ -283,6 +298,10 @@ function TCService($resource) {
   }, {
     'patch': {method: 'PATCH'},
     'update': {method: 'PUT'},
+    'getTrees': {
+      url: '/api/docs/:id/texts',
+      method: 'GET',
+    }
   });
 
   var Login = $resource('/auth/login/', null, {

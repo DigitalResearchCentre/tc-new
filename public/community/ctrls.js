@@ -89,7 +89,14 @@ var CommunityCtrl = function($scope, $routeParams, TCService) {
       , community
     ;
     var user=TCService.app.authUser;
-    $scope.tab = params.split('/').shift();
+    var tabs = {
+      'about': 'tmpl/about.html',
+      'view': 'tmpl/view.html',
+      'manage': 'manage/manage.html',
+    };
+    $scope.tab = tabs[params.split('/').shift()];
+    console.log($scope.tab);
+
     $scope.community = community = TCService.get(communityId, Community);
     if (!community.status) {
       $scope.community.$get({
@@ -176,14 +183,15 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     , Doc = TCService.Doc
     , pageId = params[2]
     , databaseRevision = {created: 'Version in database'}
+    , page
   ;
-  $scope.page = null;
+  $scope.page = page = null;
   $scope.selectedRevision = null;
   $scope.transcript = '';
   $scope.revisions = [];
 
   $scope.$watch('page.revisions', function() {
-    var page = $scope.page || {};
+    page = $scope.page || {};
     $scope.revisions = [];
     _.forEachRight(page.revisions, function(revision) {
       if (!_.isString(revision)) {
@@ -194,20 +202,54 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     $scope.selectedRevision = $scope.revisions[0];
   });
   if (pageId) {
-    $scope.page = TCService.get(pageId, Doc);
-    if (!$scope.page.revisions || _.isString(_.last($scope.page.revisions))) {
-      $scope.page.$get({
-        fields: JSON.stringify({path: 'revisions'}),
+    $scope.page = page = TCService.get(pageId, Doc);
+    if (!page.revisions || _.isString(_.last(page.revisions))) {
+      page.$get({
+        fields: JSON.stringify('revisions'),
+      });
+    }
+    if (!page.texts) {
+      Doc.getTrees({id: page._id}, function(data) {
+        var docs = {}
+          , xmls = {}
+          , works = {}
+          , texts = {}
+          , xmlRoot = {name: 'xml', children: []}
+        ;
+        _.each(data.descendants, function(doc) {
+          docs[doc._id] = doc;
+        });
+        _.each(data.texts, function(text) {
+          texts[text._id] = text;
+        });
+        _.each(data.xmls, function(xml) {
+          xmls[xml._id] = xml;
+          if (xml.name === '#text') {
+            xml.children = _.map(xml.texts, function(textId) {
+              return texts[textId].text;
+            });
+          }
+        });
+        _.each(xmls, function(xml) {
+          var parentId = _.last(xml.ancestors);
+          if (!parentId || !xmls[parentId]) {
+            xmlRoot.children.push(xml);
+          } else {
+            var parent = xmls[parentId];
+            parent.children[parent.children.indexOf(xml._id)] = xml;
+          }
+        });
+        databaseRevision.text = TCService.json2xml(xmlRoot);
       });
     }
   }
   $scope.save = function() {
-    var page = $scope.page;
+    page = $scope.page;
     Doc.patch({id: page._id}, {
       revision: $scope.selectedRevision.text
     }, function() {
-      $scope.page.$get({
-        fields: JSON.stringify({path: 'revisions'}),
+      page.$get({
+        fields: JSON.stringify('revisions'),
       });
     });
   };
@@ -220,54 +262,11 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 };
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
-var ManageCtrl = function($scope, $routeParams, $location, TCService) {
-  var community = $scope.community = $scope.$parent.community;
-  $scope.isCreate=false;
-  $scope.update = function() { //is everything in order? if not, send messages and warnings
-    $scope.message=checkCommunity(TCService.app.communities, community);
-    if ($scope.message!=="") {
-      $location.path('/community/'+community._id+'/manage');
-    } else {
-      community.$update(function() {
-        $location.path('/community/' + community._id + '/manage');
-      });
-    }
-  };
-};
-ManageCtrl.$inject = [
-  '$scope', '$routeParams', '$location', 'TCService'
-];
-
-var CreateDocCtrl = function($scope, $routeParams, TCService) {
-  console.log('CreateDocCtrl');
-  var community = $scope.$parent.community
-    , Doc = TCService.Doc
-    , doc = new Doc()
-  ;
-  $scope.doc = doc;
-  $scope.text = 'hello';
-
-  $scope.submit = function() {
-    if (!doc._id) {
-      doc.community = community;
-      doc.$save(function() {
-        community.documents.push(doc);
-        TCService.commit(doc, $scope.text);
-      });
-    } else {
-      TCService.commit(doc, $scope.text);
-    }
-  };
-};
-CreateDocCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
-
 module.exports = {
   CommunityCtrl: CommunityCtrl,
   CreateCommunityCtrl: CreateCommunityCtrl,
-  CreateDocCtrl: CreateDocCtrl,
   ViewCtrl: ViewCtrl,
   ViewerCtrl: ViewerCtrl,
-  ManageCtrl: ManageCtrl,
   UpLoadCtrl: UpLoadCtrl,
   MemberCtrl: MemberCtrl,
   ProfileMemberCtrl: ProfileMemberCtrl,

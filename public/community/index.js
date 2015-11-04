@@ -2,6 +2,7 @@ var angular = require('angular');
 
 var communityModule = angular.module('community', ['ngFileUpload'])
   , ctrls = require('./ctrls')
+  , manageCtrls = require('./manage/ctrls')
 ;
 communityModule
   .controller('CommunityCtrl', ctrls.CommunityCtrl)
@@ -10,8 +11,8 @@ communityModule
   .controller('MemberCtrl', ctrls.MemberCtrl)
   .controller('ProfileMemberCtrl', ctrls.ProfileMemberCtrl)
   .controller('ViewerCtrl', ctrls.ViewerCtrl)
-  .controller('ManageCtrl', ctrls.ManageCtrl)
-  .controller('CreateDocCtrl', ctrls.CreateDocCtrl)
+  .controller('ManageCtrl', manageCtrls.ManageCtrl)
+  .controller('AddXMLDocCtrl', manageCtrls.AddXMLDocCtrl)
   .controller('UpLoadCtrl', ctrls.UpLoadCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))

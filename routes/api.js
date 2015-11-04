@@ -8,6 +8,8 @@ var _ = require('lodash')
   , Community = models.Community
   , User = models.User
   , Doc = models.Doc
+  , Work = models.Work
+  , XML = models.XML
   , Revision = models.Revision
   , TextNode = models.TextNode
 ;
@@ -105,23 +107,52 @@ new CommunityResource({id: 'community'}).serve(router, 'communities');
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');
 router.get('/docs/:id/texts', function(req, res, next) {
-  var docId = req.params.id
-    , fields = JSON.parse(req.query.fields || '""')
-    , select = '-docs'
-  ;
-  if (_.includes(fields, 'works')) {
-    select += ' works';
-  }
-  if (_.includes(fields, 'teis')) {
-    select += ' teis';
-  }
-  Doc.find({ancestors: docId}).populate({
-    path: 'texts',
-    select: select,
-  }).exec(function(err, data) {
-    res.json(data);
-    
-  });
+  var docId = req.params.id;
+  async.parallel([
+    function(cb) {
+      Doc.find({ancestors: docId}).exec(cb);
+    },
+    function(cb) {
+      TextNode.find({docs: docId}).exec(function(err, texts) {
+        var xmls = {}
+          , works = {}
+        ;
+        _.each(texts, function(text) {
+          _.each(text.xmls, function(id) {
+            xmls[id] = '';
+          });
+          _.each(text.works, function(id) {
+            works[id] = '';
+          });
+        });
+        async.parallel([
+          function(cb1) {
+            Work.find({_id: {$in: _.keys(works)}}, cb1);
+          },
+          function(cb1) {
+            XML.find({_id: {$in: _.keys(xmls)}}, cb1);
+          },
+        ], function(err, results) {
+          cb(err, {
+            works: results[0],
+            xmls: results[1],
+            texts: texts,
+          })
+        });
+      });
+    },
+  ], function(err, results) {
+    if (err) {
+      next(err);
+    } else {
+      res.json({
+        descendants: results[0],
+        works: results[1].works,
+        xmls: results[1].xmls,
+        texts: results[1].texts,
+      });
+    }
+  })
 });
 
 router.get('/auth', function(req, res, next) {
@@ -167,4 +198,34 @@ module.exports = router;
   </div>
 </body>
 </text>
+
+<text>
+<body>
+  <div n="div1">
+    <pb n="1r"/>
+    <head n="h1"> head </head>
+    <ab n="ab1"> ab1 </ab>
+    <ab n="ab2"> ab2 </ab>
+    <lb/>
+    <l n="1"> hello <lb/> world </l>
+    <lb/>
+     <l n="2"> foo  bar </l>
+    <lb/>
+     <l n="3"> good  good </l>
+  </div>
+  <div n="div2">
+        <lb/>
+    <l n="1">
+      foo
+      <pb n="1v"/>
+      <lb/>
+      bar
+    </l>
+    <pb n="2r"/>
+<lb/>
+     <l n="1"> see <lb/> you</l>
+  </div>
+</body>
+</text>
+
  */

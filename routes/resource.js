@@ -56,7 +56,12 @@ _.assign(Resource.prototype, {
       query = query.sort(sort);
     }
     if (fields) {
-      query = query.populate(fields);
+      if (!_.isArray(fields)) {
+        fields = [fields];
+      }
+      _.each(fields, function(field) {
+        query = query.populate(field);
+      });
     }
     return query;
   },

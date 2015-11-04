@@ -97,7 +97,7 @@ var TextNodeSchema = new Schema({
   text: String,
   docs: [{type: ObjectId, ref: 'Doc'}],
   works: [{type: ObjectId, ref: 'Work'}],
-  teis: [{type: ObjectId, ref: 'Tei'}],
+  xmls: [{type: ObjectId, ref: 'XML'}],
 });
 var TextNode = mongoose.model('TextNode', TextNodeSchema);
 
@@ -127,105 +127,139 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
 
-function _loadChildren(curDoc, queue, texts) {
-  return _.map(curDoc._children, function(child, i) {
-    var childDoc = new Doc(child);
-    if (!childDoc.name) {
-      childDoc.name = '' + (i + 1);
+function _loadChildren(cls, cur, queue, texts, bindText) {
+  // TODO: what if work is not new
+  return _.map(cur._children, function(data, i) {
+    var child = new cls(data);
+    console.log(child);
+    if (!child.name) {
+      child.name = '' + (i + 1);
     }
-    childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
-    childDoc.texts = _.map(child.texts, function(textIndex) {
+    child.ancestors = cur.ancestors.concat([cur._id]);
+    child.texts = _.map(data.texts, function(textIndex) {
       var text = texts[textIndex];
-      text.docs = childDoc.ancestors.concat(childDoc._id);
+      bindText(text, child.ancestors.concat(child._id));
       return text._id;
     });
-    childDoc._children = child.children;
-    queue.push(childDoc);
-    return childDoc;
-  });
-}
-
-function _loadWorkChildren(curWork, queue, texts) {
-  return _.map(curWork._children, function(child, i) {
-    var childDoc = new Work(child);
-    if (!childDoc.name) {
-      childDoc.name = '' + (i + 1);
-    }
-    childDoc.ancestors = curDoc.ancestors.concat([curDoc._id]);
-    childDoc.texts = _.map(child.texts, function(textIndex) {
-      var text = texts[textIndex];
-      text.docs = childDoc.ancestors.concat(childDoc._id);
-      return text._id;
-    });
-    childDoc._children = child.children;
-    queue.push(childDoc);
-    return childDoc;
+    child._children = data.children;
+    queue.push(child);
+    return child;
   });
 }
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
     var docRoot = data.doc
       , workRoot = data.work
-      , teiRoot = data.tei
+      , xmlRoot = data.xml
       , texts = data.texts
       , doc = this
       , queue
-      , cur, curDoc, curWork
+      , cur, curDoc, curWork, curEl
       , docs = []
       , works = []
-      , teis = []
+      , xmls = []
     ;
     texts = _.map(texts, function(text) {
       return new TextNode({text: text});
     }) || [];
-    doc._children = docRoot.children || [];
-    queue = [doc];
-    while (queue.length > 0) {
-      curDoc = queue.shift();
-      curDoc.children = _loadChildren(curDoc, queue, texts);
-      docs.push(curDoc);
-    }
+    async.each(texts, function(text, cb) {
+      text.save(cb);
+    }, function(err) {
+      if (err) {
+        console.log(err);
+      } else {
+        doc._children = docRoot.children || [];
+        queue = [doc];
+        while (queue.length > 0) {
+          curDoc = queue.shift();
+          curDoc.children = _loadChildren(
+            Doc, curDoc, queue, texts, 
+            function(text,ids){
+              text.docs = ids;
+            }
+          );
+          docs.push(curDoc);
+        }
+        console.log('work--------------------');
 
-    if (workRoot._id) {
-      curWork = workRoot;
-    } else {
-      curWork = new Work(workRoot);
-      curWork._children = workRoot.children;
-    }
-    queue = [curWork];
-    while (queue.length > 0) {
-      curWork = queue.shift();
-      curWork.children = _loadWorkChildren(curWork, queue, texts);
+        //  Work
+        if (workRoot._id) {
+          curWork = workRoot;
+        } else {
+          curWork = new Work(workRoot);
+          curWork._children = workRoot.children;
+        }
+        queue = [curWork];
+        console.log(curWork);
+        while (queue.length > 0) {
+          curWork = queue.shift();
+          curWork.children = _loadChildren(
+            Work, curWork, queue, texts, 
+            function(t,ids){
+              t.works = ids;
+            }
+          );
+          works.push(curWork);
+        }
 
-    }
+        //  XML
+        console.log('xml--------------------');
+        if (xmlRoot._id) {
+          curEl = xmlRoot;
+        } else {
+          curEl = new XML(xmlRoot);
+          curEl._children = xmlRoot.children;
+        }
+        queue = [curEl];
+        while (queue.length > 0) {
+          curEl = queue.shift();
+          curEl.children = _loadChildren(
+            function(data) {
+              if (data.name === '#text') {
+                data.texts = [data.textIndex];
+                data.children = [];
+              }
+              var xml = new XML(data);
+              return xml;
+            }, curEl, queue, texts, 
+            function(t, ids){
+              t.xmls = ids;
+            }
+          );
+          xmls.push(curEl);
+        }
 
-    return callback();
-    /*
-
-    async.each(
-      texts.concat(docs).concat(works).concat(teis),
-      function(obj, cb) {
-        obj.save(function(err) {
-          cb(err);
+        async.each(docs.concat(works).concat(xmls), function(obj, cb) {
+          obj.save(cb);
+        }, function(err) {
+          if (!err) {
+            async.each(texts, function(obj, cb) {
+              obj.save(cb);
+            }, callback);
+          } else {
+            callback(err)
+          }
         });
-      },
-      callback
-    );
-    */
+      }
+    });
   }
 });
 
 var Doc = mongoose.model('Doc', DocSchema);
 
 var baseWork = BaseNodeSchema('Work');
-var WorkSchema = new Schema(baseWork.schema);
+var WorkSchema = new Schema(_.assign(baseWork.schema, {
+  texts: [{type: ObjectId, ref: 'TextNode'}],
+}));
 _.assign(WorkSchema.methods, baseWork.methods);
 var Work = mongoose.model('Work', WorkSchema);
 
-var baseTei = BaseNodeSchema('Tei');
-var TeiSchema = new Schema(baseTei.schema);
-_.assign(TeiSchema.methods, baseTei.methods);
-var Tei = mongoose.model('Tei', TeiSchema);
+var baseXML = BaseNodeSchema('XML');
+var XMLSchema = new Schema(_.assign(baseXML.schema, {
+  texts: [{type: ObjectId, ref: 'TextNode'}],
+}));
+
+var XML = mongoose.model('XML', XMLSchema);
 
 var NodeSchemaSchema = new Schema({
   name: String,
@@ -237,7 +271,7 @@ module.exports = {
   Doc: Doc,
   Work: Work,
   TextNode: TextNode,
-  Tei: Tei,
+  XML: XML,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
 
