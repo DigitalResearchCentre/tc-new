@@ -137,7 +137,7 @@ router.get('/docs/:id/texts', function(req, res, next) {
             works: results[0],
             xmls: results[1],
             texts: texts,
-          })
+          });
         });
       });
     },
@@ -152,7 +152,7 @@ router.get('/docs/:id/texts', function(req, res, next) {
         texts: results[1].texts,
       });
     }
-  })
+  });
 });
 
 router.get('/auth', function(req, res, next) {

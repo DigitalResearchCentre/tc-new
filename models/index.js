@@ -128,7 +128,6 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
 }));
 
 function _loadChildren(cls, cur, queue, texts, bindText) {
-  // TODO: what if work is not new
   return _.map(cur._children, function(data, i) {
     var child = new cls(data);
     if (!child.name) {
@@ -145,6 +144,26 @@ function _loadChildren(cls, cur, queue, texts, bindText) {
     return child;
   });
 }
+
+function _loadWorkChildren(cur, queue, texts) {
+  return _.map(cur._children, function(data, i) {
+    var child = new cls(data);
+    if (!child.name) {
+      child.name = '' + (i + 1);
+    }
+    child.ancestors = cur.ancestors.concat([cur._id]);
+    child.texts = _.map(data.texts, function(textIndex) {
+      var text = texts[textIndex];
+      bindText(text, child.ancestors.concat(child._id));
+      return text._id;
+    });
+    child._children = data.children;
+    queue.push(child);
+    return child;
+  });
+ 
+}
+
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
     var docRoot = data.doc
@@ -190,7 +209,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         queue = [curWork];
         while (queue.length > 0) {
           curWork = queue.shift();
-          curWork.children = _loadChildren(
+          curWork.children = _loadWorkChildren(
             Work, curWork, queue, texts, 
             function(t,ids){
               t.works = ids;
@@ -233,7 +252,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
               obj.save(cb);
             }, callback);
           } else {
-            callback(err)
+            callback(err);
           }
         });
       }
@@ -242,6 +261,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
 });
 
 var Doc = mongoose.model('Doc', DocSchema);
+
 
 var baseWork = BaseNodeSchema('Work');
 var WorkSchema = new Schema(_.assign(baseWork.schema, {

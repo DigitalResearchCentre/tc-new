@@ -239,7 +239,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
             parent.children[parent.children.indexOf(xml._id)] = xml;
           }
         });
-        databaseRevision.text = TCService.json2xml(xmlRoot);
+        databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
       });
     }
   }
