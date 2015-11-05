@@ -208,7 +208,53 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
         fields: JSON.stringify('revisions'),
       });
     }
-    if (!page.texts) {
+    Doc.getTrees({id: page._id}, function(data) {
+      var docs = {}
+        , xmls = {}
+        , works = {}
+        , texts = {}
+        , xmlRoot = {name: 'xml', children: []}
+      ;
+      _.each(data.descendants, function(doc) {
+        docs[doc._id] = doc;
+      });
+      _.each(data.texts, function(text) {
+        texts[text._id] = text;
+      });
+      _.each(data.xmls, function(xml) {
+        xmls[xml._id] = xml;
+        if (xml.name === '#text') {
+          xml.children = _.map(xml.texts, function(textId) {
+            return texts[textId].text;
+          });
+        }
+      });
+      _.each(xmls, function(xml) {
+        var parentId = _.last(xml.ancestors);
+        if (!parentId || !xmls[parentId]) {
+          xmlRoot.children.push(xml);
+        } else {
+          var parent = xmls[parentId];
+          parent.children[parent.children.indexOf(xml._id)] = xml;
+        }
+      });
+      databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
+    });
+  }
+  $scope.save = function() {
+    page = $scope.page;
+    Doc.patch({id: page._id}, {
+      revision: $scope.selectedRevision.text
+    }, function() {
+      page.$get({
+        fields: JSON.stringify('revisions'),
+      });
+    });
+  };
+  $scope.commit = function() {
+    TCService.commit($scope.page, $scope.selectedRevision.text, {
+      fields: JSON.stringify({path: 'revisions'}),
+    }, function() {
       Doc.getTrees({id: page._id}, function(data) {
         var docs = {}
           , xmls = {}
@@ -241,21 +287,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
         });
         databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
       });
-    }
-  }
-  $scope.save = function() {
-    page = $scope.page;
-    Doc.patch({id: page._id}, {
-      revision: $scope.selectedRevision.text
-    }, function() {
-      page.$get({
-        fields: JSON.stringify('revisions'),
-      });
-    });
-  };
-  $scope.commit = function() {
-    TCService.commit($scope.page, $scope.selectedRevision.text, {
-      fields: JSON.stringify({path: 'revisions'}),
+      
     });
   };
 
