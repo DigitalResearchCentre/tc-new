@@ -108,6 +108,62 @@ var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');
 router.get('/docs/:id/texts', function(req, res, next) {
   var docId = req.params.id;
+  /*
+  async.parallel([
+    function(cb) {
+      Doc.findOne({id: docId}).exec(cb);
+    },
+    function(cb) {
+      Doc.find({ancestors: docId}).exec(cb);
+    },
+    function(cb) {
+      TextNode.find({docs: docId}).exec(cb);
+    },
+  ], function(err, results) {
+    if (err) {
+      return next(err);
+    }
+    var rootDoc = results[0]
+      , descendants = {}
+      , texts = results[2]
+      , firstText
+      , lastText
+      , queue, cur
+    ;
+
+    _.each(results[1], function(doc) {
+      descendants[doc._id] = doc;
+    });
+
+    queue = [rootDoc];
+    while (queue.length > 0) {
+      cur = queue.shift();
+      if (cur.texts && cur.texts.length > 0) {
+        firstText = texts[cur.texts[0]];
+        break;
+      }
+      _.each(cur.children, function(childId) {
+        queue.push(descendants[childId]);
+      });
+    }
+
+    if (firstText) {
+      queue = [rootDoc];
+      while (queue.length > 0) {
+        cur = queue.pop();
+        if (cur.texts && cur.texts.length > 0) {
+          lastText = texts[_.last(cur.texts)];
+          break;
+        }
+        _.each(cur.children, function(childId) {
+          queue.push(descendants[childId]);
+        });
+      }
+    }
+
+  });
+
+ */
   async.parallel([
     function(cb) {
       Doc.find({ancestors: docId}).exec(cb);

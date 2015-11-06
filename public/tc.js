@@ -102,6 +102,7 @@ function json2xmlDoc(obj) {
   var xmlDoc = document.implementation.createDocument('', '', null)
     , queue = []
   ;
+  console.log(obj);
   loadObjTree(xmlDoc, xmlDoc, obj, queue);
   while (queue.length > 0) {
     var item = queue.shift()

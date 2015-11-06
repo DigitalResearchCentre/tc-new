@@ -111,6 +111,41 @@ var BaseNodeSchema = function(modelName) {
     methods: {
       getText: function() {
       },
+      getChildrenAfter: function(targetId) {
+        if (targetId._id) {
+          targetId = targetId._id;
+        }
+        this.prototype.constructor.findOne({_id: targetId});
+      },
+    },
+    statics: {
+
+      getNodesBetween: function(ancestors1, ancestors2) {
+        var nodes = [];
+        if (!_.isArray(ancestors1)) {
+          ancestors1 = ancestors1.ancestors;
+        }
+        if (!_.isArray(ancestors2)) {
+          ancestors2 = ancestors2.ancestors;
+        }
+
+        _.each(ancestors1, function(id, i) {
+          if (id !== ancestors2[i]) {
+            if (i > 0) {
+              this.find({id: ancestors1[i-1]}, function(err, parent) {
+                var siblingIds = parent.children.slice(
+                  parent.children.indexOf(id) + 1,
+                  parent.children.indexOf(ancestors2[i])
+                );
+              });
+            }
+            this.find({id: {$in: ancestors1.slice(i)}});
+            this.find({id: {$in: ancestors2.slice(i)}});
+          }
+        });
+
+      },
+
     }
   };
 };
@@ -273,6 +308,7 @@ var Work = mongoose.model('Work', WorkSchema);
 var baseXML = BaseNodeSchema('XML');
 var XMLSchema = new Schema(_.assign(baseXML.schema, {
   texts: [{type: ObjectId, ref: 'TextNode'}],
+  attrs: {type: Schema.Types.Mixed},
 }));
 
 var XML = mongoose.model('XML', XMLSchema);

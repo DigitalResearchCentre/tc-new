@@ -1,4 +1,5 @@
 var CodeMirror = require('codemirror/lib/codemirror')
+  , xmlmode = require('codemirror/mode/xml/xml')
   , $ = require('jquery')
 ;
 
@@ -12,6 +13,7 @@ var codemirror = function() {
         var editor = CodeMirror.fromTextArea($('textarea', iElement)[0], {
           lineWrapping: true,
           lineNumbers: true,
+          mode:  'xml'
         });
         ngModel.$render = function() {
           editor.setValue(ngModel.$viewValue || '');
