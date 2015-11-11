@@ -108,10 +108,9 @@ var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');
 router.get('/docs/:id/texts', function(req, res, next) {
   var docId = req.params.id;
-  /*
   async.parallel([
     function(cb) {
-      Doc.findOne({id: docId}).exec(cb);
+      Doc.findOne({_id: docId}).exec(cb);
     },
     function(cb) {
       Doc.find({ancestors: docId}).exec(cb);
@@ -125,7 +124,7 @@ router.get('/docs/:id/texts', function(req, res, next) {
     }
     var rootDoc = results[0]
       , descendants = {}
-      , texts = results[2]
+      , texts = {}
       , firstText
       , lastText
       , queue, cur
@@ -133,6 +132,9 @@ router.get('/docs/:id/texts', function(req, res, next) {
 
     _.each(results[1], function(doc) {
       descendants[doc._id] = doc;
+    });
+    _.each(results[2], function(text) {
+      texts[text._id] = text;
     });
 
     queue = [rootDoc];
@@ -159,53 +161,22 @@ router.get('/docs/:id/texts', function(req, res, next) {
           queue.push(descendants[childId]);
         });
       }
-    }
 
-  });
-
- */
-  async.parallel([
-    function(cb) {
-      Doc.find({ancestors: docId}).exec(cb);
-    },
-    function(cb) {
-      TextNode.find({docs: docId}).exec(function(err, texts) {
-        var xmls = {}
-          , works = {}
-        ;
-        _.each(texts, function(text) {
-          _.each(text.xmls, function(id) {
-            xmls[id] = '';
+      XML.getNodesBetween(firstText.xmls, lastText.xmls, function(err, xmls) {
+        if (err) {
+          next(err);
+        } else {
+          res.json({
+            descendants: results[1],
+            texts: results[2],
+            xmls: xmls,
           });
-          _.each(text.works, function(id) {
-            works[id] = '';
-          });
-        });
-        async.parallel([
-          function(cb1) {
-            Work.find({_id: {$in: _.keys(works)}}, cb1);
-          },
-          function(cb1) {
-            XML.find({_id: {$in: _.keys(xmls)}}, cb1);
-          },
-        ], function(err, results) {
-          cb(err, {
-            works: results[0],
-            xmls: results[1],
-            texts: texts,
-          });
-        });
+        }
       });
-    },
-  ], function(err, results) {
-    if (err) {
-      next(err);
     } else {
       res.json({
-        descendants: results[0],
-        works: results[1].works,
-        xmls: results[1].xmls,
-        texts: results[1].texts,
+        descendants: results[1],
+        texts: texts,
       });
     }
   });

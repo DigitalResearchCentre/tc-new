@@ -119,9 +119,12 @@ var BaseNodeSchema = function(modelName) {
       },
     },
     statics: {
-
-      getNodesBetween: function(ancestors1, ancestors2) {
-        var nodes = [];
+      getNodesBetween: function(ancestors1, ancestors2, callback) {
+        var nodes = []
+          , common = []
+          , ancestors = []
+          , cls = this
+        ;
         if (!_.isArray(ancestors1)) {
           ancestors1 = ancestors1.ancestors;
         }
@@ -129,23 +132,81 @@ var BaseNodeSchema = function(modelName) {
           ancestors2 = ancestors2.ancestors;
         }
 
+
         _.each(ancestors1, function(id, i) {
-          if (id !== ancestors2[i]) {
-            if (i > 0) {
-              this.find({id: ancestors1[i-1]}, function(err, parent) {
-                var siblingIds = parent.children.slice(
-                  parent.children.indexOf(id) + 1,
-                  parent.children.indexOf(ancestors2[i])
-                );
-              });
-            }
-            this.find({id: {$in: ancestors1.slice(i)}});
-            this.find({id: {$in: ancestors2.slice(i)}});
+          if (!id.equals(ancestors2[i])) {
+            common = ancestors1.slice(0, i);
+            ancestors1 = ancestors1.slice(i);
+            ancestors2 = ancestors2.slice(i);
+            return false;
           }
         });
 
-      },
+        async.parallel([
+          function(cb) {
+            if (common.length > 0) {
+              cls.find({_id: {$in: common}}, cb);
+            } else {
+              cb(null, []);
+            }
+          },
+          function(cb) {
+            if (ancestors1.length > 0) {
+              cls.find({_id: {$in: ancestors1}}, cb);
+            } else {
+              cb(null, []);
+            }
+          },
+          function(cb) {
+            if (ancestors2.length > 0) {
+              cls.find({_id: {$in: ancestors2}}, cb);
+            } else {
+              cb(null, []);
+            }
+          },
+        ], function(err, results) {
+          if (err) {
+            return callback(err);
+          }
 
+          var children;
+          common = results[0];
+          ancestors1 = results[1];
+          ancestors2 = results[2];
+
+          children = _.last(common).children;
+
+          if (ancestors1.length > 0) {
+            ancestors.concat(children.slice(
+              children.indexOf(ancestors1[0]._id) + 1,
+              children.indexOf(ancestors2[0]._id)
+            ));
+          }
+
+          _.each(ancestors1.slice(1), function(obj, i) {
+            var children = ancestors1[i].children;
+            ancestors = ancestors.concat(
+              children.slice(children.indexOf(obj._id) + 1)
+            );
+          });
+
+          _.each(ancestors2.slice(1), function(obj, i) {
+            var children = ancestors2[i].children;
+            ancestors = ancestors.concat(
+              children.slice(0, children.indexOf(obj._id))
+            );
+          });
+
+          cls.find({
+            $or: [
+              {ancestors: {$in: ancestors}},
+              {_id: {$in: ancestors}}
+            ],
+          }, function(err, objs) {
+            callback(err, common.concat(ancestors1, ancestors2, objs));
+          });
+        });
+      },
     }
   };
 };
@@ -223,6 +284,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       } else {
         doc._children = docRoot.children || [];
         queue = [doc];
+        console.log(doc.children);
         while (queue.length > 0) {
           curDoc = queue.shift();
           curDoc.children = _loadChildren(
@@ -233,6 +295,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
           );
           docs.push(curDoc);
         }
+        console.log(doc.children);
 
         //  Work
         if (workRoot._id) {
@@ -310,6 +373,8 @@ var XMLSchema = new Schema(_.assign(baseXML.schema, {
   texts: [{type: ObjectId, ref: 'TextNode'}],
   attrs: {type: Schema.Types.Mixed},
 }));
+_.assign(XMLSchema.methods, baseWork.methods);
+_.assign(XMLSchema.statics, baseWork.statics);
 
 var XML = mongoose.model('XML', XMLSchema);
 
