@@ -189,6 +189,8 @@ function commit(docResource, text, opts, callback) {
   var node = iter.nextNode();
   var label;
   queue = [docRoot];
+  prevDoc = docRoot;
+  prevDoc.children = [];
   while (node) {
     if (node.nodeType === node.ELEMENT_NODE) {
       var index = docTags.indexOf(node.nodeName);
