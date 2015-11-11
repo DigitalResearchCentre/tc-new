@@ -18,6 +18,7 @@ communityModule
   .directive('resizer', require('../resizer'))
   .directive('readMore', require('../readmore'))
   .directive('codemirror', require('./codemirror'))
+  .directive('filereader', require('../directives/filereader'))
 ;
 
 module.exports = communityModule;

@@ -36,10 +36,10 @@ var AddXMLDocCtrl = function($scope, $routeParams, TCService) {
       doc.community = community;
       doc.$save(function() {
         community.documents.push(doc);
-        TCService.commit(doc, $scope.text);
+        TCService.commit(doc, $scope.text || $scope.filereader);
       });
     } else {
-      TCService.commit(doc, $scope.text);
+      TCService.commit(doc, $scope.text || $scope.filereader);
     }
   };
 };
