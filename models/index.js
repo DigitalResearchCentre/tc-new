@@ -133,8 +133,6 @@ var BaseNodeSchema = function(modelName) {
           ancestors2 = ancestors2.ancestors;
         }
 
-        
-
         _.each(_.zip(ancestors1, ancestors2), function(ids) {
           if (ids[0] && ids[1] && ids[0].equals(ids[1])) {
             common.push(ids[0]);
@@ -195,9 +193,6 @@ var BaseNodeSchema = function(modelName) {
               }
             });
           }
-          console.log('should empty');
-          console.log(common);
-          console.log(ancestors);
 
           _.each(ancestors1.slice(1), function(obj, i) {
             var children = ancestors1[i].children;
@@ -206,8 +201,6 @@ var BaseNodeSchema = function(modelName) {
             });
             ancestors = ancestors.concat(children.slice(index + 1));
           });
-          console.log('should empty');
-          console.log(ancestors);
 
           _.each(ancestors2.slice(1), function(obj, i) {
             var children = ancestors2[i].children;
@@ -332,7 +325,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     queue = [docRoot];
     docRoot.ancestors = this.toObject().ancestors;
     docRoot._id = this._id;
-    console.log(docRoot.ancestors);
     while (queue.length > 0) {
       curDoc = queue.shift();
       curDoc.children = _loadChildren(curDoc, queue);
