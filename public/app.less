@@ -42,9 +42,6 @@ body {
             height: 7px;
         }
     }
-    .tc-content {
-        padding: 0; 
-    }
     .headerTC {
         margin-bottom: 0px;
         background-color: #005689;
@@ -115,9 +112,9 @@ body {
       }
     }
     .tc-content {
-        flex: 1 100%;
-        padding: 2px;
         .flex-column;
+        padding: 2px;
+        flex: 1 100%;
 
         .community-header {
             flex: 0 0 54px;
@@ -135,10 +132,7 @@ body {
 
         .community-content {
             .flex-column;
-            flex: 1;
-            .view {
-                flex: 1;
-            }
+            flex: 1 1 100%;
             @import './community/view.less';
         }
 

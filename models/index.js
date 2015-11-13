@@ -293,7 +293,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       , workRoot = data.work
       , xmlRoot = data.xml
       , texts = data.texts
-      , doc = this
       , queue
       , cur, curDoc, curWork, curEl
       , docs = []
@@ -310,10 +309,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     console.log(texts.length);
     console.log('--- parse docs ---');
     queue = [docRoot];
-    _.defaults(docRoot, {
-      ancestors: [],
-      _id: new OId(),
-    });
+    docRoot.ancestors = this.toObject().ancestors;
     while (queue.length > 0) {
       curDoc = queue.shift();
       curDoc.children = _loadChildren(curDoc, queue);
@@ -322,6 +318,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         console.log(docs.length);
       }
     }
+    docRoot = docs.shift();
+    this.children = docRoot.children;
 
     console.log(docs.length);
     _.each(docs, function(doc) {
@@ -363,6 +361,9 @@ _.assign(DocSchema.methods, baseDoc.methods, {
 
 
     async.parallel([
+      _.bind(function(cb) {
+        this.save(cb);
+      }, this),
       function(cb) {
         console.log('--- save text ---');
         TextNode.collection.insert(texts, function(err, objs) {
