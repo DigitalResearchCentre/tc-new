@@ -133,15 +133,17 @@ var BaseNodeSchema = function(modelName) {
           ancestors2 = ancestors2.ancestors;
         }
 
+        
 
-        _.each(ancestors1, function(id, i) {
-          if (!id.equals(ancestors2[i])) {
-            common = ancestors1.slice(0, i);
-            ancestors1 = ancestors1.slice(i);
-            ancestors2 = ancestors2.slice(i);
+        _.each(_.zip(ancestors1, ancestors2), function(ids) {
+          if (ids[0] && ids[1] && ids[0].equals(ids[1])) {
+            common.push(ids[0]);
+          } else {
             return false;
           }
         });
+        ancestors1 = ancestors1.slice(common.length);
+        ancestors2 = ancestors2.slice(common.length);
 
         async.parallel([
           function(cb) {
@@ -180,24 +182,42 @@ var BaseNodeSchema = function(modelName) {
           }
 
           if (ancestors1.length > 0) {
-            ancestors.concat(children.slice(
-              children.indexOf(ancestors1[0]._id) + 1,
-              children.indexOf(ancestors2[0]._id)
-            ));
+            var found = null;
+            _.each(children, function(id) {
+              if (id.equals(ancestors2[0]._id)) {
+                return false;
+              }
+              if (found) {
+                ancestors.push(id);
+              }
+              if (id.equals(ancestors1[0]._id)) {
+                found = true;
+              }
+            });
           }
+          console.log('should empty');
+          console.log(common);
+          console.log(ancestors);
 
           _.each(ancestors1.slice(1), function(obj, i) {
             var children = ancestors1[i].children;
-            ancestors = ancestors.concat(
-              children.slice(children.indexOf(obj._id) + 1)
-            );
+            var index = _.findIndex(children, function(id) {
+              return id.equals(obj._id);
+            });
+            ancestors = ancestors.concat(children.slice(index + 1));
           });
+          console.log('should empty');
+          console.log(ancestors);
 
           _.each(ancestors2.slice(1), function(obj, i) {
             var children = ancestors2[i].children;
-            ancestors = ancestors.concat(
-              children.slice(0, children.indexOf(obj._id))
-            );
+            _.each(children, function(id) {
+              if (!id.equals(obj._id)) {
+                ancestors.push(id);
+              } else {
+                return false;
+              }
+            });
           });
 
           cls.find({
@@ -280,6 +300,7 @@ function _loadXMLTexts(obj, texts) {
     , text
   ;
   text = texts[obj.textIndex];
+  delete obj.textIndex;
   text.xmls = ancestors;
   ids.push(text._id);
   return ids;
@@ -310,6 +331,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     console.log('--- parse docs ---');
     queue = [docRoot];
     docRoot.ancestors = this.toObject().ancestors;
+    docRoot._id = this._id;
+    console.log(docRoot.ancestors);
     while (queue.length > 0) {
       curDoc = queue.shift();
       curDoc.children = _loadChildren(curDoc, queue);

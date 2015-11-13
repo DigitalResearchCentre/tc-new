@@ -162,6 +162,8 @@ router.get('/docs/:id/texts', function(req, res, next) {
         });
       }
 
+      console.log(firstText);
+      console.log(lastText);
       XML.getNodesBetween(firstText.xmls, lastText.xmls, function(err, xmls) {
         if (err) {
           next(err);
