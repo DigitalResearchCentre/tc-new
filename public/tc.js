@@ -39,7 +39,6 @@ function createObjTree(node, queue) {
   return obj;
 }
 
-
 function loadObjTree(xmlDoc, parentEl, obj, queue) {
   if (obj.name === '#text') {
     childEl = xmlDoc.createTextNode(obj.children[0]);
