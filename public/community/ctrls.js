@@ -225,7 +225,12 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
         xmls[xml._id] = xml;
         if (xml.name === '#text') {
           xml.children = _.map(xml.texts, function(textId) {
-            return texts[textId].text;
+            var text = texts[textId];
+            if (!text) console.log(textId);
+            else {
+
+              return text.text || '';
+            }
           });
         }
       });
@@ -273,7 +278,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
           xmls[xml._id] = xml;
           if (xml.name === '#text') {
             xml.children = _.map(xml.texts, function(textId) {
-              return texts[textId].text;
+              return (texts[textId] || {}).text || '';
             });
           }
         });

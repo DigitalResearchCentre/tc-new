@@ -4,6 +4,7 @@ var mongoose = require('mongoose')
   , Promise = mongoose.Promise
   , Schema = mongoose.Schema
   , ObjectId = Schema.Types.ObjectId
+  , OId = mongoose.Types.ObjectId
 ;
 
 var CommunitySchema = new Schema({
@@ -132,15 +133,17 @@ var BaseNodeSchema = function(modelName) {
           ancestors2 = ancestors2.ancestors;
         }
 
+        
 
-        _.each(ancestors1, function(id, i) {
-          if (!id.equals(ancestors2[i])) {
-            common = ancestors1.slice(0, i);
-            ancestors1 = ancestors1.slice(i);
-            ancestors2 = ancestors2.slice(i);
+        _.each(_.zip(ancestors1, ancestors2), function(ids) {
+          if (ids[0] && ids[1] && ids[0].equals(ids[1])) {
+            common.push(ids[0]);
+          } else {
             return false;
           }
         });
+        ancestors1 = ancestors1.slice(common.length);
+        ancestors2 = ancestors2.slice(common.length);
 
         async.parallel([
           function(cb) {
@@ -169,32 +172,52 @@ var BaseNodeSchema = function(modelName) {
             return callback(err);
           }
 
-          var children;
+          var children = [];
           common = results[0];
           ancestors1 = results[1];
           ancestors2 = results[2];
 
-          children = _.last(common).children;
+          if (common.length > 0) {
+            children = _.last(common).children;
+          }
 
           if (ancestors1.length > 0) {
-            ancestors.concat(children.slice(
-              children.indexOf(ancestors1[0]._id) + 1,
-              children.indexOf(ancestors2[0]._id)
-            ));
+            var found = null;
+            _.each(children, function(id) {
+              if (id.equals(ancestors2[0]._id)) {
+                return false;
+              }
+              if (found) {
+                ancestors.push(id);
+              }
+              if (id.equals(ancestors1[0]._id)) {
+                found = true;
+              }
+            });
           }
+          console.log('should empty');
+          console.log(common);
+          console.log(ancestors);
 
           _.each(ancestors1.slice(1), function(obj, i) {
             var children = ancestors1[i].children;
-            ancestors = ancestors.concat(
-              children.slice(children.indexOf(obj._id) + 1)
-            );
+            var index = _.findIndex(children, function(id) {
+              return id.equals(obj._id);
+            });
+            ancestors = ancestors.concat(children.slice(index + 1));
           });
+          console.log('should empty');
+          console.log(ancestors);
 
           _.each(ancestors2.slice(1), function(obj, i) {
             var children = ancestors2[i].children;
-            ancestors = ancestors.concat(
-              children.slice(0, children.indexOf(obj._id))
-            );
+            _.each(children, function(id) {
+              if (!id.equals(obj._id)) {
+                ancestors.push(id);
+              } else {
+                return false;
+              }
+            });
           });
 
           cls.find({
@@ -223,42 +246,67 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
 
-function _loadChildren(cls, cur, queue, texts, bindText) {
-  return _.map(cur._children, function(data, i) {
-    var child = new cls(data);
+function _loadChildren(cur, queue) {
+  var children = cur.children
+    , ancestors = cur.ancestors.concat(cur._id)
+    , ids = []
+  ;
+  for (var i = 0, len = children.length; i < len; i++) {
+    var child = children[i];
+    if (!child._id) {
+      child._id = new OId();
+    }
     if (!child.name) {
       child.name = '' + (i + 1);
     }
-    child.ancestors = cur.ancestors.concat([cur._id]);
-    child.texts = _.map(data.texts, function(textIndex) {
-      var text = texts[textIndex];
-      bindText(text, child.ancestors.concat(child._id));
-      return text._id;
-    });
-    child._children = data.children;
+    child.ancestors = ancestors;
     queue.push(child);
-    return child;
-  });
+    ids.push(child._id);
+  }
+  return ids;
 }
 
-function _loadWorkChildren(cur, queue, texts) {
-  return _.map(cur._children, function(data, i) {
-    var child = new cls(data);
-    if (!child.name) {
-      child.name = '' + (i + 1);
-    }
-    child.ancestors = cur.ancestors.concat([cur._id]);
-    child.texts = _.map(data.texts, function(textIndex) {
-      var text = texts[textIndex];
-      bindText(text, child.ancestors.concat(child._id));
-      return text._id;
-    });
-    child._children = data.children;
-    queue.push(child);
-    return child;
-  });
- 
+function _loadDocTexts(doc, texts) {
+  var indexes = doc.texts || []
+    , ancestors = doc.ancestors.concat(doc._id)
+    , ids = []
+    , text
+  ;
+  for (var i = 0, len = indexes.length; i < len; i++) {
+    text = texts[indexes[i]];
+    text.docs = ancestors;
+    ids.push(text._id);
+  }
+  return ids;
 }
+
+function _loadWorkTexts(obj, texts) {
+  var indexes = obj.texts || []
+    , ancestors = obj.ancestors.concat(obj._id)
+    , ids = []
+    , text
+  ;
+  for (var i = 0, len = indexes.length; i < len; i++) {
+    text = texts[indexes[i]];
+    text.works = ancestors;
+    ids.push(text._id);
+  }
+  return ids;
+}
+
+function _loadXMLTexts(obj, texts) {
+  var ancestors = obj.ancestors.concat(obj._id)
+    , ids = []
+    , text
+  ;
+  text = texts[obj.textIndex];
+  delete obj.textIndex;
+  text.xmls = ancestors;
+  ids.push(text._id);
+  return ids;
+}
+
+
 
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
@@ -266,94 +314,111 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       , workRoot = data.work
       , xmlRoot = data.xml
       , texts = data.texts
-      , doc = this
       , queue
       , cur, curDoc, curWork, curEl
       , docs = []
       , works = []
       , xmls = []
     ;
+    console.log('--- start commit ---');
     texts = _.map(texts, function(text) {
-      return new TextNode({text: text});
+      return {
+        text: text,
+        _id: new OId(),
+      };
     }) || [];
-    async.each(texts, function(text, cb) {
-      text.save(cb);
-    }, function(err) {
-      if (err) {
-        console.log(err);
-      } else {
-        doc._children = docRoot.children || [];
-        queue = [doc];
-        console.log(doc.children);
-        while (queue.length > 0) {
-          curDoc = queue.shift();
-          curDoc.children = _loadChildren(
-            Doc, curDoc, queue, texts, 
-            function(text,ids){
-              text.docs = ids;
-            }
-          );
-          docs.push(curDoc);
-        }
-        console.log(doc.children);
-
-        //  Work
-        if (workRoot._id) {
-          curWork = workRoot;
-        } else {
-          curWork = new Work(workRoot);
-          curWork._children = workRoot.children;
-        }
-        queue = [curWork];
-        while (queue.length > 0) {
-          curWork = queue.shift();
-          curWork.children = _loadWorkChildren(
-            Work, curWork, queue, texts, 
-            function(t,ids){
-              t.works = ids;
-            }
-          );
-          works.push(curWork);
-        }
-
-        //  XML
-        if (xmlRoot._id) {
-          curEl = xmlRoot;
-        } else {
-          curEl = new XML(xmlRoot);
-          curEl._children = xmlRoot.children;
-        }
-        queue = [curEl];
-        while (queue.length > 0) {
-          curEl = queue.shift();
-          curEl.children = _loadChildren(
-            function(data) {
-              if (data.name === '#text') {
-                data.texts = [data.textIndex];
-                data.children = [];
-              }
-              var xml = new XML(data);
-              return xml;
-            }, curEl, queue, texts, 
-            function(t, ids){
-              t.xmls = ids;
-            }
-          );
-          xmls.push(curEl);
-        }
-
-        async.each(docs.concat(works).concat(xmls), function(obj, cb) {
-          obj.save(cb);
-        }, function(err) {
-          if (!err) {
-            async.each(texts, function(obj, cb) {
-              obj.save(cb);
-            }, callback);
-          } else {
-            callback(err);
-          }
-        });
+    console.log(texts.length);
+    console.log('--- parse docs ---');
+    queue = [docRoot];
+    docRoot.ancestors = this.toObject().ancestors;
+    docRoot._id = this._id;
+    console.log(docRoot.ancestors);
+    while (queue.length > 0) {
+      curDoc = queue.shift();
+      curDoc.children = _loadChildren(curDoc, queue);
+      docs.push(curDoc);
+      if (docs.length % 1000 === 0) {
+        console.log(docs.length);
       }
+    }
+    docRoot = docs.shift();
+    this.children = docRoot.children;
+
+    console.log(docs.length);
+    _.each(docs, function(doc) {
+      doc.texts = _loadDocTexts(doc, texts);
+    });
+
+    console.log('--- parse works ---');
+    //  Work
+    queue = [workRoot];
+    _.defaults(workRoot, {
+      ancestors: [],
+      _id: new OId(),
+    });
+    while (queue.length > 0) {
+      curWork = queue.shift();
+      curWork.children = _loadChildren(curWork, queue);
+      works.push(curWork);
+    }
+    _.each(works, function(work) {
+      work.texts = _loadWorkTexts(work, texts);
+    });
+
+    console.log('--- parse xmls ---');
+    //  XML
+    queue = [xmlRoot];
+    _.defaults(xmlRoot, {
+      ancestors: [],
+      _id: new OId(),
+    });
+    while (queue.length > 0) {
+      curEl = queue.shift();
+      if (curEl.name === '#text') {
+        curEl.children = [];
+        curEl.texts = _loadXMLTexts(curEl, texts);
+      }
+      curEl.children = _loadChildren(curEl, queue);
+      xmls.push(curEl);
+    }
+
+
+    async.parallel([
+      _.bind(function(cb) {
+        this.save(cb);
+      }, this),
+      function(cb) {
+        console.log('--- save text ---');
+        TextNode.collection.insert(texts, function(err, objs) {
+          console.log('--- save text done ---');
+          if (err) console.log(err);
+          cb(err, objs);
+        });
+      },
+      function(cb) {
+        console.log('--- save doc ---');
+        Doc.collection.insert(docs, function(err, objs) {
+          console.log('--- save doc done ---');
+          cb(err, objs);
+        });
+      },
+      function(cb) {
+        console.log('--- save work ---');
+        Work.collection.insert(works, function(err, objs) {
+          console.log('--- save work done ---');
+          cb(err, objs);
+        });
+      },
+      function(cb) {
+        console.log('--- save xml ---');
+        XML.collection.insert(xmls, function(err, objs) {
+          console.log('--- save xml done ---');
+          cb(err, objs);
+        });
+      },
+    ], function(err) {
+      console.log(err);
+      callback(err);
     });
   }
 });
