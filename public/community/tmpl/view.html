@@ -1,35 +1,79 @@
+<script>$("ul.nav-tabs a").click(function (e) {
+  e.preventDefault();
+    $(this).tab('show');
+});
+</script>
 <div x-auto-height class="view" ng-controller="ViewCtrl">
   <div class="sidebar">
-    <ul class="tree">
-      <li ng-repeat="doc in community.documents" 
-        ng-class="{'collapse-node': !doc.expand}">
-        <div>
-          <span class="icon" aria-hidden="true"
-            ng-click="toggleNode(doc)"></span>
-          <a href="#/community/{{community._id}}/view/{{doc._id}}">
-            {{doc.name}}
-          </a>
-        </div>
-        <ul>
-          <li ng-repeat="page in doc.children">
-            <a href=
-              "#/community/{{community._id}}/view/{{doc._id}}/{{page._id}}">
-              {{page.name}}
-            </a>
-          </li>
+    <div class="tabbable boxed parentTabs">
+        <ul class="nav nav-tabs tab-heads">
+            <li class="active"><a href="#set1">Documents</a>
+            </li>
+            <li><a href="#set2">Collations</a>
+            </li>
         </ul>
-      </li>
-    </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade active in" id="set1">
+                <div class="tabbable">
+                    <ul class="nav nav-tabs tab-heads">
+                        <li class="active"><a href="#sub11">By Page</a>
+                        </li>
+                        <li><a href="#sub12">By Item</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content ">
+                        <div class="tab-pane fade active in" id="sub11">
+                          <ul class="tree">
+                            <li ng-repeat="doc in community.documents"
+                              ng-class="{'collapse-node': !doc.expand}">
+                              <div>
+                                <span class="icon" aria-hidden="true"
+                                  ng-click="toggleNode(doc)"></span>
+                                <a href="#/community/{{community._id}}/view/{{doc._id}}">
+                                  {{doc.name}}
+                                </a>
+                              </div>
+                              <ul>
+                                <li ng-repeat="page in doc.children">
+                                  <a href=
+                                    "#/community/{{community._id}}/view/{{doc._id}}/{{page._id}}">
+                                    {{page.name}}
+                                  </a>
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </div>
+                        <div class="tab-pane fade" id="sub12">
+                            <p>View by item will go here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="set2">
+                <div class="tabbable">
+                    <div class="tab-content">
+                        <div class="tab-pane fade active in" id="sub21">
+                            <p>Collation will go here</p>
+                        </div>
+                        <div class="tab-pane fade" id="sub22">
+                            <p>Tab 2.2</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
   </div>
   <div class="resizer vertical"
-    x-resizer="vertical" x-resizer-width="5" 
+    x-resizer="vertical" x-resizer-width="5"
     x-resizer-min="100" x-resizer-max="300"
     x-resizer-left=".sidebar" x-resizer-right=".viewer">
   </div>
 
   <div class="viewer" ng-controller="ViewerCtrl">
     <div class="image-viewer">
-        
+
     </div>
     <div class="resizer horizontal"
       x-resizer="horizontal" x-resizer-height="5"
@@ -38,7 +82,7 @@
     </div>
     <div class="text-viewer">
       <div class="transcript-header">
-        <select ng-model="selectedRevision" 
+        <select ng-model="selectedRevision"
           ng-options="revision.created for revision in revisions">
         </select>
         <label>Compare With: </label>
@@ -51,7 +95,7 @@
         <textarea></textarea>
       </div>
       <div class="buttons" ng-if="page">
-        <button type="button" class="btn btn-default btn-xs" 
+        <button type="button" class="btn btn-default btn-xs"
           ng-click="save()">save</button>
         <button type="button" class="btn btn-default btn-xs"
           ng-click="commit()">commit</button>
@@ -59,5 +103,3 @@
     </div>
   </div>
 </div>
-
-
