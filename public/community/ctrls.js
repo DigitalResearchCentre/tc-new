@@ -91,11 +91,11 @@ var CommunityCtrl = function($scope, $routeParams, TCService) {
     var user=TCService.app.authUser;
     var tabs = {
       'about': 'tmpl/about.html',
+      'home': 'tmpl/home.html',
       'view': 'tmpl/view.html',
       'manage': 'manage/manage.html',
     };
     $scope.tab = tabs[params.split('/').shift()];
-    console.log($scope.tab);
 
     $scope.community = community = TCService.get(communityId, Community);
     if (!community.status) {
