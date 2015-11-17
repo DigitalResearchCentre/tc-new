@@ -12,17 +12,17 @@
             <li><a href="#set2">Collations</a>
             </li>
         </ul>
-        <div class="tab-content">
-            <div class="tab-pane fade active in" id="set1">
-                <div class="tabbable">
+        <nav tabs class="tab-content">
+            <nav class="tab-pane fade active in" id="set1">
+                <nav class="tabbable">
                     <ul class="nav nav-tabs tab-heads">
                         <li class="active"><a href="#sub11">By Page</a>
                         </li>
                         <li><a href="#sub12">By Item</a>
                         </li>
                     </ul>
-                    <div class="tab-content ">
-                        <div class="tab-pane fade active in" id="sub11">
+                    <nav class="tab-content ">
+                        <nav class="tab-pane fade active in" id="sub11">
                           <ul class="tree">
                             <li ng-repeat="doc in community.documents"
                               ng-class="{'collapse-node': !doc.expand}">
@@ -43,26 +43,26 @@
                               </ul>
                             </li>
                           </ul>
-                        </div>
+                        </nav>
                         <div class="tab-pane fade" id="sub12">
                             <p>View by item will go here</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="set2">
-                <div class="tabbable">
-                    <div class="tab-content">
+                    </nav>
+                </nav>
+            </nav>
+            <nav class="tab-pane fade" id="set2">
+                <nav class="tabbable">
+                    <nav class="tab-content">
                         <div class="tab-pane fade active in" id="sub21">
                             <p>Collation will go here</p>
                         </div>
                         <div class="tab-pane fade" id="sub22">
                             <p>Tab 2.2</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </nav>
+                </nav>
+            </nav>
+        </nav>
     </div>
   </div>
   <div class="resizer vertical"
