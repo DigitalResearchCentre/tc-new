@@ -38,7 +38,6 @@ var ProfileMemberCtrl = function($scope, $routeParams, $location, TCService) {
         $location.path('/community/' + communityId + '/join');
     };
 };
-
 ProfileMemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 
 var MemberCtrl = function($scope, $routeParams, $location, TCService) {
@@ -79,7 +78,6 @@ var MemberCtrl = function($scope, $routeParams, $location, TCService) {
     };
 };
 MemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
-
 
 //figure out: am I a member of this community, its leader.. what
 var CommunityCtrl = function($scope, $routeParams, TCService) {
@@ -228,7 +226,6 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
             var text = texts[textId];
             if (!text) console.log(textId);
             else {
-
               return text.text || '';
             }
           });
@@ -243,10 +240,10 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
           parent.children[parent.children.indexOf(xml._id)] = xml;
         }
       });
-      console.log(xmlRoot);
       databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
     });
   }
+
   $scope.save = function() {
     page = $scope.page;
     Doc.patch({id: page._id}, {
@@ -257,6 +254,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
       });
     });
   };
+
   $scope.commit = function() {
     TCService.commit($scope.page, $scope.selectedRevision.text, {
       fields: JSON.stringify({path: 'revisions'}),
@@ -309,3 +307,5 @@ module.exports = {
   MemberCtrl: MemberCtrl,
   ProfileMemberCtrl: ProfileMemberCtrl,
 };
+
+

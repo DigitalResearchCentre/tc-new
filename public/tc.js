@@ -101,7 +101,6 @@ function json2xmlDoc(obj) {
   var xmlDoc = document.implementation.createDocument('', '', null)
     , queue = []
   ;
-  console.log(obj);
   loadObjTree(xmlDoc, xmlDoc, obj, queue);
   while (queue.length > 0) {
     var item = queue.shift()
@@ -119,29 +118,6 @@ function iterate(iter, cb) {
     cb(result);
     result = iter.iterateNext();
   }
-}
-
-
-function foo() {
-  var d1 = {
-    name: '1r',
-    children: [
-      {
-        name: '1',
-        children: [
-          {text: 'hello world'},
-          {text: 'foo bar'},
-          {text: 'see you'},
-        ],
-      },
-      {name: '2'},
-      {name: '3'},
-    ]
-  };
-  var doc = {}
-    , texts = doc.getTexts()
-  ;
-
 }
 
 function commit(docResource, text, opts, callback) {
@@ -191,6 +167,9 @@ function commit(docResource, text, opts, callback) {
   queue = [docRoot];
   while (node) {
     if (node.nodeType === node.ELEMENT_NODE) {
+      if (node.children.length === 0) {
+        node.appendChild(xmlDoc.createTextNode(''));
+      }
       var index = docTags.indexOf(node.nodeName);
       // if node is doc
       if (index > -1) {
@@ -262,6 +241,12 @@ function commit(docResource, text, opts, callback) {
   };
   return docResource.$update(_.assign({}, opts), callback);
 }
+
+(function test() {
+  var json = xml2json('<text><lb/><l>hello</l></text>');
+  console.log(json);
+  console.log(json2xml(json));
+})();
 
 function TCService($resource) {
   MODEL_CACHE = {};
@@ -361,3 +346,4 @@ function TCService($resource) {
 TCService.$inject = ['$resource',];
 
 module.exports = TCService;
+
