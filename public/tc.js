@@ -121,16 +121,15 @@ function iterate(iter, cb) {
 }
 
 function commit(docResource, text, opts, callback) {
-  var texts = []
-    , xmlDoc = parseXML(text)
+  var xmlDoc = parseXML(text)
     , docTags = ['pb', 'cb', 'lb']
     , docRoot = {children: []}
-    , workRoot = {children: []}
-    , queue
+    , entityRoot = {children: []}
     , teiRoot
+    , queue
     , prevDoc
   ;
-  xmlDoc.work = workRoot;
+  xmlDoc.entity = entityRoot;
 
   _.each([
     '//body/div[@n]',
@@ -141,24 +140,53 @@ function commit(docResource, text, opts, callback) {
     var iter = xmlDoc.evaluate(xpath, xmlDoc)
       , cur = iter.iterateNext()
       , parent
-      , work
+      , entity
     ;
     while(cur) {
-      work = {
+      entity = {
         name: cur.getAttribute('n') || '',
         children: [],
       };
-      cur.work = work;
+      cur.entity = entity;
       parent = cur.parentNode;
       while (parent) {
-        if (parent.work) {
-          parent.work.children.push(work);
+        if (parent.entity) {
+          parent.entity.children.push(entity);
           break;
         }
         parent = parent.parentNode;
       }
       cur = iter.iterateNext();
     }
+  });
+
+  _.each([
+    '//pb',
+    '//cb',
+    '//lb',
+  ], function(xpath) {
+    var iter = xmlDoc.evaluate(xpath, xmlDoc)
+      , cur = iter.iterateNext()
+      , parent
+      , doc
+    ;
+    while(cur) {
+      doc = {
+        name: cur.getAttribute('n') || '',
+        children: [],
+      };
+      cur.doc = entity;
+      parent = cur.parentNode;
+      while (parent) {
+        if (parent.entity) {
+          parent.entity.children.push(entity);
+          break;
+        }
+        parent = parent.parentNode;
+      }
+      cur = iter.iterateNext();
+    }
+   
   });
 
   var iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
@@ -200,28 +228,19 @@ function commit(docResource, text, opts, callback) {
         prevDoc = curDoc;
       }
     } else if (node.nodeType === node.TEXT_NODE) {
-      var textIndex = texts.length
-        , parentNode = node.parentElement
+      var parentNode = node.parentElement
         , sibling
       ;
       if (prevDoc) {
-        sibling = _.last(prevDoc.children);
-        if (sibling && sibling.texts) {
-          sibling.texts.push(textIndex);
-        } else {
-          prevDoc.children.push({
-            texts: [textIndex],
-            children: [],
-          });
-        }
+        prevDoc.children.push({
+          children: [],
+        });
       }
 
       while (parentNode) {
-        if (parentNode.work) {
-          parentNode.work.children.push({
-            texts: [textIndex],
-            children: [],
-          });
+        if (parentNode.entity) {
+          node.dataset
+          parentNode.entity;
           break;
         }
         parentNode = parentNode.parentElement;
