@@ -20,7 +20,7 @@ var CommunitySchema = new Schema({
   haspicture: Boolean,
   image: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
-  works: [{type: ObjectId, ref: 'Work'}],
+  entities: [{type: ObjectId, ref: 'Entity'}],
 });
 
 _.assign(CommunitySchema.methods, {
@@ -93,14 +93,6 @@ var InvitationSchema = new Schema({
 var ActionSchema = new Schema({
 
 });
-
-var TextNodeSchema = new Schema({
-  text: String,
-  docs: [{type: ObjectId, ref: 'Doc'}],
-  works: [{type: ObjectId, ref: 'Work'}],
-  xmls: [{type: ObjectId, ref: 'XML'}],
-});
-var TextNode = mongoose.model('TextNode', TextNodeSchema);
 
 var BaseNodeSchema = function(modelName) {
   return {
@@ -235,7 +227,6 @@ _.assign(NodeSchema.methods, baseNode.methods);
 var baseDoc = BaseNodeSchema('Doc');
 var DocSchema = new Schema(_.assign(baseDoc.schema, {
   label: String,
-  texts: [{type: ObjectId, ref: 'TextNode'}],
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
 
@@ -273,7 +264,7 @@ function _loadDocTexts(doc, texts) {
   return ids;
 }
 
-function _loadWorkTexts(obj, texts) {
+function _loadEntityTexts(obj, texts) {
   var indexes = obj.texts || []
     , ancestors = obj.ancestors.concat(obj._id)
     , ids = []
@@ -281,7 +272,7 @@ function _loadWorkTexts(obj, texts) {
   ;
   for (var i = 0, len = indexes.length; i < len; i++) {
     text = texts[indexes[i]];
-    text.works = ancestors;
+    text.entities = ancestors;
     ids.push(text._id);
   }
   return ids;
@@ -303,62 +294,34 @@ function _loadXMLTexts(obj, texts) {
 
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
-    var docRoot = data.doc
-      , workRoot = data.work
-      , xmlRoot = data.xml
-      , texts = data.texts
+    var docs = data.docs
+      , entities = data.entities
+      , teiRoot = data.tei
       , queue
-      , cur, curDoc, curWork, curEl
+      , cur
       , docs = []
-      , works = []
-      , xmls = []
+      , entities = []
     ;
     console.log('--- start commit ---');
-    texts = _.map(texts, function(text) {
-      return {
-        text: text,
-        _id: new OId(),
-      };
-    }) || [];
-    console.log(texts.length);
     console.log('--- parse docs ---');
-    queue = [docRoot];
-    docRoot.ancestors = this.toObject().ancestors;
-    docRoot._id = this._id;
-    while (queue.length > 0) {
-      curDoc = queue.shift();
-      curDoc.children = _loadChildren(curDoc, queue);
-      docs.push(curDoc);
-      if (docs.length % 1000 === 0) {
-        console.log(docs.length);
-      }
+
+    Doc.remove({ancestors: this._id});
+    this.children = [];
+    this.save();
+    var teis = TEI.find({docs: this._id});
+    function findTree(teis) {
+      return [];
     }
-    docRoot = docs.shift();
-    this.children = docRoot.children;
+    var teitree = findTree(teis);
+    // TODO find out all tei need be deleted
+    // then delete them
+    
+    Doc.collection.insert(docs);
 
-    console.log(docs.length);
-    _.each(docs, function(doc) {
-      doc.texts = _loadDocTexts(doc, texts);
-    });
-
-    console.log('--- parse works ---');
-    //  Work
-    queue = [workRoot];
-    _.defaults(workRoot, {
-      ancestors: [],
-      _id: new OId(),
-    });
-    while (queue.length > 0) {
-      curWork = queue.shift();
-      curWork.children = _loadChildren(curWork, queue);
-      works.push(curWork);
-    }
-    _.each(works, function(work) {
-      work.texts = _loadWorkTexts(work, texts);
-    });
-
+    console.log('--- parse entity ---');
+    //  Entity
     console.log('--- parse xmls ---');
-    //  XML
+    //  TEI
     queue = [xmlRoot];
     _.defaults(xmlRoot, {
       ancestors: [],
@@ -381,7 +344,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       }, this),
       function(cb) {
         console.log('--- save text ---');
-        TextNode.collection.insert(texts, function(err, objs) {
+        TEI.collection.insert(texts, function(err, objs) {
           console.log('--- save text done ---');
           if (err) console.log(err);
           cb(err, objs);
@@ -396,15 +359,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       },
       function(cb) {
         console.log('--- save work ---');
-        Work.collection.insert(works, function(err, objs) {
+        Entity.collection.insert(works, function(err, objs) {
           console.log('--- save work done ---');
-          cb(err, objs);
-        });
-      },
-      function(cb) {
-        console.log('--- save xml ---');
-        XML.collection.insert(xmls, function(err, objs) {
-          console.log('--- save xml done ---');
           cb(err, objs);
         });
       },
@@ -418,22 +374,26 @@ _.assign(DocSchema.methods, baseDoc.methods, {
 var Doc = mongoose.model('Doc', DocSchema);
 
 
-var baseWork = BaseNodeSchema('Work');
-var WorkSchema = new Schema(_.assign(baseWork.schema, {
-  texts: [{type: ObjectId, ref: 'TextNode'}],
-}));
-_.assign(WorkSchema.methods, baseWork.methods);
-var Work = mongoose.model('Work', WorkSchema);
+var baseEntity = BaseNodeSchema('Entity');
+var EntitySchema = new Schema(_.assign(baseEntity.schema, {
 
-var baseXML = BaseNodeSchema('XML');
-var XMLSchema = new Schema(_.assign(baseXML.schema, {
-  texts: [{type: ObjectId, ref: 'TextNode'}],
+}));
+_.assign(EntitySchema.methods, baseEntity.methods);
+var Entity = mongoose.model('Entity', EntitySchema);
+
+
+var baseTEI = BaseNodeSchema('TEI');
+var TEISchema = new Schema(_.assign(baseTEI.schema, {
+  text: String,
+  docs: [{type: ObjectId, ref: 'Doc'}],
+  entities: [{type: ObjectId, ref: 'Entity'}],
   attrs: {type: Schema.Types.Mixed},
 }));
-_.assign(XMLSchema.methods, baseWork.methods);
-_.assign(XMLSchema.statics, baseWork.statics);
+_.assign(TEISchema.methods, baseTEI.methods);
+_.assign(TEISchema.statics, baseTEI.statics);
 
-var XML = mongoose.model('XML', XMLSchema);
+var TEI = mongoose.model('TEI', TEISchema);
+
 
 var NodeSchemaSchema = new Schema({
   name: String,
@@ -443,9 +403,8 @@ module.exports = {
   Community: mongoose.model('Community', CommunitySchema),
   User:  require('./user'),
   Doc: Doc,
-  Work: Work,
-  TextNode: TextNode,
-  XML: XML,
+  Entity: Entity,
+  TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
 
