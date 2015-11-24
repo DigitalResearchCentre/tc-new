@@ -1,7 +1,7 @@
 var _ = require('lodash')
   , $ = require('jquery')
   , bson = require('bson')
-  , ObjectId = bson.ObjectId
+  , ObjectID = bson.ObjectID
 ;
 require('../utils/mixin');
 
@@ -127,24 +127,26 @@ function commit(docResource, text, opts, callback) {
     , teiRoot = xmlDoc2json(xmlDoc)
     , docTags = ['pb', 'cb', 'lb']
     , entityRoot = {children: []}
+    , docRoot = {_id: docResource._id, label: docResource.label, children: []}
     , queue = [teiRoot]
-    , prevDoc = {_id: docResource._id, label: docResource.label, children: []}
-    , docQueue = [prevDoc]
-    , prevDoc, cur, curDoc, index
+    , prevDoc = docRoot
+    , docQueue = []
+    , cur, curDoc, index, label
   ;
 
+  console.log(teiRoot);
   while (queue.length > 0) {
-    cur = queue.shift();
-    queue.push.apply(queue, cur.children);
+    cur = queue.pop();
     if (!_.startsWith(cur.name, '#')) {
       index = docTags.indexOf(cur.name);
       // if node is doc
       if (index > -1) {
         curDoc = {
-          _id: ObjectId().toJSON(),
+          _id: ObjectID().toJSON(),
           label: cur.name,
           children: [],
         };
+        console.log(curDoc);
         if ((cur.attrs || {}).n) {
           curDoc.name = (cur.attrs || {}).n;
         }
@@ -168,8 +170,10 @@ function commit(docResource, text, opts, callback) {
         cur.doc = prevDoc._id;
       }
     } else if (cur.name === '#text') {
-      cur.doc = prevDoc;
+      cur.doc = prevDoc._id;
     }
+
+    _.forEachRight(cur.children, _.bind(queue.push, queue));
   }
 
   

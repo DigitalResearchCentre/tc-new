@@ -8,10 +8,8 @@ var _ = require('lodash')
   , Community = models.Community
   , User = models.User
   , Doc = models.Doc
-  , Work = models.Work
-  , XML = models.XML
   , Revision = models.Revision
-  , TextNode = models.TextNode
+  , TEI = models.TEI
 ;
 
 var CommunityResource = _.inherit(Resource, function(opts) {
@@ -116,71 +114,32 @@ router.get('/docs/:id/texts', function(req, res, next) {
       Doc.find({ancestors: docId}).exec(cb);
     },
     function(cb) {
-      TextNode.find({docs: docId}).exec(cb);
+      TEI.find({docs: docId}).exec(cb);
     },
   ], function(err, results) {
+    var ids = {};
     if (err) {
       return next(err);
     }
-    var rootDoc = results[0]
-      , descendants = {}
-      , texts = {}
-      , firstText
-      , lastText
-      , queue, cur
-    ;
-
-    _.each(results[1], function(doc) {
-      descendants[doc._id] = doc;
-    });
-    _.each(results[2], function(text) {
-      texts[text._id] = text;
-    });
-
-    queue = [rootDoc];
-    while (queue.length > 0) {
-      cur = queue.shift();
-      if (cur.texts && cur.texts.length > 0) {
-        firstText = texts[cur.texts[0]];
-        break;
-      }
-      _.each(cur.children, function(childId) {
-        queue.push(descendants[childId]);
-      });
-    }
-
-    if (firstText) {
-      queue = [rootDoc];
-      while (queue.length > 0) {
-        cur = queue.pop();
-        if (cur.texts && cur.texts.length > 0) {
-          lastText = texts[_.last(cur.texts)];
-          break;
-        }
-        _.each(cur.children, function(childId) {
-          queue.push(descendants[childId]);
-        });
-      }
-
-      console.log(firstText);
-      console.log(lastText);
-      XML.getNodesBetween(firstText.xmls, lastText.xmls, function(err, xmls) {
-        if (err) {
-          next(err);
+    _.each(results[2], function(tei) {
+      _.forEachRight(tei.ancestors, function(id) {
+        if (!ids.hasOwnProperty(id)) {
+          ids[id] = true;
         } else {
-          res.json({
-            descendants: results[1],
-            texts: results[2],
-            xmls: xmls,
-          });
+          return false;
         }
       });
-    } else {
+    })
+    console.log(results);
+    TEI.find({_id: {$in: _.keys(ids)}}).exec(function(err, objs) {
+      if (err) {
+        return next(err);
+      }
       res.json({
         descendants: results[1],
-        texts: texts,
+        texts: results[2].concat(objs),
       });
-    }
+    });    
   });
 });
 
@@ -235,24 +194,24 @@ module.exports = router;
     <head n="h1"> head </head>
     <ab n="ab1"> ab1 </ab>
     <ab n="ab2"> ab2 </ab>
-    <lb/>
-    <l n="1"> hello <lb/> world </l>
-    <lb/>
+    <lb n="1r1"/>
+    <l n="1"> hello <lb  n="1r2"/> world </l>
+    <lb  n="1r3"/>
      <l n="2"> foo  bar </l>
-    <lb/>
+    <lb  n="1r4"/>
      <l n="3"> good  good </l>
   </div>
   <div n="div2">
-        <lb/>
+        <lb n="1r5"/>
     <l n="1">
       foo
       <pb n="1v"/>
-      <lb/>
+      <lb n="1v1"/>
       bar
     </l>
     <pb n="2r"/>
-<lb/>
-     <l n="1"> see <lb/> you</l>
+<lb n="2r1"/>
+     <l n="1"> see <lb n="2r2"/> you</l>
   </div>
 </body>
 </text>

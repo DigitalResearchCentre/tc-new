@@ -208,38 +208,28 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     }
     Doc.getTrees({id: page._id}, function(data) {
       var docs = {}
-        , xmls = {}
-        , works = {}
         , texts = {}
         , xmlRoot = {name: 'xml', children: []}
       ;
       _.each(data.descendants, function(doc) {
         docs[doc._id] = doc;
       });
-      _.each(data.texts, function(text) {
-        texts[text._id] = text;
-      });
-      _.each(data.xmls, function(xml) {
-        xmls[xml._id] = xml;
-        if (xml.name === '#text') {
-          xml.children = _.map(xml.texts, function(textId) {
-            var text = texts[textId];
-            if (!text) console.log(textId);
-            else {
-              return text.text || '';
-            }
-          });
+      _.each(data.texts, function(el) {
+        texts[el._id] = el;
+        if (el.name === '#text' && el.text) {
+          el.children = [el.text];
         }
       });
-      _.each(xmls, function(xml) {
-        var parentId = _.last(xml.ancestors);
-        if (!parentId || !xmls[parentId]) {
-          xmlRoot.children.push(xml);
+      _.each(texts, function(el) {
+        var parentId = _.last(el.ancestors);
+        if (!parentId || !texts[parentId]) {
+          xmlRoot.children.push(el);
         } else {
-          var parent = xmls[parentId];
-          parent.children[parent.children.indexOf(xml._id)] = xml;
+          var parent = texts[parentId];
+          parent.children[parent.children.indexOf(el._id)] = el;
         }
       });
+      console.log(xmlRoot);
       databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
     });
   }
@@ -261,37 +251,30 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     }, function() {
       Doc.getTrees({id: page._id}, function(data) {
         var docs = {}
-          , xmls = {}
-          , works = {}
           , texts = {}
           , xmlRoot = {name: 'xml', children: []}
         ;
         _.each(data.descendants, function(doc) {
           docs[doc._id] = doc;
         });
-        _.each(data.texts, function(text) {
-          texts[text._id] = text;
-        });
-        _.each(data.xmls, function(xml) {
-          xmls[xml._id] = xml;
-          if (xml.name === '#text') {
-            xml.children = _.map(xml.texts, function(textId) {
-              return (texts[textId] || {}).text || '';
-            });
+        _.each(data.texts, function(el) {
+          texts[el._id] = el;
+          if (el.name === '#text' && el.text) {
+            el.children = [el.text];
           }
         });
-        _.each(xmls, function(xml) {
-          var parentId = _.last(xml.ancestors);
-          if (!parentId || !xmls[parentId]) {
-            xmlRoot.children.push(xml);
+        _.each(texts, function(el) {
+          var parentId = _.last(el.ancestors);
+          if (!parentId || !texts[parentId]) {
+            xmlRoot.children.push(el);
           } else {
-            var parent = xmls[parentId];
-            parent.children[parent.children.indexOf(xml._id)] = xml;
+            var parent = texts[parentId];
+            parent.children[parent.children.indexOf(el._id)] = el;
           }
         });
+        console.log(xmlRoot);
         databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
       });
-      
     });
   };
 

@@ -239,6 +239,8 @@ function _loadChildren(cur, queue) {
     var child = children[i];
     if (!child._id) {
       child._id = new OId();
+    } else if (_.isString(child._id)) {
+      child._id = new OId(child._id);
     }
     if (!child.name) {
       child.name = '' + (i + 1);
@@ -294,80 +296,112 @@ function _loadXMLTexts(obj, texts) {
 
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
-    var docs = data.docs
-      , entities = data.entities
+    var self = this
+      , doc = this.toObject()
       , teiRoot = data.tei
-      , queue
-      , cur
+      , docMap = {}
       , docs = []
+      , teis = []
       , entities = []
+      , queue, cur
     ;
+    doc.children = data.doc.children;
+    docMap[doc._id] = doc;
     console.log('--- start commit ---');
     console.log('--- parse docs ---');
 
-    Doc.remove({ancestors: this._id});
-    this.children = [];
+    Doc.remove({ancestors: this._id}, function() {
+      queue = [];
+      self.children = doc.children = _loadChildren(doc, queue);
+      while (queue.length > 0) {
+        cur = queue.shift();
+        cur.children = _loadChildren(cur, queue);
+        if (_.isString(cur._id)) {
+          cur._id = new OId(cur._id);
+        }
+        docs.push(cur);
+        docMap[cur._id] = cur;
+      }
+
+      console.log('--- parse entity ---');
+      //  Entity
+      console.log('--- parse xmls ---');
+      //  TEI
+      queue = [teiRoot];
+      _.defaults(teiRoot, {
+        ancestors: [],
+        _id: new OId(),
+      });
+      while (queue.length > 0) {
+        cur = queue.shift();
+        if (cur.name === '#text') {
+          cur.children = [];
+        }
+        cur.children = _loadChildren(cur, queue);
+        if (cur.doc) {
+          if (_.isString(cur.doc)) {
+            cur.doc = new OId(cur.doc);
+          }
+          cur.docs = docMap[cur.doc].ancestors.concat(cur.doc);
+          if (cur.text == ' head ') {
+            console.log(cur);
+          }
+
+          delete cur.doc;
+        }
+        teis.push(cur);
+      }
+
+      async.parallel([
+        function(cb) {
+          self.save(function(err, doc) {
+            console.log(err);
+            console.log(doc);
+            cb(err, doc);
+          });
+        },
+        function(cb) {
+          console.log('--- save text ---');
+          TEI.collection.insert(teis, function(err, objs) {
+            console.log('--- save text done ---');
+            if (err) console.log(err);
+            cb(err, objs);
+          });
+        },
+        function(cb) {
+          console.log('--- save doc ---');
+          Doc.collection.insert(docs, function(err, objs) {
+            console.log('--- save doc done ---');
+            cb(err, objs);
+          });
+        },
+        /*
+        function(cb) {
+          console.log('--- save work ---');
+          Entity.collection.insert(works, function(err, objs) {
+            console.log('--- save work done ---');
+            cb(err, objs);
+          });
+        },
+        */
+      ], function(err) {
+        console.log(err);
+        callback(err);
+      });
+
+    });
+
+    /*
     this.save();
     var teis = TEI.find({docs: this._id});
     function findTree(teis) {
       return [];
     }
     var teitree = findTree(teis);
+    Doc.collection.insert(docs);
+    */
     // TODO find out all tei need be deleted
     // then delete them
-    
-    Doc.collection.insert(docs);
-
-    console.log('--- parse entity ---');
-    //  Entity
-    console.log('--- parse xmls ---');
-    //  TEI
-    queue = [xmlRoot];
-    _.defaults(xmlRoot, {
-      ancestors: [],
-      _id: new OId(),
-    });
-    while (queue.length > 0) {
-      curEl = queue.shift();
-      if (curEl.name === '#text') {
-        curEl.children = [];
-        curEl.texts = _loadXMLTexts(curEl, texts);
-      }
-      curEl.children = _loadChildren(curEl, queue);
-      xmls.push(curEl);
-    }
-
-
-    async.parallel([
-      _.bind(function(cb) {
-        this.save(cb);
-      }, this),
-      function(cb) {
-        console.log('--- save text ---');
-        TEI.collection.insert(texts, function(err, objs) {
-          console.log('--- save text done ---');
-          if (err) console.log(err);
-          cb(err, objs);
-        });
-      },
-      function(cb) {
-        console.log('--- save doc ---');
-        Doc.collection.insert(docs, function(err, objs) {
-          console.log('--- save doc done ---');
-          cb(err, objs);
-        });
-      },
-      function(cb) {
-        console.log('--- save work ---');
-        Entity.collection.insert(works, function(err, objs) {
-          console.log('--- save work done ---');
-          cb(err, objs);
-        });
-      },
-    ], function(err) {
-      console.log(err);
-      callback(err);
-    });
   }
 });
 
