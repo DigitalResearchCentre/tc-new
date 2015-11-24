@@ -1,5 +1,7 @@
 var _ = require('lodash')
   , $ = require('jquery')
+  , bson = require('bson')
+  , ObjectId = bson.ObjectId
 ;
 require('../utils/mixin');
 
@@ -22,10 +24,10 @@ function createObjTree(node, queue) {
       });
       break;
     case node.TEXT_NODE:
-      obj.children = [node.nodeValue.trim()];
+      obj.text = node.nodeValue;
       break;
     case node.COMMENT_NODE:
-      obj.children = [node.nodeValue.trim()];
+      obj.text = node.nodeValue;
       break;
     case node.DOCUMENT_TYPE_NODE:
       obj = '';
@@ -41,9 +43,9 @@ function createObjTree(node, queue) {
 
 function loadObjTree(xmlDoc, parentEl, obj, queue) {
   if (obj.name === '#text') {
-    childEl = xmlDoc.createTextNode(obj.children[0]);
+    childEl = xmlDoc.createTextNode(obj.text);
   } else if (obj.name === '#comment') {
-    childEl = xmlDoc.createComment(obj.children[0] || '');
+    childEl = xmlDoc.createComment(obj.text || '');
   } else {
     childEl = xmlDoc.createElement(obj.name);
     _.each(obj.attrs, function(v, k) {
@@ -122,14 +124,58 @@ function iterate(iter, cb) {
 
 function commit(docResource, text, opts, callback) {
   var xmlDoc = parseXML(text)
+    , teiRoot = xmlDoc2json(xmlDoc)
     , docTags = ['pb', 'cb', 'lb']
-    , docRoot = {children: []}
     , entityRoot = {children: []}
-    , teiRoot
-    , queue
-    , prevDoc
+    , queue = [teiRoot]
+    , prevDoc = {_id: docResource._id, label: docResource.label, children: []}
+    , docQueue = [prevDoc]
+    , prevDoc, cur, curDoc, index
   ;
+
+  while (queue.length > 0) {
+    cur = queue.shift();
+    queue.push.apply(queue, cur.children);
+    if (!_.startsWith(cur.name, '#')) {
+      index = docTags.indexOf(cur.name);
+      // if node is doc
+      if (index > -1) {
+        curDoc = {
+          _id: ObjectId().toJSON(),
+          label: cur.name,
+          children: [],
+        };
+        if ((cur.attrs || {}).n) {
+          curDoc.name = (cur.attrs || {}).n;
+        }
+        if (docTags.indexOf(prevDoc.label) < index) {
+          docQueue.push(prevDoc);
+        }
+        while (docQueue.length > 0) {
+          label = _.last(docQueue).label;
+          if (!label || docTags.indexOf(label) < index) {
+            break;
+          }
+          docQueue.pop();
+        }
+        if (docQueue.length > 0) {
+          _.last(docQueue).children.push(curDoc);
+        }
+        prevDoc = curDoc;
+      }
+      if ((cur.children || []).length === 0) {
+        cur.text = '';
+        cur.doc = prevDoc._id;
+      }
+    } else if (cur.name === '#text') {
+      cur.doc = prevDoc;
+    }
+  }
+
+  
+  /*
   xmlDoc.entity = entityRoot;
+
 
   _.each([
     '//body/div[@n]',
@@ -159,36 +205,10 @@ function commit(docResource, text, opts, callback) {
       cur = iter.iterateNext();
     }
   });
+  */
 
-  _.each([
-    '//pb',
-    '//cb',
-    '//lb',
-  ], function(xpath) {
-    var iter = xmlDoc.evaluate(xpath, xmlDoc)
-      , cur = iter.iterateNext()
-      , parent
-      , doc
-    ;
-    while(cur) {
-      doc = {
-        name: cur.getAttribute('n') || '',
-        children: [],
-      };
-      cur.doc = entity;
-      parent = cur.parentNode;
-      while (parent) {
-        if (parent.entity) {
-          parent.entity.children.push(entity);
-          break;
-        }
-        parent = parent.parentNode;
-      }
-      cur = iter.iterateNext();
-    }
-   
-  });
 
+ /*
   var iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
   var node = iter.nextNode();
   var label;
@@ -228,22 +248,20 @@ function commit(docResource, text, opts, callback) {
         prevDoc = curDoc;
       }
     } else if (node.nodeType === node.TEXT_NODE) {
-      var parentNode = node.parentElement
-        , sibling
-      ;
+      var parentElement = node.parentElement;
       if (prevDoc) {
         prevDoc.children.push({
           children: [],
         });
       }
 
-      while (parentNode) {
-        if (parentNode.entity) {
+      while (parentElement) {
+        if (parentElement.entity) {
           node.dataset
-          parentNode.entity;
+          parentElement.entity;
           break;
         }
-        parentNode = parentNode.parentElement;
+        parentElement = parentElement.parentElement;
       }
 
       texts.push(node.nodeValue.trim());
@@ -251,12 +269,13 @@ function commit(docResource, text, opts, callback) {
     }
     node = iter.nextNode();
   }
+  */
 
   docResource.commit = {
-    xml: xmlDoc2json(xmlDoc),
+    tei: teiRoot,
     doc: docRoot,
-    work: workRoot,
-    texts: texts,
+    //work: workRoot,
+    //texts: texts,
   };
   return docResource.$update(_.assign({}, opts), callback);
 }
