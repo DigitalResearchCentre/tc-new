@@ -176,6 +176,33 @@ var ViewCtrl = function($scope, $routeParams, TCService) {
 };
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
+function _getTei(data) {
+  var docs = {}
+    , texts = {}
+    , teiRoot = {name: 'TEI', children: []}
+  ;
+  _.each(data.descendants, function(doc) {
+    docs[doc._id] = doc;
+  });
+  _.each(data.texts, function(el) {
+    texts[el._id] = el;
+    if (el.name === '#text' && el.text) {
+      el.children = [el.text];
+    }
+  });
+  _.each(texts, function(el) {
+    var parentId = _.last(el.ancestors);
+    if (!parentId || !texts[parentId]) {
+      teiRoot.children.push(el);
+    } else {
+      parent = texts[parentId];
+      parent.children[parent.children.indexOf(el._id)] = el;
+      el.parent = parent;
+    }
+  });
+  return teiRoot;
+}
+
 var ViewerCtrl = function($scope, $routeParams, TCService) {
   var params = $routeParams.params.split('/')
     , Doc = TCService.Doc
@@ -201,37 +228,39 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
   });
   if (pageId) {
     $scope.page = page = TCService.get(pageId, Doc);
+
     if (!page.revisions || _.isString(_.last(page.revisions))) {
       page.$get({
         fields: JSON.stringify('revisions'),
       });
     }
-    Doc.getTrees({id: page._id}, function(data) {
-      var docs = {}
-        , texts = {}
-        , xmlRoot = {name: 'xml', children: []}
-      ;
-      _.each(data.descendants, function(doc) {
-        docs[doc._id] = doc;
-      });
-      _.each(data.texts, function(el) {
-        texts[el._id] = el;
-        if (el.name === '#text' && el.text) {
-          el.children = [el.text];
-        }
-      });
-      _.each(texts, function(el) {
-        var parentId = _.last(el.ancestors);
-        if (!parentId || !texts[parentId]) {
-          xmlRoot.children.push(el);
-        } else {
-          var parent = texts[parentId];
-          parent.children[parent.children.indexOf(el._id)] = el;
-        }
-      });
-      console.log(xmlRoot);
-      databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
+
+    Doc.getLinks({id: page._id}, function(data) {
+      console.log(data);
     });
+    Doc.getTrees({id: page._id}, function(data) {
+      var teiRoot = data
+        , firstText = teiRoot
+        , parent, index
+      ;
+      while ((firstText.children || []).length > 0) {
+        index = _.findIndex(firstText.children, function(child) {
+          return !_.isString(child);
+        });
+        firstText.children = firstText.children.slice(index);
+        parent = firstText;
+        firstText = firstText.children[0];
+      }
+      if (parent) {
+        parent.children.shift();
+      }
+      databaseRevision.text = TCService.json2xml(teiRoot);
+    });
+    /*
+    Doc.getLinks({id: page._id}, function(data) {
+      console.log(data);
+    });
+    */
   }
 
   $scope.save = function() {
@@ -250,31 +279,9 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
       fields: JSON.stringify({path: 'revisions'}),
     }, function() {
       Doc.getTrees({id: page._id}, function(data) {
-        var docs = {}
-          , texts = {}
-          , xmlRoot = {name: 'xml', children: []}
-        ;
-        _.each(data.descendants, function(doc) {
-          docs[doc._id] = doc;
-        });
-        _.each(data.texts, function(el) {
-          texts[el._id] = el;
-          if (el.name === '#text' && el.text) {
-            el.children = [el.text];
-          }
-        });
-        _.each(texts, function(el) {
-          var parentId = _.last(el.ancestors);
-          if (!parentId || !texts[parentId]) {
-            xmlRoot.children.push(el);
-          } else {
-            var parent = texts[parentId];
-            parent.children[parent.children.indexOf(el._id)] = el;
-          }
-        });
-        console.log(xmlRoot);
-        databaseRevision.text = TCService.json2xml(xmlRoot.children[0]);
-      });
+      var teiRoot = _getTei(data);
+      databaseRevision.text = TCService.json2xml(teiRoot.children[0]);
+    });
     });
   };
 

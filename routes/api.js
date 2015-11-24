@@ -121,25 +121,40 @@ router.get('/docs/:id/texts', function(req, res, next) {
     if (err) {
       return next(err);
     }
-    _.each(results[2], function(tei) {
-      _.forEachRight(tei.ancestors, function(id) {
-        if (!ids.hasOwnProperty(id)) {
-          ids[id] = true;
-        } else {
-          return false;
-        }
+    TEI.getTreeFromLeaves(results[2], function(err, teiRoot) {
+      console.log(teiRoot);
+      res.json(teiRoot);
+    });
+  });
+});
+
+router.get('/docs/:id/links', function(req, res, next) {
+  var docId = req.params.id;
+  async.parallel([
+    function(cb) {
+      Doc.getPrevTexts(docId, cb);
+    },
+    function(cb) {
+      Doc.getNextTexts(docId, cb);
+    },
+  ], function(err, results) {
+    if (err) {
+      return next(err);
+    }
+    _.each(results, function(objs) {
+      objs.pop();
+      _.each(objs, function(obj) {
+        _.each(obj.children, function(child, i) {
+          if (child._id) {
+            obj.children[i] = child._id;
+          }
+        });
       });
-    })
-    console.log(results);
-    TEI.find({_id: {$in: _.keys(ids)}}).exec(function(err, objs) {
-      if (err) {
-        return next(err);
-      }
-      res.json({
-        descendants: results[1],
-        texts: results[2].concat(objs),
-      });
-    });    
+    });
+    res.json({
+      prev: results[0],
+      next: results[1],
+    });
   });
 });
 

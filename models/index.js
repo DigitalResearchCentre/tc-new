@@ -112,6 +112,45 @@ var BaseNodeSchema = function(modelName) {
       },
     },
     statics: {
+      getTreeFromLeaves: function(nodes, cb) {
+        var cls = this
+          , ancestors = {}
+        ;
+        _.each(nodes, function(node) {
+          _.forEachRight(node.ancestors, function(id) {
+            if (!ancestors.hasOwnProperty(id)) {
+              ancestors[id] = true;
+            } else {
+              return false;
+            }
+          });
+        });
+        cls.find({_id: {$in: _.keys(ancestors)}}).exec(function(err, results) {
+          if (err) {
+            return cb(err);
+          }
+          var objs = {}
+            , root, parent, children
+          ;
+          nodes = results.concat(nodes);
+          _.each(nodes, function(node) {
+            objs[node._id] = node;
+          });
+          _.each(nodes, function(node) {
+            if (node.ancestors.length === 0) {
+              root = node;
+            } else {
+              parent = objs[_.last(node.ancestors)];
+              children = parent.children;
+              var index = _.findIndex(children, function(id) {
+                return id.equals(node._id);
+              });
+              children[index] = node;
+            }
+          });
+          cb(err, root);
+        });
+      },
       getNodesBetween: function(ancestors1, ancestors2, callback) {
         var nodes = []
           , common = []
@@ -292,9 +331,65 @@ function _loadXMLTexts(obj, texts) {
   return ids;
 }
 
-
+_.assign(DocSchema.statics, baseDoc.methods, {
+  getPrevTexts: function(id, callback) {
+    Doc.findOne({_id: id}).exec(function(err, doc) {
+      if (err) {
+        return callback(err);
+      }
+      return doc.getPrevTexts(callback);
+    });
+  },
+  getNextTexts: function(id, callback) {
+    async.waterfall([
+      function(cb) {
+        Doc.findOne({children: id}).exec(cb);
+      },
+      function(parent, cb) {
+        var index;
+        if (parent) {
+          index = _.findIndex(parent.children, function(child) {
+            return child.equals(id);
+          });
+          if (parent.children.length > index) {
+            return Doc.getPrevTexts(parent.children[index+1], cb);
+          }
+        }
+        return cb(null, null);
+      },
+    ], callback);
+  },
+});
 
 _.assign(DocSchema.methods, baseDoc.methods, {
+  getPrevTexts: function(callback) {
+    var doc = this;
+    async.waterfall([
+      function(cb) {
+        TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
+      },
+      function(teiLeaves, cb) {
+        TEI.getTreeFromLeaves(teiLeaves, cb); 
+      },
+    ], function(err, teiRoot) {
+      if (err) {
+        return callback(err);
+      }
+      var cur = teiRoot
+        , prevs = [cur]
+        , index
+      ;
+      while ((cur.children || []).length > 0) {
+        index = _.findIndex(cur.children, function(child) {
+          return !(_.isString(child) || child instanceof OId);
+        });
+        cur = cur.children[index];
+        prevs.push(cur);
+      }
+      callback(err, prevs);
+    });
+   
+  },
   commit: function(data, callback) {
     var self = this
       , doc = this.toObject()

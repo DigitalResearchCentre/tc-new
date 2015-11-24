@@ -146,7 +146,6 @@ function commit(docResource, text, opts, callback) {
           label: cur.name,
           children: [],
         };
-        console.log(curDoc);
         if ((cur.attrs || {}).n) {
           curDoc.name = (cur.attrs || {}).n;
         }
@@ -328,7 +327,12 @@ function TCService($resource) {
     'getTrees': {
       url: '/api/docs/:id/texts',
       method: 'GET',
-    }
+    },
+    'getLinks': {
+      url: '/api/docs/:id/links',
+      method: 'GET',
+    },
+
   });
 
   var Login = $resource('/auth/login/', null, {
