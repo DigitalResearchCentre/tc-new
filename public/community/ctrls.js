@@ -236,7 +236,16 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     }
 
     Doc.getLinks({id: page._id}, function(data) {
+      data.prev = _.map(data.prev, function(el) {
+        return TCService.json2xml(el);
+      });
+      data.next = _.map(data.next, function(el) {
+        return TCService.json2xml(el);
+      });
       console.log(data);
+      $scope.links = data;
+      $scope.prevLink = _.last(data.prev);
+      $scope.nextLink = _.last(data.next);
     });
     Doc.getTrees({id: page._id}, function(data) {
       var teiRoot = data

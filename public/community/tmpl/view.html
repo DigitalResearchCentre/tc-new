@@ -82,6 +82,16 @@
     </div>
     <div class="text-viewer">
       <div class="transcript-header">
+        <label>Prev: </label>
+        <select ng-model="prevLink"
+          ng-options="el for el in links.prev">
+        </select>
+        <label>Next: </label>
+        <select ng-model="nextLink"
+          ng-options="el for el in links.next">
+        </select>
+
+
         <select ng-model="selectedRevision"
           ng-options="revision.created for revision in revisions">
         </select>

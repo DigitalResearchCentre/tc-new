@@ -336,8 +336,11 @@ _.assign(DocSchema.statics, baseDoc.methods, {
     Doc.findOne({_id: id}).exec(function(err, doc) {
       if (err) {
         return callback(err);
+      } else if (doc) {
+        return doc.getPrevTexts(callback);
+      } else {
+        return callback(err, null);
       }
-      return doc.getPrevTexts(callback);
     });
   },
   getNextTexts: function(id, callback) {

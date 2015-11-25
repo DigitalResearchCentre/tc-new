@@ -142,7 +142,9 @@ router.get('/docs/:id/links', function(req, res, next) {
       return next(err);
     }
     _.each(results, function(objs) {
-      objs.pop();
+      if (objs) {
+        objs.pop();
+      }
       _.each(objs, function(obj) {
         _.each(obj.children, function(child, i) {
           if (child._id) {
