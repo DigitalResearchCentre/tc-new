@@ -391,7 +391,9 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       }
       callback(err, prevs);
     });
-   
+  },
+  getNextTexts: function(callback) {
+    return Doc.getNextTexts(this._id, callback);
   },
   commit: function(data, callback) {
     var self = this

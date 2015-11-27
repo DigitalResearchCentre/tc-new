@@ -23,7 +23,6 @@ ManageCtrl.$inject = [
 
 
 var AddXMLDocCtrl = function($scope, $routeParams, TCService) {
-  console.log('AddXMLDocCtrl');
   var community = $scope.$parent.community
     , Doc = TCService.Doc
     , doc = new Doc()

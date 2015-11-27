@@ -84,11 +84,11 @@
       <div class="transcript-header">
         <label>Prev: </label>
         <select ng-model="prevLink"
-          ng-options="el for el in links.prev">
+          ng-options="json2xml(el) for el in links.prev">
         </select>
         <label>Next: </label>
         <select ng-model="nextLink"
-          ng-options="el for el in links.next">
+          ng-options="json2xml(el) for el in links.next">
         </select>
 
 

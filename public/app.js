@@ -68,31 +68,4 @@ tcApp.controller('AppCtrl', [
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
 
-function pipe(f1, f2) {
-  var funcs = Array.prototype.slice.call(arguments);
 
-  return function() {
-    var result = arguments;
-    if (funcs.length > 0) {
-      result = funcs.shift().apply(null, result);
-    }
-    funcs.forEach(function(func) {
-      result = func(result);
-    });
-    return result;
-  }
-
-}
-function foo(a, b, c) {
-  console.log(a);
-  return a+b+c;
-}
-function bar(a) {
-  console.log(a);
-  return a+2;
-}
-function baz(a) {
-  console.log(a);
-  return a+3;
-}
-console.log(pipe()(1, 2, 3));

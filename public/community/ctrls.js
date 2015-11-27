@@ -230,6 +230,9 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     $scope.revisions.push(databaseRevision) ;
     $scope.selectedRevision = $scope.revisions[0];
   });
+
+  $scope.json2xml = TCService.json2xml;
+
   if (pageId) {
     $scope.page = page = TCService.get(pageId, Doc);
 
@@ -240,13 +243,6 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     }
 
     Doc.getLinks({id: page._id}, function(data) {
-      data.prev = _.map(data.prev, function(el) {
-        return TCService.json2xml(el);
-      });
-      data.next = _.map(data.next, function(el) {
-        return TCService.json2xml(el);
-      });
-      console.log(data);
       $scope.links = data;
       $scope.prevLink = _.last(data.prev);
       $scope.nextLink = _.last(data.next);
@@ -288,13 +284,25 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
   };
 
   $scope.commit = function() {
-    TCService.commit($scope.page, $scope.selectedRevision.text, {
+    var links = $scope.links;
+    
+    TCService.commit({
+      doc: $scope.page, 
+      text: $scope.selectedRevision.text,
+      links: {
+        prev: links.prev.slice(0, _.findIndex(links.prev, $scope.prevLink) + 1),
+        next: links.next.slice(0, _.findIndex(links.next, $scope.nextLink) + 1),
+      },
+    }, {
       fields: JSON.stringify({path: 'revisions'}),
-    }, function() {
+    }, function(err) {
+      if (err) {
+        return alert(err);
+      }
       Doc.getTrees({id: page._id}, function(data) {
-      var teiRoot = _getTei(data);
-      databaseRevision.text = TCService.json2xml(teiRoot.children[0]);
-    });
+        var teiRoot = _getTei(data);
+        databaseRevision.text = TCService.json2xml(teiRoot.children[0]);
+      });
     });
   };
 

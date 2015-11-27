@@ -122,8 +122,59 @@ function iterate(iter, cb) {
   }
 }
 
-function commit(docResource, text, opts, callback) {
-  var xmlDoc = parseXML(text)
+function teiElementEqual(el1, el2) {
+  return el1.name === el2.name && 
+    (el1.attrs || {}).n === (el2.attrs || {}).n;
+}
+
+function checkLinks(teiRoot, links, callback) {
+  var cur = {
+    children: [teiRoot],
+  };
+  missingLink = _.find(links.prev, function (link) {
+    var child = _.find(cur.children, function(child) {
+      return child.name !== '#text';
+    });
+    if (teiElementEqual(child, link)) {
+      cur = child;
+      cur.prev = true;
+    } else {
+      return link;
+    }
+  });
+  if (missingLink) {
+    return callback({
+      message: 'Prev TEI elements missing',
+      element: missingLink,
+    });
+  }
+  cur = {
+    children: [teiRoot],
+  };
+  missingLink = _.find(links.next, function (link) {
+    var child = _.findLast(cur.children, function(child) {
+      return child.name !== '#text';
+    });
+    if (teiElementEqual(child, link)) {
+      cur = child;
+      cur.next = true;
+    } else {
+      return link;
+    }
+  });
+  if (missingLink) {
+    return callback({
+      message: 'Next TEI elements missing',
+      element: missingLink,
+    });
+  }
+}
+
+function commit(data, opts, callback) {
+  var text = data.text
+    , docResource = data.doc
+    , links = data.links
+    , xmlDoc = parseXML(text)
     , teiRoot = xmlDoc2json(xmlDoc)
     , docTags = ['pb', 'cb', 'lb']
     , entityRoot = {children: []}
@@ -131,10 +182,13 @@ function commit(docResource, text, opts, callback) {
     , queue = [teiRoot]
     , prevDoc = docRoot
     , docQueue = []
-    , cur, curDoc, index, label
+    , cur, curDoc, index, label, missingLink
   ;
 
-  console.log(teiRoot);
+  checkLinks(teiRoot, links, callback);
+
+
+  // dfs on TEI tree, find out all document
   while (queue.length > 0) {
     cur = queue.pop();
     if (!_.startsWith(cur.name, '#')) {
@@ -210,77 +264,15 @@ function commit(docResource, text, opts, callback) {
   });
   */
 
-
- /*
-  var iter = xmlDoc.createNodeIterator(xmlDoc, NodeFilter.SHOW_ALL);
-  var node = iter.nextNode();
-  var label;
-  queue = [docRoot];
-  while (node) {
-    if (node.nodeType === node.ELEMENT_NODE) {
-      if (node.children.length === 0) {
-        node.appendChild(xmlDoc.createTextNode(''));
-      }
-      var index = docTags.indexOf(node.nodeName);
-      // if node is doc
-      if (index > -1) {
-        var curDoc = {
-          label: node.nodeName,
-          children: [],
-        };
-        if (node.getAttribute('n')) {
-          curDoc.name = node.getAttribute('n');
-        }
-        if (!prevDoc) {
-          docRoot.children.push(curDoc);
-        } else {
-          if (docTags.indexOf(prevDoc.label) < index) {
-            queue.push(prevDoc);
-          }
-          while (queue.length > 0) {
-            label = _.last(queue).label;
-            if (!label || docTags.indexOf(label) < index) {
-              break;
-            }
-            queue.pop();
-          }
-          if (queue.length > 0) {
-            queue[queue.length - 1].children.push(curDoc);
-          }
-        }
-        prevDoc = curDoc;
-      }
-    } else if (node.nodeType === node.TEXT_NODE) {
-      var parentElement = node.parentElement;
-      if (prevDoc) {
-        prevDoc.children.push({
-          children: [],
-        });
-      }
-
-      while (parentElement) {
-        if (parentElement.entity) {
-          node.dataset
-          parentElement.entity;
-          break;
-        }
-        parentElement = parentElement.parentElement;
-      }
-
-      texts.push(node.nodeValue.trim());
-      node.textIndex = textIndex;
-    }
-    node = iter.nextNode();
-  }
-  */
-
   docResource.commit = {
     tei: teiRoot,
     doc: docRoot,
     //work: workRoot,
     //texts: texts,
   };
-  return docResource.$update(_.assign({}, opts), callback);
+  return docResource.$update(_.assign({}, opts), function() {
+    callback(null);
+  });
 }
 
 (function test() {
