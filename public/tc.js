@@ -137,7 +137,7 @@ function checkLinks(teiRoot, links, callback) {
     });
     if (teiElementEqual(child, link)) {
       cur = child;
-      cur.prev = true;
+      cur.prev = link._id;
     } else {
       return link;
     }
@@ -157,7 +157,7 @@ function checkLinks(teiRoot, links, callback) {
     });
     if (teiElementEqual(child, link)) {
       cur = child;
-      cur.next = true;
+      cur.next = link._id;
     } else {
       return link;
     }
@@ -186,7 +186,6 @@ function commit(data, opts, callback) {
   ;
 
   checkLinks(teiRoot, links, callback);
-
 
   // dfs on TEI tree, find out all document
   while (queue.length > 0) {

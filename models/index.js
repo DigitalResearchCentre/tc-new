@@ -405,6 +405,73 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       , entities = []
       , queue, cur
     ;
+    /*
+    async.parallel([
+      function(cb) {
+        self.getPrevTexts(cb);
+      },
+      function(cb) {
+        self.getNextTexts(cb);
+      },
+    ], function(err, results) {
+      var prevs = results[0]
+        , nexts = results[1]
+        , first = teiRoot
+        , last = teiRoot
+        , cur = {children: [teiRoot]}
+        , common, prev, next
+        , commonLevel
+      ;
+      _.each(prevs, function(prev, i) {
+        if (nexts.length > i && prev._id.equals(nexts[i]._id)) {
+          cur = _.find(cur.children, function(child) {
+            return child.prev;
+          });
+        } else {
+          commonLevel = i;
+        }
+      });
+      common = cur;
+      prev = _.findIndex(common.children, function(child) {
+        return child.prev;
+      });
+      next = _.findLastIndex(common.children, function(child) {
+        return child.next;
+      });
+     
+      _.each(prevs.slice(commonLevel), function() {
+        var prev = _.find(cur.children, function(child) {
+          return child.prev;
+        });
+        if (!cur) {
+        }
+      });
+
+      prev = _.find(cur.children, function(child) {
+        return child.prev;
+      });
+
+
+      var prevIndex = _.findIndex(cur.children, function(child) {
+        return child.prev;
+      });
+      if (prevIndex) {
+        cur.children = cur.children.slice(prevIndex);
+      }
+      var nextIndex = _.findLastIndex(cur.children, function(child) {
+        return child.next;
+      });
+      if (nextIndex) {
+        cur.children = cur.children.slice(0, nextIndex + 1);
+      }
+
+
+      console.log(prevs[0]);
+      console.log(teiRoot);
+    });
+    return;
+    */
+
     doc.children = data.doc.children;
     docMap[doc._id] = doc;
     console.log('--- start commit ---');
