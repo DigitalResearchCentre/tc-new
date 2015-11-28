@@ -185,6 +185,37 @@ function commit(data, opts, callback) {
     , cur, curDoc, index, label, missingLink
   ;
 
+  xmlDoc.entity = entityRoot;
+
+  _.each([
+    '//body/div[@n]',
+    '//body/div[@n]/head[@n]',
+    '//body/div[@n]/ab[@n]',
+    '//body/div[@n]/l[@n]',
+  ], function(xpath) {
+    var iter = xmlDoc.evaluate(xpath, xmlDoc)
+      , cur = iter.iterateNext()
+      , parent
+      , entity
+    ;
+    while(cur) {
+      entity = {
+        name: cur.getAttribute('n') || '',
+        children: [],
+      };
+      cur.entity = entity;
+      parent = cur.parentNode;
+      while (parent) {
+        if (parent.entity) {
+          parent.entity.children.push(entity);
+          break;
+        }
+        parent = parent.parentNode;
+      }
+      cur = iter.iterateNext();
+    }
+  });
+
   checkLinks(teiRoot, links, callback);
 
   // dfs on TEI tree, find out all document
@@ -221,6 +252,10 @@ function commit(data, opts, callback) {
         cur.text = '';
         cur.doc = prevDoc._id;
       }
+
+      if (cur.entity) {
+        cur.entity = true;
+      }
     } else if (cur.name === '#text') {
       cur.doc = prevDoc._id;
     }
@@ -228,46 +263,10 @@ function commit(data, opts, callback) {
     _.forEachRight(cur.children, _.bind(queue.push, queue));
   }
 
-
-  /*
-  xmlDoc.entity = entityRoot;
-
-
-  _.each([
-    '//body/div[@n]',
-    '//body/div[@n]/head[@n]',
-    '//body/div[@n]/ab[@n]',
-    '//body/div[@n]/l[@n]',
-  ], function(xpath) {
-    var iter = xmlDoc.evaluate(xpath, xmlDoc)
-      , cur = iter.iterateNext()
-      , parent
-      , entity
-    ;
-    while(cur) {
-      entity = {
-        name: cur.getAttribute('n') || '',
-        children: [],
-      };
-      cur.entity = entity;
-      parent = cur.parentNode;
-      while (parent) {
-        if (parent.entity) {
-          parent.entity.children.push(entity);
-          break;
-        }
-        parent = parent.parentNode;
-      }
-      cur = iter.iterateNext();
-    }
-  });
-  */
-
   docResource.commit = {
     tei: teiRoot,
     doc: docRoot,
-    //work: workRoot,
-    //texts: texts,
+    entity: entityRoot,
   };
   return docResource.$update(_.assign({}, opts), function() {
     callback(null);

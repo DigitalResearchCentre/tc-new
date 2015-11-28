@@ -399,6 +399,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     var self = this
       , doc = this.toObject()
       , teiRoot = data.tei
+      , entityRoot = data.entity
       , docMap = {}
       , docs = []
       , teis = []
@@ -406,6 +407,22 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       , queue, cur
     ;
     /*
+    async.waterfall([
+      function(cb) {
+        Community.findOne({docs: this.ancestors[0]}).exec(cb);
+      },
+      function(community, cb) {
+        Entity.find({
+          _id: {$in: community.entities},
+          name: entityRoot.name,
+        }).exec(cb);       
+      },
+      function(entity, cb) {
+        if (!entity) {
+          entityRoot._id = new OId();
+        }
+      }
+    ]);
     async.parallel([
       function(cb) {
         self.getPrevTexts(cb);
