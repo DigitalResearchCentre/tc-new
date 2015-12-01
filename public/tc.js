@@ -171,9 +171,10 @@ function checkLinks(teiRoot, links, callback) {
 }
 
 function commit(data, opts, callback) {
+  console.log(data);
   var text = data.text
     , docResource = data.doc
-    , links = data.links
+    , links = data.links || {}
     , xmlDoc = parseXML(text)
     , teiRoot = xmlDoc2json(xmlDoc)
     , docTags = ['pb', 'cb', 'lb']
@@ -269,15 +270,9 @@ function commit(data, opts, callback) {
     entity: entityRoot,
   };
   return docResource.$update(_.assign({}, opts), function() {
-    callback(null);
+    if (callback) callback(null);
   });
 }
-
-(function test() {
-  var json = xml2json('<text><lb/><l>hello</l></text>');
-  console.log(json);
-  console.log(json2xml(json));
-})();
 
 function TCService($resource) {
   MODEL_CACHE = {};
