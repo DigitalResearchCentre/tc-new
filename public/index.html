@@ -3,9 +3,15 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script>
+
+    </script>
   </head>
+  <!-- body ng-app="TCApp" ng-controller="AppCtrl"
+    ng-class="{'hide-header': hideHeader}"  class="modal-backdrop fade in"-->
   <body ng-app="TCApp" ng-controller="AppCtrl"
-    ng-class="{'hide-header': hideHeader}">
+      ng-class="{'hide-header': hideHeader}" >
     <div class="tc-header">
       <div id="Minimize">
         <a ng-click="hideHeader = !hideHeader" id="editArrow"
@@ -29,9 +35,9 @@
                 </ul>
               </li>
               <li ng-if="!app.authUser.local.name">
-                <a href="/auth/"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
+                <a id="modallink" href="" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
               </li>
-              <li ng-if="app.authUser.local.name && !app.authUser.memberships.length">
+              <li ng-if="app.authUser.local.name && !app.authUser.memberships.length && app.authUser.local.authenticated==1">
                 <a href="#/community/new">Create New Community</a>
               </li>
               <li ng-show="app.authUser.memberships.length" ng-if="app.authUser.local.name" class="dropdown">
@@ -73,7 +79,13 @@
 
     <!-- let us have the community header first, if we have one. else, just give us the main tc -->
     <div ng-view class="tc-content"></div>
-
+    <!-- load login modal via this -->
+    <div id="myModal" class="modal fade" role="dialog">
+      <div class="modal-dialog"  style="position:relative; top: 100px;">
+          <button type="button" ng-click="login.closeModal()" class="close" data-dismiss="modal" style="position:relative; left: -40px; top: 40px; font-size:300%; font-weight:200">&times;</button>
+          <iframe src="{{loginFrame}}" id="frame"  height="233px" width="586px"></iframe>
+      </div>
+    </div>
     <script type="text/javascript" src="dist/vendor.bundle.js"></script>
     <script type="text/javascript" src="dist/app.bundle.js"></script>
   </body>

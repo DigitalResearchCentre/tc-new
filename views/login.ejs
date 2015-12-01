@@ -5,45 +5,30 @@
     <title>Textual Communities Authentication</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
-    <style>
-        body        { padding-top:80px; }
-    </style>
 </head>
-<body>
-<div class="container">
-
-<div class="col-sm-6 col-sm-offset-3">
-
-    <h1><span class="fa fa-sign-in"></span> Login to Textual Communities</h1>
-
-    <!-- show any messages that come back with authentication -->
-    <% if (message.length > 0) { %>
-        <div class="alert alert-danger"><%= message %></div>
-    <% } %>
-
-    <!-- LOGIN FORM -->
-    <form action="/auth/login" method="post">
-        <div class="form-group">
-            <label>Email</label>
-            <input type="text" class="form-control" name="email" value="<%= email %>">
-        </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" class="form-control" name="password">
-        </div>
-
-        <button type="submit" class="btn btn-warning btn-lg">Login</button>
-    </form>
-
-    <hr>
-
-    <p>Need an account? <a href="/auth/signup">Signup</a></p>
-    <p>Or go <a href="/">home</a>.</p>
-    <p>Forgot/reset password? <a href="/auth/forgot">request password</a>.</p>
-
-
-</div>
-
-</div>
+<body class="jumbotron text-center" style="width: 580px;  margin:25px 5px 5px 5px; font-size:120%">
+  <!-- p><span class="fa fa-sign-in"></span> Log in</p-- >
+          <!-- show any messages that come back with authentication -->
+        <% if (message.length > 0) { %>
+            <script>
+              document.body.style.marginTop="0px";
+              document.body.style.position="relative";
+              document.body.style.top="-10px";
+            </script>
+            <div class="alert alert-danger" style="padding: 0px"><%= message %></div>
+        <% } %>
+        <!-- LOGIN FORM -->
+        <form action="/auth/login" method="post" style="text-align: left;">
+            <div class="form-group">
+                <label>Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                <input type="text" style="width: 250px; display: inline-block" class="form-control" name="email" value="<%= email %>">
+            </div>
+            <div class="form-group">
+                <label>Password&nbsp;</label>
+                <input type="password" style="width: 250px; display: inline-block" class="form-control" name="password">
+             <button type="submit" class="btn btn-warning btn-md" style="float:right; width: 100px">Login</button>
+            </div>
+          </form>
+          <p id="p2" style="margin-top:40px">No account? <a href="/auth/signup">Sign up</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/" target="_parent">Home</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/auth/forgot">Request password</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/auth">Social Media log in</a></p>
 </body>
 </html>

@@ -34,11 +34,39 @@ router.get('/login', function(req, res) {
 });
 
 // process the login form
+/*
 router.post('/login', passport.authenticate('local-login', {
-  successRedirect : '/#/profile', // redirect to the secure profile section
+  successRedirect : '#/index.htm?prompt=redirectModal', // redirect to the secure profile section
   failureRedirect : '/auth/login', // redirect back to the signup page if there is an error
   failureFlash : true // allow flash messages
 }));
+*/
+router.post('/login', function(req, res) {
+  // callback with email and password from our form
+   // find a user whose email is the same as the forms email
+   // we are checking to see if the user trying to login already exists
+   User.findOne({ 'local.email' :  req.body.email }, function(err, user) {
+     // if there are any errors, return the error before anything else
+  //   if (err)
+  //     return done(err);
+
+     // if no user is found, return the message
+     if (!user) {
+       //reload modal element with our content
+       res.render('login.ejs', {message: "No user associated with the email '"+req.body.email+"' found.", email:req.body.email});
+       return;
+//       return done(null, false, req.flash('loginMessage', 'No user associated with the email "'+email+'" found.')); // req.flash is the way to set flashdata using connect-flash
+      }
+     // if the user is found but the password is wrong
+     if (!user.validPassword(req.body.password)) {
+        res.render('login.ejs', {message: "Oops! wrong password", email:req.body.email});
+        return;
+      }
+     // all is well, return successful user
+     res.redirect('/index.html?prompt=redirectModal');
+   });
+});
+
 // =====================================
 // SIGNUP ==============================
 // =====================================
@@ -145,6 +173,7 @@ router.get('/resetpwmsg', function(req, res) {
 // we will want this protected so you have to be logged in to visit
 // we will use route middleware to verify this (the isLoggedIn function)
 router.get('/profile', isLoggedIn, function(req, res) {
+  console.log("are we here")
   res.render('profile.ejs', {
     user : req.user, // get the user out of session and pass to template
     context: req.query.context
@@ -166,7 +195,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   if (isValidProfile(req, res)) {
     res.redirect('/#/profile');
   } else {
-    res.redirect('/auth/facebookemail');
+    res.redirect('/index.html?emailreq=facebook');
   }
 });
 
@@ -174,7 +203,7 @@ router.get('/facebookemail', function(req, res) {
   //can only be here because facebook has registered user, but as yet not associated with any main email
   //so check: if our facebook email does not belong to an existing user, then just write primary fb email to local email
   // and pass on to profile, to carry out authentication
-  console.log("who I am in facebook: "+req.user);
+  console.log("who I am in facebook: ");
   User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
     if (!user) {
       //let's redirect -- ask if we want to associate with an existing account or not
@@ -189,13 +218,14 @@ router.get('/facebookemail', function(req, res) {
         });
         user.save();
         req.logout();
+        console.log("ok, fb 2")
         req.logIn(user, function (err) {
-          if(!err){ res.redirect('/auth/profile'); }else {		//handle error
+          //all is good.  We have got here from a modal -- so close the modal and open in parent
+          if(!err){ res.redirect('/index.html?prompt=redirectModal'); }else {		//handle error
           } });
           return;
       }
       else res.render('error.ejs', { message: "Error linking Facebook account", name:req.user.facebook.name, email: req.user.facebook.email }); //should not happen! if there is a fb for this user we should be in it now
-
     }
   });
 });
@@ -222,6 +252,7 @@ router.post('/facebooklinkemail', function(req, res) {
   User.findOne({'local.email': req.body.email}, function(err, existingUser) {
     if (existingUser) {
       //if there is no google person reg'd with this local email -- just write the details there!
+      console.log("in facebook")
       if (!existingUser.facebook.token) {
         existingUser.facebook=req.user.facebook;
         existingUser.local.authenticated="0";
@@ -588,7 +619,7 @@ function isLoggedIn(req, res, next) {
 //or do that later
 function isValidProfile(req, res, next) {
 //  console.log("who I am in authenticate: "+req.user);
-  if (Object.keys(req.user.local).length===0 || typeof req.user.local.email === "undefined") return false;
+  if (Object.keys(req.user.local).length===0 || typeof req.user.local.email === "undefined" || req.user.local.authenticated=="0") return false;
   return true;
 }
 

@@ -11,9 +11,9 @@
 <body>
 <div class="container">
 
-	 <% if (user.local.authenticated == "0")  {%>
+   <% if (user.local.authenticated == "0")  {%>
 	   <script language="javascript">
-  			  window.location.href = "/auth/sendauthenticate?context=<%= context %>"
+  			  window.location.href = "/index.html?prompt=sendauthenticate&context=<%= context %>"
 		</script>
      <% } else { %>
 		<div class="page-header text-center">

@@ -1,4 +1,7 @@
 <div ng-controller="ProfileMemberCtrl" style="margin-right:auto; margin-left:auto; width:700px">
+  <script ng-if="app.authUser.local.authenticated==0">
+    window.location.href="/index.html?prompt=sendauthenticate&context="
+  </script>
   <h3>Member Profile for {{app.authUser.local.name}}</h3>
   <p>This account is associated with the email address {{app.authUser.local.email}}</p>
   <div ng-show="nmemberships">

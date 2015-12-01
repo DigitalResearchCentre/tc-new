@@ -92,6 +92,7 @@ var CommunityCtrl = function($scope, $routeParams, TCService) {
       'home': 'tmpl/home.html',
       'view': 'tmpl/view.html',
       'manage': 'manage/manage.html',
+      'join':'tmpl/join.html'
     };
     $scope.tab = tabs[params.split('/').shift()];
 
@@ -125,7 +126,7 @@ function checkCommunity (communities, community) {
       message="Community abbreviation "+community.abbr+" must be less than 5 characters";
     } else if (community.longName && community.longName.length>80) {
       message="Community long name "+community.longName+" must be less than 80 characters";
-    } 
+    }
     return message;
 }
 
@@ -306,5 +307,3 @@ module.exports = {
   MemberCtrl: MemberCtrl,
   ProfileMemberCtrl: ProfileMemberCtrl,
 };
-
-

@@ -59,7 +59,7 @@ configAuth = config.auth;
 
         // check to see if there's already a user with that email
         if (existingUser) {
-          return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+          return done(null, false, req.flash('signupMessage', 'There is already a user with that email.'));
         }
         //  If we're logged in, we're connecting a new local account.
         if(req.user) {
@@ -73,7 +73,7 @@ configAuth = config.auth;
               throw err;
             return done(null, user);
           });
-        } 
+        }
         //  We're not logged in, so we're creating a brand new user.
         else {
           // create the user
@@ -108,7 +108,7 @@ configAuth = config.auth;
     passReqToCallback : true // allows us to pass back the entire request to the callback
   },
   function(req, email, password, done) { // callback with email and password from our form
-    // find a user whose email is the same as the forms email	
+    // find a user whose email is the same as the forms email
     // we are checking to see if the user trying to login already exists
     User.findOne({ 'local.email' :  email }, function(err, user) {
       // if there are any errors, return the error before anything else
@@ -117,7 +117,8 @@ configAuth = config.auth;
 
       // if no user is found, return the message
       if (!user)
-        return done(null, false, req.flash('loginMessage', 'No user found.')); // req.flash is the way to set flashdata using connect-flash
+        //reload modal element with our content
+        return done(null, false, req.flash('loginMessage', 'No user associated with the email "'+email+'" found.')); // req.flash is the way to set flashdata using connect-flash
 
       // if the user is found but the password is wrong
       if (!user.validPassword(password))
@@ -404,7 +405,7 @@ function resetpass (email, user, done, thisURL) {
     , str = fs.readFileSync(__dirname + '/views/resetemail.ejs', 'utf8')
     , hash=randomStringAsBase64Url(20)
     , rendered
-  ; 
+  ;
   rendered = ejs.render(str, {
     email:email, hash:hash, username:user.local.name, url: thisURL
   });
@@ -413,7 +414,7 @@ function resetpass (email, user, done, thisURL) {
   user.local.hash=hash;
   TCMailer.nodemailerMailgun.sendMail({
     from: TCAddresses.from,
-    to: email, 
+    to: email,
     subject: 'Reset your Textual Communities password',
     'h:Reply-To': TCAddresses.replyto,
     html: rendered,

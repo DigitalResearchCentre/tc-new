@@ -3,6 +3,7 @@ var $ = require('jquery')
   , angular = require('angular')
   , config = require('../config')
   , TCService = require('tc')
+  , login = require('./login.js')
 ;
 require('./app.less');
 require('bootstrap');
@@ -16,7 +17,6 @@ var tcApp = angular.module('TCApp', [
   'ngRoute', 'ngResource', 'ngSanitize', 'jdFontselect',
   require('./community').name,
 ]);
-
 tcApp
   .config(function($routeProvider) {
     $routeProvider.when('/', {
@@ -44,7 +44,7 @@ tcApp
 ;
 
 tcApp.controller('AppCtrl', [
-  '$scope', 'TCService', '$q', '$http', function($scope, TCService, $q, $http) {
+  '$scope', 'TCService', '$q', '$http', '$location', function($scope, TCService, $q, $http, $location) {
 
   var Community = TCService.Community;
 
@@ -59,6 +59,15 @@ tcApp.controller('AppCtrl', [
   $scope.logout = function() {
     TCService.logout();
   };
+  $scope.login = login;
+  console.log(location);
+  if ($location.search().prompt !== 'redirectModal') {
+    $scope.loginFrame = '/auth';
+  } else {
+    $scope.loginFrame = '';
+    console.log(window.parent);
+    window.parent.document.getElementById('frame').setAttribute('src', '');
+  }
 }]);
 
 function pipe(f1, f2) {
@@ -89,4 +98,3 @@ function baz(a) {
   return a+3;
 }
 console.log(pipe()(1, 2, 3));
-
