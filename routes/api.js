@@ -122,7 +122,6 @@ router.get('/docs/:id/texts', function(req, res, next) {
       return next(err);
     }
     TEI.getTreeFromLeaves(results[2], function(err, teiRoot) {
-      console.log(teiRoot);
       res.json(teiRoot);
     });
   });
@@ -142,9 +141,6 @@ router.get('/docs/:id/links', function(req, res, next) {
       return next(err);
     }
     _.each(results, function(objs) {
-      if (objs) {
-        objs.pop();
-      }
       _.each(objs, function(obj) {
         _.each(obj.children, function(child, i) {
           if (child._id) {
@@ -222,6 +218,7 @@ module.exports = router;
         <lb n="1r5"/>
     <l n="1">
       foo
+
       <pb n="1v"/>
       <lb n="1v1"/>
       bar

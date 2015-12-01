@@ -240,6 +240,20 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     }
 
     Doc.getLinks({id: page._id}, function(data) {
+      _.forEachRight(data.prev, function(el) {
+        if (el.name === '#text') {
+          data.prev.pop();
+        } else {
+          return false;
+        }
+      });
+      _.forEachRight(data.next, function(el) {
+        if (el.name === '#text') {
+          data.prev.pop();
+        } else {
+          return false;
+        }
+      });
       $scope.links = data;
       $scope.prevLink = _.last(data.prev);
       $scope.nextLink = _.last(data.next);
@@ -294,7 +308,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
       fields: JSON.stringify({path: 'revisions'}),
     }, function(err) {
       if (err) {
-        return alert(err);
+        return console.log(err);
       }
       Doc.getTrees({id: page._id}, function(data) {
         var teiRoot = _getTei(data);
