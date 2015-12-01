@@ -254,6 +254,77 @@ var BaseNodeSchema = function(modelName) {
           });
         });
       },
+      getPrev: function(id, callback) {
+        var cls = this;
+        async.waterfall([
+          function(cb) {
+            cls.findOne({children: id}).exec(cb);
+          },
+          function(parent, cb) {
+            if (parent) {
+              var index = _.findIndex(parent.children, function(childId) {
+                return childId.equals(id);
+              });
+              if (index > 0) {
+                return cls.findOne({_id: parent.children[index - 1]}).exec(cb);
+              }
+            }
+            return cb(null, null);
+          },
+        ], callback);
+      },
+      getDFSPrev: function(id, callback) {
+        var cls = this;
+        async.waterfall([
+          function(cb) {
+            cls.findOne({_id: id}).exec(cb);
+          },
+          function(obj, cb) {
+            cls.find({_id: {$in: obj.ancestors}}).exec(cb);
+          },
+          function(ancestors, cb) {
+            var cur = id
+              , dfsPrevId
+            ;
+            _.forEachRight(ancestors, function(parent) {
+              var index = _.findIndex(parent.children, function(childId) {
+                return childId.equals(cur);
+              });
+              if (index > 0) {
+                dfsPrevId = parent.children[index];
+                return false;
+              } else {
+                cur = parent._id;
+              }
+            });
+            if (dfsPrevId) {
+              cls.findOne({_id: dfsPrevId}).exec(function(err, dfsPrev) {
+                if (err) {
+                  cb(err);
+                } else {
+                  async.whilst(function() {
+                    return (dfsPrev.children || []).length > 0;
+                  }, function(cb1) {
+                    cls.findOne({_id: _.last(dfsPrev.children)}).exec(
+                      function(err, obj) {
+                        dfsPrev = obj;
+                        cb1(err, obj);
+                      }
+                    );
+                  }, function(err) {
+                    if (err) {
+                      return cb(err);
+                    }
+                    if (dfsPrev) {
+                      cb(dfsPrev);
+                    }
+                  });
+                }
+              });
+            }
+          }
+        ], callback);
+      },
     }
   };
 };
