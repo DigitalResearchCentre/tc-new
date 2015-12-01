@@ -44,7 +44,8 @@ tcApp
 ;
 
 tcApp.controller('AppCtrl', [
-  '$scope', 'TCService', '$q', '$http', '$location', function($scope, TCService, $q, $http, $location) {
+  '$scope', 'TCService', '$q', '$http', '$location', '$window',
+  function($scope, TCService, $q, $http, $location, $window) {
 
   var Community = TCService.Community;
 
@@ -60,13 +61,11 @@ tcApp.controller('AppCtrl', [
     TCService.logout();
   };
   $scope.login = login;
-  console.log(location);
   if ($location.search().prompt !== 'redirectModal') {
     $scope.loginFrame = '/auth';
   } else {
     $scope.loginFrame = '';
-    console.log(window.parent);
-    window.parent.document.getElementById('frame').setAttribute('src', '');
+    $window.parent.angular.element('#frame').scope().login.closeModal();
   }
 }]);
 

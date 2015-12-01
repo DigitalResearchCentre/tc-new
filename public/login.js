@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     document.getElementById("frame").setAttribute("src","/auth/sendauthenticate?context=email");
   }
   if (prompt=="redirectModal") {
-    alert("hi again");
     $('#myModal').hide();
     $('.modal-backdrop').hide();
   //  document.getElementById("myModal").setAttribute("class", "fade hide");

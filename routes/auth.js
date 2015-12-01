@@ -63,7 +63,7 @@ router.post('/login', function(req, res) {
         return;
       }
      // all is well, return successful user
-     res.redirect('/index.html?prompt=redirectModal');
+     res.redirect('/#/?prompt=redirectModal');
    });
 });
 
@@ -221,7 +221,7 @@ router.get('/facebookemail', function(req, res) {
         console.log("ok, fb 2")
         req.logIn(user, function (err) {
           //all is good.  We have got here from a modal -- so close the modal and open in parent
-          if(!err){ res.redirect('/index.html?prompt=redirectModal'); }else {		//handle error
+          if(!err){ res.redirect('/#/?prompt=redirectModal'); }else {		//handle error
           } });
           return;
       }
