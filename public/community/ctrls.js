@@ -209,7 +209,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     , Doc = TCService.Doc
     , pageId = params[2]
     , databaseRevision = {created: 'Version in database'}
-    , page
+    , page, pb
   ;
   $scope.page = page = null;
   $scope.selectedRevision = null;
@@ -272,7 +272,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
         firstText = firstText.children[0];
       }
       if (parent) {
-        parent.children.shift();
+        pb = parent.children.shift();
       }
       databaseRevision.text = TCService.json2xml(teiRoot);
     });
@@ -296,10 +296,10 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 
   $scope.commit = function() {
     var links = $scope.links;
-    
     TCService.commit({
       doc: $scope.page, 
       text: $scope.selectedRevision.text,
+      docElement: pb,
       links: {
         prev: links.prev.slice(0, _.findIndex(links.prev, $scope.prevLink) + 1),
         next: links.next.slice(0, _.findIndex(links.next, $scope.nextLink) + 1),
@@ -316,7 +316,6 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
       });
     });
   };
-
 };
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 

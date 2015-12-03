@@ -127,7 +127,7 @@ function teiElementEqual(el1, el2) {
     (el1.attrs || {}).n === (el2.attrs || {}).n;
 }
 
-function checkLinks(teiRoot, links, callback) {
+function checkLinks(teiRoot, links, docElement, callback) {
   var cur = {
     children: [teiRoot],
   };
@@ -147,6 +147,10 @@ function checkLinks(teiRoot, links, callback) {
       message: 'Prev TEI elements missing',
       element: missingLink,
     });
+  }
+  if (docElement) {
+    delete docElement._id;
+    cur.children.unshift(docElement);
   }
   cur = {
     children: [teiRoot],
@@ -174,6 +178,7 @@ function commit(data, opts, callback) {
   console.log(data);
   var text = data.text
     , docResource = data.doc
+    , docElement = data.docElement
     , links = data.links || {}
     , xmlDoc = parseXML(text)
     , teiRoot = xmlDoc2json(xmlDoc)
@@ -216,8 +221,6 @@ function commit(data, opts, callback) {
       cur = iter.iterateNext();
     }
   });
-
-  checkLinks(teiRoot, links, callback);
 
   // dfs on TEI tree, find out all document
   while (queue.length > 0) {
@@ -262,6 +265,11 @@ function commit(data, opts, callback) {
     }
 
     _.forEachRight(cur.children, _.bind(queue.push, queue));
+  }
+
+  checkLinks(teiRoot, links, docElement, callback);
+  if (docElement) {
+    docElement.doc = docRoot._id;
   }
 
   docResource.commit = {
@@ -365,6 +373,7 @@ function TCService($resource) {
     xml2json: xml2json,
     json2xml: json2xml,
     json2xmlDoc: json2xmlDoc,
+    teiElementEqual: teiElementEqual,
     sendMail: function(mailOptions, cb) {
       $.post('/api/sendmail', mailOptions, cb);
     },
