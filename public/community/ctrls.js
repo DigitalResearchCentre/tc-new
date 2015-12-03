@@ -37,6 +37,9 @@ var ProfileMemberCtrl = function($scope, $routeParams, $location, TCService) {
     $scope.joinComm= function(communityId) {
         $location.path('/community/' + communityId + '/join');
     };
+    $scope.create=function() {
+      $location.path('/community/new');
+    }
 };
 ProfileMemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 

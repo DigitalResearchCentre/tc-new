@@ -1,39 +1,45 @@
 <!-- views/login.ejs -->
 <!doctype html>
 <html>
-<body class="jumbotron text-center" style="width: 580px;  margin:25px 5px 5px 5px; font-size:120%">
+<head>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+</head>
 
-    <h1><span class="fa fa-sign-in"></span> Reset Password for Textual Communities</h1>
+<body class="jumbotron text-center" style="width: 580px;  margin:5px 5px 5px 5px; font-size:120%">
+
+    <h5>Reset password for  <%= name %> at <%= email %></h5>
 
     <!-- show any messages that come back with authentication -->
     <% if (message.length > 0) { %>
-        <div class="alert alert-danger"><%= message %></div>
+      <script>
+        document.body.style.marginTop="0px";
+        document.body.style.position="relative";
+        document.body.style.top="-10px";
+      </script>
+        <div class="alert alert-danger" style="padding: 0px"><%= message %></div>
     <% } %>
-	<p>For <%= name %> at <%= email %></p>
     <!-- New password FORM -->
-    <form action="/auth/resetpw" method="post">
+    <form action="/auth/resetpw" method="post"  style="text-align: left; margin-top: 20px">
     	 <div class="form-group"  style="display:none">
             <input type="text" name="displayName" value="<%= name %>">
         </div>
 
         <div class="form-group"  style="display:none">
-            <label>Email</label>
+            <label>Email&nbsp;&nbsp;&nbsp;</label>
             <input type="text" class="form-control" name="email" value="<%= email %>">
         </div>
  		<div class="form-group">
-            <label>New Password</label>
-            <input type="password" class="form-control" name="password">
+            <label>New Password&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+            <input type="password" class="form-control" name="password" style="width: 250px; display: inline-block">
         </div>
         <div class="form-group">
-            <label>Confirm Password</label>
-            <input type="password" class="form-control" name="passwordconfirm">
+            <label>Confirm Password&nbsp;&nbsp;&nbsp;</label>
+            <input type="password" class="form-control" name="passwordconfirm" style="width: 250px; display: inline-block">
+            <button type="submit" class="btn btn-warning btn-md" style="float:right; width: 120px">Set  password</button>
         </div>
-        <button type="submit" class="btn btn-warning btn-lg">Set  password</button>
-    </form>
+      </form>
 
-    <hr>
-
-    <p><a href="/">Home</a>.</p>
 
 
 </body>

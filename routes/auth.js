@@ -49,7 +49,6 @@ router.post('/login', function(req, res, next) {
    // find a user whose email is the same as the forms email
    // we are checking to see if the user trying to login already exists
     var url=req.query.url;
-    console.log("url in post "+url)
     User.findOne({ 'local.email' :  req.body.email }, function(err, user) {
      // if no user is found, return the message
      if (!user) {
@@ -68,8 +67,8 @@ router.post('/login', function(req, res, next) {
         return;
       }
      // all is well, log me in, return successful user
-     console.log("url in post2 "+url)
      req.logIn(user, function (err) {
+       if (url=="") url="/index.html"
        if(!err) {res.render('closemodal.ejs', {url: url} );} else {}
      });
    });
@@ -96,11 +95,11 @@ router.post('/signup', function(req, res) {
     }
     //check do we have a password, etc
     if (req.body.password.length<5) {
-      res.render('signup.ejs', {message: 'Password must be at least five characters.',url:req.body.urlstring, email: req.body.email});
+      res.render('signup.ejs', {message: 'Password must be at least five characters',url:req.body.urlstring, email: req.body.email});
       return;
     }
     if (req.body.name.length<1) {
-      res.render('signup.ejs', {message: 'We need a name for you! Please.',url:req.body.urlstring, email: req.body.email});
+      res.render('signup.ejs', {message: 'We need a name for you! Please',url:req.body.urlstring, email: req.body.email});
       return;
     }
     //  If we're logged in, we're connecting a new local account.
@@ -143,6 +142,15 @@ router.get('/sendauthenticate', function(req, res) {
   // render the page and pass in any flash data if it exists
   res.render('authenticate.ejs', {user: req.user, context: req.query.context} );
 });
+
+router.get('/authlinkExpired', function(req, res) {
+  res.render('forgothourpassed.ejs', {greeting: 'Authentication link expired', greeting2: 'For security, links to authenticate accounts expire after one hour. Try logging in again to have a new authentication link sent.', authenticate:"1"});
+});
+
+router.get('/authlinkNotFound', function(req, res) {
+  res.render('forgothourpassed.ejs', {greeting: 'No user found for that link', greeting2: 'You are likely using an old authentication link. Try logging in again to have a new authentication link sent.', authenticate:"1"});
+});
+
 router.get('/authenticateTC', function(req, res) {
   // find the user with this hash; check datestamp; authenticate and save
   User.findOne({ 'local.hash' :  req.query.hash }, function(err, user) {
@@ -150,8 +158,10 @@ router.get('/authenticateTC', function(req, res) {
       //check the time stamp. If more than one hour ago, ask for redo
       var timeNow= new Date().getTime();
       var diff=timeNow-user.local.timestamp;
-      if (diff>60*60*1000) res.render('forgothourpassed.ejs', {greeting: 'Authentication link expired', greeting2: 'For security, links to authenticate accounts expire after one hour. Try logging in again to have a new authentication link sent.', authenticate:"1"});
-      else {
+      if (diff>60*60*1000) {
+          res.redirect("/index.html?prompt=authlinkExpired");
+            return;
+      }    else {
         user.local.authenticated= "1";
         user.local.hash= "";
         user.save();
@@ -163,7 +173,8 @@ router.get('/authenticateTC', function(req, res) {
       return;
       }
     } else {
-      res.render('forgothourpassed.ejs', {greeting: 'No user to be authenticated found for that link', greeting2: 'You are likely using an old authentication link. Try logging in again to have a new authentication link sent.', authenticate:"1"});
+      res.redirect("/index.html?prompt=authlinkNotFound");
+  //    res.render('forgothourpassed.ejs', {greeting: 'No user to be authenticated found for that link', greeting2: 'You are likely using an old authentication link. Try logging in again to have a new authentication link sent.', authenticate:"1"});
     }
   });
 });
@@ -178,8 +189,11 @@ router.get('/authenticateOK', function(req, res) {
 // =====================================
 // show the forgot password form
 router.get('/forgot', function(req, res) {
-  // render the page and pass in any flash data if it exists
   res.render('forgot.ejs', { message: req.flash('forgotMessage') });
+});
+
+router.get('/resetpwExpired', function(req, res) {
+  res.render('forgothourpassed.ejs', {greeting: 'Reset password link expired', greeting2: 'For security, links to reset passwords expire after one hour.', authenticate:"0"});
 });
 
 router.get('/resetpw', function(req, res) {
@@ -190,9 +204,10 @@ router.get('/resetpw', function(req, res) {
       //check the time stamp. If more than one hour ago, ask for redo
       var timeNow= new Date().getTime();
       var diff=timeNow-user.local.timestamp;
-      if (diff>60*60*1000) res.render('forgothourpassed.ejs', {greeting: 'Reset password link expired', greeting2: 'For security, links to reset passwords expire after one hour.', authenticate:"0"});
-      else {
-      //  res.render('resetpw.ejs', { message: req.flash('resetMessage'), name: user.local.name, email: user.local.email});
+      if (diff>1000*60*60) {
+        res.redirect('/index.html?prompt=resetpwExpired');
+        return;
+      } else {
         res.redirect('/index.html?prompt=TCresetpw&context='+user.local.email+'&name='+user.local.name);
       }
     } else {
@@ -201,7 +216,7 @@ router.get('/resetpw', function(req, res) {
   });
 });
 
-router.get('/resetpwdlog',  function(req, res) {
+router.get('/TCresetpw',  function(req, res) {
   res.render('resetpw.ejs', { message: "", name: req.query.name, email:req.query.email})
 });
 
@@ -209,6 +224,8 @@ router.post('/resetpw',  function(req, res) {
   //    	console.log("resetting password for " +req.body.password+" pwd2 "+req.body.passwordconfirm+" email "+req.body.email+" name "+req.body.displayName);
   if (req.body.password!=req.body.passwordconfirm) {
     res.render('resetpw.ejs', {message: "Password and confirm password do not match", name: req.body.displayName, email: req.body.email});
+  } else if (req.body.password.length<5){
+    res.render('resetpw.ejs', {message: "Password must be at least five characters", name: req.body.displayName, email: req.body.email});
   } else {
     //       	console.log("Match!")
     User.findOne({ 'local.email' :  req.body.email }, function(err, user) {
@@ -216,8 +233,7 @@ router.post('/resetpw',  function(req, res) {
         user.local.password = user.generateHash(req.body.password);
         user.local.hash="";
         user.save();
-        var url=req.query.url;
-        res.render('login.ejs', { message: 'You can now log in with your new password', email: req.body.email, url:url });
+        res.render('login.ejs', { message: 'You can now log in with your new password', email: req.body.email, url:"" });
       } //can't be here if there is no user!
     });
   }
