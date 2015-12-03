@@ -61,6 +61,9 @@ tcApp.controller('AppCtrl', [
     TCService.logout();
   };
   $scope.login = login;
+  $scope.$watch('login.loginFrame', function (){
+      console.log(login)
+  });
   console.log(location.pathname)
   $scope.loginFrame = '/auth?url=/index.html';
 }]);

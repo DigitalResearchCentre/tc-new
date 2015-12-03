@@ -43,13 +43,13 @@
                 <a id="modallink" href="" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
               </li>
               <li ng-if="app.authUser.local.name && !app.authUser.memberships.length && app.authUser.local.authenticated==1">
-                <a href="#/community/new">Create New Community</a>
+                <a href="#/community/new">Create Community</a>
               </li>
               <li ng-show="app.authUser.memberships.length" ng-if="app.authUser.local.name" class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Communities <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li>
-                    <a href="#/community/new">Create New Community</a>
+                    <a href="#/community/new">Create Community</a>
                   </li>
                   <li ng-show="app.authUser.memberships.length" role="separator" class="divider"></li>
                   <li ng-repeat="membership in app.authUser.memberships">
