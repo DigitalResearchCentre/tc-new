@@ -67,16 +67,11 @@ router.post('/login', function(req, res, next) {
         res.render('authenticate.ejs', {context:"email", user: user})
         return;
       }
-<<<<<<< HEAD
      // all is well, log me in, return successful user
      console.log("url in post2 "+url)
      req.logIn(user, function (err) {
        if(!err) {res.render('closemodal.ejs', {url: url} );} else {}
      });
-=======
-     // all is well, return successful user
-     res.redirect('/#/?prompt=redirectModal');
->>>>>>> 0f40d93dea1bf448be9848dce81ecd5cd17c5ffc
    });
 });
 

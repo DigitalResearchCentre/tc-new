@@ -61,17 +61,8 @@ tcApp.controller('AppCtrl', [
     TCService.logout();
   };
   $scope.login = login;
-<<<<<<< HEAD
   console.log(location.pathname)
   $scope.loginFrame = '/auth?url=/index.html';
-=======
-  if ($location.search().prompt !== 'redirectModal') {
-    $scope.loginFrame = '/auth';
-  } else {
-    $scope.loginFrame = '';
-    $window.parent.angular.element('#frame').scope().login.closeModal();
-  }
->>>>>>> 0f40d93dea1bf448be9848dce81ecd5cd17c5ffc
 }]);
 
 function pipe(f1, f2) {

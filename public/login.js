@@ -15,7 +15,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     $('#myModal').modal('show');
     document.getElementById("frame").setAttribute("src","/auth/sendauthenticate?context=email");
   }
-<<<<<<< HEAD
   if (prompt=="TCauthenticateDone") {
     var query;
     if (context=="newuser") query="?context="+context;
@@ -26,13 +25,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
     login.loginFrame="/auth/resetpwdlog?email="+context+"&name="+name;
 //    document.getElementById("frame").setAttribute("src","/auth/resetpwdlog?email="+context+"&name="+name);
     $('#myModal').modal('show');
-=======
-  if (prompt=="redirectModal") {
-    $('#myModal').hide();
-    $('.modal-backdrop').hide();
-  //  document.getElementById("myModal").setAttribute("class", "fade hide");
-
->>>>>>> 0f40d93dea1bf448be9848dce81ecd5cd17c5ffc
   }
 });
 function getParameterByName(name) {
