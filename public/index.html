@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script>
-
+    function closeIFrame(url){
+      var frame=document.getElementById('frame');
+      angular.element(frame).scope().login.closeModal();
+      frame.setAttribute("src","/auth");
+      window.location=url;
+    }
     </script>
   </head>
   <!-- body ng-app="TCApp" ng-controller="AppCtrl"
@@ -80,10 +85,13 @@
     <!-- let us have the community header first, if we have one. else, just give us the main tc -->
     <div ng-view class="tc-content"></div>
     <!-- load login modal via this -->
+    <div ng-include="login.html">
+    </div>
+
     <div id="myModal" class="modal fade" role="dialog">
       <div class="modal-dialog"  style="position:relative; top: 100px;">
           <button type="button" ng-click="login.closeModal()" class="close" data-dismiss="modal" style="position:relative; left: -40px; top: 40px; font-size:300%; font-weight:200">&times;</button>
-          <iframe src="{{loginFrame}}" id="frame"  height="233px" width="586px"></iframe>
+          <iframe src="{{login.loginFrame}}" id="frame"  height="233px" width="586px"></iframe>
       </div>
     </div>
     <script type="text/javascript" src="dist/vendor.bundle.js"></script>

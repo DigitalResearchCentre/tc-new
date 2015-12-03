@@ -19,7 +19,9 @@ var express = require('express')
   }
 }); */
 router.get('/', function(req, res) {
-        res.render('index.ejs'); // load the index.ejs file
+        url=req.query.url
+        console.log("url in start "+url)
+        res.render('index.ejs', {url: url}); // load the index.ejs file
     });
 
 
@@ -28,9 +30,10 @@ router.get('/', function(req, res) {
 // =====================================
 // show the login form
 router.get('/login', function(req, res) {
-
+  var url=req.query.url;
+  console.log("url in get "+url)
   // render the page and pass in any flash data if it exists
-  res.render('login.ejs', { message: req.flash('loginMessage'), email:"" });
+  res.render('login.ejs', { message: req.flash('loginMessage'), email:"", url: url});
 });
 
 // process the login form
@@ -41,29 +44,34 @@ router.post('/login', passport.authenticate('local-login', {
   failureFlash : true // allow flash messages
 }));
 */
-router.post('/login', function(req, res) {
+router.post('/login', function(req, res, next) {
   // callback with email and password from our form
    // find a user whose email is the same as the forms email
    // we are checking to see if the user trying to login already exists
-   User.findOne({ 'local.email' :  req.body.email }, function(err, user) {
-     // if there are any errors, return the error before anything else
-  //   if (err)
-  //     return done(err);
-
+    var url=req.query.url;
+    console.log("url in post "+url)
+    User.findOne({ 'local.email' :  req.body.email }, function(err, user) {
      // if no user is found, return the message
      if (!user) {
-       //reload modal element with our content
-       res.render('login.ejs', {message: "No user associated with the email '"+req.body.email+"' found.", email:req.body.email});
+       res.render('login.ejs', {message: "No user associated with the email '"+req.body.email+"' found.", email:req.body.email, url:url});
        return;
-//       return done(null, false, req.flash('loginMessage', 'No user associated with the email "'+email+'" found.')); // req.flash is the way to set flashdata using connect-flash
       }
      // if the user is found but the password is wrong
      if (!user.validPassword(req.body.password)) {
-        res.render('login.ejs', {message: "Oops! wrong password", email:req.body.email});
+        res.render('login.ejs', {message: "Oops! wrong password", email:req.body.email, url: url});
         return;
       }
-     // all is well, return successful user
-     res.redirect('/index.html?prompt=redirectModal');
+      //are we authenticated? if not...send email and return message
+      if (!isValidProfile(user)) {
+        authenticateUser (user.local.email, user, req.protocol + '://' + req.get('host'));
+        res.render('authenticate.ejs', {context:"email", user: user})
+        return;
+      }
+     // all is well, log me in, return successful user
+     console.log("url in post2 "+url)
+     req.logIn(user, function (err) {
+       if(!err) {res.render('closemodal.ejs', {url: url} );} else {}
+     });
    });
 });
 
@@ -72,17 +80,59 @@ router.post('/login', function(req, res) {
 // =====================================
 // show the signup form
 router.get('/signup', function(req, res) {
-
-  // render the page and pass in any flash data if it exists
-  res.render('signup.ejs', { message: req.flash('signupMessage') });
+  var url=req.query.url;
+  res.render('signup.ejs', { message: "", url:url, email:""});
 });
 
 // process the signup form
-router.post('/signup', passport.authenticate('local-signup', {
-  successRedirect : '/auth/profile', // redirect to the secure profile section
-  failureRedirect : '/auth/signup', // redirect back to the signup page if there is an error
-  failureFlash : true // allow flash messages
-}));
+router.post('/signup', function(req, res) {
+
+  User.findOne({'local.email': req.body.email}, function(err, existingUser) {
+    // if there are any errors, return the error
+    // check to see if there's already a user with that email
+    if (existingUser) {
+      res.render('signup.ejs', {message: 'There is already a user with the email "'+req.body.email+'".',url:req.body.urlstring, email:""});
+      return;
+    }
+    //check do we have a password, etc
+    if (req.body.password.length<5) {
+      res.render('signup.ejs', {message: 'Password must be at least five characters.',url:req.body.urlstring, email: req.body.email});
+      return;
+    }
+    if (req.body.name.length<1) {
+      res.render('signup.ejs', {message: 'We need a name for you! Please.',url:req.body.urlstring, email: req.body.email});
+      return;
+    }
+    //  If we're logged in, we're connecting a new local account.
+    if(req.user) {
+      var user            = req.user;
+      user.local.email    = email;
+      user.local.password = user.generateHash(password);
+      user.local.name = req.body.name;
+      user.local.authenticated= "0";
+      user.save(function(err) {
+        if (err)
+          throw err;
+        return done(null, user);
+      });
+    }
+    //  We're not logged in, so we're creating a brand new user.
+    else {
+      // create the user
+      var newUser            = new User();
+      newUser.local.email    = req.body.email;
+      newUser.local.name =  req.body.name;
+      newUser.local.password = newUser.generateHash(req.body.password);
+      newUser.local.authenticated= "0";
+      newUser.save(function(err) {
+        if (err) {}
+        authenticateUser (newUser.local.email, newUser, req.protocol + '://' + req.get('host'));
+        res.render('authenticate.ejs', {context:"email", user: newUser})
+        return;
+      });
+    }
+  });
+});
 
 // =====================================
 // AUTHENTICATE ACCOUNT ===============
@@ -102,15 +152,26 @@ router.get('/authenticateTC', function(req, res) {
       var diff=timeNow-user.local.timestamp;
       if (diff>60*60*1000) res.render('forgothourpassed.ejs', {greeting: 'Authentication link expired', greeting2: 'For security, links to authenticate accounts expire after one hour. Try logging in again to have a new authentication link sent.', authenticate:"1"});
       else {
-        req.user.local.authenticated= "1";
-        req.user.local.hash= "";
-        req.user.save();
-        res.redirect('/auth/profile');
+        user.local.authenticated= "1";
+        user.local.hash= "";
+        user.save();
+          //log me in
+        req.logIn(user, function (err) {
+          res.redirect('/index.html#/profile?prompt=TCauthenticateDone&context=newuser');
+          return;
+        });
+      return;
       }
     } else {
       res.render('forgothourpassed.ejs', {greeting: 'No user to be authenticated found for that link', greeting2: 'You are likely using an old authentication link. Try logging in again to have a new authentication link sent.', authenticate:"1"});
     }
   });
+});
+
+router.get('/authenticateOK', function(req, res) {
+    var message;
+    if (req.query.context=="newuser") message='You are now authenticated.  Click on "Create Community" to start your own new community, or "Join" to become part of an existing one.'
+    res.render('authenticateOK.ejs', {message:message, user: req.user});
 });
 // =====================================
 // FORGOT PASSWORD ==============================
@@ -123,17 +184,25 @@ router.get('/forgot', function(req, res) {
 
 router.get('/resetpw', function(req, res) {
   // find the user with this hash; check datestamp; get a new password
+  req.logout();
   User.findOne({ 'local.hash' :  req.query.hash }, function(err, user) {
     if (user) {
       //check the time stamp. If more than one hour ago, ask for redo
       var timeNow= new Date().getTime();
       var diff=timeNow-user.local.timestamp;
       if (diff>60*60*1000) res.render('forgothourpassed.ejs', {greeting: 'Reset password link expired', greeting2: 'For security, links to reset passwords expire after one hour.', authenticate:"0"});
-      else res.render('resetpw.ejs', { message: req.flash('resetMessage'), name: user.local.name, email: user.local.email});
+      else {
+      //  res.render('resetpw.ejs', { message: req.flash('resetMessage'), name: user.local.name, email: user.local.email});
+        res.redirect('/index.html?prompt=TCresetpw&context='+user.local.email+'&name='+user.local.name);
+      }
     } else {
       res.render('forgothourpassed.ejs', {greeting: 'No request found for that link', greeting2: 'You are likely using an old reset password link.', authenticate:"0"});
     }
   });
+});
+
+router.get('/resetpwdlog',  function(req, res) {
+  res.render('resetpw.ejs', { message: "", name: req.query.name, email:req.query.email})
 });
 
 router.post('/resetpw',  function(req, res) {
@@ -147,7 +216,8 @@ router.post('/resetpw',  function(req, res) {
         user.local.password = user.generateHash(req.body.password);
         user.local.hash="";
         user.save();
-        res.render('login.ejs', { message: 'You can now log in with your new password', email: req.body.email });
+        var url=req.query.url;
+        res.render('login.ejs', { message: 'You can now log in with your new password', email: req.body.email, url:url });
       } //can't be here if there is no user!
     });
   }
@@ -192,8 +262,8 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
 }), function(req, res) {
   // The user has authenticated with Facebook.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
-  if (isValidProfile(req, res)) {
-    res.redirect('/#/profile');
+  if (isValidProfile(req)) {
+    res.redirect('/#/profile');  //have to change! can't redirect to local from the server
   } else {
     res.redirect('/index.html?emailreq=facebook');
   }
@@ -309,7 +379,7 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
 }), function(req, res) {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
-  if (isValidProfile(req, res)) {
+  if (isValidProfile(req.user)) {
     res.redirect('/#/profile');
   } else {
     res.redirect('/auth/twitteremail');
@@ -402,7 +472,7 @@ router.get('/google/callback', passport.authenticate('google', {
   // The user has authenticated with google.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   console.log("hi");
-  if (isValidProfile(req, res)) {
+  if (isValidProfile(req.user)) {
     res.redirect('/#/profile');
   } else {
     res.redirect('/auth/googleemail');
@@ -599,7 +669,7 @@ router.get('/unlink/google', function(req, res) {
 // =====================================
 router.get('/logout', function(req, res) {
   req.logout();
-  res.redirect('/');
+  res.redirect('/index.html');
 });
 
 // route middleware to make sure a user is logged in
@@ -617,9 +687,9 @@ function isLoggedIn(req, res, next) {
 // route middleware to make sure our user has a primary email, for Twitter etc
 //also check here for fb, google?: is this new account linked to a user when it is already linked to another local user?
 //or do that later
-function isValidProfile(req, res, next) {
+function isValidProfile(user) {
 //  console.log("who I am in authenticate: "+req.user);
-  if (Object.keys(req.user.local).length===0 || typeof req.user.local.email === "undefined" || req.user.local.authenticated=="0") return false;
+  if (Object.keys(user.local).length===0 || typeof user.local.email === "undefined" || user.local.authenticated=="0") return false;
   return true;
 }
 

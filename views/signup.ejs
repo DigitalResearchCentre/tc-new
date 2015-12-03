@@ -17,10 +17,11 @@
       </div>    <% } %>
 
     <!-- LOGIN FORM -->
-    <form action="/auth/signup" target="_parent" method="post" style="text-align: left;">
+    <form action="/auth/signup" method="post" style="text-align: left;">
+        <div style="display:none"><input type="text"  value="<%= url %>" name="urlstring"></div>
         <div class="form-group" style="margin-bottom:8px">
             <label>Email&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-            <input type="text"  style="width: 250px; display: inline-block" class="form-control" name="email">
+            <input type="text"  style="width: 250px; display: inline-block" value="<%= email %>" class="form-control" name="email">
         </div>
         <div class="form-group" style="margin-bottom:8px">
             <label>Password</label>
@@ -34,7 +35,7 @@
     </form>
 
 
-    <p id="footer" style="margin-top:30px">Already have an account? <a href="/auth/login">Log in</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/" target="_parent">Home</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/auth">Social Media log in</a></p>
+    <p id="footer" style="margin-top:30px">Already have an account? <a href="/auth/login">Log in</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/auth">Social Media log in</a></p>
 
 </body>
 </html>

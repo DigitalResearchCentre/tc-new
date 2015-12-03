@@ -158,6 +158,7 @@ configAuth = config.auth;
         user.save(function(err) {
           if (err)
             throw err;
+          req.user=null;
           return done(null, user);
         });
       }

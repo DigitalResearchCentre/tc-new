@@ -1,9 +1,12 @@
 var $ = require('jquery');
-var login = {};
+var login = {
+  loginFrame: '/auth?url=/index.html',
+};
 document.addEventListener("DOMContentLoaded", function(event) {
   var emailreq=getParameterByName("emailreq");
   var prompt=getParameterByName("prompt");
   var context=getParameterByName("context");
+  var name=getParameterByName("name");
   if (emailreq=="facebook") {
     document.getElementById("frame").setAttribute("src","/auth/facebookemail");
     $('#myModal').modal('show');
@@ -12,12 +15,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
     $('#myModal').modal('show');
     document.getElementById("frame").setAttribute("src","/auth/sendauthenticate?context=email");
   }
-  if (prompt=="redirectModal") {
-    alert("hi again");
-    $('#myModal').hide();
-    $('.modal-backdrop').hide();
-  //  document.getElementById("myModal").setAttribute("class", "fade hide");
-
+  if (prompt=="TCauthenticateDone") {
+    var query;
+    if (context=="newuser") query="?context="+context;
+    document.getElementById("frame").setAttribute("src","/auth/authenticateOK"+query);
+    $('#myModal').modal('show');
+  }
+  if (prompt=="TCresetpw") {
+    login.loginFrame="/auth/resetpwdlog?email="+context+"&name="+name;
+//    document.getElementById("frame").setAttribute("src","/auth/resetpwdlog?email="+context+"&name="+name);
+    $('#myModal').modal('show');
   }
 });
 function getParameterByName(name) {
@@ -27,9 +34,10 @@ function getParameterByName(name) {
   return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 login.loadLogIn = function loadLogIn () {
-    document.getElementById("frame").setAttribute("src", "/auth")
+    document.getElementById("frame").setAttribute("src", "/auth?url=/index.html")
 }
 login.closeModal = function closeModal() {
+    document.getElementById("frame").setAttribute("src", "/auth?url=/index.html")
   $('#myModal').modal('hide');
 }
 

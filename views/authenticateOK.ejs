@@ -1,10 +1,12 @@
 <!doctype html>
 <html>
 <head>
+    <title>Node Authentication</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
 </head>
-<body class="jumbotron text-center" style="width: 580px;  margin:60px 5px 5px 5px; font-size:140%">
-	<p>A message with a link to reset your password has been sent to your email address. This link is valid for one hour only.</p>
+<body class="jumbotron text-center" style="padding-top: 60px; font-size:120%">
+			<h3><span class="fa fa-anchor"></span> Welcome, <%= user.local.name %></h3>
+			 <p><%= message %></p>
 </body>
 </html>

@@ -1,8 +1,5 @@
 <div ng-controller="ProfileMemberCtrl" style="margin-right:auto; margin-left:auto; width:700px">
-  <script ng-if="app.authUser.local.authenticated==0">
-    window.location.href="/index.html?prompt=sendauthenticate&context="
-  </script>
-  <h3>Member Profile for {{app.authUser.local.name}}</h3>
+  <h4>Member Profile for {{app.authUser.local.name}}</h4>
   <p>This account is associated with the email address {{app.authUser.local.email}}</p>
   <div ng-show="nmemberships">
     <p>You belong to {{nmemberships}} <span ng-show="nmemberships>1">communities:</span><span ng-show="nmemberships==1">community:</span></p>
@@ -15,8 +12,7 @@
     </table>
   </div>
   <div ng-show="!nmemberships">
-  <p>You don't belong to any communities!</p>
-  <p>You can create a new community: <button type="button" class="btn btn-primary btn-sm" ng-click="create()">Create</button>
+  <p>You can create a new community: <button type="button" class="btn btn-primary btn-sm" ng-click="create()">Create Community</button>
   </div>
 <!-- here we put all the communities we can join-->
   <div>
