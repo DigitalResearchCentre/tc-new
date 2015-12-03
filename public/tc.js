@@ -10,6 +10,9 @@ function createObjTree(node, queue) {
     name: node.nodeName,
     children: [],
   };
+  if (node.entity) {
+    obj.entity = node.entity;
+  }
   switch (node.nodeType) {
     case node.ELEMENT_NODE:
       var attrs = {};
@@ -174,15 +177,32 @@ function checkLinks(teiRoot, links, docElement, callback) {
   }
 }
 
+function parseTEI(text) {
+  var xmlDoc = parseXML(text);
+  _.each([
+    '//body/div[@n]/head[@n]',
+    '//body/div[@n]/ab[@n]',
+    '//body/div[@n]/l[@n]',
+  ], function(xpath) {
+    var iter = xmlDoc.evaluate(xpath, xmlDoc)
+      , cur = iter.iterateNext()
+    ;
+    while(cur) {
+      cur.entity = cur.getAttribute('n');
+      cur = iter.iterateNext();
+    }
+  });
+  return xmlDoc;
+}
+
 function commit(data, opts, callback) {
   var text = data.text
     , docResource = data.doc
     , docElement = data.docElement
     , links = data.links || {}
-    , xmlDoc = parseXML(text)
+    , xmlDoc = parseTEI(text)
     , teiRoot = xmlDoc2json(xmlDoc)
     , docTags = ['pb', 'cb', 'lb']
-    , entityRoot = {children: []}
     , docRoot = {_id: docResource._id, label: docResource.label, children: []}
     , queue = [teiRoot]
     , prevDoc = docRoot
@@ -190,46 +210,9 @@ function commit(data, opts, callback) {
     , cur, curDoc, index, label, missingLink
   ;
 
-  xmlDoc.entity = entityRoot;
-
-  _.each([
-    '//body/div[@n]',
-    '//body/div[@n]/head[@n]',
-    '//body/div[@n]/ab[@n]',
-    '//body/div[@n]/l[@n]',
-  ], function(xpath) {
-    var iter = xmlDoc.evaluate(xpath, xmlDoc)
-      , cur = iter.iterateNext()
-      , parent
-      , entity
-    ;
-    while(cur) {
-      cur.setAttribute('data-tc-entity', cur.getAttribute('n'));
-      cur = iter.iterateNext();
-      /*
-      entity = {
-        name: cur.getAttribute('n') || '',
-        children: [],
-      };
-      cur.entity = entity;
-      parent = cur.parentNode;
-      while (parent) {
-        if (parent.entity) {
-          parent.entity.children.push(entity);
-          break;
-        }
-        parent = parent.parentNode;
-      }
-      */
-    }
-  });
-
   // dfs on TEI tree, find out all document
   while (queue.length > 0) {
     cur = queue.pop();
-    if (cur.attrs['data-tc-entity']) {
-      console.log(cur.attrs['data-tc-entity']);
-    }
     if (!_.startsWith(cur.name, '#')) {
       index = docTags.indexOf(cur.name);
       // if node is doc
@@ -261,10 +244,6 @@ function commit(data, opts, callback) {
         cur.text = '';
         cur.doc = prevDoc._id;
       }
-
-      if (cur.entity) {
-        cur.entity = true;
-      }
     } else if (cur.name === '#text') {
       cur.doc = prevDoc._id;
     }
@@ -280,7 +259,6 @@ function commit(data, opts, callback) {
   docResource.commit = {
     tei: teiRoot,
     doc: docRoot,
-    entity: entityRoot,
   };
   return docResource.$update(_.assign({}, opts), function() {
     if (callback) callback(null);
