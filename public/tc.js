@@ -130,7 +130,7 @@ function teiElementEqual(el1, el2) {
     (el1.attrs || {}).n === (el2.attrs || {}).n;
 }
 
-function checkLinks(teiRoot, links, docElement, callback) {
+function checkLinks(teiRoot, links, docElement) {
   var cur = {
     children: [teiRoot],
   };
@@ -146,10 +146,10 @@ function checkLinks(teiRoot, links, docElement, callback) {
     }
   });
   if (missingLink) {
-    return callback({
+    return {
       message: 'Prev TEI elements missing',
       element: missingLink,
-    });
+    };
   }
   if (docElement) {
     delete docElement._id;
@@ -170,16 +170,17 @@ function checkLinks(teiRoot, links, docElement, callback) {
     }
   });
   if (missingLink) {
-    return callback({
+    return {
       message: 'Next TEI elements missing',
       element: missingLink,
-    });
+    };
   }
 }
 
 function parseTEI(text) {
   var xmlDoc = parseXML(text);
   _.each([
+    '//body/div[@n]',
     '//body/div[@n]/head[@n]',
     '//body/div[@n]/ab[@n]',
     '//body/div[@n]/l[@n]',
@@ -251,7 +252,10 @@ function commit(data, opts, callback) {
     _.forEachRight(cur.children, _.bind(queue.push, queue));
   }
 
-  checkLinks(teiRoot, links, docElement, callback);
+  var err = checkLinks(teiRoot, links, docElement);
+  if (err && callback) {
+    return callback(err);
+  }
   if (docElement) {
     docElement.doc = docRoot._id;
   }

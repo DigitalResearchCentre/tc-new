@@ -25,8 +25,7 @@ var CommunitySchema = new Schema({
 
 _.assign(CommunitySchema.methods, {
   getstatus: function(cb) {
-    var Community = this.model('Community')
-      , self = this
+    var self = this
       , documents = this.documents
       , promise = new Promise()
     ;
@@ -70,6 +69,7 @@ _.assign(CommunitySchema.statics, {
     return ['status'];
   }
 });
+var Community = mongoose.model('Community', CommunitySchema);
 
 var TaskSchema = new Schema({
   user: {type: ObjectId, ref: 'User'},
@@ -383,46 +383,6 @@ function _loadChildren(cur, queue) {
   return ids;
 }
 
-function _loadDocTexts(doc, texts) {
-  var indexes = doc.texts || []
-    , ancestors = doc.ancestors.concat(doc._id)
-    , ids = []
-    , text
-  ;
-  for (var i = 0, len = indexes.length; i < len; i++) {
-    text = texts[indexes[i]];
-    text.docs = ancestors;
-    ids.push(text._id);
-  }
-  return ids;
-}
-
-function _loadEntityTexts(obj, texts) {
-  var indexes = obj.texts || []
-    , ancestors = obj.ancestors.concat(obj._id)
-    , ids = []
-    , text
-  ;
-  for (var i = 0, len = indexes.length; i < len; i++) {
-    text = texts[indexes[i]];
-    text.entities = ancestors;
-    ids.push(text._id);
-  }
-  return ids;
-}
-
-function _loadXMLTexts(obj, texts) {
-  var ancestors = obj.ancestors.concat(obj._id)
-    , ids = []
-    , text
-  ;
-  text = texts[obj.textIndex];
-  delete obj.textIndex;
-  text.xmls = ancestors;
-  ids.push(text._id);
-  return ids;
-}
-
 _.assign(DocSchema.statics, baseDoc.statics, {
   getPrevTexts: function(id, callback) {
     async.waterfall([
@@ -642,14 +602,15 @@ function _checkLinks(prevs, nexts, teiRoot) {
   return continueTeis;
 }
 
-function _parseTei(teiRoot, docRoot, entityRoot) {
+function _parseTei(teiRoot, docRoot) {
   var docMap = {}
     , docs = []
     , teis = []
-    , entities = []
     , continueTeis = {}
-    , queue, cur, foundPrev, foundNext
+    , entityRoot = {children: [], texts: [], ancestors: []}
+    , queue, cur, foundPrev, foundNext, entity
   ;
+  teiRoot.parentEntity = entityRoot;
 
   docMap[docRoot._id] = docRoot;
   console.log('--- start commit ---');
@@ -680,6 +641,30 @@ function _parseTei(teiRoot, docRoot, entityRoot) {
     if (cur.name === '#text') {
       cur.children = [];
     }
+    if (cur.entity) {
+      entity = {
+        name: cur.entity,
+        children: [],
+        texts: [],
+      };
+      cur.parentEntity.children.push(entity);
+      _.each(cur.children, function(child) {
+        child.parentEntity = entity;
+      });
+    } else {
+      _.each(cur.children, function(child) {
+        child.parentEntity = cur.parentEntity;
+      });
+    }
+
+    if ((cur.children.length === 0) && (
+      !_.isNumber(cur.prevChildIndex) || cur.prevChildIndex === -1
+    )) {
+      cur.parentEntity.texts.push(cur);
+    }
+    delete cur.parentEntity;
+    delete cur.entity;
+
     foundPrev = 0;
     if (cur.prev) {
       foundPrev = _.findIndex(cur.children, function(child) {
@@ -695,11 +680,11 @@ function _parseTei(teiRoot, docRoot, entityRoot) {
       }) + 1;
       delete cur.next;
     }
-    cur.children = _loadChildren(cur, queue);
     if (foundNext === null) {
       foundNext = cur.children.length;
     }
     cur.children = cur.children.slice(foundPrev, foundNext);
+    cur.children = _loadChildren(cur, queue);
     if (cur.doc) {
       if (_.isString(cur.doc)) {
         cur.doc = new OId(cur.doc);
@@ -720,37 +705,148 @@ function _parseTei(teiRoot, docRoot, entityRoot) {
     teis: teis,
     docs: docs,
     continueTeis: continueTeis,
+    entityRoot: entityRoot,
   };
+}
+
+function updateEntityTree(entity, data, entities, updateEntities, callback) {
+  var children = data.children;
+
+  Entity.find({
+    _id: {$in: entity.children},
+    name: {$in: _.map(children, function(child) {
+      return child.name;
+    })},
+  }).exec(function(err, entityChildren) {
+    var insertIndex = entity.children.length
+      , insertEntities = []
+      , update = false
+    ;
+    _.each(children, function(child) {
+      var queue = [child]
+        , cur, found
+      ;
+      found = _.findIndex(entityChildren, function(entityChild) {
+        return entityChild.name === child.name;
+      });
+      if (!entity.fake) {
+        child.ancestors = entity.ancestors.concat(entity._id);
+      }
+      if (found > -1) {
+        insertIndex = found + 1;
+        child._id = entityChildren[found]._id;
+        _.each(child.texts, function(tei) {
+          tei.entities = entityChildren[found].ancestors.concat(child._id);
+        });
+        delete child.texts;
+        insertEntities.push({
+          entityChild: entityChildren[found],
+          child: child,
+        });
+      } else {
+        child._id = new OId();
+        if (!child.ancestors) {
+          if (entity.fake) {
+            child.ancestors = [];
+          } else {
+            child.ancestors = entity.ancestors.concat(entity._id);
+          }
+        }
+        while (queue.length > 0) {
+          cur = queue.shift();
+          cur.children = _loadChildren(cur, queue);
+          _.each(cur.texts, function(tei) {
+            tei.entities = cur.ancestors.concat(cur._id);
+          });
+          delete cur.texts;
+          entities.push(cur);
+        }
+        entity.children.splice(insertIndex, 0, child._id);
+        update = true;
+      }
+
+    });
+    if (update) {
+      updateEntities.push(entity);
+    }
+
+    async.each(insertEntities, function(item, cb) {
+      updateEntityTree(
+        item.entityChild, item.child, entities, updateEntities, cb);
+    }, callback);
+  });  
+}
+
+function _commitTEI(continueTeis, teis, callback) {
+  async.parallel([
+    function(cb) {
+      var deleteTeis = [];
+      async.forEachOf(continueTeis, function(tei, id, cb1) {
+        var _children = tei._children || []
+          , prevChildIndex = tei.prevChildIndex
+          , nextChildIndex = tei.nextChildIndex
+          , prevChildren = _children.slice(0, prevChildIndex + 1)
+          , nextChildren = _children.slice(nextChildIndex)
+          , $set
+        ;
+        deleteTeis.push.apply(
+          deleteTeis, _children.slice(prevChildIndex + 1, nextChildIndex));
+          tei.children = prevChildren.concat(tei.children, nextChildren);
+          if (prevChildIndex < nextChildIndex) {
+            $set = {
+              children: tei.children,
+            };
+            if (tei.children.length === 0) {
+              $set.docs = tei.docs;
+              $set.entities = tei.entities;
+            }
+            return TEI.collection.update({_id: new OId(id)}, {
+              $set: $set,
+            }, cb1);
+          } else {
+            cb1(null);
+          }
+      }, function(err) {
+        if (err) return cb(err);
+        deleteTeis = _.map(deleteTeis, function(id) {
+          if (_.isString(id)) {
+            return new OId(id);
+          } else {
+            return id;
+          }
+        });
+        console.log('=================================');
+        console.log(deleteTeis);
+        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+        TEI.remove({
+          $or: [
+            {ancestors: {$in: deleteTeis}},
+            {_id: {$in: deleteTeis}},
+          ]
+        }, cb);
+      });
+    },
+    function(cb) {
+      console.log('--- save text ---');
+      TEI.collection.insert(teis, function(err, objs) {
+        console.log('--- save text done ---');
+        if (err) console.log(err);
+        cb(err, objs);
+      });
+    },
+  ], callback);
 }
 
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
     var self = this
       , teiRoot = data.tei
-      , entityRoot = data.entity
       , docRoot = self.toObject()
       , continueTeis
     ;
 
     docRoot.children = data.doc.children;
-    /*
-    async.waterfall([
-      function(cb) {
-        Community.findOne({docs: doc.ancestors[0]}).exec(cb);
-      },
-      function(community, cb) {
-        Entity.find({
-          _id: {$in: community.entities},
-          name: entityRoot.name,
-        }).exec(cb);       
-      },
-      function(entity, cb) {
-        if (!entity) {
-          entityRoot._id = new OId();
-        }
-      }
-    ]);
-    */
+
     async.parallel([
       function(cb) {
         Doc.getPrevTexts(self._id, cb);
@@ -758,9 +854,16 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       function(cb) {
         Doc.getNextTexts(self._id, cb);
       },
+      function(cb) {
+        Community.findOne({docs: self.ancestors[0]}).exec(cb);
+      },
     ], function(err, results) {
-      console.log('----- got prevs and nexts------');
-      var result;
+      var community = results[2]
+        , entities = []
+        , updateEntities = []
+        , fakeEntity
+        , result
+      ;
       if (err) {
         return callback(err);
       }
@@ -770,6 +873,12 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       } 
       result = _parseTei(teiRoot, docRoot);
       self.children = docRoot.children;
+      entityRoot = result.entityRoot;
+      fakeEntity = {
+        fake: true,
+        ancestors: [],
+        children: community.entities,
+      };
 
       async.parallel([
         function(cb) {
@@ -784,74 +893,70 @@ _.assign(DocSchema.methods, baseDoc.methods, {
                 });
               },
               function(cb1) {
-                console.log('--- save doc ---');
-                Doc.collection.insert(result.docs, function(err, objs) {
-                  console.log('--- save doc done ---');
-                  cb1(err, objs);
-                });
+                if (result.docs.length > 0) {
+                  console.log('--- save doc ---');
+                  Doc.collection.insert(result.docs, function(err, objs) {
+                    console.log('--- save doc done ---');
+                    cb1(err, objs);
+                  });
+                } else {
+                  cb1(err, []);
+                }
               },
             ], cb);
           });
         },
         function(cb) {
-          var deleteTeis = [];
-          console.log(continueTeis);
-          async.forEachOf(continueTeis, function(tei, id, cb1) {
-            var _children = tei._children || []
-              , prevChildIndex = tei.prevChildIndex
-              , nextChildIndex = tei.nextChildIndex
-              , prevChildren = _children.slice(0, prevChildIndex + 1)
-              , nextChildren = _children.slice(nextChildIndex)
-            ;
-            deleteTeis.push.apply(
-              deleteTeis, _children.slice(prevChildIndex + 1, nextChildIndex));
-            tei.children = prevChildren.concat(tei.children, nextChildren);
-            if (prevChildIndex < nextChildIndex) {
-              return TEI.collection.update({_id: new OId(id)}, {
-                $set: {
-                  attrs: tei.attrs,
-                  children: tei.children,
-                },
-              }, cb1);
-            } else {
-              return TEI.collection.update({_id: new OId(id)}, {
-                $set: {
-                  attrs: tei.attrs,
-                },
-              }, cb1);
-            }
-          }, function(err) {
-            if (err) return cb(err);
-            deleteTeis = _.map(deleteTeis, function(id) {
-              if (_.isString(id)) {
-                return new OId(id);
-              } else {
-                return id;
+          console.log(entityRoot);
+          updateEntityTree(
+            fakeEntity, entityRoot, entities, updateEntities, 
+            function(err) {
+              if (err) {
+                return cb(err);
               }
-            });
-            console.log('=================================');
-            console.log(deleteTeis);
-            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-            TEI.remove({
-              $or: [
-                {ancestors: {$in: deleteTeis}},
-                {_id: {$in: deleteTeis}},
-              ]
-            }, cb);
-          });
-        },
-        function(cb) {
-          console.log('--- save text ---');
-          TEI.collection.insert(result.teis, function(err, objs) {
-            console.log('--- save text done ---');
-            if (err) console.log(err);
-            cb(err, objs);
-          });
+              async.parallel([
+                function(cb1) {
+                  _commitTEI(continueTeis, result.teis, cb1);
+                },
+                function(cb1) {
+                  if (entities.length > 0) {
+                    Entity.collection.insert(entities, cb1);
+                  } else {
+                    cb1(null, []);
+                  }
+                },
+                function(cb1) {
+                  async.each(updateEntities, function(entity, cb2) {
+                    if (entity.fake) {
+                      Community.collection.update({
+                        _id: community._id,
+                      }, {
+                        $addToSet: {
+                          entities: {$each: entity.children},
+                        },
+                      }, cb2);
+                    } else {
+                      Entity.collection.update({
+                        _id: entity._id,
+                      }, {
+                        $set: {children: entity.children},
+                      }, cb2);
+                    }
+                  }, cb1);
+                },
+              ], function(err) {
+                console.log(entities);
+                console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
+                console.log(updateEntities);
+                cb(err);
+                
+              });
+            }
+          );
         },
       ], function(err) {
         console.log(err);
         callback(err);
-       
       });
     });
 
@@ -897,7 +1002,7 @@ var NodeSchemaSchema = new Schema({
 });
 
 module.exports = {
-  Community: mongoose.model('Community', CommunitySchema),
+  Community: Community,
   User:  require('./user'),
   Doc: Doc,
   Entity: Entity,
