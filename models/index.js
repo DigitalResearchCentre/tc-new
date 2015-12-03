@@ -727,9 +727,11 @@ _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
     var self = this
       , teiRoot = data.tei
+      , entityRoot = data.entity
       , docRoot = self.toObject()
       , continueTeis
     ;
+
     docRoot.children = data.doc.children;
     /*
     async.waterfall([

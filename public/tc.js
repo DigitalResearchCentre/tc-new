@@ -175,7 +175,6 @@ function checkLinks(teiRoot, links, docElement, callback) {
 }
 
 function commit(data, opts, callback) {
-  console.log(data);
   var text = data.text
     , docResource = data.doc
     , docElement = data.docElement
@@ -205,6 +204,9 @@ function commit(data, opts, callback) {
       , entity
     ;
     while(cur) {
+      cur.setAttribute('data-tc-entity', cur.getAttribute('n'));
+      cur = iter.iterateNext();
+      /*
       entity = {
         name: cur.getAttribute('n') || '',
         children: [],
@@ -218,13 +220,16 @@ function commit(data, opts, callback) {
         }
         parent = parent.parentNode;
       }
-      cur = iter.iterateNext();
+      */
     }
   });
 
   // dfs on TEI tree, find out all document
   while (queue.length > 0) {
     cur = queue.pop();
+    if (cur.attrs['data-tc-entity']) {
+      console.log(cur.attrs['data-tc-entity']);
+    }
     if (!_.startsWith(cur.name, '#')) {
       index = docTags.indexOf(cur.name);
       // if node is doc
