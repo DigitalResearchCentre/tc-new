@@ -523,6 +523,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
 
 function _checkLinks(prevs, nexts, teiRoot) {
   var cur = teiRoot
+    , continueTeis = {}
     , prev, next
   ;
   while (cur.prev) {
@@ -530,12 +531,22 @@ function _checkLinks(prevs, nexts, teiRoot) {
     cur.prev = new OId(cur.prev);
     if (prev && prev._id.equals(cur.prev)) {
       cur._id = cur.prev;
+      continueTeis[cur._id] = cur;
       if (prevs.length > 0) {
         cur.prevChildIndex = _.findIndex(prev.children, function(id) {
           return id.equals(prevs[0]._id);
-        }) + 1;
+        });
+        cur._children = _.map(prev.children, function(child) {
+          if (_.isString(child)) {
+            child = new OId(child);
+          } else if (child._id) {
+            child = child._id;
+          }
+          return child;
+        });
+        cur.nextChildIndex = cur._children.length;
       } else {
-        cur.prevChildIndex = 0;
+        return new Error('prev element is not match: ' + cur);
       }
       if ((cur.children || []).length > 0) {
         cur = cur.children[0];
@@ -546,12 +557,34 @@ function _checkLinks(prevs, nexts, teiRoot) {
       return new Error('prev elements are not match: ' + prev._id + ' ' + cur);
     }
   }
+  while (prevs.length > 1) {
+    prev = prevs.shift();
+    cur = {
+      _id: prev._id,
+      attrs: prev.attrs,
+      children: [],
+    };
+    continueTeis[cur._id] = cur;
+    cur.prevChildIndex = _.findIndex(prev.children, function(id) {
+      return id.equals(prevs[0]._id);
+    });
+    cur._children = _.map(prev.children, function(child) {
+      if (_.isString(child)) {
+        child = new OId(child);
+      } else if (child._id) {
+        child = child._id;
+      }
+      return child;
+    });
+    cur.nextChildIndex = cur._children.length;
+  }
   cur = teiRoot;
   while (cur.next) {
     next = nexts.shift();
     cur.next = new OId(cur.next);
     if (next && next._id.equals(cur.next)) {
       cur._id = new OId(cur.next);
+      continueTeis[cur._id] = cur;
       if (cur.prev && !cur.next.equals(cur.prev)) {
         return new Error('prev and next conflict' + cur);
       }
@@ -559,11 +592,19 @@ function _checkLinks(prevs, nexts, teiRoot) {
         cur.nextChildIndex = _.findIndex(next.children, function(id) {
           return id.equals(nexts[0]._id);
         });
-        if (cur.nextChildIndex === -1) {
-          cur.nextChildIndex = 0;
+        cur._children = _.map(next.children, function(child) {
+          if (_.isString(child)) {
+            child = new OId(child);
+          } else if (child._id) {
+            child = child._id;
+          }
+          return child;
+        });
+        if (!cur.hasOwnProperty('prevChildIndex')) {
+          cur.prevChildIndex = -1;
         }
       } else {
-        cur.nextChildIndex = 0;
+        return new Error('next element is not match: ' + cur);
       }
 
       if ((cur.children || []).length > 0) {
@@ -575,6 +616,30 @@ function _checkLinks(prevs, nexts, teiRoot) {
       return new Error('next elements are not match' + next._id + ' ' + cur);
     }
   }
+  while (nexts.length > 1) {
+    next = nexts.shift();
+    cur = {
+      _id: next._id,
+      attrs: next.attrs,
+      children: [],
+    };
+    continueTeis[cur._id] = cur;
+    cur.nextChildIndex = _.findIndex(next.children, function(id) {
+      return id.equals(nexts[0]._id);
+    });
+    cur._children = _.map(next.children, function(child) {
+      if (_.isString(child)) {
+        child = new OId(child);
+      } else if (child._id) {
+        child = child._id;
+      }
+      return child;
+    });
+    if (!cur.hasOwnProperty('prevChildIndex')) {
+      cur.prevChildIndex = -1;
+    }
+  }
+  return continueTeis;
 }
 
 function _parseTei(teiRoot, docRoot, entityRoot) {
@@ -615,23 +680,26 @@ function _parseTei(teiRoot, docRoot, entityRoot) {
     if (cur.name === '#text') {
       cur.children = [];
     }
-    foundPrev = null;
-    foundNext = null;
+    foundPrev = 0;
     if (cur.prev) {
       foundPrev = _.findIndex(cur.children, function(child) {
         return !child.prev;
       });
+      if (foundPrev === -1) foundPrev = 0;
       delete cur.prev;
     }
+    foundNext = null;
     if (cur.next) {
       foundNext = _.findLastIndex(cur.children, function(child) {
         return !child.next;
-      });
+      }) + 1;
       delete cur.next;
     }
     cur.children = _loadChildren(cur, queue);
-    cur.children = cur.children.slice(
-      foundPrev || 0, foundNext || cur.children.length);
+    if (foundNext === null) {
+      foundNext = cur.children.length;
+    }
+    cur.children = cur.children.slice(foundPrev, foundNext);
     if (cur.doc) {
       if (_.isString(cur.doc)) {
         cur.doc = new OId(cur.doc);
@@ -639,7 +707,7 @@ function _parseTei(teiRoot, docRoot, entityRoot) {
       cur.docs = docMap[cur.doc].ancestors.concat(cur.doc);
       delete cur.doc;
     }
-    if (foundPrev !== null || foundNext !== null){
+    if (_.isNumber(cur.prevChildIndex)){
       if (!continueTeis[cur._id]) {
         continueTeis[cur._id] = cur;
       }
@@ -660,6 +728,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
     var self = this
       , teiRoot = data.tei
       , docRoot = self.toObject()
+      , continueTeis
     ;
     docRoot.children = data.doc.children;
     /*
@@ -689,23 +758,16 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       },
     ], function(err, results) {
       console.log('----- got prevs and nexts------');
-      console.log(results);
+      var result;
       if (err) {
         return callback(err);
       }
-      err = _checkLinks(results[0], results[1], teiRoot);
-      if (err) {
-        callback(err);
+      continueTeis = _checkLinks(results[0], results[1], teiRoot);
+      if (continueTeis.error) {
+        return callback(continueTeis);
       } 
-      var result;
       result = _parseTei(teiRoot, docRoot);
       self.children = docRoot.children;
-      console.log(' continueTeis ');
-      _.each(result.continueTeis, function(t) {
-        console.log(t);
-        console.log(t.docs);
-      });
-      console.log(' ---------- ');
 
       async.parallel([
         function(cb) {
@@ -730,14 +792,51 @@ _.assign(DocSchema.methods, baseDoc.methods, {
           });
         },
         function(cb) {
-          async.forEachOf(result.continueTeis, function(tei, id, cb1) {
-            TEI.collection.update({_id: new OId(id)}, {
-              $push: {children: {
-                $each: tei.children,
-                $position: tei.prevChildIndex || tei.nextChildIndex
-              }},
-            }, cb1);
-          }, cb);
+          var deleteTeis = [];
+          console.log(continueTeis);
+          async.forEachOf(continueTeis, function(tei, id, cb1) {
+            var _children = tei._children || []
+              , prevChildIndex = tei.prevChildIndex
+              , nextChildIndex = tei.nextChildIndex
+              , prevChildren = _children.slice(0, prevChildIndex + 1)
+              , nextChildren = _children.slice(nextChildIndex)
+            ;
+            deleteTeis.push.apply(
+              deleteTeis, _children.slice(prevChildIndex + 1, nextChildIndex));
+            tei.children = prevChildren.concat(tei.children, nextChildren);
+            if (prevChildIndex < nextChildIndex) {
+              return TEI.collection.update({_id: new OId(id)}, {
+                $set: {
+                  attrs: tei.attrs,
+                  children: tei.children,
+                },
+              }, cb1);
+            } else {
+              return TEI.collection.update({_id: new OId(id)}, {
+                $set: {
+                  attrs: tei.attrs,
+                },
+              }, cb1);
+            }
+          }, function(err) {
+            if (err) return cb(err);
+            deleteTeis = _.map(deleteTeis, function(id) {
+              if (_.isString(id)) {
+                return new OId(id);
+              } else {
+                return id;
+              }
+            });
+            console.log('=================================');
+            console.log(deleteTeis);
+            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+            TEI.remove({
+              $or: [
+                {ancestors: {$in: deleteTeis}},
+                {_id: {$in: deleteTeis}},
+              ]
+            }, cb);
+          });
         },
         function(cb) {
           console.log('--- save text ---');
