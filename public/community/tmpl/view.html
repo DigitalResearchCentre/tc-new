@@ -4,6 +4,19 @@
 });
 </script>
 <div x-auto-height class="view" ng-controller="ViewCtrl">
+  <script type="text/ng-template" id="tree.html">
+    <div>
+      <span class="icon" aria-hidden="true"
+        ng-click="toggleEntity(node, doc)"></span>
+      <span>{{node.name}}</span>
+    </div>
+    <ul ng-if="node.entities">
+      <li ng-repeat="node in node.entities" 
+        ng-include="'tree.html'"
+        ng-class="{'collapse-node': !node.expand, leaf: !node.entities}">
+      </li>
+    </ul>
+  </script>
   <div class="sidebar">
     <div class="tabbable boxed parentTabs">
         <ul class="nav nav-tabs tab-heads">
@@ -28,7 +41,7 @@
                               ng-class="{'collapse-node': !doc.expand}">
                               <div>
                                 <span class="icon" aria-hidden="true"
-                                  ng-click="toggleNode(doc)"></span>
+                                  ng-click="toggleDoc(doc)"></span>
                                 <a href="#/community/{{community._id}}/view/{{doc._id}}">
                                   {{doc.name}}
                                 </a>
@@ -45,7 +58,24 @@
                           </ul>
                         </nav>
                         <div class="tab-pane fade" id="sub12">
-                            <p>View by item will go here</p>
+                          <ul class="tree">
+                            <li ng-repeat="doc in community.documents"
+                              ng-class="{'collapse-node': !doc.expand}">
+                              <div>
+                                <span class="icon" aria-hidden="true"
+                                  ng-click="toggleDoc(doc)"></span>
+                                <a href="#/community/{{community._id}}/view/{{doc._id}}">
+                                  {{doc.name}}
+                                </a>
+                              </div>
+                              <ul>
+                                <li ng-repeat="node in doc.entities"
+                                  ng-include="'tree.html'"
+                                  ng-class="{'collapse-node': !node.expand}">
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
                         </div>
                     </nav>
                 </nav>
@@ -113,3 +143,5 @@
     </div>
   </div>
 </div>
+
+

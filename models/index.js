@@ -384,6 +384,56 @@ function _loadChildren(cur, queue) {
 }
 
 _.assign(DocSchema.statics, baseDoc.statics, {
+  getEntityIds: function(docId, entityId, callback) {
+    if (_.isString(docId)) {
+      docId = new OId(docId);
+    }
+    if (_.isString(entityId)) {
+      entityId = new OId(entityId);
+    }
+    async.waterfall([
+      function(cb) {
+        if (entityId) {
+          Entity.findOne({_id: entityId}).exec(cb);
+        } else {
+          cb(null, null);
+        }
+      },
+      function(entity, cb) {
+        var key, query;
+        if (entity) {
+          key =  'entities.' + (entity.ancestors.length + 1);
+          query = {
+            $and: [{
+              docs: docId,
+              entities: entityId,
+            }]
+          };
+        } else {
+          key = 'entities.0';
+          query = {
+            docs: docId,
+          };
+        }
+        TEI.db.db.command({
+          distinct: 'teis', 
+          key: key,
+          query: query,
+        }, cb);
+      }
+    ], callback);
+  },
+  getEntities: function(docId, entityId, callback) {
+    this.getEntityIds(docId, entityId, function(err, result) {
+      if (err) {
+        return callback(err);
+      }
+      if (result.ok !== 1) {
+        return callback(result);
+      }
+      Entity.find({_id: {$in: result.values}}).exec(callback);
+    });
+  },
   getPrevTexts: function(id, callback) {
     async.waterfall([
       function(cb) {

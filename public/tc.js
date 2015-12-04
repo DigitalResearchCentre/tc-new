@@ -308,6 +308,11 @@ function TCService($resource) {
       url: '/api/docs/:id/texts',
       method: 'GET',
     },
+    'getEntities': {
+      url: '/api/docs/:id/entities/:entityId',
+      method: 'GET',
+      isArray: true,
+    },
     'getLinks': {
       url: '/api/docs/:id/links',
       method: 'GET',
