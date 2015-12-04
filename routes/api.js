@@ -5,9 +5,11 @@ var _ = require('lodash')
   , Resource = require('./resource')
   , models = require('../models')
   , TCMailer = require('../TCMailer')
+  , mongoose = require('mongoose')
   , Community = models.Community
   , User = models.User
   , Doc = models.Doc
+  , Entity = models.Entity
   , Revision = models.Revision
   , TEI = models.TEI
 ;
@@ -45,7 +47,6 @@ var DocResource = _.inherit(Resource, function(opts) {
   };
   this.options.auth.create = function(req, res, next) {
     next();
-    
   };
 }, {
   execSave: function(req, res, next) {
@@ -104,6 +105,17 @@ new CommunityResource({id: 'community'}).serve(router, 'communities');
 
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');
+router.get('/docs/:id/entities/:entityId?', function(req, res, next) {
+  var docId = req.params.id
+    , entityId = req.params.entityId
+  ;
+  Doc.getEntities(docId, entityId, function(err, entities) {
+    if (err) {
+      return next(err);
+    }
+    res.json(entities);
+  });
+});
 router.get('/docs/:id/texts', function(req, res, next) {
   var docId = req.params.id;
   async.parallel([

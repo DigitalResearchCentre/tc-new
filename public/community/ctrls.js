@@ -167,16 +167,32 @@ var ViewCtrl = function($scope, $routeParams, TCService) {
     , Doc = TCService.Doc
   ;
   $scope.docId = params[1];
-  $scope.toggleNode = function(doc) {
+  $scope.toggleDoc = function(doc) {
     var expand = doc.expand = !doc.expand;
     if (!doc.children || _.isString(doc.children[0])) {
       TCService.get(doc, Doc).$get({
-        fields: JSON.stringify({path: 'children', select: 'name'}),
+        fields: JSON.stringify([{
+          path: 'children', select: 'name'
+        }]),
       }, function() {
         doc.expand = expand;
       });
+      Doc.getEntities({id: doc._id}, function(entities) {
+        doc.entities = entities;
+      });
     }
   };
+  $scope.toggleEntity = function(node, doc) {
+    var expand = node.expand = !node.expand;
+    if (!node.entities) {
+      Doc.getEntities({
+        id: doc._id, entityId: node._id
+      }, function(entities) {
+        node.entities = entities;
+      });
+    }
+  };
+
 };
 ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
