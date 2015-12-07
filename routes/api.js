@@ -137,22 +137,11 @@ router.get('/docs/:id/entities/:entityId?', function(req, res, next) {
 });
 router.get('/docs/:id/texts', function(req, res, next) {
   var docId = req.params.id;
-  async.parallel([
-    function(cb) {
-      Doc.findOne({_id: docId}).exec(cb);
-    },
-    function(cb) {
-      Doc.find({ancestors: docId}).exec(cb);
-    },
-    function(cb) {
-      TEI.find({docs: docId}).exec(cb);
-    },
-  ], function(err, results) {
-    var ids = {};
+  TEI.find({docs: docId}).exec(function(err, teis) {
     if (err) {
       return next(err);
     }
-    TEI.getTreeFromLeaves(results[2], function(err, teiRoot) {
+    TEI.getTreeFromLeaves(teis, function(err, teiRoot) {
       res.json(teiRoot);
     });
   });

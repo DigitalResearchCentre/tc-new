@@ -733,8 +733,10 @@ function _parseTei(teiRoot, docRoot) {
     if (foundNext === null) {
       foundNext = cur.children.length;
     }
-    cur.children = cur.children.slice(foundPrev, foundNext);
+    console.log(foundPrev);
+    console.log(foundNext);
     cur.children = _loadChildren(cur, queue);
+    cur.children = cur.children.slice(foundPrev, foundNext);
     if (cur.doc) {
       if (_.isString(cur.doc)) {
         cur.doc = new OId(cur.doc);
@@ -742,7 +744,8 @@ function _parseTei(teiRoot, docRoot) {
       cur.docs = docMap[cur.doc].ancestors.concat(cur.doc);
       delete cur.doc;
     }
-    if (_.isNumber(cur.prevChildIndex)){
+    console.log(cur);
+    if (_.isNumber(cur.prevChildIndex) && cur.prevChildIndex  > -1){
       if (!continueTeis[cur._id]) {
         continueTeis[cur._id] = cur;
       }
@@ -750,6 +753,7 @@ function _parseTei(teiRoot, docRoot) {
       teis.push(cur);
     }
   }
+  console.log('==================== teis ===================');
 
   return {
     teis: teis,
@@ -831,6 +835,8 @@ function _commitTEI(continueTeis, teis, callback) {
   async.parallel([
     function(cb) {
       var deleteTeis = [];
+      console.log(continueTeis);
+      console.log('cont');
       async.forEachOf(continueTeis, function(tei, id, cb1) {
         var _children = tei._children || []
           , prevChildIndex = tei.prevChildIndex
@@ -841,21 +847,21 @@ function _commitTEI(continueTeis, teis, callback) {
         ;
         deleteTeis.push.apply(
           deleteTeis, _children.slice(prevChildIndex + 1, nextChildIndex));
-          tei.children = prevChildren.concat(tei.children, nextChildren);
-          if (prevChildIndex < nextChildIndex) {
-            $set = {
-              children: tei.children,
-            };
-            if (tei.children.length === 0) {
-              $set.docs = tei.docs;
-              $set.entities = tei.entities;
-            }
-            return TEI.collection.update({_id: new OId(id)}, {
-              $set: $set,
-            }, cb1);
-          } else {
-            cb1(null);
+        tei.children = prevChildren.concat(tei.children, nextChildren);
+        if (prevChildIndex < nextChildIndex) {
+          $set = {
+            children: tei.children,
+          };
+          if (tei.children.length === 0) {
+            $set.docs = tei.docs;
+            $set.entities = tei.entities;
           }
+          return TEI.collection.update({_id: new OId(id)}, {
+            $set: $set,
+          }, cb1);
+        } else {
+          cb1(null);
+        }
       }, function(err) {
         if (err) return cb(err);
         deleteTeis = _.map(deleteTeis, function(id) {
@@ -878,11 +884,15 @@ function _commitTEI(continueTeis, teis, callback) {
     },
     function(cb) {
       console.log('--- save text ---');
-      TEI.collection.insert(teis, function(err, objs) {
-        console.log('--- save text done ---');
-        if (err) console.log(err);
-        cb(err, objs);
-      });
+      if (teis.length > 0) {
+        TEI.collection.insert(teis, function(err, objs) {
+          console.log('--- save text done ---');
+          if (err) console.log(err);
+          cb(err, objs);
+        });
+      } else {
+        cb(null, null);
+      }
     },
   ], callback);
 }
@@ -905,7 +915,12 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         Doc.getNextTexts(self._id, cb);
       },
       function(cb) {
-        Community.findOne({docs: self.ancestors[0]}).exec(cb);
+        var rootDocId = self._id;
+        if (self.ancestors.length > 0) {
+          rootDocId = self.ancestors[0];
+        }
+        console.log(rootDocId);
+        Community.findOne({documents: rootDocId}).exec(cb);
       },
     ], function(err, results) {
       var community = results[2]
@@ -915,6 +930,9 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         , result
       ;
       if (err) {
+        return callback(err);
+      }
+      if (!community) {
         return callback(err);
       }
       continueTeis = _checkLinks(results[0], results[1], teiRoot);
@@ -966,6 +984,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
               }
               async.parallel([
                 function(cb1) {
+                  console.log('%%%%%%%%%%% result %%%%%%%%%%%%');
+                  console.log(result);
                   _commitTEI(continueTeis, result.teis, cb1);
                 },
                 function(cb1) {

@@ -155,6 +155,7 @@ function checkLinks(teiRoot, links, docElement) {
     delete docElement._id;
     cur.children.unshift(docElement);
   }
+  console.log(cur.children);
   cur = {
     children: [teiRoot],
   };
