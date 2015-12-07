@@ -733,8 +733,6 @@ function _parseTei(teiRoot, docRoot) {
     if (foundNext === null) {
       foundNext = cur.children.length;
     }
-    console.log(foundPrev);
-    console.log(foundNext);
     cur.children = _loadChildren(cur, queue);
     cur.children = cur.children.slice(foundPrev, foundNext);
     if (cur.doc) {
@@ -744,7 +742,6 @@ function _parseTei(teiRoot, docRoot) {
       cur.docs = docMap[cur.doc].ancestors.concat(cur.doc);
       delete cur.doc;
     }
-    console.log(cur);
     if (_.isNumber(cur.prevChildIndex) && cur.prevChildIndex  > -1){
       if (!continueTeis[cur._id]) {
         continueTeis[cur._id] = cur;
@@ -753,7 +750,6 @@ function _parseTei(teiRoot, docRoot) {
       teis.push(cur);
     }
   }
-  console.log('==================== teis ===================');
 
   return {
     teis: teis,
@@ -835,8 +831,6 @@ function _commitTEI(continueTeis, teis, callback) {
   async.parallel([
     function(cb) {
       var deleteTeis = [];
-      console.log(continueTeis);
-      console.log('cont');
       async.forEachOf(continueTeis, function(tei, id, cb1) {
         var _children = tei._children || []
           , prevChildIndex = tei.prevChildIndex
@@ -871,9 +865,6 @@ function _commitTEI(continueTeis, teis, callback) {
             return id;
           }
         });
-        console.log('=================================');
-        console.log(deleteTeis);
-        console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
         TEI.remove({
           $or: [
             {ancestors: {$in: deleteTeis}},
@@ -919,7 +910,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         if (self.ancestors.length > 0) {
           rootDocId = self.ancestors[0];
         }
-        console.log(rootDocId);
         Community.findOne({documents: rootDocId}).exec(cb);
       },
     ], function(err, results) {
@@ -975,7 +965,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
           });
         },
         function(cb) {
-          console.log(entityRoot);
           updateEntityTree(
             fakeEntity, entityRoot, entities, updateEntities, 
             function(err) {
@@ -984,8 +973,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
               }
               async.parallel([
                 function(cb1) {
-                  console.log('%%%%%%%%%%% result %%%%%%%%%%%%');
-                  console.log(result);
                   _commitTEI(continueTeis, result.teis, cb1);
                 },
                 function(cb1) {
@@ -1015,7 +1002,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
                   }, cb1);
                 },
               ], function(err) {
-                console.log(entities);
                 console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
                 console.log(updateEntities);
                 cb(err);

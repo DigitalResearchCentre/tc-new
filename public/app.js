@@ -43,6 +43,7 @@ tcApp.controller('AppCtrl', [
   '$scope', 'TCService', '$q', '$http', '$location', '$window',
   function($scope, TCService, $q, $http, $location, $window) {
 
+    console.log('this is app ctrl');
   var Community = TCService.Community;
 
   $scope.hideHeader = false;
