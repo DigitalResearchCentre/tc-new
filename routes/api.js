@@ -39,6 +39,25 @@ var CommunityResource = _.inherit(Resource, function(opts) {
   },
 });
 
+var EntityResource = _.inherit(Resource, function(opts) {
+  Resource.call(this, Entity, opts);
+});
+
+var entityResource = new EntityResource({id: 'entity'});
+entityResource.serve(router, 'entities');
+router.get('/entities/:id/docs/:docId', function(req, res, next) {
+  var docId = req.params.docId
+    , entityId = req.params.id
+  ;
+  Entity.getDocs(entityId, docId, function(err, docs) {
+    if (err) {
+      return next(err);
+    }
+    res.json(docs);
+  });
+});
+
+
 var DocResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Doc, opts);
   this.options.auth.a = 1;

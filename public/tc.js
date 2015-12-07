@@ -299,6 +299,19 @@ function TCService($resource) {
     },
   });
 
+
+  var Entity = $resource('/api/entities/:id', {
+    id: '@_id',
+  }, {
+    'patch': {method: 'PATCH'},
+    'update': {method: 'PUT'},
+    'getDocs': {
+      url: '/api/entities/:id/docs/:docId',
+      method: 'GET',
+      isArray: true,
+    },
+  });
+
   var Doc = $resource('/api/docs/:id', {
     id: '@_id',
   }, {
@@ -373,6 +386,7 @@ function TCService($resource) {
     commit: commit,
     Community: Community,
     Doc: Doc,
+    Entity: Entity,
   };
   return TC;
 }

@@ -1031,6 +1031,58 @@ var EntitySchema = new Schema(_.assign(baseEntity.schema, {
 
 }));
 _.assign(EntitySchema.methods, baseEntity.methods);
+_.assign(EntitySchema.statics, baseEntity.statics, {
+  getDocIds: function(entityId, docId, callback) {
+    if (_.isString(entityId)) {
+      entityId = new OId(entityId);
+    }
+    if (_.isString(docId)) {
+      docId = new OId(docId);
+    }
+    async.waterfall([
+      function(cb) {
+        if (docId) {
+          Doc.findOne({_id: docId}).exec(cb);
+        } else {
+          cb(null, null);
+        }
+      },
+      function(doc, cb) {
+        var key, query;
+        if (doc) {
+          key =  'docs.' + (doc.ancestors.length + 1);
+          query = {
+            $and: [{
+              docs: docId,
+              entities: entityId,
+            }]
+          };
+        } else {
+          key = 'docs.0';
+          query = {
+            entities: entityId,
+          };
+        }
+        TEI.db.db.command({
+          distinct: 'teis', 
+          key: key,
+          query: query,
+        }, cb);
+      }
+    ], callback);
+  },
+  getDocs: function(entityId, docId, callback) {
+    this.getDocIds(entityId, docId, function(err, result) {
+      if (err) {
+        return callback(err);
+      }
+      if (result.ok !== 1) {
+        return callback(result);
+      }
+      Doc.find({_id: {$in: result.values}}).exec(callback);
+    });
+  },
+});
 var Entity = mongoose.model('Entity', EntitySchema);
 
 

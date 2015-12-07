@@ -1,14 +1,11 @@
-<script>$("ul.nav-tabs a").click(function (e) {
-  e.preventDefault();
-    $(this).tab('show');
-});
-</script>
 <div x-auto-height class="view" ng-controller="ViewCtrl">
   <script type="text/ng-template" id="tree.html">
     <div>
       <span class="icon" aria-hidden="true"
         ng-click="toggleEntity(node, doc)"></span>
-      <span>{{node.name}}</span>
+      <a ng-click="selectEntity(node, doc)">
+        {{node.name}}
+      </a>
     </div>
     <ul ng-if="node.entities">
       <li ng-repeat="node in node.entities" 

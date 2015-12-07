@@ -162,10 +162,18 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
 CreateCommunityCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 
-var ViewCtrl = function($scope, $routeParams, TCService) {
+var ViewCtrl = function($scope, $routeParams, $location, TCService) {
+  console.log($routeParams);
+  console.log($location);
+  console.log(TCService);
   var params = $routeParams.params.split('/')
     , Doc = TCService.Doc
+    , Entity = TCService.Entity
   ;
+  $("ul.nav-tabs a").click(function (e) {
+    e.preventDefault();
+      $(this).tab('show');
+  });
   $scope.docId = params[1];
   $scope.toggleDoc = function(doc) {
     var expand = doc.expand = !doc.expand;
@@ -193,8 +201,17 @@ var ViewCtrl = function($scope, $routeParams, TCService) {
     }
   };
 
+  $scope.selectEntity = function(entity, doc) {
+    Entity.getDocs({
+      id: entity._id, docId: doc._id
+    }, function(docs) {
+      $location.path(
+        '/community/' + $scope.community._id 
+        + '/view/' + doc._id + '/' + docs[0]._id + '/');
+    });
+  };
 };
-ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
+ViewCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 
 function _getTei(data) {
   var docs = {}
@@ -336,7 +353,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
     });
   };
 };
-ViewCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
+ViewerCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
 module.exports = {
   CommunityCtrl: CommunityCtrl,
