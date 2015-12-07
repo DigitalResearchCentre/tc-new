@@ -19,8 +19,8 @@
       ng-class="{'hide-header': hideHeader}" style="margin:0px; padding:0px">
     <div class="tc-header">
       <div id="Minimize">
-        <a ng-click="hideHeader = !hideHeader" id="editArrow"
-          title="{{hideHeader ? 'Show' : 'Hide'}} headers">
+        <a ng-click="app.hideHeader = !app.hideHeader" id="editArrow"
+          title="{{app.hideHeader ? 'Show' : 'Hide'}} headers">
           <img height="26" id="arrowImg"/>
         </a>
       </div>

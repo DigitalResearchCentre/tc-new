@@ -8,8 +8,6 @@ var $ = require('jquery')
 require('./app.less');
 require('bootstrap');
 
-require('test');
-
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
   'ngRoute', 'ngResource', 'ngSanitize', 'jdFontselect',
@@ -68,34 +66,30 @@ tcApp.controller('AppCtrl', [
 
 
 /*
-
 var AppCtrl = function(TCService, $q, $http, $location, $window) {
-  var Community = TCService.Community;
-  this.hideHeader = false;
-  this.app = TCService.app;
-  var authUser = TCService.app.authUser;
-  authUser.$promise.then(function() {
-    if (!authUser.local) {
-      //TCService.login('boy198512@gmail.com', 'test');
-    }
-  });
-  this.logout = function() {
-    TCService.logout();
-  };
-  this.login = login;
+  var Community = TCService.Community
+    , authUser = TCService.app.authUser
+    , vm = this
+  ;
+  vm.hideHeader = false;
+  vm.authUser = authUser;
+  vm.communities = TCService.app.communities;
+  vm.login = login;
+
   if ($location.search().prompt !== 'redirectModal') {
-    this.loginFrame = '/auth';
+    vm.loginFrame = '/auth';
   } else {
-    this.loginFrame = '';
+    vm.loginFrame = '';
     $window.parent.angular.element('#frame').scope().login.closeModal();
   }
 };
 _.assign(AppCtrl.prototype, {
-  
-})
-AppCtrl.$inject = ['TCService', '$q', '$http', '$location', '$window']
+  logout: function() {
+    TCService.logout();
+  },
+});
+AppCtrl.$inject = ['TCService', '$q', '$http', '$location', '$window'];
+tcApp.controller('AppCtrl', AppCtrl);
+*/
 
-tcApp.controller('AppCtrl', );
 
-
- */

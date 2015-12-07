@@ -164,8 +164,6 @@ CreateCommunityCtrl.$inject = [
 
 var ViewCtrl = function($scope, $routeParams, $location, TCService) {
   console.log($routeParams);
-  console.log($location);
-  console.log(TCService);
   var params = $routeParams.params.split('/')
     , Doc = TCService.Doc
     , Entity = TCService.Entity
