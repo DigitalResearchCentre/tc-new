@@ -4,41 +4,26 @@
     <title>Node Authentication</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
-    <style>
-        body        { padding-top:30px; word-wrap:break-word; }
-    </style>
 </head>
-<body>
-<div class="container">
-
-   <% if (user.local.authenticated == "0")  {%>
-	   <script language="javascript">
-  			  window.location.href = "/index.html?prompt=sendauthenticate&context=<%= context %>"
-		</script>
-     <% } else { %>
-		<div class="page-header text-center">
-			<h1><span class="fa fa-anchor"></span> Linked logins for Textual Communities for <%= user.local.email %></h1>
-			<a href="/auth/logout" class="btn btn-default btn-sm">Logout</a>&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="/#/profile" class="btn btn-default btn-sm">Home</a>
-		</div>
+<body class="jumbotron text-center" style="padding: 5px 15px 15px 15px; width: 580px;  margin:0px 10px 5px 5px; font-size:120%">
+			<h5><span class="fa fa-anchor"></span> Linked logins for Textual Communities for <%= user.local.name %></h5>
 		<p>Textual Communities is using the email address <%= user.local.email %> to identify you and the communities to which you belong. You can use social media to log in to this account by linking accounts here.
 		</p>
 		<div class="row">
 
 	 <!-- LOCAL INFORMATION.Note: mandated that there MUST be a local account, with an authenticated email, so no else -->
-			<div class="col-sm-6">
-				<div class="well">
-					<h3><span class="fa fa-user"></span> Email/Password</h3>
+			<div class="col-xs-6">
+				<div class="well" style="margin-bottom:10px; padding:10px">
+					<h5 style="margin:0px 5px 10px 5px"><span class="fa fa-user"></span> Email/Password</h5>
 
 					<% if (user.local.email) { %>
-						<p>
+						<p style="margin:0px 5px 5px 5px">
 							<!-- strong>id</strong>: <%= user._id %><br -->
 							<strong>email</strong>: <%= user.local.email %><br>
 							<strong>name</strong>: <%= user.local.name %><br>
 							<strong>password</strong>: (Hidden)<br>
 						</p>
-						<p><b>Authenticated account</b></p>
-						<p>Forgot/reset password? <a href="/forgot">request password</a>.</p>
+						<p style="margin:0px 5px 0px 5px"><b>Authenticated account</b></p>
 
 						<!-- a href="/changeid" class="btn btn-default">Change email</a -->
 					<% } else { %>
@@ -48,22 +33,22 @@
 			</div>
 
 			<!-- FACEBOOK INFORMATION -->
-			<div class="col-sm-6">
-				<div class="well">
-					<h3 class="text-primary"><span class="fa fa-facebook"></span> Facebook</h3>
+			<div class="col-xs-6">
+				<div class="well" style="padding-bottom:6px">
+					<h5 class="text-primary"  style="margin:0px 5px 10px 5px"><span class="fa fa-facebook"></span> Facebook</h5>
 
 					<!-- check if the user has this token (is the user authenticated with this social account) -->
 					<% if (user.facebook.token) { %>
-						<p>
+						<p style="margin:0px 5px 5px 5px">
 							<!-- strong>id</strong>: <%= user.facebook.id %><br>
 							<strong>token</strong>: <%= user.facebook.token %><br-->
 							<strong>email</strong>: <%= user.facebook.email %><br>
 							<strong>name</strong>: <%= user.facebook.name %><br>
 						</p>
 
-						<a href="/auth/unlink/facebook" class="btn btn-primary">Unlink</a>
+						<a href="/auth/unlink/facebook" class="btn btn-primary btn-sm">Unlink</a>
 					<% } else { %>
-						<a href="/auth/connect/facebook" class="btn btn-primary">Connect Facebook</a>
+						<a href="/auth/connect/callfacebook" target="_parent" class="btn btn-primary btn-sm">Connect Facebook</a>
 					<% } %>
 
 				</div>
@@ -73,9 +58,9 @@
 		<div class="row">
 
 			<!-- TWITTER INFORMATION -->
-			<div class="col-sm-6">
+			<div class="col-xs-6">
 				<div class="well">
-					<h3 class="text-info"><span class="fa fa-twitter"></span> Twitter</h3>
+					<h5 class="text-info"><span class="fa fa-twitter"></span> Twitter</h5>
 
 					<!-- check if the user has this token (is the user authenticated with this social account) -->
 					<% if (user.twitter.token) { %>
@@ -86,18 +71,18 @@
 							<strong>username</strong>: <%= user.twitter.username %>
 						</p>
 
-						<a href="/auth/unlink/twitter" class="btn btn-info">Unlink</a>
+						<a href="/auth/unlink/twitter" class="btn btn-info btn-sm">Unlink</a>
 					<% } else { %>
-						<a href="/auth/connect/twitter" class="btn btn-info">Connect Twitter</a>
+						<a href="/auth/connect/twitter" class="btn btn-info btn-sm">Connect Twitter</a>
 					<% } %>
 
 				</div>
 			</div>
 
 			<!-- GOOGLE INFORMATION -->
-			<div class="col-sm-6">
+			<div class="col-xs-6">
 				<div class="well">
-					<h3 class="text-danger"><span class="fa fa-google-plus"></span> Google+</h3>
+					<h5 class="text-danger"><span class="fa fa-google-plus"></span> Google+</h5>
 
 					<!-- check if the user has this token (is the user authenticated with this social account) -->
 					<% if (user.google.token) { %>
@@ -108,16 +93,14 @@
 							<strong>name</strong>: <%= user.google.name %>
 						</p>
 
-						<a href="/auth/unlink/google" class="btn btn-danger">Unlink</a>
+						<a href="/auth/unlink/google" class="btn btn-danger btn-sm">Unlink</a>
 					<% } else { %>
-						<a href="/auth/connect/google" class="btn btn-danger">Connect Google</a>
+						<a href="/auth/connect/google" class="btn btn-danger btn-sm">Connect Google</a>
 					<% } %>
 
 				</div>
 			</div>
 
 		</div>
-	<% } %>  <!-- conclude authenticated -->
-</div>
 </body>
 </html>

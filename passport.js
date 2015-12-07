@@ -181,13 +181,12 @@ configAuth = config.auth;
 
   },
   function(req, token, refreshToken, profile, done) {
-
+    console.log('in facebook');
+    console.log(req.query);
     // asynchronous
     process.nextTick(function() {
-
       // check if the user is already logged in
       if (!req.user) {
-
         User.findOne({ 'facebook.id' : profile.id }, function(err, user) {
           if (err)
             return done(err);
@@ -195,11 +194,12 @@ configAuth = config.auth;
           if (user) {
 
             // if there is a user id already but no token (user was linked at one point and then removed)
+            //mm. could also be associated with another user, watch out here I think
             if (!user.facebook.token) {
               user.facebook.token = token;
               user.facebook.name  = profile.name.givenName + ' ' + profile.name.familyName;
               user.facebook.email = profile.emails[0].value;
-
+              console.log("remaking the personp")
               user.save(function(err) {
                 if (err)
                   throw err;
@@ -210,6 +210,8 @@ configAuth = config.auth;
             return done(null, user); // user found, return that user
           } else {
             // if there is no user, create them
+            // if we decide later to link this to existing account -- we'll have to delete this one
+            console.log("we don't have a user?");
             var newUser            = new User();
 
             newUser.facebook.id    = profile.id;
@@ -227,6 +229,8 @@ configAuth = config.auth;
 
       } else {
         // user already exists and is logged in, we have to link accounts
+
+        console.log("so, we are here??")
         var user            = req.user; // pull the user out of the session
 
         user.facebook.id    = profile.id;

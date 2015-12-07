@@ -6,6 +6,7 @@ var express = require('express')
   , TCAddresses=TCMailer.addresses
 ;
 
+var TCModalState = {state:0};
 // =====================================
 // HOME PAGE (with login links) ========
 // =====================================
@@ -68,7 +69,7 @@ router.post('/login', function(req, res, next) {
       }
      // all is well, log me in, return successful user
      req.logIn(user, function (err) {
-       if (url=="") url="/index.html"
+       if (url=="") url="/index.html#/home"
        if(!err) {res.render('closemodal.ejs', {url: url} );} else {}
      });
    });
@@ -259,66 +260,95 @@ router.get('/resetpwmsg', function(req, res) {
 // we will want this protected so you have to be logged in to visit
 // we will use route middleware to verify this (the isLoggedIn function)
 router.get('/profile', isLoggedIn, function(req, res) {
-  console.log("are we here")
-  res.render('profile.ejs', {
-    user : req.user, // get the user out of session and pass to template
-    context: req.query.context
-  });
+  res.render('profile.ejs', {user : req.user  });
 });
 // =====================================
 // FACEBOOK ROUTES =====================
 // =====================================
 // route for facebook authentication and login
-router.get('/facebook', passport.authenticate('facebook', { scope : 'email' }));
+router.get('/callfacebook', function(req, res) {
+    console.log("calling facebook");
+    TCModalState.state=1;
+    res.redirect('/auth/facebook');
+  }
+);
+
+router.get('/facebook', passport.authenticate('facebook', {
+    scope : 'email'
+  })
+);
 
 // handle the callback after facebook has authenticated the user
+//note: we have to call parent window from here, so set return to modal window via parent
 router.get('/facebook/callback', passport.authenticate('facebook', {
   scope : 'email',
   failureRedirect : '/auth/'
 }), function(req, res) {
+  //if TCModalState.state is 1: then we are coming from index.ejs; after success, return to main window
+  //by closing modal; if state is 3, stay in this window
+  // The user has authenticated with Facebook.  Now check to see if the profile
   // The user has authenticated with Facebook.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
-  if (isValidProfile(req)) {
-    res.redirect('/#/profile');  //have to change! can't redirect to local from the server
+  //ah... req will have the facebook user, which may NOT have been identified with the local user..
+  if (isValidProfile(req.user)) {
+    console.log("you are here now "+TCModalState.state)
+    if (TCModalState.state==3) res.redirect('/index.html?prompt=showprofile');
+    else res.redirect('/index.html?prompt=showprofile');
   } else {
-    res.redirect('/index.html?emailreq=facebook');
+    //first, check if there is a user with this email
+    User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
+      if (user) {
+        //there might be a facebook account already associated with this user. So tell them
+        if (user.facebook.email) {
+           res.redirect("/index.html?prompt=alreadylocal&context=Facebook&name="+req.user.facebook.email);
+        } else  {
+        //we have a user with no fb account
+          res.redirect('/index.html?prompt=facebookassocemail');
+        }
+      } else {res.redirect('/index.html?prompt=facebooklinkemail');}
+    });
   }
 });
 
-router.get('/facebookemail', function(req, res) {
-  //can only be here because facebook has registered user, but as yet not associated with any main email
-  //so check: if our facebook email does not belong to an existing user, then just write primary fb email to local email
-  // and pass on to profile, to carry out authentication
-  console.log("who I am in facebook: ");
+router.get('/alreadylocal', function(req, res) {
+    res.render('alreadylocal.ejs',{context: req.query.context, email:req.query.email})
+});
+
+//calls the modal frame window
+router.get('/facebookassocemail', function(req, res) {
+    res.render('associate.ejs', { email: req.user.facebook.email, context:"Facebook", linkname: "facebook"});
+});
+
+//cancel the link .. to do, if the modal closes, we need to catch the event, this = cancel
+router.get('/facebookcancel', function(req, res) {
+  User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
+      deleteUser.remove({});
+  });
+  res.render('closemodal.ejs', {url: "/index.html#/home"});
+});
+
+//we have the go ahead: link the accounts
+router.get('/facebooklink', function(req, res) {
+  //get the user record again; link; delete surplus facebook ac
   User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
-    if (!user) {
-      //let's redirect -- ask if we want to associate with an existing account or not
-      res.redirect('/auth/facebooklinkemail');
-    } else {
-      //by facebook rules -- this email can ONLY be assoc with one account.  So just link them
-      //if there is no facebook account associated with the account -- just link this facebook ac to that
-      if (!user.facebook.token) {
-        user.facebook=req.user.facebook;
-        User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
+    if (err) {return}
+    if (user) {
+      user.facebook=req.user.facebook;
+      User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
           deleteUser.remove({});
-        });
-        user.save();
-        req.logout();
-        console.log("ok, fb 2")
-        req.logIn(user, function (err) {
-          //all is good.  We have got here from a modal -- so close the modal and open in parent
-          if(!err){ res.redirect('/#/?prompt=redirectModal'); }else {		//handle error
-          } });
-          return;
-      }
-      else res.render('error.ejs', { message: "Error linking Facebook account", name:req.user.facebook.name, email: req.user.facebook.email }); //should not happen! if there is a fb for this user we should be in it now
+          user.save();
+          req.logIn(user, function (err) {
+            res.render('closemodal.ejs', {url: "/index.html?prompt=showprofile"} );
+          });
+      });
+    } else { //did not find this user?
+      res.render('error.ejs', {message:"Error linking facebook account", error: err})
     }
   });
 });
 
-
 router.get('/facebooklinkemail', function(req, res) {
-  res.render('facebookemail.ejs', { message: req.flash('facebookMessage'), facebook:req.user.facebook });
+  res.render('facebookemail.ejs', { message: "", facebook:req.user.facebook});
 });
 
 router.post('/facebooklinkemail', function(req, res) {
@@ -333,27 +363,42 @@ router.post('/facebooklinkemail', function(req, res) {
     return;
   }
   //ok! we have a valid email.  Write it into the local account, with the display name, and send an activation email
-  //does this email already exist for an account? if so, and there is no twitter account for this user -- just link!
+  //does this email already exist for an account? if so, and there is no facebook account for this user -- just link!
   //if this is so: reset authenticate to 0 to force authentication via the email account
+  //also: need to delete the facebook account we just made with this id...
+  //save the values we need, delete th fb ac we just made
   User.findOne({'local.email': req.body.email}, function(err, existingUser) {
     if (existingUser) {
       //if there is no google person reg'd with this local email -- just write the details there!
-      console.log("in facebook")
+
       if (!existingUser.facebook.token) {
         existingUser.facebook=req.user.facebook;
-        existingUser.local.authenticated="0";
+        //this can't delete the wrong one, because we have not yet saved this one
         User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
           deleteUser.remove({});
+          existingUser.save(); //in case of synchrony -- we don't need the separate one we just made
         });
-        existingUser.save();
-        //log out current user; log in existingUser
+        if (!isValidProfile(existingUser)) {
+          authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
+          res.render('authenticate.ejs', {context:"email", user: existingUser})
+          return;
+        }
+        //do we need this? yes...
+          //log out current user; log in existingUser
         req.logout();
         req.logIn(existingUser, function (err) {
-          if(!err){ res.redirect('/auth/profile'); } else{		//handle error
+          //ok, we are all logged in, close the dialog, call the base url, put up profile screen
+          console.log("we are a user already and authenticated");
+          //put up the profile screen then
+          if(!err) {
+            res.render(res.render('closemodal.ejs', {url: '/index.html?prompt=showprofile'}) );
+            return;
+          } else{		//handle error
           } });
           return;
       }
       else {
+        //already have such a fb ac! delete the one we just made, then
         res.render('facebookemail.ejs', { message: "There is already a Facebook account for the Textual Communities user identified by the email '"+req.body.email+"'. If you want to link this Faceboo account to that account, log in with that email address, unlink the existing Facebook account and then link this Facebook account.", facebook:req.user.facebook});
         return;
       }
@@ -371,14 +416,27 @@ router.get('/facebooknew', function(req, res) {
   req.user.local.password=req.user.generateHash("X"); //place holder
   req.user.local.authenticated= "0";
   req.user.save();
-  res.redirect('/auth/profile?context=facebook');
+  //now we send the email from here and here alone
+  authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+  res.render('authenticate.ejs', {context:"facebook", user: req.user});
+});
+
+//check if there is a surplus SM acc with this user...
+router.get('/removeSurplusSM', function(req, res) {
+  console.log(req.user)
+  if (req.user.facebook.email && !req.user.local.email) {
+    User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
+      deleteUser.remove({});
+    });
+    res.redirect('/index.html#/home');
+  }
 });
 //cancel this facebook linkage
 router.get('/facebookcancel', function(req, res) {
   User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.redirect('/');
+  res.render('closemodal.ejs', {url: "/index.html#/home"} );
 });
 
 
@@ -592,26 +650,24 @@ router.get('/googlecancel', function(req, res) {
 // AUTHORIZE (ALREADY LOGGED IN / CONNECTING OTHER SOCIAL ACCOUNT) =============
 // =============================================================================
 
-// locally --------------------------------
-router.get('/connect/local', function(req, res) {
-  res.render('connect-local.ejs', { message: req.flash('loginMessage') });
-});
-router.post('/connect/local', passport.authenticate('local-signup', {
-  auth : '/auth', // redirect to the secure profile section
-  failureRedirect : '/auth/connect/local', // redirect back to the signup page if there is an error
-  failureFlash : true // allow flash messages
-}));
-
 // facebook -------------------------------
 
+router.get('/connect/callfacebook', function(req, res){
+    TCModalState.state=3;
+    //to be here; we must be logged in; so just write the facebook values into the local
+    res.redirect('/auth/connect/facebook')
+  });
+
 // send to facebook to do the authentication
-router.get('/connect/facebook', passport.authorize('facebook', { scope : 'email' }));
+router.get('/connect/facebook', passport.authorize('facebook', { scope : 'email', context:'connect' }),
+  function(req, res){
+    console.log("in connect")
+  });
 
 // handle the callback after facebook has authorized the user
-router.get('/connect/facebook/callback', passport.authorize('facebook', {
-  successRedirect : '/#/profile',
-  failureRedirect : '/'
-}));
+router.get('/connect/facebook/callback', function(req, res) {
+  res.redirect("/auth/profile")
+});
 
 // twitter --------------------------------
 
@@ -656,7 +712,8 @@ router.get('/unlink/local', function(req, res) {
 // facebook -------------------------------
 router.get('/unlink/facebook', function(req, res) {
   var user            = req.user;
-  user.facebook.token = undefined;
+  console.log(user);
+  user.facebook = undefined;
   user.save(function(err) {
     res.redirect('/auth/profile');
   });
@@ -685,7 +742,7 @@ router.get('/unlink/google', function(req, res) {
 // =====================================
 router.get('/logout', function(req, res) {
   req.logout();
-  res.redirect('/index.html');
+  res.redirect('/index.html#/home');
 });
 
 // route middleware to make sure a user is logged in

@@ -1,0 +1,14 @@
+<!-- views/login.ejs -->
+<!doctype html>
+<html>
+<head>
+    <title>Textual Communities Authentication</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
+</head>
+<body class="jumbotron text-center" style="width: 580px;  margin:25px 5px 5px 5px; font-size:150%">
+          <p style="text-align: left; margin-bottom: 40px">You have just logged in to a <%= context %> account, linked to the email "<%= email %>". There is already a
+          Textual Communities account associated with that email. Do you want to link to that account?</p>
+        <p> <a href="/auth/<%= linkname %>link"> <input type="button" value="Link" class="btn btn-warning btn" ></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/auth/<%= linkname %>cancel"> <input type="button" value="Cancel" class="btn btn-warning btn" style="background-color: white; color: #f0ad4e" onmouseover="this.style.background='#F5F5F5';" onmouseout="this.style.background='white';"></a></p>
+</body>
+</html>

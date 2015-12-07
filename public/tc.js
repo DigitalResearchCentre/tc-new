@@ -175,7 +175,7 @@ function commit(docResource, text, opts, callback) {
     _.forEachRight(cur.children, _.bind(queue.push, queue));
   }
 
-  
+
   /*
   xmlDoc.entity = entityRoot;
 
@@ -361,6 +361,7 @@ function TCService($resource) {
       $resource('/auth/logout/').get();
       app.authUser = {};
       app.isLoggedIn=false;
+      $.get('/index.html#/home');
     },
     get: function(id, Model) {
       var cache, obj;
@@ -392,4 +393,3 @@ function TCService($resource) {
 TCService.$inject = ['$resource',];
 
 module.exports = TCService;
-

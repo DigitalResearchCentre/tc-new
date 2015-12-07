@@ -1,14 +1,30 @@
 var $ = require('jquery');
+
 var login = {
-  loginFrame: '/auth?url=/index.html',
+  loginFrame: '/auth?url=/index.html#/home',
 };
 document.addEventListener("DOMContentLoaded", function(event) {
   var prompt=getParameterByName("prompt");
   var context=getParameterByName("context");
   var name=getParameterByName("name");
+  var link=getParameterByName("link");
   if (prompt) {
-    if (prompt=="facebook") {
-      document.getElementById("frame").setAttribute("src","/auth/facebookemail");
+    if (prompt=="alreadylocal") {
+      document.getElementById("frame").setAttribute("src","/auth/alreadylocal?context="+context+"&email="+name);
+    }
+    if (prompt=="facebooklinkemail") {
+      document.getElementById("frame").setAttribute("src","/auth/facebooklinkemail");
+    }
+    if (prompt=="facebookassocemail") {
+      document.getElementById("frame").setAttribute("src","/auth/facebookassocemail");
+    }
+    if (prompt=="showprofile") {
+      document.getElementById("frame").setAttribute("src","/auth/profile");
+      document.getElementById("frame").setAttribute("height", "350px");
+    }
+    if (prompt=="facebookconnect" && context=="") {
+      document.getElementById("frame").setAttribute("src","/auth/profile");
+      document.getElementById("frame").setAttribute("height", "350px");
     }
     if (prompt=="sendauthenticate" && context=="") {
      document.getElementById("frame").setAttribute("src","/auth/sendauthenticate?context=email");
@@ -39,12 +55,18 @@ function getParameterByName(name) {
   results = regex.exec(location.href);
   return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
-login.loadLogIn = function loadLogIn () {
-    document.getElementById("frame").setAttribute("src", "/auth?url=/index.html")
-}
 login.closeModal = function closeModal() {
-    document.getElementById("frame").setAttribute("src", "/auth?url=/index.html")
-  $('#myModal').modal('hide');
+    document.getElementById("frame").setAttribute("src", "/auth?url=/index.html#/home")
+    document.getElementById("frame").setAttribute("height", "233px");
+    //ask the database -- if the current user has a FB ac but no local, then eliminate the stray fb ac
+  //$('#myModal').modal('hide');  close in call to server
+  window.location="/auth/removeSurplusSM";
+
+}
+login.showLogProf = function showLogProf (){
+  document.getElementById("frame").setAttribute("src", "/auth/profile");
+  document.getElementById("frame").setAttribute("height", "350px");
+  $('#myModal').modal('show');
 }
 
 module.exports = login;
