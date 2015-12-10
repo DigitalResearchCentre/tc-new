@@ -7,14 +7,9 @@ var ManageCtrl = function($scope, $routeParams, $location, TCService) {
   $scope.isCreate=false;
   $scope.update = function() { 
     //is everything in order? if not, send messages and warnings
-    $scope.message=checkCommunity(TCService.app.communities, community);
-    if ($scope.message!=="") {
-      $location.path('/community/'+community._id+'/manage');
-    } else {
-      community.$update(function() {
-        $location.path('/community/' + community._id + '/manage');
-      });
-    }
+    community.$update(function() {
+      $location.path('/community/' + community._id + '/manage');
+    });
   };
 };
 ManageCtrl.$inject = [

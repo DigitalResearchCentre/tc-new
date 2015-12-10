@@ -39,7 +39,7 @@ var ProfileMemberCtrl = function($scope, $routeParams, $location, TCService) {
     };
     $scope.create=function() {
       $location.path('/community/new');
-    }
+    };
 };
 ProfileMemberCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 
@@ -163,7 +163,10 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
 CreateCommunityCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 
-var ViewCtrl = function($scope, $routeParams, $location, TCService) {
+ViewCtrl.$inject = [
+  '$scope', '$routeParams', '$location', '$timeout', 'TCService'
+];
+function ViewCtrl($scope, $routeParams, $location, $timeout, TCService) {
   console.log($routeParams);
   var params = $routeParams.params.split('/')
     , Doc = TCService.Doc
@@ -209,8 +212,19 @@ var ViewCtrl = function($scope, $routeParams, $location, TCService) {
         + '/view/' + doc._id + '/' + docs[0]._id + '/');
     });
   };
-};
-ViewCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
+
+  $scope.extractXML = function($event, doc) {
+    if (!$event.target.href) {
+      $event.preventDefault();
+      Doc.getTrees({id: doc._id}, function(data ) {
+        $event.target.href = 'data:text/xml,' + TCService.json2xml(data);
+        $timeout(function() {
+          $event.target.click();
+        });
+      });
+    }
+  };
+}
 
 function _getTei(data) {
   var docs = {}

@@ -31,6 +31,12 @@ module.exports = function(options) {
     module: {
       loaders: [
         {
+          test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
+          loader: "url?minetype=image/jpg&prefix=dist/"
+        }, {
+          test: /\.jpg(\?v=\d+\.\d+\.\d+)?$/,
+          loader: "url?minetype=image/jpg&prefix=dist/"
+        }, {
           test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
           loader: "url?minetype=application/font-woff&prefix=dist/"
         }, {

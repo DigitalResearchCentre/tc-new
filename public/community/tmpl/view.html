@@ -42,6 +42,9 @@
                                 <a href="#/community/{{community._id}}/view/{{doc._id}}">
                                   {{doc.name}}
                                 </a>
+                                <a target="_blank" class="extract-xml"
+                                  ng-click="extractXML($event, doc)">
+                                </a>
                               </div>
                               <ul>
                                 <li ng-repeat="page in doc.children">
