@@ -181,8 +181,6 @@ configAuth = config.auth;
 
   },
   function(req, token, refreshToken, profile, done) {
-    console.log('in facebook');
-    console.log(req.query);
     // asynchronous
     process.nextTick(function() {
       // check if the user is already logged in
@@ -199,7 +197,6 @@ configAuth = config.auth;
               user.facebook.token = token;
               user.facebook.name  = profile.name.givenName + ' ' + profile.name.familyName;
               user.facebook.email = profile.emails[0].value;
-              console.log("remaking the personp")
               user.save(function(err) {
                 if (err)
                   throw err;
@@ -211,7 +208,6 @@ configAuth = config.auth;
           } else {
             // if there is no user, create them
             // if we decide later to link this to existing account -- we'll have to delete this one
-            console.log("we don't have a user?");
             var newUser            = new User();
 
             newUser.facebook.id    = profile.id;
@@ -230,7 +226,6 @@ configAuth = config.auth;
       } else {
         // user already exists and is logged in, we have to link accounts
 
-        console.log("so, we are here??")
         var user            = req.user; // pull the user out of the session
 
         user.facebook.id    = profile.id;
@@ -403,7 +398,7 @@ function randomStringAsBase64Url(size) {
 }
 
 function resetpass (email, user, done, thisURL) {
-  console.log("to "+email+" dir "+__dirname);
+//  console.log("to "+email+" dir "+__dirname);
   var ejs = require('ejs')
     , fs = require('fs')
     , str = fs.readFileSync(__dirname + '/views/resetemail.ejs', 'utf8')
@@ -413,7 +408,7 @@ function resetpass (email, user, done, thisURL) {
   rendered = ejs.render(str, {
     email:email, hash:hash, username:user.local.name, url: thisURL
   });
-  console.log( TCAddresses.replyto+" "+TCAddresses.from);
+//  console.log( TCAddresses.replyto+" "+TCAddresses.from);
   user.local.timestamp=new Date().getTime();
   user.local.hash=hash;
   TCMailer.nodemailerMailgun.sendMail({

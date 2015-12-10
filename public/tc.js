@@ -126,7 +126,7 @@ function iterate(iter, cb) {
 }
 
 function teiElementEqual(el1, el2) {
-  return el1.name === el2.name && 
+  return el1.name === el2.name &&
     (el1.attrs || {}).n === (el2.attrs || {}).n;
 }
 
@@ -357,11 +357,15 @@ function TCService($resource) {
       });
     },
     logout: function() {
-      $resource('/auth/logout/').get();
+      $resource('/auth/logout/').get(function(){
+        console.log('now calling');
+        window.location = '/index.html#/home';
+    });
       app.authUser = {};
       app.isLoggedIn=false;
-      $.get('/index.html#/home');
-    },
+      //??? want to call home...cant call anything?
+  //    $.get('/index.html/', {context: 'home'});
+      },
     get: function(id, Model) {
       var cache, obj;
       if (_.isObject(id)) {

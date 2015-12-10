@@ -16,6 +16,9 @@
 			 <% if (context == "email") {%>
 			 	<p>You are registered with Textual Communities, and your account is associated with the email <b><%= user.local.email %></b>. We now need to authenticate that this email belongs to you.</p>
 			 <%}%>
+       <% if (context == "twitter") {%>
+			 	<p>You are registered with Textual Communities via Twitter, and your account is associated with the email <b><%= user.local.email %></b>. We now need to authenticate that this email belongs to you.</p>
+			 <%}%>
 			<p>An email has been sent to <%= user.local.email %>, containing a link to authenticate your Textual Communities account.</p>
 			<p>It may take a few minutes for the email to arrive. Check your spam folder if you do not see it.</p>
 </body>

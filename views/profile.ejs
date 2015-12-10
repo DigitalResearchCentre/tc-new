@@ -60,7 +60,7 @@
 			<!-- TWITTER INFORMATION -->
 			<div class="col-xs-6">
 				<div class="well">
-					<h5 class="text-info"><span class="fa fa-twitter"></span> Twitter</h5>
+					<h5 class="text-info"  style="margin:0px 5px 10px 5px"><span class="fa fa-twitter"></span> Twitter</h5>
 
 					<!-- check if the user has this token (is the user authenticated with this social account) -->
 					<% if (user.twitter.token) { %>
@@ -73,7 +73,7 @@
 
 						<a href="/auth/unlink/twitter" class="btn btn-info btn-sm">Unlink</a>
 					<% } else { %>
-						<a href="/auth/connect/twitter" class="btn btn-info btn-sm">Connect Twitter</a>
+						<a href="/auth/connect/calltwitter" target="_parent" class="btn btn-info btn-sm">Connect Twitter</a>
 					<% } %>
 
 				</div>
