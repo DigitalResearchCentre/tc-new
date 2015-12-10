@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+<head>
+    <title>Node Authentication</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+</head>
+<body class="jumbotron text-center" style="padding-top: 30px; font-size:140%">
+			<h4>Linking your twitter account</h4>
+			 <p style="text-align:left">There is already a Textual Communities account associated with "<%= local.email %>".</p>
+       <p style="text-align:left">Click link to connect your twitter account, "<%= twitter.username %>" for "<%= twitter.displayName %>", to this account</p>
+        <form action="/auth/twitterlinklocal" method="post">
+        <div style="display:none"><input type="text" name="email" value="<%= local.email %>"></div>
+        <button type="submit" class="btn btn-warning btn-md">Link</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <a href="/auth/twittercancel"> <input type="button" value="Cancel" class="btn btn-warning btn-md" style="background-color: white; color: #f0ad4e" onmouseover="this.style.background='#F5F5F5';" onmouseout="this.style.background='white';"></form>
+</body>
+</html>

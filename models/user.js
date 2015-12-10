@@ -4,7 +4,7 @@ var mongoose = require('mongoose')
   , bcrypt   = require('bcrypt-nodejs')
 ;
 
-// define the schema for our user model. 
+// define the schema for our user model.
 // Add hash and datestamp for password resets
 var userSchema = Schema({
   local            : {
@@ -58,4 +58,3 @@ userSchema.statics.MEMBER = 'MEMBER';
 
 // create the model for users and expose it to our app
 module.exports = mongoose.model('User', userSchema);
-

@@ -3,20 +3,41 @@ var $ = require('jquery');
 var login = {
   loginFrame: '/auth?url=/index.html#/home',
 };
+//gather clicks outside modals to do clean up
+$(document).click(function(event) {
+    if(!$(event.target).closest('#frame').length) {
+        if($('#frame').is(":visible")) {
+            document.getElementById("frame").setAttribute("src", "/auth/removeSurplusSM?context=outside");
+            $('#myModal').modal('show');
+        }
+    }
+})
 document.addEventListener("DOMContentLoaded", function(event) {
   var prompt=getParameterByName("prompt");
   var context=getParameterByName("context");
   var name=getParameterByName("name");
   var link=getParameterByName("link");
   if (prompt) {
+    if (prompt=="twitteremail") {
+      document.getElementById("frame").setAttribute("src","/auth/twitteremail");
+    }
     if (prompt=="alreadylocal") {
       document.getElementById("frame").setAttribute("src","/auth/alreadylocal?context="+context+"&email="+name);
     }
-    if (prompt=="facebooklinkemail") {
+    if (prompt=="googlelinkemail") {
+      document.getElementById("frame").setAttribute("src","/auth/googlelinkemail");
+    }
+  if (prompt=="facebooklinkemail") {
       document.getElementById("frame").setAttribute("src","/auth/facebooklinkemail");
+    }
+    if (prompt=="googleassocemail") {
+      document.getElementById("frame").setAttribute("src","/auth/googleassocemail");
     }
     if (prompt=="facebookassocemail") {
       document.getElementById("frame").setAttribute("src","/auth/facebookassocemail");
+    }
+    if (prompt=="resetpwExpired") {
+      document.getElementById("frame").setAttribute("src","/auth/resetpwExpired");
     }
     if (prompt=="showprofile") {
       document.getElementById("frame").setAttribute("src","/auth/profile");
@@ -26,8 +47,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
       document.getElementById("frame").setAttribute("src","/auth/profile");
       document.getElementById("frame").setAttribute("height", "350px");
     }
-    if (prompt=="sendauthenticate" && context=="") {
-     document.getElementById("frame").setAttribute("src","/auth/sendauthenticate?context=email");
+    if (prompt=="sendauthenticate") {
+     document.getElementById("frame").setAttribute("src","/auth/sendauthenticate?context="+context);
     }
     if (prompt=="authlinkExpired" && context=="") {
      document.getElementById("frame").setAttribute("src","/auth/authlinkExpired");
@@ -35,8 +56,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     if (prompt=="authlinkNotFound" && context=="") {
      document.getElementById("frame").setAttribute("src","/auth/authlinkNotFound");
     }
-    if (prompt=="resetpwExpired") {
-     document.getElementById("frame").setAttribute("src","/auth/resetpwExpired");
+    if (prompt=="TCresetpwExpired") {
+     document.getElementById("frame").setAttribute("src","/auth/TCresetpwExpired");
     }
     if (prompt=="TCauthenticateDone") {
       var query;

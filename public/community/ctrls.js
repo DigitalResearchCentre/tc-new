@@ -159,7 +159,12 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
           });
         }
     };
+    $scope.update = function() { //is everything in order? if not, send messages and warnings
+          console.log("here")
+          community.$save();
+    };
 };
+
 CreateCommunityCtrl.$inject = [
   '$scope', '$routeParams', '$location', 'TCService'];
 
@@ -205,7 +210,7 @@ var ViewCtrl = function($scope, $routeParams, $location, TCService) {
       id: entity._id, docId: doc._id
     }, function(docs) {
       $location.path(
-        '/community/' + $scope.community._id 
+        '/community/' + $scope.community._id
         + '/view/' + doc._id + '/' + docs[0]._id + '/');
     });
   };
@@ -332,7 +337,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
   $scope.commit = function() {
     var links = $scope.links;
     TCService.commit({
-      doc: $scope.page, 
+      doc: $scope.page,
       text: $scope.selectedRevision.text,
       docElement: pb,
       links: {

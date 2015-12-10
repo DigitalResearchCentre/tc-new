@@ -4,6 +4,8 @@ var express = require('express')
   , User = require('../models/user')
   , TCMailer=require('../TCMailer')
   , TCAddresses=TCMailer.addresses
+
+
 ;
 
 var TCModalState = {state:0};
@@ -21,7 +23,6 @@ var TCModalState = {state:0};
 }); */
 router.get('/', function(req, res) {
         url=req.query.url
-        console.log("url in start "+url)
         res.render('index.ejs', {url: url}); // load the index.ejs file
     });
 
@@ -32,7 +33,6 @@ router.get('/', function(req, res) {
 // show the login form
 router.get('/login', function(req, res) {
   var url=req.query.url;
-  console.log("url in get "+url)
   // render the page and pass in any flash data if it exists
   res.render('login.ejs', { message: req.flash('loginMessage'), email:"", url: url});
 });
@@ -139,9 +139,11 @@ router.post('/signup', function(req, res) {
 // =====================================
 // called from /profile, if this user is not authenticated
 router.get('/sendauthenticate', function(req, res) {
+  var user=req.user;
   authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+  req.logout();
   // render the page and pass in any flash data if it exists
-  res.render('authenticate.ejs', {user: req.user, context: req.query.context} );
+  res.render('authenticate.ejs', {user: user, context: req.query.context} );
 });
 
 router.get('/authlinkExpired', function(req, res) {
@@ -194,12 +196,12 @@ router.get('/forgot', function(req, res) {
 });
 
 router.get('/resetpwExpired', function(req, res) {
+  req.logout();
   res.render('forgothourpassed.ejs', {greeting: 'Reset password link expired', greeting2: 'For security, links to reset passwords expire after one hour.', authenticate:"0"});
 });
 
 router.get('/resetpw', function(req, res) {
   // find the user with this hash; check datestamp; get a new password
-  req.logout();
   User.findOne({ 'local.hash' :  req.query.hash }, function(err, user) {
     if (user) {
       //check the time stamp. If more than one hour ago, ask for redo
@@ -212,10 +214,15 @@ router.get('/resetpw', function(req, res) {
         res.redirect('/index.html?prompt=TCresetpw&context='+user.local.email+'&name='+user.local.name);
       }
     } else {
-      res.render('forgothourpassed.ejs', {greeting: 'No request found for that link', greeting2: 'You are likely using an old reset password link.', authenticate:"0"});
+      res.redirect('/index.html?prompt=TCresetpwExpired');
     }
   });
 });
+
+router.get('/TCresetpwExpired',  function(req, res) {
+  res.render('forgothourpassed.ejs', {greeting: 'No request found for that link', greeting2: 'You are likely using an old reset password link.', authenticate:"0"});
+});
+
 
 router.get('/TCresetpw',  function(req, res) {
   res.render('resetpw.ejs', { message: "", name: req.query.name, email:req.query.email})
@@ -251,6 +258,7 @@ router.post('/forgot', passport.authenticate('local-forgot', {
 
 router.get('/resetpwmsg', function(req, res) {
   // render the page and pass in any flash data if it exists
+  req.logout();
   res.render('resetpwmsg.ejs');
 });
 
@@ -267,7 +275,6 @@ router.get('/profile', isLoggedIn, function(req, res) {
 // =====================================
 // route for facebook authentication and login
 router.get('/callfacebook', function(req, res) {
-    console.log("calling facebook");
     TCModalState.state=1;
     res.redirect('/auth/facebook');
   }
@@ -291,16 +298,19 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   // is "complete".  If not, send them down a form to fill out more details.
   //ah... req will have the facebook user, which may NOT have been identified with the local user..
   if (isValidProfile(req.user)) {
-    console.log("you are here now "+TCModalState.state)
-    if (TCModalState.state==3) res.redirect('/index.html?prompt=showprofile');
-    else res.redirect('/index.html?prompt=showprofile');
+    if (TCModalState.state==3) res.redirect('/index.html#/profile?prompt=showprofile');
+    else res.redirect('/index.html#/profile');
   } else {
     //first, check if there is a user with this email
     User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
       if (user) {
         //there might be a facebook account already associated with this user. So tell them
         if (user.facebook.email) {
-           res.redirect("/index.html?prompt=alreadylocal&context=Facebook&name="+req.user.facebook.email);
+          //could be not authenticated -- that would get us here
+          if (user.local.authenticated=="0") {
+            res.redirect('/index.html?prompt=sendauthenticate&context=facebook');
+          }
+           else res.redirect("/index.html?prompt=alreadylocal&context=Facebook&name="+req.user.facebook.email);
         } else  {
         //we have a user with no fb account
           res.redirect('/index.html?prompt=facebookassocemail');
@@ -388,7 +398,6 @@ router.post('/facebooklinkemail', function(req, res) {
         req.logout();
         req.logIn(existingUser, function (err) {
           //ok, we are all logged in, close the dialog, call the base url, put up profile screen
-          console.log("we are a user already and authenticated");
           //put up the profile screen then
           if(!err) {
             res.render(res.render('closemodal.ejs', {url: '/index.html?prompt=showprofile'}) );
@@ -422,15 +431,29 @@ router.get('/facebooknew', function(req, res) {
 });
 
 //check if there is a surplus SM acc with this user...
-router.get('/removeSurplusSM', function(req, res) {
-  console.log(req.user)
+//also: check; if not authenticated, log out.  Handles clicks on modal backdrop too
+router.get('/removeSurplusSM', isLoggedIn, function(req, res) {
+  var context=req.query.context;
   if (req.user.facebook.email && !req.user.local.email) {
     User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
       deleteUser.remove({});
     });
-    res.redirect('/index.html#/home');
+  }
+  if (req.user.twitter.id && !req.user.local.email) {
+    User.findOne({'twitter.id': req.user.twitter.id}, function(err, deleteUser) {
+      deleteUser.remove({});
+    });
+  }
+  if (req.user.local.authenticated=="0" || req.user.local.name== undefined) {
+      req.logout();
+      if (context=="outside") res.render('closemodal.ejs', {url: "/index.html#/home"} );
+      else res.redirect('/index.html#/home');
+  } else  {
+    if (context=="outside") res.render('closemodal.ejs', {url: "/index.html#/profile"} );
+    else res.redirect('/index.html#/profile');
   }
 });
+
 //cancel this facebook linkage
 router.get('/facebookcancel', function(req, res) {
   User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
@@ -445,18 +468,32 @@ router.get('/facebookcancel', function(req, res) {
 // TWITTER ROUTES ======================
 // =====================================
 // route for twitter authentication and login
+router.get('/calltwitter', function(req, res) {
+    TCModalState.state=1;
+    res.redirect('/auth/twitter');
+  }
+);
+
+
 router.get('/twitter', passport.authenticate('twitter'));
 
 // handle the callback after twitter has authenticated the user
 router.get('/twitter/callback', passport.authenticate('twitter', {
-  failureRedirect : '/'
+  failureRedirect : '/auth/'
 }), function(req, res) {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req.user)) {
-    res.redirect('/#/profile');
+    if (TCModalState.state==3) res.redirect('/index.html#/profile?prompt=showprofile');
+    else res.redirect('/index.html#/profile');
   } else {
-    res.redirect('/auth/twitteremail');
+    if (!req.user.local.email) res.redirect('/index.html?prompt=twitteremail');
+    else {
+      if (req.user.local.authenticated=="0") {
+        authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+        res.redirect('/index.html?prompt=sendauthenticate&context=twitter');
+      }
+    }
   }
 });
 
@@ -465,6 +502,7 @@ router.get('/twitteremail', function(req, res) {
   // render the page and pass in any flash data if it exists
   res.render('twitteremail.ejs', { message: req.flash('twitterMessage'), name:req.user.twitter.displayName });
 });
+
 router.get('/twittercancel', function(req, res) {
   //logout, delete the user
   //      console.log("who I am in delete: "+req.user);
@@ -473,8 +511,37 @@ router.get('/twittercancel', function(req, res) {
   User.findOne({'twitter.id': twitterid}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.redirect('/');
+  res.render('closemodal.ejs', {url: "/index.html#/home"} );
 });
+
+router.post('/twitterlinklocal', function(req, res) {
+  User.findOne({'local.email': req.body.email}, function(err, existingUser) {
+    if (existingUser) {
+      existingUser.twitter=req.user.twitter;
+      User.findOne({'twitter.id': req.user.twitter.id}, function(err, deleteUser) {
+        deleteUser.remove({});
+      });
+      existingUser.save();
+      if (existingUser.local.authenticated=="0") {
+        authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
+        res.render('authenticate.ejs', {user: existingUser, context: "twitter"} );
+      } else {
+        req.logout();
+        req.logIn(existingUser, function (err) {
+          if(!err){
+            res.render('closemodal.ejs', {url: "/index.html#/home?prompt=showprofile"});
+          } else {
+            res.render('error.ejs', {message:"Failed to log in linked twitter account for "+req.body.email, error:err});
+          }
+      });
+    }
+  } else {
+      res.render('error.ejs', {message:"Failed to find local email account for "+req.body.email, error:err});
+  }
+ });
+});
+
+
 router.post('/twitteremail', function(req, res) {
   // render the page and pass in any flash data if it exists
   if (req.body.email!=req.body.emailconfirm) {
@@ -486,34 +553,23 @@ router.post('/twitteremail', function(req, res) {
     res.render('twitteremail.ejs', { message: "'"+req.body.email+"' is not a valid email. Try again", name:req.user.twitter.displayName});
     return;
   }
-  //ok! we have a valid email.  Write it into the local account, with the display name, and send an activation email
+  //ok! we have a valid email.
+  //if no local account with this email -- just set up.
+  //If there is a local email: If the local ac already has a twitter ac, warn and cancel
+  //If it does not have a twitter ac, then send another screen to confirm
+
   //does this email already exist for an account? if so, and there is no twitter account for this user -- just link!
 //if this is so: reset authenticate to 0 to force authentication via the email account
 
   User.findOne({'local.email': req.body.email}, function(err, existingUser) {
     if (existingUser) {
       //if there is no twitter person reg'd with this local email -- just write the details there!
-      //if there is no facebook account associated with the account -- just link this facebook ac to that
+      //if there is no twitter account associated with the account -- send a link to confirm add twitter to this
       if (!existingUser.twitter.token) {
-        existingUser.twitter=req.user.twitter;
-        existingUser.local.authenticated="0";
-        User.findOne({'twitter.id': req.user.twitter.id}, function(err, deleteUser) {
-          deleteUser.remove({});
-        });
-        existingUser.save();
-        //log out current user; log in existingUser
-        req.logout();
-        req.logIn(existingUser, function (err) {
-          if(!err){
-            res.redirect('/auth/profile');
-          }else{
-            //handle error
-          }
-        });
-        return;
+        res.render('twitterlinklocal.ejs', {twitter: req.user.twitter, local: existingUser.local});
       }
       else {
-        res.render('twitteremail.ejs', { message: "There is already a Textual Communities user identified by the email '"+req.body.email+"'. If you want to link this twitter account to that account, log in with that email address and then link the twitter account.", name:req.user.twitter.displayName});
+        res.render('twitteremail.ejs', { message: "There is already a Twitter account linked to the Textual Communities user identified by the email '"+req.body.email+"'. If you want to link this twitter account to that account, log in with that email and unlink the Twitter account from \"Login Profile\".", name:req.user.twitter.displayName});
         return;
       }
     } else {
@@ -523,7 +579,8 @@ router.post('/twitteremail', function(req, res) {
       req.user.local.password=req.user.generateHash("X"); //place holder
       req.user.local.authenticated= "0";
       req.user.save();
-      res.redirect('/auth/profile?context=twitter');
+      authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+      res.render('authenticate.ejs', {context:"twitter", user: req.user});
     }
   });
 });
@@ -536,27 +593,113 @@ router.post('/twitteremail', function(req, res) {
 // send to google to do the authentication
 // profile gets us their basic information including their name
 // email gets their emails
+router.get('/callgoogle', function(req, res) {
+    TCModalState.state=1;
+    res.redirect('/auth/google');
+  }
+);
+
+
 router.get('/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
 
 // the callback after google has authenticated the user
 router.get('/google/callback', passport.authenticate('google', {
   scope: 'email',
-  failureRedirect : '/'
+  failureRedirect : '/auth/'
 }), function(req, res) {
   // The user has authenticated with google.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
-  console.log("hi");
   if (isValidProfile(req.user)) {
-    res.redirect('/#/profile');
+    if (TCModalState.state==3) res.redirect('/index.html#/profile?prompt=showprofile');
+    else res.redirect('/index.html#/profile');
   } else {
-    res.redirect('/auth/googleemail');
+    User.findOne({'local.email':  req.user.google.email }, function(err, user) {
+      //there might be a google account already associated with this user. So tell them
+      if (user) {
+        if (user.google.email) {
+          //could be not authenticated -- that would get us here
+          if (user.local.authenticated=="0") {
+            res.redirect('/index.html?prompt=sendauthenticate&context=google');
+          }
+           else res.redirect("/index.html?prompt=alreadylocal&context=Google&name="+req.user.google.email);
+        } else  {
+        //we have a user with no google account
+          res.redirect('/index.html?prompt=googleassocemail');
+        }
+      } else {res.redirect('/index.html?prompt=googlelinkemail');}
+    });
   }
 });
 
+router.get('/googleassocemail', function(req, res) {
+    res.render('associate.ejs', { email: req.user.google.email, context:"Google", linkname: "google"});
+});
+
+router.get('/googlelinkemail', function(req, res) {
+  res.render('googleemail.ejs', { message: "", google:req.user.google});
+});
+
+router.post('/googlelinkemail', function(req, res) {
+  // render the page and pass in any flash data if it exists
+  if (req.body.email!=req.body.emailconfirm) {
+    res.render('googleemail.ejs', { message: "Email '"+req.body.email+"' and confirm email '"+req.body.emailconfirm+"' do not match. Try again", google:req.user.google});
+    return;
+  }
+  var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  if (!req.body.email.match(mailformat)) {
+    res.render('googleemail.ejs', { message: "'"+req.body.email+"' is not a valid email. Try again", google:req.user.google});
+    return;
+  }
+  //ok! we have a valid email.  Write it into the local account, with the display name, and send an activation email
+  //does this email already exist for an account? if so, and there is no facebook account for this user -- just link!
+  //if this is so: reset authenticate to 0 to force authentication via the email account
+  //also: need to delete the facebook account we just made with this id...
+  //save the values we need, delete th fb ac we just made
+  User.findOne({'local.email': req.body.email}, function(err, existingUser) {
+    if (existingUser) {
+      //if there is no google person reg'd with this local email -- just write the details there!
+
+      if (!existingUser.google.token) {
+        existingUser.google=req.user.google;
+        //this can't delete the wrong one, because we have not yet saved this one
+        User.findOne({'google.id': req.user.google.id}, function(err, deleteUser) {
+          deleteUser.remove({});
+          existingUser.save(); //in case of synchrony -- we don't need the separate one we just made
+        });
+        if (!isValidProfile(existingUser)) {
+          authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
+          res.render('authenticate.ejs', {context:"google", user: existingUser})
+          return;
+        }
+        //do we need this? yes...
+          //log out current user; log in existingUser
+        req.logout();
+        req.logIn(existingUser, function (err) {
+          //ok, we are all logged in, close the dialog, call the base url, put up profile screen
+          //put up the profile screen then
+          if(!err) {
+            res.render(res.render('closemodal.ejs', {url: '/index.html?prompt=showprofile'}) );
+            return;
+          } else{		//handle error
+          } });
+          return;
+      }
+      else {
+        //already have such a fb ac! delete the one we just made, then
+        res.render('googleemail.ejs', { message: "There is already a Facebook account for the Textual Communities user identified by the email '"+req.body.email+"'. If you want to link this Google account to that account, log in with that email address, unlink the existing Google account and then link this Google account.", google:req.user.google});
+        return;
+      }
+    }
+    else {
+      res.render('googlemail.ejs', { message: "There is no Textual Communities account identified by the email '"+req.body.email+"'. If you want to start a new account identified by that email, go back to the sign up screen.", google:req.user.google});
+    }
+  });
+});
+
+//do we use this one now at all???
 router.get('/googleemail', function(req, res) {
-  //can only be here because facebook has registered user, but as yet not associated with any main email
-  //so check: if our facebook email does not belong to an existing user, then just write primary fb email to local email
-  // and pass on to profile, to carry out authentication
+  //can only be here because google has registered user, but as yet not associated with any main email
+  //so check: if our google email does not belong to an existing user, then just write primary google email to local email
   User.findOne({ 'local.email' :  req.user.google.email }, function(err, user) {
     if (!user) {
       //let's redirect -- ask if we want to associate with an existing account or not
@@ -641,7 +784,7 @@ router.get('/googlecancel', function(req, res) {
   User.findOne({'google.id': req.user.google.id}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.redirect('/');
+  res.render('closemodal.ejs', {url: "/index.html#/home"});
 });
 
 
@@ -655,30 +798,19 @@ router.get('/googlecancel', function(req, res) {
 router.get('/connect/callfacebook', function(req, res){
     TCModalState.state=3;
     //to be here; we must be logged in; so just write the facebook values into the local
-    res.redirect('/auth/connect/facebook')
+    res.redirect('/auth/facebook')
   });
 
-// send to facebook to do the authentication
-router.get('/connect/facebook', passport.authorize('facebook', { scope : 'email', context:'connect' }),
-  function(req, res){
-    console.log("in connect")
-  });
 
-// handle the callback after facebook has authorized the user
-router.get('/connect/facebook/callback', function(req, res) {
-  res.redirect("/auth/profile")
-});
 
 // twitter --------------------------------
 
 // send to twitter to do the authentication
-router.get('/connect/twitter', passport.authorize('twitter', { scope : 'email' }));
-
-// handle the callback after twitter has authorized the user
-router.get('/connect/twitter/callback', passport.authorize('twitter', {
-  successRedirect : '/#/profile',
-  failureRedirect : '/auth/'
-}));
+router.get('/connect/calltwitter', function(req, res){
+    TCModalState.state=3;
+    //to be here; we must be logged in; so just write the facebook values into the local
+    res.redirect('/auth/twitter')
+  });
 
 
 // google ---------------------------------
@@ -695,24 +827,12 @@ router.get('/connect/google/callback', passport.authorize('google', {
 // =============================================================================
 // UNLINK ACCOUNTS =============================================================
 // =============================================================================
-// used to unlink accounts. for social accounts, just remove the token
-// for local account, remove email and password
-// user account will stay active in case they want to reconnect in the future
-
-// local -----------------------------------
-router.get('/unlink/local', function(req, res) {
-  var user            = req.user;
-  user.local.email    = undefined;
-  user.local.password = undefined;
-  user.save(function(err) {
-    res.redirect('/auth/profile');
-  });
-});
+// used to unlink accounts. for social accounts, remove
+// cannot unlinke local
 
 // facebook -------------------------------
 router.get('/unlink/facebook', function(req, res) {
   var user            = req.user;
-  console.log(user);
   user.facebook = undefined;
   user.save(function(err) {
     res.redirect('/auth/profile');
@@ -722,7 +842,7 @@ router.get('/unlink/facebook', function(req, res) {
 // twitter --------------------------------
 router.get('/unlink/twitter', function(req, res) {
   var user           = req.user;
-  user.twitter.token = undefined;
+  user.twitter = undefined;
   user.save(function(err) {
     res.redirect('/auth/profile');
   });
@@ -753,7 +873,7 @@ function isLoggedIn(req, res, next) {
     return next();
 
   // if they aren't redirect them to the home page
-  res.redirect('/');
+  res.redirect('/index.html');
 }
 
 

@@ -55,6 +55,7 @@ tcApp.controller('AppCtrl', [
     }
   });
   $scope.logout = function() {
+
     TCService.logout();
   };
   $scope.login = login;
@@ -92,5 +93,3 @@ _.assign(AppCtrl.prototype, {
 AppCtrl.$inject = ['TCService', '$q', '$http', '$location', '$window'];
 tcApp.controller('AppCtrl', AppCtrl);
 */
-
-

@@ -5,9 +5,10 @@ var ManageCtrl = function($scope, $routeParams, $location, TCService) {
   $scope.manageBaseUrl = '/community/' + community._id + '/manage/';
 
   $scope.isCreate=false;
-  $scope.update = function() { 
+  $scope.update = function() {
     //is everything in order? if not, send messages and warnings
-    $scope.message=checkCommunity(TCService.app.communities, community);
+  //  $scope.message=checkCommunity(TCService.app.communities, community);
+  $scope.message="";
     if ($scope.message!=="") {
       $location.path('/community/'+community._id+'/manage');
     } else {
