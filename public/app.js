@@ -65,6 +65,8 @@ tcApp.controller('AppCtrl', [
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
 
+tcApp.directive('tcHeader', require('tc-header/tc-header.js'));
+
 
 /*
 var AppCtrl = function(TCService, $q, $http, $location, $window) {

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 $(npm bin)/nodemon ./bin/www &
 cd public
 node index.js &
