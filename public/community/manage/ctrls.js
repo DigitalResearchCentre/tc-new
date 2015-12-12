@@ -1,6 +1,6 @@
 var ManageCtrl = function($scope, $routeParams, $location, TCService) {
   var community = $scope.community = $scope.$parent.community;
-
+  //
   $scope.tmpl = $routeParams.params.split('/')[1] || 'edit-community';
   $scope.manageBaseUrl = '/community/' + community._id + '/manage/';
 
@@ -44,6 +44,7 @@ var AddXMLDocCtrl = function($scope, $routeParams, TCService) {
   };
 };
 AddXMLDocCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
+
 
 module.exports = {
   ManageCtrl: ManageCtrl,

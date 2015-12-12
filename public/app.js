@@ -47,6 +47,7 @@ tcApp.controller('AppCtrl', [
   var Community = TCService.Community;
 
   $scope.hideHeader = false;
+  $scope.source="default";
   $scope.app = TCService.app;
   var authUser = TCService.app.authUser;
   authUser.$promise.then(function() {
@@ -62,6 +63,11 @@ tcApp.controller('AppCtrl', [
   $scope.$watch('login.loginFrame', function (){
       console.log(login);
   });
+  $scope.loadModal = function(which) {
+    console.log(which);
+    $scope.source=which;
+    $('#manageModal').modal('show');
+  }
   console.log(location.pathname);
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
