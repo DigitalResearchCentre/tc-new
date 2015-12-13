@@ -18,10 +18,11 @@ ManageCtrl.$inject = [
 
 
 var AddXMLDocCtrl = function($scope, $routeParams, TCService) {
-  var community = $scope.$parent.community
+  var communityId = $routeParams.communityId
     , Doc = TCService.Doc
     , doc = new Doc()
   ;
+  var community = TCService.app.communities.filter(function (obj){ return obj._id === communityId;})[0];
   $scope.doc = doc;
   $scope.text = '';
 
@@ -33,7 +34,9 @@ var AddXMLDocCtrl = function($scope, $routeParams, TCService) {
         TCService.commit({
           doc: doc,
           text: $scope.text || $scope.filereader,
-        });
+        }), function (){
+          console.log("DONE")
+        };
       });
     } else {
       TCService.commit({
