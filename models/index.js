@@ -744,7 +744,10 @@ function _parseTei(teiRoot, docRoot) {
       cur.docs = docMap[cur.doc].ancestors.concat(cur.doc);
       delete cur.doc;
     }
-    if (_.isNumber(cur.prevChildIndex) && cur.prevChildIndex  > -1){
+    if (
+      (_.isNumber(cur.prevChildIndex) && cur.prevChildIndex > -1) ||
+      (_.isNumber(cur.nextChildIndex) && cur.nextChildIndex > -1)
+    ){
       if (!continueTeis[cur._id]) {
         continueTeis[cur._id] = cur;
       }
