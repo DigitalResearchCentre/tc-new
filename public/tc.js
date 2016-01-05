@@ -77,8 +77,10 @@ function parseXML(text) {
 }
 
 function xmlDoc2json(xmlDoc) {
+  window.xx = xmlDoc;
   var queue = []
-    , obj = createObjTree(xmlDoc.childNodes[0], queue)
+    , text = xmlDoc.evaluate('//tei:text', xmlDoc, teiNsResolver).iterateNext()
+    , obj = createObjTree(text, queue)
   ;
   while (queue.length > 0) {
     var item = queue.shift()
@@ -155,7 +157,6 @@ function checkLinks(teiRoot, links, docElement) {
     delete docElement._id;
     cur.children.unshift(docElement);
   }
-  console.log(cur.children);
   cur = {
     children: [teiRoot],
   };
@@ -178,15 +179,23 @@ function checkLinks(teiRoot, links, docElement) {
   }
 }
 
+function teiNsResolver(prefix) {
+  return {
+    'tei': 'http://www.tei-c.org/ns/1.0',
+    'det': 'http://textualcommunities.usask.ca/'
+  }[prefix] || 'http://www.tei-c.org/ns/1.0';
+}
+
 function parseTEI(text) {
   var xmlDoc = parseXML(text);
   _.each([
-    '//body/div[@n]',
-    '//body/div[@n]/head[@n]',
-    '//body/div[@n]/ab[@n]',
-    '//body/div[@n]/l[@n]',
+    '//tei:body/tei:div[@n]',
+    '//tei:body/tei:div[@n]/tei:head[@n]',
+    '//tei:body/tei:div[@n]/tei:ab[@n]',
+    '//tei:body/tei:div[@n]/tei:l[@n]',
   ], function(xpath) {
-    var iter = xmlDoc.evaluate(xpath, xmlDoc)
+
+    var iter = xmlDoc.evaluate(xpath, xmlDoc, teiNsResolver)
       , cur = iter.iterateNext()
     ;
     while(cur) {

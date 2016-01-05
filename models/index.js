@@ -684,8 +684,10 @@ function _parseTei(teiRoot, docRoot) {
   queue = [teiRoot];
   _.defaults(teiRoot, {
     ancestors: [],
+    children: [],
     _id: new OId(),
   });
+
   while (queue.length > 0) {
     cur = queue.shift();
     if (cur.name === '#text') {
@@ -891,7 +893,7 @@ function _commitTEI(continueTeis, teis, callback) {
 _.assign(DocSchema.methods, baseDoc.methods, {
   commit: function(data, callback) {
     var self = this
-      , teiRoot = data.tei
+      , teiRoot = data.tei || {}
       , docRoot = self.toObject()
       , continueTeis
     ;
