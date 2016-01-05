@@ -22,7 +22,7 @@ module.exports = function(options) {
   return {
     context: clientRoot,
     entry: {
-      vendor: path.join(clientRoot, 'vendor.js'),
+      //vendor: path.join(clientRoot, 'vendor.js'),
       app: [path.join(clientRoot, 'app.js')],
     },
     output: {
