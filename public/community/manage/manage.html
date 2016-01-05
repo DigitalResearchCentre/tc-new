@@ -11,7 +11,7 @@
             <li><a href="#">Delete Document</a></li>
             <li><a href="#">Edit Document Pages</a></li>
             <li><a href="#">Rename Document</a></li>
-            <li><a href="#">Get Document XML</a></li>
+            <li><a ng-click="loadModal('get-xml-document')">Get Document XML</a></li>
           </ul>
         </li>
         <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Segmenting<span class="caret"></span></a>
@@ -45,6 +45,7 @@
       </ul>
     </nav>
   </div>
+
 
   <div ng-include="'community/manage/tmpl/' + tmpl + '.html'">
   </div>

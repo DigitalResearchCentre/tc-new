@@ -89,7 +89,6 @@ var CommunityCtrl = function($scope, $routeParams, TCService) {
       , Community = TCService.Community
       , community
     ;
-    console.log('this is community ctrl');
     var user=TCService.app.authUser;
     var tabs = {
       'about': 'tmpl/about.html',

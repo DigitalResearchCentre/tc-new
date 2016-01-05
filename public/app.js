@@ -42,8 +42,6 @@ tcApp
 tcApp.controller('AppCtrl', [
   '$scope', 'TCService', '$q', '$http', '$location', '$window',
   function($scope, TCService, $q, $http, $location, $window) {
-
-    console.log('this is app ctrl');
   var Community = TCService.Community;
 
   $scope.hideHeader = false;
@@ -56,7 +54,6 @@ tcApp.controller('AppCtrl', [
     }
   });
   $scope.logout = function() {
-
     TCService.logout();
   };
   $scope.login = login;
@@ -72,7 +69,10 @@ tcApp.controller('AppCtrl', [
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
 
+
 tcApp.directive('tcHeader', require('tc-header/tc-header.js'));
+
+
 
 
 /*

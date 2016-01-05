@@ -13,12 +13,13 @@ communityModule
   .controller('ViewerCtrl', ctrls.ViewerCtrl)
   .controller('ManageCtrl', manageCtrls.ManageCtrl)
   .controller('AddXMLDocCtrl', manageCtrls.AddXMLDocCtrl)
+  .controller('GetXMLDocCtrl', manageCtrls.GetXMLDocCtrl)
   .controller('UpLoadCtrl', ctrls.UpLoadCtrl)
   .directive('communityHeader', require('./header'))
   .directive('resizer', require('../resizer'))
   .directive('readMore', require('../readmore'))
   .directive('codemirror', require('./codemirror'))
   .directive('filereader', require('../directives/filereader'))
-;
+  .directive('modaldraggable', require('../directives/modaldraggable'))
 
 module.exports = communityModule;

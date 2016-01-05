@@ -45,7 +45,7 @@ var ViewCtrl = function($routeParams, $location, $scope, TCService) {
       id: entity._id, docId: doc._id
     }, function(docs) {
       $location.path(
-        '/community/' + vm.community._id 
+        '/community/' + vm.community._id
         + '/view/' + doc._id + '/' + docs[0]._id + '/');
     });
   };
@@ -146,7 +146,7 @@ var ViewerCtrl = function($routeParams, TCService) {
   vm.commit = function() {
     var links = vm.links;
     TCService.commit({
-      doc: vm.page, 
+      doc: vm.page,
       text: vm.selectedRevision.text,
       docElement: pb,
       links: {
@@ -167,4 +167,3 @@ var ViewerCtrl = function($routeParams, TCService) {
   };
 };
 ViewerCtrl.$inject = ['$routeParams', 'TCService'];
-

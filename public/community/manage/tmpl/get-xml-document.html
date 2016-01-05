@@ -1,0 +1,7 @@
+<div ng-controller="GetXMLDocCtrl">
+  <select ng-model="getXMLDoc" ng-options="doc._id as doc.name for doc in community.documents" ng-change="getDocumentXML()">
+    <option value="">Select document</option>
+  </select>
+  <p>chosen: {{getXMLDoc}}</p>
+  <div><pre>{{docXML}}</pre></div>
+</div>
