@@ -79,7 +79,7 @@ function parseXML(text) {
 function xmlDoc2json(xmlDoc) {
   window.xx = xmlDoc;
   var queue = []
-    , text = xmlDoc.evaluate('//tei:text', xmlDoc, teiNsResolver).iterateNext()
+    , text = xpath(xmlDoc, '//tei:text|//text').iterateNext()
     , obj = createObjTree(text, queue)
   ;
   while (queue.length > 0) {
@@ -179,11 +179,24 @@ function checkLinks(teiRoot, links, docElement) {
   }
 }
 
-function teiNsResolver(prefix) {
-  return {
-    'tei': 'http://www.tei-c.org/ns/1.0',
-    'det': 'http://textualcommunities.usask.ca/'
-  }[prefix] || 'http://www.tei-c.org/ns/1.0';
+function xpath(xmlDoc, expr) {
+  var nsResolver = xmlDoc.createNSResolver(
+    xmlDoc.ownerDocument === null ?
+      xmlDoc.documentElement :
+      xmlDoc.ownerDocument.documentElement
+  );
+
+  function teiNSResolver(prefix) {
+    var ns = nsResolver.lookupNamespaceURI(prefix)
+      , nsMap = {
+        'tei': 'http://www.tei-c.org/ns/1.0',
+        'det': 'http://textualcommunities.usask.ca/'
+      }
+    ;
+    return ns || nsMap[prefix] || nsMap.tei;
+  }
+
+  return xmlDoc.evaluate(expr, xmlDoc, teiNSResolver);
 }
 
 function parseTEI(text) {
@@ -193,9 +206,8 @@ function parseTEI(text) {
     '//tei:body/tei:div[@n]/tei:head[@n]',
     '//tei:body/tei:div[@n]/tei:ab[@n]',
     '//tei:body/tei:div[@n]/tei:l[@n]',
-  ], function(xpath) {
-
-    var iter = xmlDoc.evaluate(xpath, xmlDoc, teiNsResolver)
+  ], function(expr) {
+    var iter = xpath(xmlDoc, expr)
       , cur = iter.iterateNext()
     ;
     while(cur) {

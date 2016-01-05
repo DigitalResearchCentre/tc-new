@@ -33,12 +33,16 @@ var AddXMLDocCtrl = function($scope, $routeParams, TCService) {
         TCService.commit({
           doc: doc,
           text: $scope.text || $scope.filereader,
+        }, {}, function() {
+          alert('success');
         });
       });
     } else {
       TCService.commit({
         doc: doc,
         text: $scope.text || $scope.filereader,
+      }, {}, function() {
+        alert('success');
       });
     }
   };
