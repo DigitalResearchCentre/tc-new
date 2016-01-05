@@ -1,18 +1,26 @@
-<form action="" ng-controller="AddXMLDocCtrl">
+<div class="community-edit" style="width:500px" ng-controller="AddXMLDocCtrl">
+<form action="">
+  <div ng-if="message.length>0" class="alert alert-danger">
+    {{message}}
+  </div>
+  <div ng-if="success.length>0" class="alert alert-success">
+    {{success}}
+  </div>
   <div class="form-group">
-    <label>Name</label>
-    <input type="text" class="form-control" placeholder="Name"
+    <label>Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+    <input type="text" style="width: 250px; display: inline-block" class="form-control" placeholder="Name"
       ng-model="doc.name">
   </div>
   <div class="form-group">
-    <label>XML</label>
-    <textarea ng-model="text">
+    <label style="display: inline-block; vertical-align: top">XML&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+    <textarea ng-model="text" cols="32">
     </textarea>
   </div>
   <div class="form-group">
-    <label>XML file</label>
-    <input type="file" x-filereader=""/>
-  </div>
-  <button type="button" class="btn btn-default" ng-click="submit()"
+    <label>XML file&nbsp;&nbsp;&nbsp;&nbsp;</label>
+    <input style="width: 250px; display: inline-block" type="file" x-filereader=""/>
+    <button style="float:right" type="button" class="btn btn-primary" ng-click="submit()"
     >Create</button>
+  </div>
 </form>
+</div>

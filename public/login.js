@@ -1,4 +1,7 @@
 var $ = require('jquery');
+//require('jquery-ui/draggable');
+//require('jquery-ui/resizable');
+//require('jquery-ui/dialog');
 
 var login = {
   loginFrame: '/auth?url=/index.html#/home',
@@ -12,11 +15,15 @@ $(document).click(function(event) {
         }
     }
 })
+
+
+
 document.addEventListener("DOMContentLoaded", function(event) {
   var prompt=getParameterByName("prompt");
   var context=getParameterByName("context");
   var name=getParameterByName("name");
   var link=getParameterByName("link");
+
   if (prompt) {
     if (prompt=="twitteremail") {
       document.getElementById("frame").setAttribute("src","/auth/twitteremail");

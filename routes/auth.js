@@ -12,15 +12,7 @@ var TCModalState = {state:0};
 // =====================================
 // HOME PAGE (with login links) ========
 // =====================================
-/* router.get('/', function(req, res) {
-  console.log(req.isAuthenticated());
-  if (req.isAuthenticated()) {
-    console.log(req.user);
-    res.json(req.user);
-  } else {
-    res.json({});
-  }
-}); */
+
 router.get('/', function(req, res) {
         url=req.query.url
         res.render('index.ejs', {url: url}); // load the index.ejs file
@@ -38,13 +30,7 @@ router.get('/login', function(req, res) {
 });
 
 // process the login form
-/*
-router.post('/login', passport.authenticate('local-login', {
-  successRedirect : '#/index.htm?prompt=redirectModal', // redirect to the secure profile section
-  failureRedirect : '/auth/login', // redirect back to the signup page if there is an error
-  failureFlash : true // allow flash messages
-}));
-*/
+
 router.post('/login', function(req, res, next) {
   // callback with email and password from our form
    // find a user whose email is the same as the forms email
@@ -818,7 +804,7 @@ router.get('/connect/calltwitter', function(req, res){
 // send to google to do the authentication
 router.get('/connect/google', passport.authorize('google', { scope : ['profile', 'email'] }));
 
-// the callback after google has authorized the user
+// the callback after google has authorized the user.. I don't think this called at all now
 router.get('/connect/google/callback', passport.authorize('google', {
   successRedirect : '/#/profile',
   failureRedirect : '/'

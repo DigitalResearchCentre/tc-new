@@ -42,11 +42,10 @@ tcApp
 tcApp.controller('AppCtrl', [
   '$scope', 'TCService', '$q', '$http', '$location', '$window',
   function($scope, TCService, $q, $http, $location, $window) {
-
-    console.log('this is app ctrl');
   var Community = TCService.Community;
 
   $scope.hideHeader = false;
+  $scope.source="default";
   $scope.app = TCService.app;
   var authUser = TCService.app.authUser;
   authUser.$promise.then(function() {
@@ -55,18 +54,25 @@ tcApp.controller('AppCtrl', [
     }
   });
   $scope.logout = function() {
-
     TCService.logout();
   };
   $scope.login = login;
   $scope.$watch('login.loginFrame', function (){
       console.log(login);
   });
+  $scope.loadModal = function(which) {
+    console.log(which);
+    $scope.source=which;
+    $('#manageModal').modal('show');
+  }
   console.log(location.pathname);
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
 
+
 tcApp.directive('tcHeader', require('tc-header/tc-header.js'));
+
+
 
 
 /*
