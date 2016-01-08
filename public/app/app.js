@@ -1,14 +1,45 @@
-AppComponent = ng.core
-  .Component({
-    selector: 'tc-app',
-    template: '<h1>hello</h1>'
-  })
-  .Class({
-    constructor: function() {
-      
-    },
-  })
-;
+require('bootstrap');
+require('./app.less');
+
+AppComponent = ng.core.Component({
+  selector: 'tc-app',
+  template: '<h1>hello</h1>'
+}).Class({
+  constructor: function() {
+    var Community = TCService.Community;
+
+    this.hideHeader = false;
+    this.source="default";
+    this.app = TCService.app;
+
+    var authUser = TCService.app.authUser;
+    authUser.$promise.then(function() {
+      if (!authUser.local) {
+        //TCService.login('boy198512@gmail.com', 'test');
+      }
+    });
+    this.login = login;
+    $scope.$watch('login.loginFrame', function (){
+      console.log(login);
+    });
+    console.log(location.pathname);
+    this.loginFrame = '/auth?url=/index.html';
+  },
+  logout: function() {
+    TCService.logout();
+  },
+  loadModal: function(which) {
+    console.log(which);
+    $scope.source=which;
+    $('#manageModal').modal('show');
+  },
+});
+
+tcApp.controller('AppCtrl', [
+  '$scope', 'TCService', '$q', '$http', '$location', '$window',
+  function($scope, TCService, $q, $http, $location, $window) {
+}]);
+
 
 module.exports = AppComponent;
 
@@ -20,10 +51,6 @@ var $ = require('jquery')
   , TCService = require('tc')
   , login = require('./login.js')
 ;
-require('./app.less');
-require('bootstrap');
-
-require('vendor');
 
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
@@ -58,35 +85,6 @@ tcApp
   .factory('TCService', TCService)
 ;
 
-tcApp.controller('AppCtrl', [
-  '$scope', 'TCService', '$q', '$http', '$location', '$window',
-  function($scope, TCService, $q, $http, $location, $window) {
-  var Community = TCService.Community;
-
-  $scope.hideHeader = false;
-  $scope.source="default";
-  $scope.app = TCService.app;
-  var authUser = TCService.app.authUser;
-  authUser.$promise.then(function() {
-    if (!authUser.local) {
-      //TCService.login('boy198512@gmail.com', 'test');
-    }
-  });
-  $scope.logout = function() {
-    TCService.logout();
-  };
-  $scope.login = login;
-  $scope.$watch('login.loginFrame', function (){
-      console.log(login);
-  });
-  $scope.loadModal = function(which) {
-    console.log(which);
-    $scope.source=which;
-    $('#manageModal').modal('show');
-  };
-  console.log(location.pathname);
-  $scope.loginFrame = '/auth?url=/index.html';
-}]);
 
 
 tcApp.directive('tcHeader', require('tc-header/tc-header.js'));
