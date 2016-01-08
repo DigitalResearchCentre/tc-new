@@ -1,3 +1,18 @@
+AppComponent = ng.core
+  .Component({
+    selector: 'tc-app',
+    template: '<h1>hello</h1>'
+  })
+  .Class({
+    constructor: function() {
+      
+    },
+  })
+;
+
+module.exports = AppComponent;
+
+
 var $ = require('jquery')
   , _ = require('lodash')
   , angular = require('angular')
@@ -15,6 +30,8 @@ var tcApp = angular.module('TCApp', [
   'ngRoute', 'ngResource', 'ngSanitize', 'jdFontselect',
   require('./community').name,
 ]);
+
+
 tcApp
   .config(function($routeProvider) {
     $routeProvider.when('/', {
@@ -66,7 +83,7 @@ tcApp.controller('AppCtrl', [
     console.log(which);
     $scope.source=which;
     $('#manageModal').modal('show');
-  }
+  };
   console.log(location.pathname);
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
