@@ -156,7 +156,7 @@ router.get('/authenticateTC', function(req, res) {
         user.save();
           //log me in
         req.logIn(user, function (err) {
-          res.redirect('/index.html#/profile?prompt=TCauthenticateDone&context=newuser');
+          res.redirect('/index.html?prompt=TCauthenticateDone&context=newuser');
           return;
         });
       return;
@@ -284,8 +284,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   // is "complete".  If not, send them down a form to fill out more details.
   //ah... req will have the facebook user, which may NOT have been identified with the local user..
   if (isValidProfile(req.user)) {
-    if (TCModalState.state==3) res.redirect('/index.html#/profile?prompt=showprofile');
-    else res.redirect('/index.html#/profile');
+      res.redirect('/index.html');
   } else {
     //first, check if there is a user with this email
     User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
@@ -425,6 +424,11 @@ router.get('/removeSurplusSM', isLoggedIn, function(req, res) {
       deleteUser.remove({});
     });
   }
+  if (req.user.google.email && !req.user.local.email) {
+    User.findOne({'google.id': req.user.google.id}, function(err, deleteUser) {
+      deleteUser.remove({});
+    });
+  }
   if (req.user.twitter.id && !req.user.local.email) {
     User.findOne({'twitter.id': req.user.twitter.id}, function(err, deleteUser) {
       deleteUser.remove({});
@@ -435,8 +439,8 @@ router.get('/removeSurplusSM', isLoggedIn, function(req, res) {
       if (context=="outside") res.render('closemodal.ejs', {url: "/index.html#/home"} );
       else res.redirect('/index.html#/home');
   } else  {
-    if (context=="outside") res.render('closemodal.ejs', {url: "/index.html#/profile"} );
-    else res.redirect('/index.html#/profile');
+    if (context=="outside") res.render('closemodal.ejs', {url: "/index.html"} );
+    else res.redirect('/index.html');
   }
 });
 
@@ -470,8 +474,8 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req.user)) {
-    if (TCModalState.state==3) res.redirect('/index.html#/profile?prompt=showprofile');
-    else res.redirect('/index.html#/profile');
+    if (TCModalState.state==3) res.redirect('/index.html?prompt=showprofile');
+    else res.redirect('/index.html');
   } else {
     if (!req.user.local.email) res.redirect('/index.html?prompt=twitteremail');
     else {
@@ -596,8 +600,8 @@ router.get('/google/callback', passport.authenticate('google', {
   // The user has authenticated with google.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req.user)) {
-    if (TCModalState.state==3) res.redirect('/index.html#/profile?prompt=showprofile');
-    else res.redirect('/index.html#/profile');
+    if (TCModalState.state==3) res.redirect('/index.html?prompt=showprofile');
+    else res.redirect('/index.html');
   } else {
     User.findOne({'local.email':  req.user.google.email }, function(err, user) {
       //there might be a google account already associated with this user. So tell them
@@ -762,7 +766,9 @@ router.get('/googlenew', function(req, res) {
   req.user.local.password=req.user.generateHash("X"); //place holder
   req.user.local.authenticated= "0";
   req.user.save();
-  res.redirect('/auth/profile?context=google');
+  //now we send the email from here and here alone
+  authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+  res.render('authenticate.ejs', {context:"google", user: req.user});
 });
 
 //cancel this google linkage

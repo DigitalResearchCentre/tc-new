@@ -1,0 +1,64 @@
+<div ng-controller="AddDocPageCtrl" style="font-size: 110%">
+  <div modaldraggable class="modalHeader">Add Page (or Pages) to Document "{{docname}}"
+    <button type="button" ng-click="closeManageModal()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div ng-if="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+    {{message}}
+  </div>
+  <div ng-if="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
+    {{success}}
+  </div>
+<div class="container-fluid" style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 110%">
+  <div class="row">
+    <div class="col-md-2"><b>EITHER</b></div>
+    <div class="col-md-3">One page</div>
+    <div class="col-md-6">Page name and image</div>
+    <div class="col-md-1"><label><input ng-click="showSingle()" type="radio" name="optradio" checked="checked"></label></div>
+  </div>
+  <div class="row">
+    <div class="col-md-2"><b>OR</b></div>
+    <div class="col-md-3">Many pages</div>
+    <div class="col-md-6">From a zip file/dragging files</div>
+    <div class="col-md-1"><label><input type="radio" name="optradio" ng-click="showMany()"></label></div>
+  </div>
+</div>
+
+<div id="MMADPsingle"  style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px">
+  <p style="text-align: center; font-size: 110%"><b>One page</b></p>
+  <p style="font-size: 110%">Name the page, get an image for it</p>
+  <div class="form-group">
+    <label style="font-weight: normal">Page name&nbsp;&nbsp;</label>
+    <input type="text" style="width: 100px; display: inline-block" class="form-control"  placeholder="Name"
+      ng-model="page.name">
+  </div>
+  <div class="form-group">
+    <label style="font-weight: normal">Image file on your computer: <input type="radio"  checked="checked" name="MMAPPSF" ng-click="fromFile()"></input>
+      Or on the web: <input type="radio" name="MMAPPSF" ng-click="fromWeb()"></input>
+    </label>
+    <div class="form-group" id="MMAPPSingleFile">
+      <input  style="width: 250px; display: inline-block" type="file" x-filereader=""/>
+    </div>
+  </div>
+  <div class="form-group" style="display:none" id="MMAPPSingleWeb">
+    <label>From a web address: </label>
+    <div>
+      <input type="text" style="width: 100px; display: inline-block" class="form-control"  placeholder="Name"
+        ng-model="page.http">
+    </div>
+  </div>
+</div>
+  <div id="MMADPmultiple"  style="display: none; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px">
+  <p  style="text-align: center"><b>Many pages</b></p>
+  <p>Here is where we will ask for either a zip file or we will put in an area to drag multiple files</p>
+  <div class="form-group">
+    <label>Zip file&nbsp;&nbsp;</label>
+    <input style="width: 250px; display: inline-block" type="file" x-filereader=""/>
+  </div>
+</div>
+
+<form action="">
+  <div class="form-group">
+    <button style="float:right" type="button" class="btn btn-primary" ng-click="submit()">Create</button>
+  </div>
+</form>
+</div>

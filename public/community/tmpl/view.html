@@ -1,4 +1,4 @@
-<div x-auto-height class="view" ng-controller="ViewCtrl">
+<div x-auto-height class="view" ng-controller="ViewCtrl" style="position:relative; top:-5px">
   <script type="text/ng-template" id="tree.html">
     <div>
       <span class="icon" aria-hidden="true"
@@ -8,7 +8,7 @@
       </a>
     </div>
     <ul ng-if="node.entities">
-      <li ng-repeat="node in node.entities" 
+      <li ng-repeat="node in node.entities"
         ng-include="'tree.html'"
         ng-class="{'collapse-node': !node.expand, leaf: !node.entities}">
       </li>
@@ -143,5 +143,3 @@
     </div>
   </div>
 </div>
-
-

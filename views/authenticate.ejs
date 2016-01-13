@@ -13,6 +13,9 @@
 			 <% if (context == "facebook") {%>
 			 	<p>You are now registered for Textual Communities via Facebook, and your account is associated with the email <b><%= user.local.email %></b>.</p>
 			 <%}%>
+       <% if (context == "google") {%>
+			 	<p>You are now registered for Textual Communities via Google, and your account is associated with the email <b><%= user.local.email %></b>.</p>
+			 <%}%>
 			 <% if (context == "email") {%>
 			 	<p>You are registered with Textual Communities, and your account is associated with the email <b><%= user.local.email %></b>. We now need to authenticate that this email belongs to you.</p>
 			 <%}%>
