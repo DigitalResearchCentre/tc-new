@@ -10,7 +10,7 @@ require('bootstrap');
 
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
-  'ngRoute', 'ngResource', 'ngSanitize', 'jdFontselect',
+  'ngRoute', 'ngResource', 'ngSanitize',
   require('./community').name,
 ]);
 tcApp
@@ -48,12 +48,29 @@ tcApp.controller('AppCtrl', [
   $scope.source="default";
   $scope.app = TCService.app;
   var authUser = TCService.app.authUser;
-  authUser.$promise.then(function() {
-    if (!authUser.local) {
-      //TCService.login('boy198512@gmail.com', 'test');
-    }
+  TCService.app.communities.$promise.then(function() {
+    authUser.$promise.then(function() {
+        if (authUser.local && authUser.memberships.length==1 && (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER")) {
+          $scope.community = TCService.app.communities.filter(function (obj){ return obj._id === authUser.memberships[0].community._id;})[0];
+        }
+      if (!authUser.local) { $scope.userStatus="0"}
+      else if (!authUser.memberships.length) {$scope.userStatus="1"} //user, but no communities or memberships
+      else if (authUser.memberships.length==1 && (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER") &&!$scope.community.documents.length) {$scope.userStatus="2";}  //user, one community, but no documents
+      else if (authUser.memberships.length==1 && (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER") && $scope.community.documents.length==1) {
+        var doc = TCService.get($scope.community.documents[0], TCService.Doc);
+        var options = {fields: JSON.stringify([{path: 'children', select: 'name'}])}
+        doc.$get(options, function(){
+          if (!doc.children.length) {
+            $scope.userStatus="3";
+            $scope.docname=doc.name;
+            $location.path('/community/' + $scope.community._id + '/view')
+          }  else $scope.userStatus="4";
+        });
+      }  //user, one community, one document, but no pages
+    });
   });
   $scope.logout = function() {
+    $scope.userStatus="0";
     TCService.logout();
   };
   $scope.login = login;
@@ -61,11 +78,18 @@ tcApp.controller('AppCtrl', [
       console.log(login);
   });
   $scope.loadModal = function(which) {
-    console.log(which);
     $scope.source=which;
+    $("#MMADdiv").show();
+    $("#MMADbutton").show();
     $('#manageModal').modal('show');
   }
-  console.log(location.pathname);
+  $scope.closeManageModal = function() {
+    $('#MMADdiv').css("margin-top", "30px");
+    $('#MMADbutton').css("margin-top", "20px");
+    this.message="";
+    this.success="";
+    $('#manageModal').modal('hide');
+  }
   $scope.loginFrame = '/auth?url=/index.html';
 }]);
 

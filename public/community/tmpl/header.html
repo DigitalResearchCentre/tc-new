@@ -1,3 +1,16 @@
+
+<div style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 0px; background-color: #00446d; padding-bottom: 1px"  ng-controller="CommunityHdrCtrl">
+  <p style="font-size:110%; text-align: center; margin-bottom: 0px; padding-bottom:0px; color: white" ng-switch="userStatus">
+    <seg ng-switch-when="2">You have a community "{{community.name}}", but there are no documents in it</seg>
+    <seg ng-switch-when="3">You have a document "{{docname}}" in community "{{community.name}}"", but there are no pages in it</seg>
+  </p>
+  <div  ng-show="userStatus=='2'" class="wizard">
+    <p class="wizardp" style="margin-bottom:0px; padding-bottom: 0px"><a ng-click="$parent.$parent.$parent.loadModal('add-document')"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 180px; background-color: #005689; border-color: #005689">Add Document</button></a></p>
+  </div>
+  <div  ng-show="userStatus=='3'" class="wizard">
+    <p class="wizardp" style="margin-bottom:0px; padding-bottom: 0px"><a ng-click="$parent.$parent.$parent.loadModal('add-document-page')"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 180px; background-color: #005689; border-color: #005689">Add Page</button></a></p>
+  </div>
+</div>
 <div class="headerComm">
 <nav class="navbar navbar-default" ng-controller="MemberCtrl">
   <div class="container-fluid">

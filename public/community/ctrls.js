@@ -111,6 +111,38 @@ var CommunityCtrl = function($scope, $routeParams, TCService) {
 };
 CommunityCtrl.$inject = ['$scope', '$routeParams', 'TCService'];
 
+var CommunityHdrCtrl = function($scope, $routeParams, $location, TCService) {
+  var authUser = TCService.app.authUser;
+  var community;
+  TCService.app.communities.$promise.then(function() {
+    authUser.$promise.then(function() {
+        if (authUser.local && authUser.memberships.length==1 && (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER")) {
+          community = TCService.app.communities.filter(function (obj){ return obj._id === authUser.memberships[0].community._id;})[0];
+        }
+      if (!authUser.local) { $scope.userStatus="0"}
+      else if (!authUser.memberships.length) {$scope.userStatus="1"} //user, but no communities or memberships
+      else if (authUser.memberships.length==1 && authUser.memberships[0].role=="CREATOR" && !community.documents.length) {$scope.userStatus="2";}  //user, one community, but no documents
+      else if (authUser.memberships.length==1 && authUser.memberships[0].role=="CREATOR" && community.documents.length==1) {
+        var doc = TCService.get(community.documents[0], TCService.Doc);
+        var options = {fields: JSON.stringify([{path: 'children', select: 'name'}])}
+        doc.$get(options, function(){
+          if (!doc.children.length) {
+            $scope.userStatus="3";
+            $scope.docname=doc.name;
+            //test... if we have a call to index page only, reset the view
+            console.log("in commhdr "+$(location).attr('href'));
+            if ($scope.$parent.tab=="tmpl/view.html") {
+              $location.path('/community/' + community._id + '/view')
+            }
+          }  else $scope.userStatus="4";
+        });
+      }  //user, one community, one document, but no pages
+      else $scope.userStatus="4";
+    });
+  });
+};
+CommunityHdrCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
+
 function checkCommunity (communities, community) {
     var message="";
     var matchedname=communities.filter(function (obj){return obj.name === community.name;})[0];
@@ -154,6 +186,12 @@ var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
           community.$save(function() {
         //    if (picFile) community.image= picFile.$
             $scope.isCreate=true;
+            //if this is the first community -- send to the main screen, set to add pages
+            //ie: only one membership, and a leader of that!
+            if ($scope.$parent.$parent.userStatus=="1") {
+              $scope.$parent.$parent.community=community;
+              $scope.$parent.$parent.userStatus=="2";
+            }
             $location.path('/community/' + community._id + '/home');
           });
         }
@@ -380,4 +418,5 @@ module.exports = {
   UpLoadCtrl: UpLoadCtrl,
   MemberCtrl: MemberCtrl,
   ProfileMemberCtrl: ProfileMemberCtrl,
+  CommunityHdrCtrl: CommunityHdrCtrl,
 };

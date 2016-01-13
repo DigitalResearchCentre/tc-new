@@ -27,7 +27,6 @@ html, body {
     padding: 0;
 }
 
-
 body {
     .flex-column;
     background-color: #F5F5F5;
@@ -81,7 +80,7 @@ body {
         margin-top:0px;
         .navbar-brand {background-color: white; color: #005689; height:34px; padding: 8px;}
         .navbar-brand:hover {background-color:  #AADCE6; }
-        .navbar {height:35px !important; min-height: 30px; margin-bottom:0px;}
+        .navbar {height:35px !important; min-height: 30px; margin-bottom:0px; border-radius:0px}
         .navbar-nav > li > a {
             padding: 7px 10px 7px 10px; color: white; font-size: 12px;
           }
@@ -199,13 +198,10 @@ div.community-edit {
   background-color: white;
   padding: 15px;
   margin-left:auto;
+  margin-top: 10px;
   margin-right:auto;
-  .community-create-inf {
-    float: right;
-    font-size: 130%;
-    font-weight: bold;
-  }
 }
+
 hr  {border: 5px solid #000;}
 /*stuff for read-more*/
 a.read-more, a.read-less {
@@ -219,9 +215,6 @@ span.more-text.show {
 		display: inline !important
 }
 
-div.rh {
-  height: 35px;
-}
 
 .panel{
   left: 300px;
@@ -234,14 +227,39 @@ div.rh {
   resize: both
 }
 
-.draggable{
-  position: absolute;
-  z-index: 100
+
+
+.wizard {
+  text-align: center;
+  margin-right:auto;
+  margin-left:auto;
+  width:100%;
+  padding-top: 5px;
+  padding-bottom: 1px;
+  background-color: #00446d
 }
-.draggable-handler{
-  cursor: pointer
+
+.wizardbutton {
+  background-color: #005689;
+  color: white;
+  border-color: #005689
 }
-.dragging{
-  cursor: move;
-  z-index: 200 !important
+
+.wizardp {
+  margin-bottom:5px;
+  color: white;
+  padding-top: 3px;
+  padding-bottom: 8px;
+}
+.modalHeader {
+  position: relative;
+cursor: pointer;
+display: block;
+border: 1px solid black;
+height: 32px;
+line-height: 32px;
+margin: 1px;
+border-radius: 4px;
+text-align: center;
+background-color: lightblue;
 }

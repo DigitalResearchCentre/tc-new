@@ -1,26 +1,31 @@
-<div class="community-edit" style="width:500px" ng-controller="AddXMLDocCtrl">
+<div ng-controller="AddXMLDocCtrl">
+  <div modaldraggable class="modalHeader">Load XML Document to Community "{{community.name}}"
+    <button type="button" ng-click="closeManageModal()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+
 <form action="">
-  <div ng-if="message.length>0" class="alert alert-danger">
+  <div ng-if="message.length>0" class="alert alert-danger" style="margin-bottom: 3px; margin-top: 3px">
     {{message}}
   </div>
-  <div ng-if="success.length>0" class="alert alert-success">
+  <div ng-if="success.length>0" class="alert alert-success" style="margin-bottom: 3px; margin-top: 3px">
     {{success}}
   </div>
-  <div class="form-group">
-    <label>Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-    <input type="text" style="width: 250px; display: inline-block" class="form-control" placeholder="Name"
+  <div id="MMADXdiv" class="form-group" style="margin-top: 15px; margin-bottom: 12px; margin-left: 20px; margin-right: 20px">
+  <label>Document Name&nbsp;&nbsp;</label>
+    <input type="text" style="width: 170px; display: inline-block" class="form-control" placeholder="Name"
       ng-model="doc.name">
   </div>
-  <div class="form-group">
-    <label style="display: inline-block; vertical-align: top">XML&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-    <textarea ng-model="text" cols="32">
+  <div id="MMADXTdiv" class="form-group" style="margin-top: 8px; margin-left: 20px; margin-right: 20px">
+    <label style="display: inline-block; vertical-align: top">XML&nbsp;&nbsp;</label>
+    <textarea ng-model="text" rows="9" cols="40">
     </textarea>
   </div>
-  <div class="form-group">
-    <label>XML file&nbsp;&nbsp;&nbsp;&nbsp;</label>
+  <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; margin-left: 20px; margin-right: 20px">
+    <label>XML file&nbsp;&nbsp;</label>
     <input style="width: 250px; display: inline-block" type="file" x-filereader=""/>
-    <button style="float:right" type="button" class="btn btn-primary" ng-click="submit()"
-    >Create</button>
+    <div style="text-align: center; margin-top: 10px">
+      <button type="button" class="btn btn-primary" ng-click="submit()">Create</button>
+    </div>
   </div>
 </form>
 </div>

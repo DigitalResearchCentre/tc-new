@@ -5,8 +5,8 @@
 <h3 style="text-align: center">{{community.longName}}</h3>
 <div ng-bind-html="community.description"></div>
 <div ng-show="!canJoin">No! I can't join.  I am a TC member already of this community, or it is not accepting members</div>
-<div ng-show="isLeader">And I am the leader of this community</div>
-<div ng-show="!isLeader">I am not the leader of this community</div>
+<div ng-show="isLeader || isCreator">And I am the leader or creator of this community</div>
+<div ng-show="!isLeader && !isCreator">I am not the leader of this community</div>
 <div ng-show="isMember">And I am a member of this community</div>
 <div ng-show="!isMember">I am not a member of this community</div>
 </div>
