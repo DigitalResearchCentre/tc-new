@@ -165,6 +165,7 @@ function checkCommunity (communities, community) {
     return message;
 }
 
+
 var CreateCommunityCtrl = function($scope, $routeParams, $location, TCService) {
     var params = $routeParams.params
       , Community = TCService.Community
@@ -219,7 +220,10 @@ function ViewCtrl($scope, $routeParams, $location, $timeout, TCService) {
       $(this).tab('show');
   });
   $scope.docId = params[1];
-  $scope.toggleDoc = function(doc) {
+  if (params.length > 2) {
+    $scope.pageId = params[2];
+  }
+  $scope.toggleDoc = function (doc) {
     var expand = doc.expand = !doc.expand;
     if (!doc.children || _.isString(doc.children[0])) {
       TCService.get(doc, Doc).$get({
@@ -234,6 +238,7 @@ function ViewCtrl($scope, $routeParams, $location, $timeout, TCService) {
       });
     }
   };
+;
   $scope.toggleEntity = function(node, doc) {
     var expand = node.expand = !node.expand;
     if (!node.entities) {
@@ -244,6 +249,9 @@ function ViewCtrl($scope, $routeParams, $location, $timeout, TCService) {
       });
     }
   };
+  if ($scope.pageId) {
+    //$scope.toggleDoc($scope.docId);
+  }
 
   $scope.selectEntity = function(entity, doc) {
     Entity.getDocs({

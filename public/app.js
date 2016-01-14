@@ -63,6 +63,7 @@ tcApp.controller('AppCtrl', [
           if (!doc.children.length) {
             $scope.userStatus="3";
             $scope.docname=doc.name;
+            $scope.document=doc;
             $location.path('/community/' + $scope.community._id + '/view')
           }  else $scope.userStatus="4";
         });
