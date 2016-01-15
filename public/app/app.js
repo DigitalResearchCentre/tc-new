@@ -1,7 +1,9 @@
 require('bootstrap');
 require('./app.less');
 
-AppComponent = ng.core.Component({
+var TCService = require('tc');
+
+var AppComponent = ng.core.Component({
   selector: 'tc-app',
   template: '<h1>hello</h1>'
 }).Class({
@@ -12,13 +14,15 @@ AppComponent = ng.core.Component({
     this.source="default";
     this.app = TCService.app;
 
+    window.ts = TCService;
+    console.log(TCService);
     var authUser = TCService.app.authUser;
     authUser.$promise.then(function() {
       if (!authUser.local) {
-        //TCService.login('boy198512@gmail.com', 'test');
       }
     });
     this.login = login;
+    var $scope = {};
     $scope.$watch('login.loginFrame', function (){
       console.log(login);
     });
@@ -35,20 +39,22 @@ AppComponent = ng.core.Component({
   },
 });
 
+module.exports = AppComponent;
+
+/*
+
 tcApp.controller('AppCtrl', [
   '$scope', 'TCService', '$q', '$http', '$location', '$window',
   function($scope, TCService, $q, $http, $location, $window) {
 }]);
 
 
-module.exports = AppComponent;
 
 
 var $ = require('jquery')
   , _ = require('lodash')
   , angular = require('angular')
   , config = require('../config')
-  , TCService = require('tc')
   , login = require('./login.js')
 ;
 

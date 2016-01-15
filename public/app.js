@@ -8,8 +8,6 @@ var $ = require('jquery')
 require('./app.less');
 require('bootstrap');
 
-require('vendor');
-
 var allCommunities=[];
 var tcApp = angular.module('TCApp', [
   'ngRoute', 'ngResource', 'ngSanitize',
