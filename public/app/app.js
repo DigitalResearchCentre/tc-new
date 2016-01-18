@@ -1,22 +1,24 @@
 require('bootstrap');
 require('./app.less');
 
-var TCService = require('tc');
+var CommunitiesService = require('./communities.service');
 
 var AppComponent = ng.core.Component({
   selector: 'tc-app',
-  template: '<h1>hello</h1>'
+  template: '<h1>hello</h1>',
+  providers: [CommunitiesService,]
 }).Class({
-  constructor: function() {
-    var Community = TCService.Community;
+  constructor: [CommunitiesService, function(CommunitiesService) {
+    console.log(this);
+    window.t = this;
+    //var Community = TCService.Community;
+
 
     this.hideHeader = false;
     this.source="default";
-    this.app = TCService.app;
+    //this.app = TCService.app;
 
-    window.ts = TCService;
-    console.log(TCService);
-    var authUser = TCService.app.authUser;
+    /*var authUser = TCService.app.authUser;
     authUser.$promise.then(function() {
       if (!authUser.local) {
       }
@@ -28,9 +30,11 @@ var AppComponent = ng.core.Component({
     });
     console.log(location.pathname);
     this.loginFrame = '/auth?url=/index.html';
-  },
+    */
+    
+  }],
   logout: function() {
-    TCService.logout();
+    //TCService.logout();
   },
   loadModal: function(which) {
     console.log(which);

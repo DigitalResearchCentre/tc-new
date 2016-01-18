@@ -5,5 +5,7 @@ require('script!angular2/bundles/angular2-all.umd');
 var AppComponent = require('./app');
 
 document.addEventListener('DOMContentLoaded', function() {
-  ng.platform.browser.bootstrap(AppComponent);
+  ng.platform.browser.bootstrap(AppComponent, [
+    ng.http.HTTP_PROVIDERS,
+  ]);
 });
