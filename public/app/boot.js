@@ -7,5 +7,8 @@ var AppComponent = require('./app');
 document.addEventListener('DOMContentLoaded', function() {
   ng.platform.browser.bootstrap(AppComponent, [
     ng.http.HTTP_PROVIDERS,
+    ng.router.ROUTER_PROVIDERS,
+    require('./auth.service'),
+    require('./community.service'),
   ]);
 });

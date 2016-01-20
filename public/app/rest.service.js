@@ -17,41 +17,30 @@ var RESTService = ng.core.Class({
       resource: this.resourceUrl,
     }, options)).normalize().toString();
   },
+  prepareOptions: function(options) {
+    options = _.clone(options || {});
+    if (!_.isString(options.search)) {
+      var uri = new URI();
+      uri.query(options.search);
+      options.search = uri.query();
+    }
+    return options;
+  },
   create: function(data, options) {
-    return this.http.post(this.url(), JSON.stringify(data), options);
+    options = this.prepareOptions(options);
+    return this.http.post(
+      this.url(), JSON.stringify(data), options
+    );
   },
   detail: function(id, options) {
-    return this.http.get(this.url({
-      id: id
-    }), options);
+    options = this.prepareOptions(options);
+    return this.http.get(this.url({ id: id }), options);
   },
   list: function(options) {
-    console.log(this.url());
+    options = this.prepareOptions(options);
+    window.ll = this.http.get(this.url(), options);
     return this.http.get(this.url(), options);
   },
 });
 
-var CommunitiesService = ng.core.Class({
-  extends: RESTService,
-  constructor: [Http, function(http){
-    RESTService.call(this, http);
-    this.resourceUrl = 'communities';
-
-    window.ob = this.list().subscribe(function(res) {
-      window.t = this;
-      window.res = res;
-      console.log(res.json());
-    });
-
-
-window.ooo = new Rx.Observable(function(o) {
-      window.obs = o;
-      
-    });
-
-  }],
-});
-
-module.exports = CommunitiesService;
-
-
+module.exports = RESTService;

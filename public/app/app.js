@@ -1,16 +1,50 @@
 require('bootstrap');
 require('./app.less');
 
-var CommunitiesService = require('./communities.service');
+var RouteParams = ng.router.RouteParams
+  , CommunityService = require('./community.service')
+  , AuthService = require('./auth.service')
+;
+
+var HomeComponent = ng.core.Component({
+  selector: 'tc-home',
+  template: '<div>foo</div>'
+}).Class({
+  constructor: function() {
+    
+  },
+});
+var CommunityHomeComponent = ng.core.Component({
+  selector: 'tc-community-home',
+  template: '<div>bar</div>'
+}).Class({
+  constructor: [RouteParams, CommunityService, function(
+    _routeParams, _communityService
+  ) {
+    this._routeParams = _routeParams;
+    this._communityService = _communityService;
+  }],
+  ngOnInit: function() {
+    var id = this._routeParams.get('id');
+  },
+});
 
 var AppComponent = ng.core.Component({
   selector: 'tc-app',
-  template: '<h1>hello</h1>',
-  providers: [CommunitiesService,]
+  templateUrl: '/app/app.html',
+  providers: [AuthService],
+  directives: [ng.router.ROUTER_DIRECTIVES],
 }).Class({
-  constructor: [CommunitiesService, function(CommunitiesService) {
-    console.log(this);
-    window.t = this;
+  constructor: [CommunityService, AuthService, function(
+    _communityService, _authService
+  ) { 
+    var self = this;
+
+
+    this.publicCommunities = [];
+    _communityService.getPublicCommunities().subscribe(function(communities) {
+      self.publicCommunities = communities;
+    });
     //var Community = TCService.Community;
 
 
@@ -42,6 +76,13 @@ var AppComponent = ng.core.Component({
     $('#manageModal').modal('show');
   },
 });
+ng.router.RouteConfig([{
+  path: '/home', name: 'Home', component: HomeComponent
+}, {
+  path: '/:id/home', name: 'CommunityHome', component: CommunityHomeComponent
+},])(AppComponent);
+
+
 
 module.exports = AppComponent;
 
