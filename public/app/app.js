@@ -39,8 +39,6 @@ var AppComponent = ng.core.Component({
     _communityService, _authService
   ) { 
     var self = this;
-
-
     this.publicCommunities = [];
     _communityService.getPublicCommunities().subscribe(function(communities) {
       console.log(communities);
