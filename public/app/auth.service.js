@@ -17,6 +17,9 @@ var AuthService = ng.core.Class({
   getAuthUser: function() {
     return this._authUserObserver;
   },
+  getAuthUserCommunities: function() {
+    
+  },
   isAuthenticated: function() {
     return !!this._authUser._id;
   },

@@ -43,6 +43,7 @@ var AppComponent = ng.core.Component({
 
     this.publicCommunities = [];
     _communityService.getPublicCommunities().subscribe(function(communities) {
+      console.log(communities);
       self.publicCommunities = communities;
     });
     //var Community = TCService.Community;
@@ -81,7 +82,6 @@ ng.router.RouteConfig([{
 }, {
   path: '/:id/home', name: 'CommunityHome', component: CommunityHomeComponent
 },])(AppComponent);
-
 
 
 module.exports = AppComponent;

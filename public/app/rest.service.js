@@ -38,7 +38,6 @@ var RESTService = ng.core.Class({
   },
   list: function(options) {
     options = this.prepareOptions(options);
-    window.ll = this.http.get(this.url(), options);
     return this.http.get(this.url(), options);
   },
 });

@@ -10,5 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ng.router.ROUTER_PROVIDERS,
     require('./auth.service'),
     require('./community.service'),
-  ]);
+  ]).catch(function(err) {
+    console.error(err);
+  });
 });
