@@ -21,7 +21,6 @@ var CommunityService = ng.core.Class({
   getPublicCommunities: function() {
     if (!this._publicCommunities$) {
       var subject = new Rx.Subject();
-      window.subject = subject
 
       this._publicCommunities$ = this.list({
         search: {
@@ -30,13 +29,9 @@ var CommunityService = ng.core.Class({
       }).map(function(res) {
         return res.json();
       }).merge(subject).map(function(r) {
-        console.log(r);
         return r;
       }).publishReplay(1).refCount();
-      
     }
-    window.ll = this._publicCommunities$;
-    this._publicCommunities$.subscribe(function(x){console.log('s1 ' + x)})
     return this._publicCommunities$;
   },
 });

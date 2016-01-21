@@ -1,6 +1,8 @@
 require('bootstrap');
 require('./app.less');
 
+var UIService = require('./ui.service');
+
 var RouteParams = ng.router.RouteParams
   , CommunityService = require('./community.service')
   , AuthService = require('./auth.service')
@@ -14,6 +16,24 @@ var HomeComponent = ng.core.Component({
     
   },
 });
+var MemberProfileComponent = ng.core.Component({
+  selector: 'tc-home',
+  template: '<div>foo</div>'
+}).Class({
+  constructor: function() {
+    
+  },
+});
+
+var CreateCommunityComponent = ng.core.Component({
+  selector: 'tc-home',
+  template: '<div>foo</div>'
+}).Class({
+  constructor: function() {
+    
+  },
+});
+
 var CommunityHomeComponent = ng.core.Component({
   selector: 'tc-community-home',
   template: '<div>bar</div>'
@@ -33,25 +53,27 @@ var AppComponent = ng.core.Component({
   selector: 'tc-app',
   templateUrl: '/app/app.html',
   providers: [AuthService],
-  directives: [ng.router.ROUTER_DIRECTIVES],
+  directives: [
+    ng.router.ROUTER_DIRECTIVES, 
+    require('./loginmodal.component'),
+  ],
 }).Class({
-  constructor: [CommunityService, AuthService, function(
-    _communityService, _authService
+  constructor: [CommunityService, AuthService, UIService, function(
+    communityService, authService, uiService
   ) { 
-    var self = this;
-    this.publicCommunities = [];
-    _communityService.getPublicCommunities().subscribe(function(communities) {
-      console.log(communities);
-      self.publicCommunities = communities;
-    });
-    //var Community = TCService.Community;
+    this._authService = authService;
+    this._communityService = communityService;
+    this._uiService = uiService;
 
+    this.loginFrame = '/auth?url=/index.html';
+    this.authUser = null;
 
     this.hideHeader = false;
     this.source="default";
-    //this.app = TCService.app;
 
-    /*var authUser = TCService.app.authUser;
+    /*
+    this.app = TCService.app;
+    var authUser = TCService.app.authUser;
     authUser.$promise.then(function() {
       if (!authUser.local) {
       }
@@ -62,12 +84,29 @@ var AppComponent = ng.core.Component({
       console.log(login);
     });
     console.log(location.pathname);
-    this.loginFrame = '/auth?url=/index.html';
     */
-    
+   
   }],
+  ngOnInit: function() {
+    var self = this;
+    this._authService.getAuthUser().subscribe(function(authUser) {
+      self.authUser = authUser;
+    });
+    this._communityService.getPublicCommunities().subscribe(function(coms) { 
+      self.publicCommunities = coms;
+    });
+  },
+  isAuthenticated: function() {
+    return this._authService.isAuthenticated();
+  },
+  showLoginModal: function() {
+    this._uiService.loginModel$.emit('show');
+  },
+  showLoginProf: function() {
+    this._uiService.loginModel$.emit('show-login-prof');
+  },
   logout: function() {
-    //TCService.logout();
+    this._authService.logout();
   },
   loadModal: function(which) {
     console.log(which);
@@ -79,6 +118,12 @@ ng.router.RouteConfig([{
   path: '/home', name: 'Home', component: HomeComponent
 }, {
   path: '/:id/home', name: 'CommunityHome', component: CommunityHomeComponent
+}, {
+  path: '/new-community', name: 'CreateCommunity', 
+  component: CreateCommunityComponent
+}, {
+  path: '/profile', name: 'MemberProfile', 
+  component: MemberProfileComponent
 },])(AppComponent);
 
 

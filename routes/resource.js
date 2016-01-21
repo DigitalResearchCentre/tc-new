@@ -44,7 +44,7 @@ _.assign(Resource.prototype, {
       , find = JSON.parse(urlQuery.find || '{}')
       , select = JSON.parse(urlQuery.select || 'null')
       , sort = JSON.parse(urlQuery.sort || 'null')
-      , fields = JSON.parse(urlQuery.fields || 'null')
+      , populate = JSON.parse(urlQuery.populate || 'null')
       , model = this.model
       , query
     ;
@@ -55,11 +55,11 @@ _.assign(Resource.prototype, {
     if (sort) {
       query = query.sort(sort);
     }
-    if (fields) {
-      if (!_.isArray(fields)) {
-        fields = [fields];
+    if (populate) {
+      if (!_.isArray(populate)) {
+        populate = [populate];
       }
-      _.each(fields, function(field) {
+      _.each(populate, function(field) {
         query = query.populate(field);
       });
     }

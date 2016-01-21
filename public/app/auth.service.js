@@ -9,19 +9,44 @@ var AuthService = ng.core.Class({
     RESTService.call(this, http);
     this.resourceUrl = 'auth';
     var _authUser = this._authUser = {};
-    this._authUserObserver = this.detail(null);
-    this._authUserObserver.subscribe(function(res) {
-      self._authUser = res.json();
-    });
   }],
   getAuthUser: function() {
-    return this._authUserObserver;
+    if (!this._authUser$) {
+      var subject = new Rx.Subject();
+
+      this._authUser$ = this.detail(null, {
+        search: {
+          populate: JSON.stringify('memberships'),
+        },
+      }).map(function(res) {
+        return res.json();
+      }).merge(subject).map(function(r) {
+        return r;
+      }).publishReplay(1).refCount();
+    }
+    return this._authUser$;
   },
   getAuthUserCommunities: function() {
-    
+    if (!this._publicCommunities$) {
+      var subject = new Rx.Subject()
+        , self = this
+      ;
+
+      this._publicCommunities$ = this.list({
+        search: {
+          find: JSON.stringify({public: true}),
+        },
+      }).map(function(res) {
+        return res.json();
+      }).merge(subject).map(function(r) {
+        self._authUser = r;
+        return r;
+      }).publishReplay(1).refCount();
+    }
+    return this._publicCommunities$;
   },
   isAuthenticated: function() {
-    return !!this._authUser._id;
+    return self._authUser && self._authUser.local.authenticated === 1;
   },
   logout: function() {
     this._authUser = {};
