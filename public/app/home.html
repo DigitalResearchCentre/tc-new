@@ -1,0 +1,45 @@
+<div style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
+  <p style="font-size:200%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">Textual Communities</p>
+  <p style="font-size:110%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white" ng-switch="userStatus">
+    <seg ng-switch-when="1">You do not lead or belong to any communities</seg>
+    <seg ng-switch-when="2">You have a community ("{{community.name}}"), but there are no documents in it</seg>
+    <seg ng-switch-when="3">You have a document ("{{docname}}"), but there are no pages in it</seg>
+    <seg ng-switch-default>Make the edition you want</seg>
+  </p>
+</div>
+<div  ng-show="userStatus =='0'" class="wizard">
+  <p class="wizardp"><a href="" data-toggle="modal" data-target="#myModal"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 100px;">Start</button></a></p>
+</div>
+<div  ng-show="userStatus=='1'" class="wizard">
+  <p class="wizardp"><a href="#/community/new"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 180px;">Create Community</button></a> or <a href="#/profile"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 170px;">Join Community</button></a></p>
+</div>
+<div  ng-show="userStatus=='2'" class="wizard">
+  <p class="wizardp"><a ng-click="loadModal('add-document')"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 180px; background-color: #005689; border-color: #005689">Add Document</button></a></p>
+</div>
+<div  ng-show="userStatus=='3'" class="wizard">
+  <p class="wizardp"><a ng-click="loadModal('add-document-page')"><button class="btn btn-lg wizardbutton" onmouseover="this.style.color='#ffe2be';" onmouseout="this.style.color='white';" style="width: 180px; background-color: #005689; border-color: #005689">Add Page</button></a></p>
+</div>
+<div style="width:100%;  background-color: #3aaff4; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; padding-top: 5px">
+  <p style="text-align: center; font-size: 120%">Featured project: The Canterbury Tales Project</p>
+</div>
+<div class="row text-center" style="padding: 25px 9px 9px 9px">
+  <div class="col-sm-3"><p><span style="font-size: 150%" class="glyphicon glyphicon-paperclip" aria-hidden="true"></span></p>
+    <p style="color:#FF0000">Gather materials</p>
+    <p style="font-size: 100%">Bring together images of manuscripts and other materials. Name and organize images. Display zoomable images page by page beside transcriptions</p>
+ </div>
+  <div class="col-sm-3"><p><span style="font-size: 150%" class="glyphicon glyphicon-user" aria-hidden="true"></span><span class="glyphicon glyphicon-user" aria-hidden="true"></span></p>
+    <p style="color:#FF0000">Collaborate</p>
+    <p style="font-size: 100%">Invite people as co-leaders or transcribers. Assign transcription and other tasks. Monitor and check transcription and other tasks. Control who can see what, who can work on what.</p>
+   </div>
+   <div class="col-sm-3"><p><span style="font-size: 150%" class="glyphicon glyphicon-pencil" aria-hidden="true"></span></p>
+     <p style="color:#FF0000">Edit</p>
+     <p style="font-size: 100%">View and edit transcriptions with full support for all TEI/XML encoding. Preview transcriptions without encoding. Transcribe page by page. Collate section by section, with full facilities for adjustment of the collation output.</p>
+    </div>
+    <div class="col-sm-3"><p><span style="font-size: 150%" class="glyphicon glyphicon-duplicate" aria-hidden="true"></span></p>
+      <p style="color:#FF0000">Publish and Share</p>
+      <p style="font-size: 100%">Build your own website, drawing all materials from the Textual Communities database. Allow others unlimited access to your editorial materials. Combine freely with other materials through an api. </p>
+    </div>
+</div>
+<div class="row text-center" style="padding: 25px 9px 9px 9px">
+  <div class="col-sm-12" style="margin: 0px 20px 0px 20px;"><p style="font-size: 90%; text-align:center"><a href="#/about">Who we are</a>&nbsp;&nbsp;&nbsp;Contact Us <span style="font-size: 150%" class="glyphicon glyphicon-envelope" aria-hidden="true"></span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img src="uofs-logo.png" height="36px"></img>&nbsp;&nbsp;&nbsp;&nbsp;<img src="/INN_CFI_ENB_2C_RGB.jpg" width="150px"></img></p></div>
+</div>

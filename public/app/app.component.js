@@ -115,7 +115,7 @@ var AppComponent = ng.core.Component({
   },
 });
 ng.router.RouteConfig([{
-  path: '/home', name: 'Home', component: HomeComponent
+  path: '/home', name: 'Home', component: require('./home.component'),
 }, {
   path: '/:id/home', name: 'CommunityHome', component: CommunityHomeComponent
 }, {

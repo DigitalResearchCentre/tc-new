@@ -21,7 +21,7 @@ var AuthService = ng.core.Class({
       }).map(function(res) {
         return res.json();
       }).merge(subject).map(function(r) {
-        return r;
+        return r._id ? r : null;
       }).publishReplay(1).refCount();
     }
     return this._authUser$;
