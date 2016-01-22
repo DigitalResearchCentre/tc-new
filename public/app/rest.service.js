@@ -5,7 +5,6 @@ var URI = require('urijs')
 var Http = ng.http.Http;
 
 var BACKEND_URL = 'http://localhost:3000/api/';
-window.URI = URI;
 
 var RESTService = ng.core.Class({
   constructor: [Http, function(http) {

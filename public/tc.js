@@ -360,7 +360,7 @@ function TCService($resource) {
   });
 
   var AuthUser = $resource('/api/auth/', {
-    fields: JSON.stringify('memberships.community'),
+    populate: JSON.stringify('memberships.community'),
   });
 
   var app = {

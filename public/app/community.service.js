@@ -15,9 +15,6 @@ var CommunityService = ng.core.Class({
 
     this._authService = authService;
   }],
-  getMyCommunities: function() {
-    return this._authService.getAuthUserCommunities();
-  },
   getPublicCommunities: function() {
     if (!this._publicCommunities$) {
       var subject = new Rx.Subject();

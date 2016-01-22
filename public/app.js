@@ -58,7 +58,7 @@ tcApp.controller('AppCtrl', [
       else if (authUser.memberships.length==1 && (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER") &&!$scope.community.documents.length) {$scope.userStatus="2";}  //user, one community, but no documents
       else if (authUser.memberships.length==1 && (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER") && $scope.community.documents.length==1) {
         var doc = TCService.get($scope.community.documents[0], TCService.Doc);
-        var options = {fields: JSON.stringify([{path: 'children', select: 'name'}])}
+        var options = {populate: JSON.stringify([{path: 'children', select: 'name'}])}
         doc.$get(options, function(){
           if (!doc.children.length) {
             $scope.userStatus="3";

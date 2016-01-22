@@ -49,6 +49,11 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use('/api', require('./routes/api'));
 app.use('/auth', require('./routes/auth'));
+app.all('/app/*', function(req, res) {
+  res.status(200).set({
+    'content-type': 'text/html; charset=utf-8'
+  }).sendfile('public/t.html');
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

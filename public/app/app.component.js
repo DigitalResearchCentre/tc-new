@@ -1,23 +1,14 @@
 require('bootstrap');
 require('./app.less');
 
-var UIService = require('./ui.service');
-
 var RouteParams = ng.router.RouteParams
   , CommunityService = require('./community.service')
   , AuthService = require('./auth.service')
+  , HomeComponent = require('./home.component')
 ;
 
-var HomeComponent = ng.core.Component({
-  selector: 'tc-home',
-  template: '<div>foo</div>'
-}).Class({
-  constructor: function() {
-    
-  },
-});
 var MemberProfileComponent = ng.core.Component({
-  selector: 'tc-home',
+  selector: 'tc-member-profile',
   template: '<div>foo</div>'
 }).Class({
   constructor: function() {
@@ -26,26 +17,11 @@ var MemberProfileComponent = ng.core.Component({
 });
 
 var CreateCommunityComponent = ng.core.Component({
-  selector: 'tc-home',
+  selector: 'tc-create-community',
   template: '<div>foo</div>'
 }).Class({
   constructor: function() {
     
-  },
-});
-
-var CommunityHomeComponent = ng.core.Component({
-  selector: 'tc-community-home',
-  template: '<div>bar</div>'
-}).Class({
-  constructor: [RouteParams, CommunityService, function(
-    _routeParams, _communityService
-  ) {
-    this._routeParams = _routeParams;
-    this._communityService = _communityService;
-  }],
-  ngOnInit: function() {
-    var id = this._routeParams.get('id');
   },
 });
 
@@ -55,76 +31,26 @@ var AppComponent = ng.core.Component({
   providers: [AuthService],
   directives: [
     ng.router.ROUTER_DIRECTIVES, 
-    require('./loginmodal.component'),
+    require('./header.component'),
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, function(
-    communityService, authService, uiService
-  ) { 
-    this._authService = authService;
-    this._communityService = communityService;
-    this._uiService = uiService;
-
-    this.loginFrame = '/auth?url=/index.html';
-    this.authUser = null;
-
-    this.hideHeader = false;
-    this.source="default";
-
-    /*
-    this.app = TCService.app;
-    var authUser = TCService.app.authUser;
-    authUser.$promise.then(function() {
-      if (!authUser.local) {
-      }
-    });
-    this.login = login;
-    var $scope = {};
-    $scope.$watch('login.loginFrame', function (){
-      console.log(login);
-    });
-    console.log(location.pathname);
-    */
-   
+  constructor: [function() { 
   }],
-  ngOnInit: function() {
-    var self = this;
-    this._authService.getAuthUser().subscribe(function(authUser) {
-      self.authUser = authUser;
-    });
-    this._communityService.getPublicCommunities().subscribe(function(coms) { 
-      self.publicCommunities = coms;
-    });
-  },
-  isAuthenticated: function() {
-    return this._authService.isAuthenticated();
-  },
-  showLoginModal: function() {
-    this._uiService.loginModel$.emit('show');
-  },
-  showLoginProf: function() {
-    this._uiService.loginModel$.emit('show-login-prof');
-  },
-  logout: function() {
-    this._authService.logout();
-  },
-  loadModal: function(which) {
-    console.log(which);
-    $scope.source=which;
-    $('#manageModal').modal('show');
-  },
 });
 ng.router.RouteConfig([{
-  path: '/home', name: 'Home', component: require('./home.component'),
+  path: '/app/', name: 'Default', component: HomeComponent, 
 }, {
-  path: '/:id/home', name: 'CommunityHome', component: CommunityHomeComponent
+  path: '/app/home', name: 'Home', component: HomeComponent, 
 }, {
-  path: '/new-community', name: 'CreateCommunity', 
+  path: '/app/:id/...', name: 'Community', 
+  component: require('./community/community.component')
+}, {
+  path: '/app/new-community', name: 'CreateCommunity', 
   component: CreateCommunityComponent
 }, {
-  path: '/profile', name: 'MemberProfile', 
+  path: '/app/profile', name: 'MemberProfile', 
   component: MemberProfileComponent
-},])(AppComponent);
+}])(AppComponent);
 
 
 module.exports = AppComponent;
