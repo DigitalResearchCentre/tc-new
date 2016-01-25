@@ -15,7 +15,9 @@ var HeaderComponent = ng.core.Component({
   constructor: [CommunityService, AuthService, UIService, function(
     communityService, authService, uiService
   ) { 
+    console.log('Header');
     this._authService = authService;
+    console.log(authService);
     this._communityService = communityService;
     this._uiService = uiService;
 
@@ -25,22 +27,18 @@ var HeaderComponent = ng.core.Component({
     this.source="default";
   }],
   ngOnInit: function() {
-    var self = this;
+    var self = this
+      , communityService = this._communityService
+    ;
     this._authService.getAuthUser().subscribe(function(authUser) {
       self.authUser = authUser;
     });
-    this._communityService.getPublicCommunities().subscribe(function(coms) { 
-      self.publicCommunities = coms;
+    communityService.getPublicCommunities().subscribe(function(communities) { 
+      self.publicCommunities = communities;
     });
-  },
-  getMyCommunities: function() {
-    var authUser = this.authUser;
-    if (authUser) {
-      return _.map(authUser.memberships, function(membership) {
-        console.log(membership.community);
-        return membership.community;
-      });
-    }
+    communityService.getMyCommunities().subscribe(function(communities) {
+      self.myCommunities = communities;
+    });
   },
   showCreateOrJoin: function() {
     return this.authUser && _.isEmpty(this.authUser.memberships);

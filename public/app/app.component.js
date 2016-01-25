@@ -2,8 +2,6 @@ require('bootstrap');
 require('./app.less');
 
 var RouteParams = ng.router.RouteParams
-  , CommunityService = require('./community.service')
-  , AuthService = require('./auth.service')
   , HomeComponent = require('./home.component')
 ;
 
@@ -28,13 +26,13 @@ var CreateCommunityComponent = ng.core.Component({
 var AppComponent = ng.core.Component({
   selector: 'tc-app',
   templateUrl: '/app/app.html',
-  providers: [AuthService],
   directives: [
     ng.router.ROUTER_DIRECTIVES, 
     require('./header.component'),
   ],
 }).Class({
   constructor: [function() { 
+    console.log('App');
   }],
 });
 ng.router.RouteConfig([{
@@ -42,7 +40,7 @@ ng.router.RouteConfig([{
 }, {
   path: '/app/home', name: 'Home', component: HomeComponent, 
 }, {
-  path: '/app/:id/...', name: 'Community', 
+  path: '/app/community/...', name: 'Community', 
   component: require('./community/community.component')
 }, {
   path: '/app/new-community', name: 'CreateCommunity', 

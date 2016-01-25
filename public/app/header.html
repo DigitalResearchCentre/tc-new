@@ -13,8 +13,8 @@
                 Public Communities <span class="caret"></span></a>
               <ul class="dropdown-menu">
                 <li *ngFor="#community of publicCommunities">
-                  <a [routerLink]="['Community', {id: community._id},
-                    'CommunityHome']">
+                  <a [routerLink]="['Community', 'CommunityHome', 
+                    {id: community._id}]">
                     {{community.name}}</a>
                 </li>
               </ul>
@@ -36,9 +36,10 @@
                     <a [routerLink]="['CreateCommunity']">Create Community</a>
                   </li>
                   <li role="separator" class="divider"></li>
-                  <li *ngFor="#ms of authUser.memberships;">
-                    <a [routerLink]="['Community', {id: ms.community._id}, 'CommunityHome']">
-                      {{ms.community.name}}
+                  <li *ngFor="#community of myCommunities;">
+                    <a [routerLink]="['Community', 'CommunityHome', 
+                      {id: community._id}]">
+                      {{community.name}}
                     </a>
                   </li>
                 </ul>

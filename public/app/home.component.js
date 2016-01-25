@@ -11,6 +11,7 @@ var HomeComponent = ng.core.Component({
   constructor: [CommunityService, AuthService, UIService, function(
     communityService, authService, uiService
   ) { 
+    console.log('Home');
     this._authService = authService;
     this._communityService = communityService;
     this._uiService = uiService;

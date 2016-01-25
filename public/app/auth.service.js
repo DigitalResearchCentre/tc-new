@@ -1,5 +1,7 @@
-var RESTService = require('./rest.service')
-  , Http = ng.http.Http
+var Http = ng.http.Http
+  , forwardRef = ng.core.forwardRef
+  , Inject = ng.core.Inject
+  , RESTService = require('./rest.service')
 ;
 
 var AuthService = ng.core.Class({
@@ -8,12 +10,15 @@ var AuthService = ng.core.Class({
     var self = this;
     RESTService.call(this, http);
     this.resourceUrl = 'auth';
+
     this._authUser = null;
     this._authUserSubject = new Rx.Subject();
+    window.as = this;
   }],
   getAuthUser: function() {
     var self = this;
     if (!this._authUser$) {
+      console.log('hello');
       this._authUser$ = this.detail(null, {
         search: {
           populate: JSON.stringify('memberships.community'),
@@ -39,6 +44,7 @@ var AuthService = ng.core.Class({
     });
   },
 });
+
 
 module.exports = AuthService;
 
