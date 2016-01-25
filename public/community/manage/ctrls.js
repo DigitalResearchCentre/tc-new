@@ -82,7 +82,31 @@ var AddDocPageCtrl = function($scope, $routeParams, $location, TCService) {
   var Doc = TCService.Doc
     , doc = new Doc()
   ;
- var community=$scope.$parent.$parent.community
+ var community=$scope.$parent.$parent.community;
+ $('#manageModal').width("430px");
+ $('#manageModal').height("355px");
+ $scope.oneormany="OnePage";
+ $scope.pageName="";
+ $scope.submit = function(){
+   if ($scope.oneormany=="OnePage") {
+     if ($scope.pageName=="") {
+       $scope.message="You must supply a name for the page";
+       return;
+     }
+     if (!$scope.$parent.$parent.document.children.length) {
+       TCService.commit({
+          doc: $scope.$parent.$parent.document,
+          text:  '<text><body><pb n="'+$scope.pageName+'"/></body></text>'
+        }).then (function (newdoc){
+          //this is assuming that the page added is the first page in the document!
+          $scope.success="Page \""+$scope.pageName+"\" added."
+          $scope.message="";
+          $location.path('/community/'+$scope.$parent.$parent.community._id+'/view/'+$scope.$parent.$parent.document._id+'/'+newdoc.children[0])
+      //    TCService.toggleDoc(newdoc);
+        });
+     }
+   }
+ }
  $scope.showSingle = function() {
    $("#MMADPsingle").show();
    $("#MMADPmultiple").hide();
@@ -99,8 +123,14 @@ var AddDocPageCtrl = function($scope, $routeParams, $location, TCService) {
    $("#MMAPPSingleWeb").show();
    $("#MMAPPSingleFile").hide();
  }
-
-
+ $scope.fromZip = function() {
+   $("#MMAPPMFF").show();
+   $("#MMAPPMFDD").hide();
+ }
+ $scope.fromDD = function(){
+   $("#MMAPPMFDD").show();
+   $("#MMAPPMFF").hide();
+ }
 };
 AddDocPageCtrl.$inject = ['$scope', '$routeParams', '$location', 'TCService'];
 
@@ -148,6 +178,7 @@ var AddDocCtrl = function($scope, $routeParams, $location, TCService) {
           if ($scope.$parent.$parent.userStatus=="2" || $scope.$parent.$parent.userStatus=="1") {
               $scope.$parent.$parent.userStatus="3";
               $scope.$parent.$parent.docname=$scope.doc.name;
+              $scope.$parent.$parent.document=$scope.doc;
               $location.path('/community/' + community._id + '/view');
             }
           setTimeout( function() {
