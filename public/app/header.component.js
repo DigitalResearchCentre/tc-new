@@ -30,13 +30,13 @@ var HeaderComponent = ng.core.Component({
     var self = this
       , communityService = this._communityService
     ;
-    this._authService.getAuthUser().subscribe(function(authUser) {
+    this._authService.authUser$.subscribe(function(authUser) {
       self.authUser = authUser;
     });
-    communityService.getPublicCommunities().subscribe(function(communities) { 
+    communityService.publicCommunities$.subscribe(function(communities) { 
       self.publicCommunities = communities;
     });
-    communityService.getMyCommunities().subscribe(function(communities) {
+    communityService.myCommunities$.subscribe(function(communities) {
       self.myCommunities = communities;
     });
   },

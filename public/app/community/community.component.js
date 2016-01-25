@@ -39,16 +39,17 @@ var CommunityComponent = ng.core.Component({
   }],
   ngOnInit: function() {
     var id = this._routeParams.get('id');
+    console.log(id);
   },
 });
 
 ng.router.RouteConfig([{
-  path: '/:id', name: 'Default', component: CommunityHomeComponent
+  path: '/', name: 'Default', component: CommunityHomeComponent
 }, {
-  path: '/:id/home', name: 'CommunityHome', 
+  path: '/home', name: 'CommunityHome', 
   component: CommunityHomeComponent
 }, {
-  path: '/:id/about', name: 'CommunityAbout', 
+  path: '/about', name: 'CommunityAbout', 
   component: AboutComponent
 }])(CommunityComponent);
 

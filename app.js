@@ -52,7 +52,7 @@ app.use('/auth', require('./routes/auth'));
 app.all('/app/*', function(req, res) {
   res.status(200).set({
     'content-type': 'text/html; charset=utf-8'
-  }).sendfile('public/t.html');
+  }).sendFile(path.join(__dirname, 'public/t.html'));
 });
 
 // catch 404 and forward to error handler
@@ -64,7 +64,7 @@ app.use(function(req, res, next) {
 
 // error handlers
 
-// development error handler
+// development error handler.
 // will print stacktrace
 if (app.get('env') === 'development') {
   Error.stackTraceLimit = 100;
