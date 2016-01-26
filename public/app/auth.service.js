@@ -18,6 +18,7 @@ var AuthService = ng.core.Class({
     this.initEventEmitters();
   }],
   initEventEmitters: function() {
+    var self = this;
     this.authUser$ = this
       .detail(null, {
         search: {
@@ -33,8 +34,6 @@ var AuthService = ng.core.Class({
         return authUser;
       })
       .publishReplay(1).refCount();
-
-    
   },
   isAuthenticated: function() {
     return (this._authUser || {})._id;

@@ -23,6 +23,7 @@ var HomeComponent = ng.core.Component({
     });
   },
   getUserStatus: function() {
+    /*
     var authUser = this.authUser
       , status = 0
     ;
@@ -34,7 +35,7 @@ var HomeComponent = ng.core.Component({
         (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER") &&!$scope.community.documents.length
       ) {
         //user, one community, but no documents
-      userStatus  
+        status = 2;
       } else if (
         authUser.memberships.length === 1 && (
           authUser.memberships[0].role=="CREATOR" ||
@@ -53,6 +54,7 @@ var HomeComponent = ng.core.Component({
 
     }
     }
+    */
   },
 });
 

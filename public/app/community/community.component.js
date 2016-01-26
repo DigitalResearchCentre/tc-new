@@ -28,6 +28,7 @@ var CommunityComponent = ng.core.Component({
   templateUrl: '/app/community/community.html',
   directives: [
     ng.router.ROUTER_DIRECTIVES, 
+    AboutComponent,
   ],
 }).Class({
   constructor: [RouteParams, CommunityService, function(
@@ -38,8 +39,12 @@ var CommunityComponent = ng.core.Component({
     this._communityService = _communityService;
   }],
   ngOnInit: function() {
-    var id = this._routeParams.get('id');
-    console.log(id);
+    var self = this
+      , id = this._routeParams.get('id')
+    ;
+    this._communityService.getCommunity$(id).subscribe(function(community) {
+      self.community = community;
+    });
   },
 });
 

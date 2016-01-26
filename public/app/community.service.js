@@ -48,16 +48,21 @@ var CommunityService = ng.core.Injectable().Class({
       id = id._id;
     }
     return Observable.create(function(obs) {
-      var community = self.getCache(id);
-      if (community) {
-        obs.next(community);
+      if (!id) {
+        obs.next(null);
         obs.complete();
       } else {
-        self.detail(id).subscribe(function(res) {
-          self.updateCache(res);
-          obs.next(res);
+        var community = self.getCache(id);
+        if (community) {
+          obs.next(community);
           obs.complete();
-        });
+        } else {
+          self.detail(id).subscribe(function(res) {
+            self.updateCache(res);
+            obs.next(res);
+            obs.complete();
+          });
+        }
       }
     }).publishReplay(1).refCount();
   },

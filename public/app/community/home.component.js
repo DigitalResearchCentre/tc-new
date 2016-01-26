@@ -1,24 +1,34 @@
 var RouteParams = ng.router.RouteParams
   , CommunityService = require('../community.service')
+  , UIService = require('../ui.service')
 ;
 
 var CommunityHomeComponent = ng.core.Component({
   selector: 'tc-community-home',
   templateUrl: '/app/community/home.html',
+  inputs: [
+    'community',
+  ],
 }).Class({
-  constructor: [RouteParams, CommunityService, function(
-    routeParams, communityService
+  constructor: [RouteParams, CommunityService, UIService, function(
+    routeParams, communityService, uiService
   ) {
     this._routeParams = routeParams;
     this._communityService = communityService;
-    window.rp = routeParams;
+    this._uiService = uiService;
   }],
   ngOnInit: function() {
-    var id = this._routeParams.get('id');
-    this._communityService.getCommunity$(id).subscribe(function(res) {
-      console.log(res);
-      
-    })
+    var self = this;
+    this.uiService.community$.subscribe(function(community) {
+      self.community = community;
+    });
+    var ping = this.ping = new ng.core.EventEmitter();
+
+    var i = 0;
+    setInterval(function() {
+      i += 1;
+      ping.next(i);
+    }, 2000);
   },
 });
 

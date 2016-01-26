@@ -40,7 +40,7 @@ ng.router.RouteConfig([{
 }, {
   path: '/app/home', name: 'Home', component: HomeComponent, 
 }, {
-  path: '/app/:id/...', name: 'Community', 
+  path: '/app/community/...', name: 'Community', 
   component: require('./community/community.component')
 }, {
   path: '/app/new-community', name: 'CreateCommunity', 
