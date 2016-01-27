@@ -13,22 +13,14 @@ var CommunityHomeComponent = ng.core.Component({
   constructor: [RouteParams, CommunityService, UIService, function(
     routeParams, communityService, uiService
   ) {
+    console.log('community home');
     this._routeParams = routeParams;
     this._communityService = communityService;
     this._uiService = uiService;
   }],
   ngOnInit: function() {
     var self = this;
-    this.uiService.community$.subscribe(function(community) {
-      self.community = community;
-    });
-    var ping = this.ping = new ng.core.EventEmitter();
-
-    var i = 0;
-    setInterval(function() {
-      i += 1;
-      ping.next(i);
-    }, 2000);
+    console.log(this.community);
   },
 });
 

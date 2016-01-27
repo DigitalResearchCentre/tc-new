@@ -57,7 +57,6 @@ router.get('/entities/:id/docs/:docId', function(req, res, next) {
   });
 });
 
-
 var DocResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Doc, opts);
   this.options.auth.a = 1;

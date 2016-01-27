@@ -1,7 +1,6 @@
 var mongoose = require('mongoose')
   , _ = require('lodash')
   , async = require('async')
-  , Promise = mongoose.Promise
   , Schema = mongoose.Schema
   , ObjectId = Schema.Types.ObjectId
   , OId = mongoose.Types.ObjectId
@@ -24,24 +23,30 @@ var CommunitySchema = new Schema({
 });
 
 _.assign(CommunitySchema.methods, {
-  getstatus: function(cb) {
-    var self = this
-      , documents = this.documents
-      , promise = new Promise()
-    ;
-    documents = Community.populate(this, 'documents');
-
-    return _.when(documents).then(function(documents) {
-      return Community.populate(self, {
-        path: 'documents.children',
-        model: 'Doc',
-      });
-    }).then(function() {
+  getstatus: function(callback) {
+    var community = this;
+    var documents = _.map(community.documents, function(doc) {
+      if (_.isObject(doc) && doc._id) {
+        return doc._id;
+      }
+      return doc;
+    });
+    return async.waterfall([
+      function(cb) {
+        return Doc.find({_id: {$in: documents}}).populate({
+          path: 'children',
+          select: 'revisions',
+        }).exec(cb);
+      },
+    ], function(err, documents) {
+      if (err) {
+        return callback(err);
+      }
       var numOfPages = 0
         , numOfTranscripts = 0
         , numOfPagesTranscribed = 0
       ;
-      _.each(self.documents, function(doc) {
+      _.each(documents, function(doc) {
         numOfPages += (doc.children || []).length;
         _.each(doc.children, function(child) {
           var l = child.revisions.length;
@@ -49,17 +54,11 @@ _.assign(CommunitySchema.methods, {
           numOfPagesTranscribed += l > 0 ? 1 : 0;
         });
       });
-
-      self.status = {
+      return callback(null, {
         numOfTranscripts: numOfTranscripts,
         numOfPages: numOfPages,
         numOfPagesTranscribed: numOfPagesTranscribed,
-      };
-      if (cb) {
-        cb(null, self);
-      }
-      promise.fulfill(self);
-      return promise;
+      });
     });
   },
 });
