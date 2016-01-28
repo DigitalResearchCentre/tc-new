@@ -64,9 +64,7 @@ _.assign(CommunitySchema.methods, {
 });
 
 _.assign(CommunitySchema.statics, {
-  getOptFields: function() {
-    return ['status'];
-  }
+  optionalFields: ['status'],
 });
 var Community = mongoose.model('Community', CommunitySchema);
 

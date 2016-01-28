@@ -30,6 +30,7 @@ var AppComponent = ng.core.Component({
   directives: [
     ng.router.ROUTER_DIRECTIVES, 
     require('./header.component'),
+    require('./tabs.directive'),
   ],
 }).Class({
   constructor: [function() { 
@@ -37,7 +38,9 @@ var AppComponent = ng.core.Component({
   }],
 });
 ng.router.RouteConfig([{
-  path: '/app/home', name: 'Home', component: HomeComponent, useAsDefault: true, 
+  path: '/app/', name: 'Default', component: HomeComponent, useAsDefault: true,
+}, {
+  path: '/app/home', name: 'Home', component: HomeComponent, 
 }, {
   path: '/app/new-community', name: 'CreateCommunity', 
   component: CreateCommunityComponent

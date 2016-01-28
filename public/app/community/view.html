@@ -1,0 +1,102 @@
+<script type="text/ng-template" id="tree.html">
+  <div>
+    <span class="icon" aria-hidden="true"
+      ng-click="toggleEntity(node, doc)"></span>
+    <a ng-click="selectEntity(node, doc)">
+      {{node.name}}
+    </a>
+  </div>
+  <ul ng-if="node.entities">
+    <li ng-repeat="node in node.entities"
+      ng-include="'tree.html'"
+      ng-class="{'collapse-node': !node.expand, leaf: !node.entities}">
+    </li>
+  </ul>
+</script>
+<div class="sidebar">
+  <div class="tabbable boxed parentTabs">
+      <ul class="nav nav-tabs tab-heads">
+          <li class="active"><a href="#set1">Documents</a>
+          </li>
+          <li><a href="#set2">Collations</a>
+          </li>
+      </ul>
+      <nav tabs class="tab-content">
+          <nav class="tab-pane fade active in" id="set1">
+              <nav class="tabbable">
+                  <ul class="nav nav-tabs tab-heads">
+                      <li class="active"><a href="#sub11">By Page</a>
+                      </li>
+                      <li><a href="#sub12">By Item</a>
+                      </li>
+                  </ul>
+                  <nav class="tab-content ">
+                      <nav class="tab-pane fade active in" id="sub11">
+                        <ul class="tree">
+                          <li *ngFor="#doc of community.documents"
+                            ng-class="{'collapse-node': !doc.expand}">
+                            <div>
+                              <span class="icon" aria-hidden="true"
+                                ng-click="toggleDoc(doc)"></span>
+                              <a (click)="selectDoc(doc)">
+                                {{doc.name}}
+                              </a>
+                              <a target="_blank" class="extract-xml"
+                                ng-click="extractXML($event, doc)">
+                              </a>
+                            </div>
+                            <ul>
+                              <li ng-repeat="page in doc.children">
+                                <a (click)="selectPage(page._id)">
+                                  {{page.name}}
+                                </a>
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </nav>
+                      <div class="tab-pane fade" id="sub12">
+                        <ul class="tree">
+                          <li *ngFor="#doc of community.documents"
+                            ng-class="{'collapse-node': !doc.expand}">
+                            <div>
+                              <span class="icon" aria-hidden="true"
+                                ng-click="toggleDoc(doc)"></span>
+                              <a (click)="selectDoc(doc)">
+                                {{doc.name}}
+                              </a>
+                            </div>
+                            <ul>
+                              <li ng-repeat="node in doc.entities"
+                                ng-include="'tree.html'"
+                                ng-class="{'collapse-node': !node.expand}">
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </div>
+                  </nav>
+              </nav>
+          </nav>
+          <nav class="tab-pane fade" id="set2">
+              <nav class="tabbable">
+                  <nav class="tab-content">
+                      <div class="tab-pane fade active in" id="sub21">
+                          <p>Collation will go here</p>
+                      </div>
+                      <div class="tab-pane fade" id="sub22">
+                          <p>Tab 2.2</p>
+                      </div>
+                  </nav>
+              </nav>
+          </nav>
+      </nav>
+  </div>
+</div>
+<div class="resizer vertical"
+  x-resizer="vertical" x-resizer-width="5"
+  x-resizer-min="100" x-resizer-max="300"
+  x-resizer-left=".sidebar" x-resizer-right=".viewer">
+</div>
+
+

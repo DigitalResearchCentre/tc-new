@@ -105,7 +105,7 @@ _.assign(Resource.prototype, {
         res.json(data);
       }
     }
-    fields = _.intersection(fields, this.model.getOptFields());
+    fields = _.intersection(fields, this.model.optionalFields);
     return function(err, data) {
       if (fields.length > 0) {
         var isArray = _.isArray(data);

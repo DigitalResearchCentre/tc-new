@@ -15,6 +15,7 @@ var CommunityComponent = ng.core.Component({
     ng.router.ROUTER_DIRECTIVES, 
     require('./about.component'),
     require('./home.component'),
+    require('./view.component'),
   ],
 }).Class({
   constructor: [RouteParams, Router, Location, CommunityService, function(
