@@ -30,7 +30,6 @@ var AppComponent = ng.core.Component({
   directives: [
     ng.router.ROUTER_DIRECTIVES, 
     require('./header.component'),
-    require('./tabs.directive'),
   ],
 }).Class({
   constructor: [function() { 

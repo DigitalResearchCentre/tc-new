@@ -7,7 +7,6 @@ var _ = require('lodash')
   , UIService = require('../ui.service')
 ;
 
-
 var CommunityComponent = ng.core.Component({
   selector: 'tc-community',
   templateUrl: '/app/community/community.html',

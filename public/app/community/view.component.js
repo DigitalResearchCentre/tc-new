@@ -2,12 +2,16 @@ var CommunityService = require('../community.service')
   , UIService = require('../ui.service')
 ;
 
-var CommunityHomeComponent = ng.core.Component({
+var ViewComponent = ng.core.Component({
   selector: 'tc-community-view',
   templateUrl: '/app/community/view.html',
+  styleUrls: ['/app/community/view.css'],
   inputs: [
     'community',
   ],
+  directives: [
+    require('../tabs.directive').TAB_DIRECTIVES,
+  ]
 }).Class({
   constructor: [CommunityService, UIService, function(
     communityService, uiService
@@ -28,4 +32,4 @@ var CommunityHomeComponent = ng.core.Component({
   },
 });
 
-module.exports = CommunityHomeComponent;
+module.exports = ViewComponent;
