@@ -1,10 +1,33 @@
 
 tc-community-view {
+    .flex(1, 1, 0);
+    overflow: hidden;
+
     .flex-row;
 
     .sidebar {
-        flex: 1 1 25%;
-        -webkit-flex: 1 1 25%;
+        .flex(1, 1, 25%);
+
+        .flex-column;
+
+        tc-tabs {
+            .flex(1, 1, 0);
+
+            .flex-column;
+
+            >* {
+                .flex(1, 1, initial);
+            }
+
+            >.nav.nav-tabs {
+                .flex(0, 0, initial);
+            }
+
+            tc-tab {
+                .flex-column;
+                overflow: auto;
+            }
+        }
 
         ul.tab-heads {
             font-size: 80%;
@@ -16,8 +39,8 @@ tc-community-view {
             padding: 0;
         }
 
-        ul.tree {
-            overflow-y: auto;
+        tc-tab ul.tree {
+            overflow: auto;
 
             li {
                 padding-left: 16px;

@@ -1,5 +1,7 @@
 var CommunityService = require('../community.service')
   , UIService = require('../ui.service')
+  , $ = require('jquery')
+  , ImageMap = require('./map')
 ;
 
 var ViewComponent = ng.core.Component({
@@ -21,8 +23,19 @@ var ViewComponent = ng.core.Component({
     this._uiService = uiService;
   }],
   ngOnInit: function() {
-    var self = this;
-    console.log(this.community);
+    var self = this
+      , community = this.community
+    ;
+    console.log(community);
+    var $imageMap = $('.image_map');
+    var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
+    var imageMap = new ImageMap(
+      $imageMap[0], 
+      'http://textualcommunities.usask.ca/api/docs/3063121/has_image/', 
+      options);
+  },
+  toggleDoc: function(doc) {
+    doc.expand = !doc.expand;
   },
   selectDoc: function(doc) {
     console.log(doc);
@@ -33,3 +46,5 @@ var ViewComponent = ng.core.Component({
 });
 
 module.exports = ViewComponent;
+
+

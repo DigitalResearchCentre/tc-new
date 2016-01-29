@@ -5,7 +5,9 @@ var Tab = ng.core.Component({
   inputs: [
     'title', 'active',
   ],
-  template: '<div [hidden]="!active"><ng-content></ng-content></div>',
+  template: '<div class="tab-content" [hidden]="!active">' + 
+    '<ng-content></ng-content>' +
+  '</div>',
 }).Class({
   constructor: function() {
     

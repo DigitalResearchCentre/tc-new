@@ -42,7 +42,7 @@ var CommunityService = ng.core.Injectable().Class({
       })
       .publishReplay(1).refCount();
   },
-  getCommunity$: function(id) {
+  getCommunity$: function(id, options) {
     var self = this;
     if (_.isObject(id)) {
       id = id._id;
@@ -53,13 +53,13 @@ var CommunityService = ng.core.Injectable().Class({
         obs.complete();
       } else {
         var community = self.getCache(id);
-        if (community) {
+        if (community && (!options || !options.force)) {
           obs.next(community);
           obs.complete();
         } else {
-          self.detail(id).subscribe(function(res) {
-            self.updateCache(res);
-            obs.next(res);
+          self.detail(id, options).subscribe(function(res) {
+            var cache = self.updateCache(res.json());
+            obs.next(cache);
             obs.complete();
           });
         }
@@ -67,5 +67,6 @@ var CommunityService = ng.core.Injectable().Class({
     }).publishReplay(1).refCount();
   },
 });
+
 
 module.exports = CommunityService;

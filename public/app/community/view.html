@@ -14,25 +14,25 @@
   </ul>
 </script>
 <div class="sidebar">
-  <tc-tabs>
+  <tc-tabs *ngIf="community">
     <tc-tab [active]="true" title="Documents">
       <tc-tabs>
         <tc-tab [active]="true" title="By Page">
           <ul class="tree">
-            <li *ngFor="#doc of community.documents"
-              ng-class="{'collapse-node': !doc.expand}">
+            <li *ngFor="#doc of community.documents" 
+              [class.collapse-node]="!doc.expand">
               <div>
                 <span class="icon" aria-hidden="true"
-                  ng-click="toggleDoc(doc)"></span>
+                  (click)="toggleDoc(doc)"></span>
                 <a (click)="selectDoc(doc)">
                   {{doc.name}}
                 </a>
                 <a target="_blank" class="extract-xml"
-                  ng-click="extractXML($event, doc)">
+                  (click)="extractXML($event, doc)">
                 </a>
               </div>
               <ul>
-                <li ng-repeat="page in doc.children">
+                <li *ngFor="#page of doc.children">
                   <a (click)="selectPage(page._id)">
                     {{page.name}}
                   </a>
@@ -42,20 +42,21 @@
           </ul>
         </tc-tab>
         <tc-tab title="By Item">
+          <div>world</div>
           <ul class="tree">
             <li *ngFor="#doc of community.documents"
-              ng-class="{'collapse-node': !doc.expand}">
+              [class.collapse-node]="!doc.expand">
               <div>
                 <span class="icon" aria-hidden="true"
-                  ng-click="toggleDoc(doc)"></span>
+                  (click)="toggleDoc(doc)"></span>
                 <a (click)="selectDoc(doc)">
                   {{doc.name}}
                 </a>
               </div>
               <ul>
-                <li ng-repeat="node in doc.entities"
+                <li *ngFor="#node of doc.entities"
                   ng-include="'tree.html'"
-                  ng-class="{'collapse-node': !node.expand}">
+                  [class.collapse-node]="!node.expand">
                 </li>
               </ul>
             </li>

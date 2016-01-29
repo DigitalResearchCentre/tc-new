@@ -38,7 +38,13 @@ var CommunityComponent = ng.core.Component({
       , route = this._routeParams.get('route')
     ;
     this.route = route;
-    this._communityService.getCommunity$(id).subscribe(function(community) {
+    this._communityService.getCommunity$(id, {
+      search: {
+        populate: JSON.stringify('documents.children entities'),
+      },
+      force: true,
+    }).subscribe(function(community) {
+      console.log(community);
       self.community = community;
     });
   },
