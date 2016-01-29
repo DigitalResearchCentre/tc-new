@@ -25,8 +25,7 @@ var AuthService = ng.core.Class({
           populate: JSON.stringify('memberships.community'),
         },
       })
-      .map(function(res) {
-        var authUser = res.json();
+      .map(function(authUser) {
         return authUser._id ? authUser : null;
       })
       .merge(this._authUserSubject).map(function(authUser) {
@@ -49,4 +48,5 @@ var AuthService = ng.core.Class({
 
 
 module.exports = AuthService;
+
 

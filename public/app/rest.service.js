@@ -1,12 +1,11 @@
 var URI = require('urijs')
   , URITemplate = require('urijs/src/URITemplate')
   , _ = require('lodash')
+  , Model = require('./models/model')
 ;
 var Http = ng.http.Http;
 
 var BACKEND_URL = 'http://localhost:3000/api/';
-
-var CACHE_STORE = {};
 
 var RESTService = ng.core.Injectable().Class({
   constructor: [Http, function(http) {
@@ -18,6 +17,9 @@ var RESTService = ng.core.Injectable().Class({
       resource: this.resourceUrl,
     }, options)).normalize().toString();
   },
+  modelClass: function() {
+    return Model;
+  },
   prepareOptions: function(options) {
     options = _.clone(options || {});
     if (!_.isString(options.search)) {
@@ -28,38 +30,38 @@ var RESTService = ng.core.Injectable().Class({
     return options;
   },
   create: function(data, options) {
+    var self = this;
     options = this.prepareOptions(options);
     return this.http.post(
       this.url(), JSON.stringify(data), options
-    );
+    ).map(function(res) {
+      var cls = self.modelClass();
+      return new cls(res.json());
+    });
   },
   detail: function(id, options) {
+    var self = this;
     options = this.prepareOptions(options);
-    return this.http.get(this.url({ id: id }), options);
+    return this.http.get(this.url({ id: id }), options).map(function(res) {
+      var cls = self.modelClass();
+      return new cls(res.json());
+    });
   },
   list: function(options) {
+    var self = this;
     options = this.prepareOptions(options);
-    return this.http.get(this.url(), options);
+    return this.http.get(this.url(), options).map(function(res) {
+      var cls = self.modelClass();
+      return _.map(res.json(), function(data) {
+        return new cls(data);
+      });
+    });
   },
-  setCache: function(obj) {
-    CACHE_STORE[obj._id] = obj;
-    return obj;
-  },
-  updateCache: function(obj) {
-    var cache = CACHE_STORE[obj._id];
-    if (_.isUndefined(cache)) {
-      cache = this.setCache(obj);
-    } else {
-      cache = _.assign(cache, obj);
-    }
-    return cache;
-  },
-  getCache: function(id) {
-    if (_.isObject(id)) {
-      id = id._id;
-    }
-    return CACHE_STORE[id];
-  },
+  fetch: function(id, search) {
+    return this.detail(id, {
+      search: search
+    });
+  }
 });
 
 module.exports = RESTService;

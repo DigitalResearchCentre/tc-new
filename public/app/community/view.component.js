@@ -1,7 +1,5 @@
 var CommunityService = require('../community.service')
   , UIService = require('../ui.service')
-  , $ = require('jquery')
-  , ImageMap = require('./map')
 ;
 
 var ViewComponent = ng.core.Component({
@@ -13,6 +11,7 @@ var ViewComponent = ng.core.Component({
   ],
   directives: [
     require('../tabs.directive').TAB_DIRECTIVES,
+    require('./viewer.component'),
   ]
 }).Class({
   constructor: [CommunityService, UIService, function(
@@ -27,12 +26,6 @@ var ViewComponent = ng.core.Component({
       , community = this.community
     ;
     console.log(community);
-    var $imageMap = $('.image_map');
-    var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
-    var imageMap = new ImageMap(
-      $imageMap[0], 
-      'http://textualcommunities.usask.ca/api/docs/3063121/has_image/', 
-      options);
   },
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;

@@ -21,6 +21,7 @@ var CommunityHomeComponent = ng.core.Component({
   ngOnInit: function() {
     var self = this;
     console.log(this.community);
+    window.cc = this.community;
   },
 });
 

@@ -1,0 +1,54 @@
+tc-viewer {
+    .flex(3, 3, 75%);
+
+    .flex-column;
+    .image-viewer {
+        .flex(1, 1, 0);
+
+        .flex-column;
+        .image_map {
+            .flex(1, 1, 100%);
+        }
+    }
+
+    .text-viewer {
+        .flex(1, 1, 0);
+
+        .flex-column;
+        .transcript-header {
+            .flex(0, 0, 23px);
+        }
+
+        .transcript {
+            .flex(1, 1, 0);
+            .flex-column;
+
+            >textarea {
+                .flex(0, 0, 0);
+            }
+
+            .CodeMirror {
+                .flex(1, 1, 0);
+
+                .flex-column;
+                overflow-x: hidden;
+                overflow-y: auto;
+
+                >* {
+                    .flex(0, 0, 0);
+                }
+
+                >.CodeMirror-scroll {
+                    .flex(1, 1, 0);
+                }
+            }
+        }
+
+        .buttons {
+            .flex(0, 0, 26px);
+        }
+
+    }
+
+}
+

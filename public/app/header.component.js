@@ -36,9 +36,6 @@ var HeaderComponent = ng.core.Component({
     communityService.publicCommunities$.subscribe(function(communities) { 
       self.publicCommunities = communities;
     });
-    communityService.myCommunities$.subscribe(function(communities) {
-      self.myCommunities = communities;
-    });
   },
   showCreateOrJoin: function() {
     return this.authUser && _.isEmpty(this.authUser.memberships);

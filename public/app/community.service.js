@@ -5,6 +5,7 @@ var Observable = Rx.Observable
   , EventEmitter = ng.core.EventEmitter
   , RESTService = require('./rest.service')
   , AuthService = require('./auth.service')
+  , Community = require('./models/community')
 ;
 
 var CommunityService = ng.core.Injectable().Class({
@@ -19,6 +20,9 @@ var CommunityService = ng.core.Injectable().Class({
 
     this.initEventEmitters();
   }],
+  modelClass: function() {
+    return Community;
+  },
   initEventEmitters: function() {
     var self = this;
     this.publicCommunities$ = this
@@ -27,46 +31,13 @@ var CommunityService = ng.core.Injectable().Class({
           find: JSON.stringify({public: true}),
         },
       })
-      .map(function(res) {
-        return _.map(res.json(), function(obj) {
-          return self.updateCache(obj);
-        });
-      })
-      .publishReplay(1).refCount();
-
-    this.myCommunities$ = this._authService.authUser$
-      .map(function(res) {
-        return _.map((res || {}).memberships, function(membership) {
-          return self.updateCache(membership.community);
-        });
-      })
       .publishReplay(1).refCount();
   },
-  getCommunity$: function(id, options) {
-    var self = this;
-    if (_.isObject(id)) {
-      id = id._id;
-    }
-    return Observable.create(function(obs) {
-      if (!id) {
-        obs.next(null);
-        obs.complete();
-      } else {
-        var community = self.getCache(id);
-        if (community && (!options || !options.force)) {
-          obs.next(community);
-          obs.complete();
-        } else {
-          self.detail(id, options).subscribe(function(res) {
-            var cache = self.updateCache(res.json());
-            obs.next(cache);
-            obs.complete();
-          });
-        }
-      }
-    }).publishReplay(1).refCount();
+  get: function(id) {
+    return new Community({_id: id});
   },
 });
 
 
 module.exports = CommunityService;
+

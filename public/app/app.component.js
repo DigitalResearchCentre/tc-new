@@ -1,5 +1,6 @@
 require('bootstrap');
 require('./app.less');
+require('../../utils/mixin');
 
 var RouteParams = ng.router.RouteParams
   , HomeComponent = require('./home.component')
@@ -23,6 +24,7 @@ var CreateCommunityComponent = ng.core.Component({
     
   },
 });
+
 
 var AppComponent = ng.core.Component({
   selector: 'tc-app',

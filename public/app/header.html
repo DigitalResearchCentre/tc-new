@@ -35,10 +35,10 @@
                   <a [routerLink]="['CreateCommunity']">Create Community</a>
                 </li>
                 <li role="separator" class="divider"></li>
-                <li *ngFor="#community of myCommunities;">
+                <li *ngFor="#membership of authUser.memberships;">
                   <a [routerLink]="['Community', 
-                    {id: community._id, route: 'home'}]">
-                    {{community.name}}
+                    {id: membership.community._id, route: 'home'}]">
+                    {{membership.community.name}}
                   </a>
                 </li>
               </ul>
