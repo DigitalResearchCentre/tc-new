@@ -28,24 +28,32 @@ var HeaderComponent = ng.core.Component({
     this.source="default";
   }],
   ngOnInit: function() {
-    var self = this
+    var that = this
       , communityService = this._communityService
     ;
     this._authService.getAuthUser().subscribe(function(authUser) {
-      self.authUser = authUser;
+      that.authUser = authUser;
     });
     communityService.getPublicCommunities().subscribe(function(communities) {
-      self.publicCommunities = communities;
+      that.publicCommunities = communities;
     });
     communityService.getMyCommunities().subscribe(function(communities) {
-      self.myCommunities = communities;
+      that.myCommunities = communities;
+      if (!that.community && communities.length == 1) {
+        that._uiService.communitySubject.next(that.myCommunities[0]._id);
+      }
     });
+    this._uiService.community$.subscribe(function(id){
+      that.community = communityService.get(id);
+    })
   },
   showCreateOrJoin: function() {
     return this.authUser && _.isEmpty(this.authUser.memberships);
   },
   showAddDocument: function() {
-    if (this.myCommunities.length=="1") this.currentCommunity=this.myCommunities[0];
+    if (this.myCommunities.length=="1") {
+        this.currentCommunity=this.myCommunities[0];
+    }
     return this.currentCommunity && _.isEmpty(this.currentCommunity.documents);
   },
   showAddPage: function() {

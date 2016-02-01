@@ -44,24 +44,12 @@ var CommunityService = ng.core.Injectable().Class({
       });
     }).publishReplay(1).refCount();
   },
-  getCommunity: function(id) {
+  get: function(id) {
     var self = this;
     if (_.isObject(id)) {
       id = id._id;
     }
-    return Observable.create(function(obs) {
-      var community = self.getCache(id);
-      if (community) {
-        obs.next(community);
-        obs.complete();
-      } else {
-        this.detail(community._id).subscribe(function(res) {
-          self.updateCache(res);
-          obs.next(res);
-          obs.complete();
-        });
-      }
-    }).publishReplay(1).refCount();
+    return self.getCache(id);
   },
 });
 

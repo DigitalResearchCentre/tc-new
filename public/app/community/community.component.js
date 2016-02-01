@@ -27,33 +27,32 @@ var CommunityComponent = ng.core.Component({
   selector: 'tc-community',
   templateUrl: '/app/community/community.html',
   directives: [
-    ng.router.ROUTER_DIRECTIVES, 
+    ng.router.ROUTER_DIRECTIVES,
   ],
 }).Class({
-  constructor: [RouteParams, CommunityService, function(
-    _routeParams, _communityService
+  constructor: [RouteParams, CommunityService, UIService, function(
+    _routeParams, _communityService, _uiService
   ) {
     console.log('Community');
     this._routeParams = _routeParams;
     this._communityService = _communityService;
+    this._uiService = _uiService;
   }],
   ngOnInit: function() {
     var id = this._routeParams.get('id');
+    this._uiService.communitySubject.next(id)
   },
 });
 
 ng.router.RouteConfig([{
   path: '/:id', name: 'Default', component: CommunityHomeComponent
 }, {
-  path: '/:id/home', name: 'CommunityHome', 
+  path: '/:id/home', name: 'CommunityHome',
   component: CommunityHomeComponent
 }, {
-  path: '/:id/about', name: 'CommunityAbout', 
+  path: '/:id/about', name: 'CommunityAbout',
   component: AboutComponent
 }])(CommunityComponent);
 
 
 module.exports = CommunityComponent;
-
-
-

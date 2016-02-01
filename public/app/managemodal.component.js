@@ -1,6 +1,8 @@
 var $ = require('jquery');
 var URI = require('urijs')
   , UIService = require('./ui.service')
+  , CommunityService = require('./community.service')
+  , AuthService = require('./auth.service')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
@@ -14,7 +16,7 @@ var ManageModalComponent = ng.core.Component({
   ],
 
 }).Class({
-  constructor: [UIService, function(uiService) {
+  constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
     this._uiService = uiService;
 /*
     this.loginFrame = '/auth?url=/index.html#/home';
