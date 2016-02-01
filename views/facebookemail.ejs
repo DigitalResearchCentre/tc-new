@@ -7,17 +7,15 @@
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
 </head>
 <body class="jumbotron text-center" style="margin:5px 10px 15px 10px; padding: 5px 5px 15px 15px; font-size: 120%">
-	<p style="padding-right:30px; margin-bottom: 5px">There is no Textual Communities account identified by the primary email <b><%= facebook.email %></b> of the Facebook account you just selected.</p>
-  <table style="text-align:left;">
-   <tr><td style="width: 70px; vertical-align:top"><b>EITHER</b></td><td style="width: 450px">
-      <p style="margin-bottom: 5px">Start a new Textual Communities account <br/>identified by the email <%= facebook.email %></p></td>
-      <td>
-       <a href="/auth/facebooknew"> <input type="button" value="New account" class="btn btn-warning btn-sm" ></a>
-     </td>
+	<!--p style="padding-right:30px; margin-bottom: 5px">There is no Textual Communities account identified by the primary email <b><%= facebook.email %></b> of the Facebook account you just selected.</p -->
+  <table style="text-align:left; margin-top: 5px"">
+   <tr><td style="width: 450px" colspan="3">
+      <p style="margin-bottom: 8px; text-align:center"><b>Log in by Facebook as <%= facebook.email %></b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="/auth/facebooknew"> <input type="button" value="New account" class="btn btn-warning btn-lg" ></a></p></td>
    </tr>
-   <tr>
-     <td style="vertical-align:top"><b>OR</b></td><td>
-       <p style="margin-bottom: 5px">Associate this Facebook account with an existing Textual Communities account identified by the email:</p>
+   <tr style="border-top: thin solid black; ">
+     <td style="vertical-align:top; padding-top: 10px"><b>OR</b></td>
+     <td style="padding-top: 15px">
+       <p style="margin-bottom: 5px">Associate with existing account:</p>
      </td>
      <td></td>
    </tr>
@@ -37,7 +35,7 @@
         <td style="width: 200px;">&nbsp;</td>
         <td style="width: 120px;">Email</td>
         <td style="width: 350px;"><input type="text" name="email" size="35"></td>
-        <td rowspan="2"><button type="submit" class="btn btn-warning btn-sm" >Choose<br>email address</button> </td>
+        <td rowspan="2"><button type="submit" class="btn btn-warning btn-sm" >Existing account</button> </td>
       </tr>
       <tr>
             <td>&nbsp;</td>

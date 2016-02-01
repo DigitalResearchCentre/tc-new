@@ -101,7 +101,9 @@ var AddDocPageCtrl = function($scope, $routeParams, $location, TCService) {
           //this is assuming that the page added is the first page in the document!
           $scope.success="Page \""+$scope.pageName+"\" added."
           $scope.message="";
+          $('#manageModal').modal('hide');
           $location.path('/community/'+$scope.$parent.$parent.community._id+'/view/'+$scope.$parent.$parent.document._id+'/'+newdoc.children[0])
+          //close the window
       //    TCService.toggleDoc(newdoc);
         });
      }

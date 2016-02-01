@@ -10,16 +10,18 @@ var MemberProfileComponent = ng.core.Component({
   template: '<div>foo</div>'
 }).Class({
   constructor: function() {
-    
+
   },
 });
 
 var CreateCommunityComponent = ng.core.Component({
   selector: 'tc-create-community',
-  template: '<div>foo</div>'
+  restrict: 'E',
+  replace: true,
+  templateUrl: 'community/tmpl/create.html'
 }).Class({
   constructor: function() {
-    
+    this.name="me";
   },
 });
 
@@ -27,26 +29,26 @@ var AppComponent = ng.core.Component({
   selector: 'tc-app',
   templateUrl: '/app/app.html',
   directives: [
-    ng.router.ROUTER_DIRECTIVES, 
+    ng.router.ROUTER_DIRECTIVES,
     require('./header.component'),
   ],
 }).Class({
-  constructor: [function() { 
+  constructor: [function() {
     console.log('App');
   }],
 });
 ng.router.RouteConfig([{
-  path: '/app/', name: 'Default', component: HomeComponent, 
+  path: '/app/', name: 'Default', component: HomeComponent,
 }, {
-  path: '/app/home', name: 'Home', component: HomeComponent, 
+  path: '/app/home', name: 'Home', component: HomeComponent,
 }, {
-  path: '/app/community/...', name: 'Community', 
+  path: '/app/community/...', name: 'Community',
   component: require('./community/community.component')
 }, {
-  path: '/app/new-community', name: 'CreateCommunity', 
+  path: '/app/new-community', name: 'CreateCommunity',
   component: CreateCommunityComponent
 }, {
-  path: '/app/profile', name: 'MemberProfile', 
+  path: '/app/profile', name: 'MemberProfile',
   component: MemberProfileComponent
 }])(AppComponent);
 

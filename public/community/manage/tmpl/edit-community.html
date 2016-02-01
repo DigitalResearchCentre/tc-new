@@ -1,16 +1,18 @@
   <div ng-if="message.length>0" class="alert alert-danger">
     {{message}}
   </div>
-  <div class="form-group">
+  <div style="text-align: center">
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
-    <input type="text" class="form-control" placeholder="Name (20 characters maximum; compulsory)"
+    <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
     ng-model="community.name">
-  </div>
-  <div class="form-group" ng-show="isCreate===true">
-    <label>Abbreviation</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
-    <input type="text" class="form-control" placeholder="Abbreviation (4 characters maximum; compulsory)"
+    <seg ng-show="isCreate===true">
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <label>Abbreviation</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
+      <input type="text" placeholder="(4 characters maximum)"
     ng-model="community.abbr">
+    </seg>
   </div>
+  <hr style="border: 1px solid #8c8b8b;">
   <div class="form-group" ng-show="isCreate===false">
     <label>Abbreviation</label> <span> {{community.abbr}}  (cannot alter)</span>
   </div>

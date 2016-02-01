@@ -8,13 +8,14 @@ var HeaderComponent = ng.core.Component({
   selector: 'tc-header',
   templateUrl: '/app/header.html',
   directives: [
-    ng.router.ROUTER_DIRECTIVES, 
+    ng.router.ROUTER_DIRECTIVES,
     require('./loginmodal.component'),
+    require('./managemodal.component'),
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(
     communityService, authService, uiService
-  ) { 
+  ) {
     console.log('Header');
     this._authService = authService;
     console.log(authService);
@@ -33,7 +34,7 @@ var HeaderComponent = ng.core.Component({
     this._authService.getAuthUser().subscribe(function(authUser) {
       self.authUser = authUser;
     });
-    communityService.getPublicCommunities().subscribe(function(communities) { 
+    communityService.getPublicCommunities().subscribe(function(communities) {
       self.publicCommunities = communities;
     });
     communityService.getMyCommunities().subscribe(function(communities) {
@@ -44,6 +45,7 @@ var HeaderComponent = ng.core.Component({
     return this.authUser && _.isEmpty(this.authUser.memberships);
   },
   showAddDocument: function() {
+    if (this.myCommunities.length=="1") this.currentCommunity=this.myCommunities[0];
     return this.currentCommunity && _.isEmpty(this.currentCommunity.documents);
   },
   showAddPage: function() {
@@ -62,15 +64,7 @@ var HeaderComponent = ng.core.Component({
     this._authService.logout();
   },
   loadModal: function(which) {
-    $scope.source=which;
-    $('#manageModal').modal('show');
-    /*
-<div  id="manageModal" class="modal fade resizable" role="dialog" 
-  style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px">
-  <div ng-include="'community/manage/tmpl/'+source+'.html'"></div>
-</div>
-*/
-
+    this._uiService.manageModel$.emit(which);
   },
 });
 

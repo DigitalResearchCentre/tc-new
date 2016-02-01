@@ -227,7 +227,7 @@ function ViewCtrl($scope, $routeParams, $location, $timeout, TCService) {
     var expand = doc.expand = !doc.expand;
     if (!doc.children || _.isString(doc.children[0])) {
       TCService.get(doc, Doc).$get({
-        fields: JSON.stringify([{
+        populate: JSON.stringify([{
           path: 'children', select: 'name'
         }]),
       }, function() {
@@ -334,7 +334,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
 
     if (!page.revisions || _.isString(_.last(page.revisions))) {
       page.$get({
-        fields: JSON.stringify('revisions'),
+        populate: JSON.stringify('revisions'),
       });
     }
 
@@ -373,7 +373,10 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
       if (parent) {
         pb = parent.children.shift();
       }
-      databaseRevision.text = TCService.json2xml(teiRoot);
+      //here we test what is going to appear in the viewer
+      var viewtext=TCService.json2xml(teiRoot);
+      if (viewtext=="<text><body/></text")
+        databaseRevision.text = TCService.json2xml(teiRoot);
     });
     /*
     Doc.getLinks({id: page._id}, function(data) {
@@ -404,7 +407,7 @@ var ViewerCtrl = function($scope, $routeParams, TCService) {
         next: links.next.slice(0, _.findIndex(links.next, $scope.nextLink) + 1),
       },
     }, {
-      fields: JSON.stringify({path: 'revisions'}),
+      populate: JSON.stringify({path: 'revisions'}),
     }, function(err) {
       if (err) {
         return console.log(err);

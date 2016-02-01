@@ -1,7 +1,7 @@
 auth.$inject = ['$http'];
 function auth($http) {
   $http.get('/api/auth/', {
-    data: {fields: JSON.stringify('memberships.community')},
+    data: {populate: JSON.stringify('memberships.community')},
   }).then(function(resp) {
     console.log(resp);
   }, function(resp) {
@@ -17,5 +17,3 @@ function auth($http) {
 }
 
 module.exports = auth;
-
-

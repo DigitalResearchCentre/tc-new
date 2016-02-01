@@ -1,20 +1,29 @@
-<div ng-controller="AddDocCtrl" >
+<div  >
+{{message}}
   <div modaldraggable class="modalHeader">Add Empty Document to Community "{{community.name}}"
-    <button type="button" ng-click="closeManageModal()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+    <button type="button" (click)="closeManageModal()" class="close"
+    data-dismiss="modal"
+    style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
+  </button>
   </div>
 <form action="">
-  <div ng-if="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+  <div style="margin-bottom: 10px">
     {{message}}
   </div>
-  <div ng-if="success.length>0" class="alert alert-success">
+  <div  class="alert alert-danger" style="margin-bottom: 10px">
+    {{message}}
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success">
     {{success}}
   </div>
-  <div id="MMADdiv" class="form-group" style="margin-top: 30px; margin-left: 20px; margin-right: 20px">
+  <div id="MMADdiv" class="form-group"
+   style="margin-top: 30px; margin-left: 20px; margin-right: 20px">
     <label>Document Name&nbsp;&nbsp;</label>
-    <input type="text" style="width: 170px; display: inline-block" class="form-control"  placeholder="Name"
-      ng-model="doc.name">
+    <input type="text"
+    style="width: 170px; display: inline-block" class="form-control"  placeholder="Name"
+      >
     <div id="MMADbutton" style="text-align: center; margin-top: 20px">
-      <button type="button" class="btn btn-primary" ng-click="submit()">Add Document</button>
+      <button type="button" class="btn btn-primary" (click)="submit()">Add Document</button>
     </div>
   </div>
 </form>
