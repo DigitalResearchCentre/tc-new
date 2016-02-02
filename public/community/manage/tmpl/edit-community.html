@@ -1,11 +1,11 @@
-  <div ng-if="message.length>0" class="alert alert-danger">
+  <div *ngIf="message.length>0" class="alert alert-danger">
     {{message}}
   </div>
   <div style="text-align: center">
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
     <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
     ng-model="community.name">
-    <seg ng-show="isCreate===true">
+    <seg *ngIf="isCreate">
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <label>Abbreviation</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
       <input type="text" placeholder="(4 characters maximum)"
@@ -13,7 +13,7 @@
     </seg>
   </div>
   <hr style="border: 1px solid #8c8b8b;">
-  <div class="form-group" ng-show="isCreate===false">
+  <div class="form-group" *ngIf="!isCreate">
     <label>Abbreviation</label> <span> {{community.abbr}}  (cannot alter)</span>
   </div>
   <div class="form-group">
@@ -28,18 +28,18 @@
   </div>
   <div class="form-group">
     <label>Accessible to others</label> <br/>
-    <input type="checkbox" ng-model="community.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
-    <span ng-hide="community.public==false">
-      <input type="checkbox" ng-model="community.accept" ng-disabled="community.public==false">Anyone can ask to join
+    <input type="checkbox" [(ngModel)]="community.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
+    <span *ngIf="community.public">
+      <input type="checkbox" [(ngModel)]="community.accept" ng-disabled="community.public==false">Anyone can ask to join
     </span>
-    <span ng-hide="community.accept==false||community.public==false">
-      <input type="checkbox" ng-model="community.autoaccept" ng-disabled="community.accept==false">Anyone asking joins
+    <span *ngIf="community.accept&&community.public">
+      <input type="checkbox" [(ngModel)]="community.autoaccept" ng-disabled="community.accept==false">Anyone asking joins
     </span>
-    <span ng-hide="community.autoaccept==false||community.public==false||community.accept==false">
-      <input type="checkbox" ng-model="community.alldolead" ng-disabled="community.autoaccept==false">Everyone joining leads
+    <span *ngIf="community.autoaccept&&community.public&&community.accept">
+      <input type="checkbox" [(ngModel)]="community.alldolead" ng-disabled="community.autoaccept==false">Everyone joining leads
     </span>
   </div>
-  <div class="form-group"  ng-controller="UpLoadCtrl">
+  <!-- div class="form-group"  ng-controller="UpLoadCtrl">
     <form ng-show="!community.image" name="communityForm" >
       <label>Choose community image (max. 300x50)</label> <br/>
       <div  style="width: 200px; margin-left:auto; margin-right:auto">
@@ -62,11 +62,11 @@
         <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null;community.image='';community.haspicture=false; nullImage()">Remove</button>
       </div>
     </div>
-  </div>
+  </div-->
   <hr style="border: 1px solid #8c8b8b;">
   <div  style="text-align: center">
-    <button ng-show="isCreate===true" type="button" class="btn btn-primary btn-md" ng-click="submit()"
+    <button *ngIf="isCreate" type="button" class="btn btn-primary btn-md" (click)="submit()"
       >Create</button>
-    <button ng-show="isCreate===false" type="button" class="btn btn-primary btn-md" ng-click="update()"
+    <button *ngIf="!isCreate" type="button" class="btn btn-primary btn-md" ng-click="update()"
       >Update</button>
   </div>
