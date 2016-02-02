@@ -4,12 +4,12 @@
   <div style="text-align: center">
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
     <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
-    ng-model="community.name">
+    [(ngModel)]="community.name">
     <seg *ngIf="isCreate">
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <label>Abbreviation</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
       <input type="text" placeholder="(4 characters maximum)"
-    ng-model="community.abbr">
+    [(ngModel)]="community.abbr">
     </seg>
   </div>
   <hr style="border: 1px solid #8c8b8b;">
@@ -19,12 +19,12 @@
   <div class="form-group">
     <label>Long Name</label>
     <input type="text" class="form-control" placeholder="Long Name (80 characters maximum)"
-    ng-model="community.longName">
+    [(ngModel)]="community.longName">
   </div>
   <div class="form-group">
     <label>Description</label>
     <textarea class="form-control" placeholder="Description (you can include HTML)"
-      ng-model="community.description"></textarea>
+      [(ngModel)]="community.description"></textarea>
   </div>
   <div class="form-group">
     <label>Accessible to others</label> <br/>

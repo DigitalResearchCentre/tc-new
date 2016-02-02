@@ -38,7 +38,11 @@ var EditCommunityComponent = ng.core.Component({
   templateUrl: 'community/manage/tmpl/edit-community.html'
 }).Class({
   constructor: [AuthService, function(authService) {
-    var community={};
+
+
+  }],
+  ngOnInit: function() {
+    var community=this.community;
     authService.authUser$.subscribe(function(authUser) {
      self.authUser = authUser;
      community.creator=authUser._id;
@@ -53,14 +57,14 @@ var EditCommunityComponent = ng.core.Component({
     community.alldolead= false;
     community.haspicture= false;
     community.image= false;
-    this.community=community;
     this.message="";
     this.isCreate=true;
-  }],
+    this.community=community;
+  },
   submit: function() {
       this.message=checkCommunity(this.community);
       if (this.message!="") {
-        $location.path('app/new-community')
+  //      $location.path('app/new-community')
       }
     }
 /*      if (this.message=="") {
@@ -85,6 +89,7 @@ var CreateCommunityComponent = ng.core.Component({
 }).Class({
   constructor: [AuthService, function(authService) {
     var self=this;
+    this.community = {};
     authService.authUser$.subscribe(function(authUser) {
       self.authUser = authUser;
     });
