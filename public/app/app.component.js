@@ -85,7 +85,7 @@ var CreateCommunityComponent = ng.core.Component({
 }).Class({
   constructor: [AuthService, function(authService) {
     var self=this;
-     authService.getAuthUser().subscribe(function(authUser) {
+    authService.authUser$.subscribe(function(authUser) {
       self.authUser = authUser;
     });
     this.name="me";
