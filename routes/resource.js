@@ -2,6 +2,14 @@ var _ = require('lodash')
   , async = require('async')
 ;
 
+function _parseJSON(data, defaultResult) {
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    return (defaultResult === void 0) ? null : defaultResult;
+  }
+}
+
 var Resource = function(model, opts) {
   var isAuthenticated = _.bind(this.isAuthenticated, this);
   this.model = model;
@@ -41,12 +49,13 @@ _.assign(Resource.prototype, {
   },
   getQuery: function(req) {
     var urlQuery = req.query || {}
-      , find = JSON.parse(urlQuery.find || '{}')
-      , select = JSON.parse(urlQuery.select || 'null')
-      , sort = JSON.parse(urlQuery.sort || 'null')
-      , populate = JSON.parse(urlQuery.populate || 'null')
+      , find = _parseJSON(urlQuery.find)
+      , select = _parseJSON(urlQuery.select)
+      , sort = _parseJSON(urlQuery.sort)
+      , populate = _parseJSON(urlQuery.populate)
       , model = this.model
       , query
+      , optFields
     ;
     query = model.find(find);
     if (select) {
@@ -83,11 +92,38 @@ _.assign(Resource.prototype, {
     };
   },
   sendData: function(req, res, next) {
-    return function(err, data) {
+    var fields = _parseJSON(req.query.fields, [])
+      , optFields
+    ;
+    if (!_.isArray(fields)) {
+      fields = [fields];
+    }
+    function _sendData(err, data) {
       if (err) {
-        next(err);
+        return next(err);
       } else {
         res.json(data);
+      }
+    }
+    fields = _.intersection(fields, this.model.optionalFields);
+    return function(err, data) {
+      if (fields.length > 0) {
+        var isArray = _.isArray(data);
+        async.map(isArray ? data : [data], function(doc, callback) {
+          var obj = doc.toObject();
+          async.each(fields, function(field, cb) {
+            doc['get' + field].call(doc, function(err, value) {
+              obj[field] = value;
+              cb(err);
+            });
+          }, function(err) {
+            callback(err, obj);
+          });
+        }, function(err, objs) {
+          return _sendData(err, isArray ? objs : objs[0]);
+        });
+      } else {
+        _sendData(err, data);
       }
     };
   },

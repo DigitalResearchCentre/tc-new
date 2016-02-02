@@ -1,78 +1,76 @@
-<div class="tc-header">
-  <div class="headerTC">
-    <nav class="navbar navbar-default">
-      <div class="container-fluid">
-        <div class="collapse navbar-collapse"
-          id="bs-example-navbar-collapse-1">
-          <ul class="nav navbar-nav navbar-left">
-            <li><a [routerLink]="['Home']">
-                <span class="glyphicon glyphicon-home"></span></a></li>
+<div class="headerTC">
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="collapse navbar-collapse" 
+        id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-left">
+          <li><a [routerLink]="['Home']">
+              <span class="glyphicon glyphicon-home"></span></a></li>
+          <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" 
+              role="button" aria-haspopup="true" aria-expanded="false">
+              Public Communities <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li *ngFor="#community of publicCommunities">
+                <a [routerLink]="['Community',
+                  {id: community._id, route: 'home'}]">
+                  {{community.name}}</a>
+              </li>
+            </ul>
+          </li>
+          <li *ngIf="!isAuthenticated()">
+            <a (click)=showLoginModal()>
+              <span class="glyphicon glyphicon-user"></span> Sign Up/ 
+              <span class="glyphicon glyphicon-log-in"></span> Log In
+            </a>
+          </li>
+          <template [ngIf]="isAuthenticated()">
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown"
                 role="button" aria-haspopup="true" aria-expanded="false">
-                Public Communities <span class="caret"></span></a>
+                My Communities <span class="caret"></span>
+              </a>
               <ul class="dropdown-menu">
-                <li *ngFor="#community of publicCommunities">
-                  <a [routerLink]="['Community', 'CommunityHome',
-                    {id: community._id}]">
-                    {{community.name}}</a>
+                <li>
+                  <a [routerLink]="['CreateCommunity']">Create Community</a>
+                </li>
+                <li role="separator" class="divider"></li>
+                <li *ngFor="#membership of authUser.memberships;">
+                  <a [routerLink]="['Community', 
+                    {id: membership.community._id, route: 'home'}]">
+                    {{membership.community.name}}
+                  </a>
                 </li>
               </ul>
             </li>
-            <li *ngIf="!isAuthenticated()">
-              <a (click)=showLoginModal()>
-                <span class="glyphicon glyphicon-user"></span> Sign Up/
-                <span class="glyphicon glyphicon-log-in"></span> Log In
+            <li class="dropdown">
+              <a class="dropdown-toggle" data-toggle="dropdown" 
+                role="button" aria-haspopup="true" aria-expanded="false">
+                {{authUser.local.name}} <span class="caret"></span>
               </a>
+              <ul class="dropdown-menu">
+                <li><a (click)="logout()">Log Out</a></li>
+                <li><a (click)="showLoginProf()">Login Profile</a></li>
+                <li><a [routerLink]="['MemberProfile']">Member Profile</a></li>
+              </ul>
             </li>
-            <template [ngIf]="isAuthenticated()">
-              <li class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown"
-                  role="button" aria-haspopup="true" aria-expanded="false">
-                  My Communities <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a [routerLink]="['CreateCommunity']">Create Community</a>
-                  </li>
-                  <li role="separator" class="divider"></li>
-                  <li *ngFor="#community of myCommunities;">
-                    <a [routerLink]="['Community', 'CommunityHome',
-                      {id: community._id}]">
-                      {{community.name}}
-                    </a>
-                  </li>
-                </ul>
-              </li>
-              <li class="dropdown">
-                <a class="dropdown-toggle" data-toggle="dropdown"
-                  role="button" aria-haspopup="true" aria-expanded="false">
-                  {{authUser.local.name}} <span class="caret"></span>
-                </a>
-                <ul class="dropdown-menu">
-                  <li><a (click)="logout()">Log Out</a></li>
-                  <li><a (click)="showLoginProf()">Login Profile</a></li>
-                  <li><a [routerLink]="['MemberProfile']">Member Profile</a></li>
-                </ul>
-              </li>
-            </template>
-          </ul>
-        </div>
-        <div class="navbar-header navbar-right">
-          <button type="button" class="navbar-toggle collapsed"
-            data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
-            aria-expanded="false">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" [routerLink]="['Home']">
-            T<sup style="font-size:100%">C</sup></a>
-        </div>
+          </template>
+        </ul>
       </div>
-    </nav>
-  </div>
+      <div class="navbar-header navbar-right">
+        <button type="button" class="navbar-toggle collapsed"
+          data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"
+          aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" [routerLink]="['Home']">
+          <sup style="font-size:100%">C</sup></a>
+      </div>
+    </div>
+  </nav>
 </div>
 <div style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
   <p style="font-size:200%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">Textual Communities</p>

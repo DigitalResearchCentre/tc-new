@@ -1,0 +1,79 @@
+
+tc-community-view {
+    .flex(1, 1, 0);
+    overflow: hidden;
+
+    .flex-row;
+
+    .sidebar {
+        .flex(1, 1, 25%);
+
+        .flex-column;
+
+        tc-tabs {
+            .flex(1, 1, 0);
+
+            .flex-column;
+
+            >* {
+                .flex(1, 1, initial);
+            }
+
+            >.nav.nav-tabs {
+                .flex(0, 0, initial);
+            }
+
+            tc-tab {
+                .flex-column;
+                overflow: auto;
+            }
+        }
+
+        ul.tab-heads {
+            font-size: 80%;
+            >li>a {padding: 7px 5px 7px 5px}
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        tc-tab ul.tree {
+            overflow: auto;
+
+            li {
+                padding-left: 16px;
+                >div>.icon {
+                    .glyphicon;
+                    .glyphicon-triangle-bottom;
+                }
+                >div>.extract-xml {
+                    background: url(../../images/getdocxml.png) no-repeat;
+                    background-size: 14px 14px;
+                    cursor: pointer;
+                    display: inline-block;
+                    height: 14px;
+                    width: 14px;
+                }
+            }
+
+            li.collapse-node {
+
+                >div>.icon {
+                    .glyphicon-triangle-right;
+                }
+
+                >ul {
+                    display: none;
+                }
+            }
+
+        }
+
+    }
+
+    @import './viewer.less';
+}
+
+

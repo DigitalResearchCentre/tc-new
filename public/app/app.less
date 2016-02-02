@@ -3,45 +3,45 @@
 @import '~font-awesome/less/font-awesome';
 
 @icon-font-path: '~bootstrap/fonts/';
-.flex-column {
-    display: flex;
-    display:-webkit-flex;
-    flex-direction: column;
-    -webkit-flex-direction: column;
-    align-content: stretch;
-    -webkit-align-items: flex-stretch;
-}
 
 .flex-row {
-    .flex-column;
-    flex-direction: row;
-    -webkit-flex-direction: row;
-    webkit-justify-content: flex-stretch;
+    display: flex;
+    display: -webkit-flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
     align-items: stretch;
- }
+    align-content: stretch;
+    -webkit-flex-flow: row nowrap;
+    -webkit-justify-content: flex-start;
+    -webkit-align-items: stretch;
+    -webkit-align-content: stretch;
+}
+.flex-column {
+    .flex-row;
+    flex-direction: column;
+    -webkit-flex-direction: column;
+}
+.flex(@grow: 0; @shrink: 1; @basis: auto) {
+    flex: @grow @shrink;
+    -webkit-flex: @grow @shrink;
+    flex-basis: @basis;
+    -webkit-flex-basis: @basis;
+}
 
-html, body {
+html, body, tc-app {
     width: 100%;
     height: 100%;
     margin: 0;
     padding: 0;
-}
-
-body {
-    .flex-column;
+    border: none;
     background-color: #F5F5F5;
-    .resizer {
-        background: linear-gradient(to right, #505050, #383838);
-        &.vertical {
-            cursor: col-resize;
-            width: 7px;
-        }
-        &.horizontal {
-            cursor: row-resize;
-            height: 7px;
-        }
-    }
-    .tc-header {height: 44px}
+    overflow: hidden;
+
+    .flex-column;
+
+    tc-header {
+        .flex(0, 0, initial);
+
     .headerTC {
         margin-bottom: 0px;
         background-color: #005689;
@@ -75,25 +75,85 @@ body {
         }
         .navbar-toggle {top:-8px; background-color: #D0D0D0;}
     }
-    .headerComm {
-        margin-bottom: 0px;
-        margin-top:0px;
-        .navbar-brand {background-color: white; color: #005689; height:34px; padding: 8px;}
-        .navbar-brand:hover {background-color:  #AADCE6; }
-        .navbar {height:35px !important; min-height: 30px; margin-bottom:0px; border-radius:0px}
-        .navbar-nav > li > a {
-            padding: 7px 10px 7px 10px; color: white; font-size: 12px;
-          }
-        .navbar-nav > li > a:focus {color: red;}
-        .navbar-nav > li  a:hover {background-color: #005689; color: white; text-decoration: underline;}
-        .navbar-nav > li  {background-color: ##005689 ;}
-        .navbar-header  {height:41px;}
-        .navbar-default {background-color: #00456E; border: 0;}
-        .navbar {
-          .container-fluid {padding-right:0;}
-        }
-        .navbar-toggle {top:-8px; background-color: #D0D0D0;}
+
     }
+
+    tc-community {
+        .flex(1, 1, 0);
+
+        .flex-column;
+
+        .community-header.navbar {
+            .flex(0, 0, 35px);
+
+            margin: 0;
+            background: #00456E;
+            border: none;
+            border-radius: 0;
+            min-height: 35px;
+
+
+            .navbar-nav > li > a {
+                padding: 7px 10px 7px 10px;
+                color: white;
+                font-size: 12px;
+
+                &:focus {
+                    color: red;
+                }
+
+                &:hover {
+                    background-color: #005689;
+                    color: white;
+                    text-decoration: underline;
+                }
+            }
+
+            .navbar-brand {
+                background-color: white; 
+                color: #005689;
+                height:34px;
+                padding: 8px;
+
+                &:hover {
+                    background-color:  #AADCE6; 
+                }
+            }
+            .navbar-nav > li  {
+                background-color: ##005689;
+            }
+            .navbar-header  {
+                height:41px;
+            }
+            .navbar-toggle {
+                top:-8px; background-color: #D0D0D0;
+            }
+        }
+
+        >div {
+            .flex(1, 1, 0);
+
+            .flex-column;
+            @import './community/view.less';
+        }
+    }
+}
+
+body {
+    .resizer {
+        background: linear-gradient(to right, #505050, #383838);
+        &.vertical {
+            cursor: col-resize;
+            width: 7px;
+        }
+        &.horizontal {
+            cursor: row-resize;
+            height: 7px;
+        }
+    }
+    .tc-header {height: 44px}
+
+
     .headerManage {
       margin-bottom: 15px;
       height: 25px;
@@ -125,11 +185,6 @@ body {
             -webkit-align-items: flex-start;
             justify-content: space-between;
             -webkit-justify-content: space-between;
-            border-width: 1px;
-            border-style: solid;
-            border-radius: 5px;
-            margin: 8px 10px 8px 0;
-            background-color: #CBBCBC;
         }
 
         .community-content {
@@ -164,18 +219,6 @@ body {
 
         .container-fluid;
 
-        .sidebar {
-            .make-xs-column(3);
-        }
-
-        .viewer {
-            .make-xs-column(9);
-
-            textarea {
-                width: 100%;
-                height: 300px;
-            }
-        }
     }
 
     #Minimize {

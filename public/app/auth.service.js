@@ -11,40 +11,42 @@ var AuthService = ng.core.Class({
     RESTService.call(this, http);
     this.resourceUrl = 'auth';
 
-    this._authUser = null;
     this._authUserSubject = new Rx.Subject();
-    window.as = this;
+
+    this._authUser = null;
+
+    this.initEventEmitters();
   }],
-  getAuthUser: function() {
+  initEventEmitters: function() {
     var self = this;
-    if (!this._authUser$) {
-      console.log('hello');
-      this._authUser$ = this.detail(null, {
+    this.authUser$ = this
+      .detail(null, {
         search: {
           populate: JSON.stringify('memberships.community'),
         },
-      }).map(function(res) {
-        var authUser = res.json();
+      })
+      .map(function(authUser) {
         return authUser._id ? authUser : null;
-      }).merge(this._authUserSubject).map(function(authUser) {
+      })
+      .merge(this._authUserSubject).map(function(authUser) {
         self._authUser = authUser;
         return authUser;
-      }).publishReplay(1).refCount();
-    }
-    return this._authUser$;
+      })
+      .publishReplay(1).refCount();
   },
   isAuthenticated: function() {
     return (this._authUser || {})._id;
     //return this._authUser && this._authUser.local.authenticated === 1;
   },
   logout: function() {
-    var self = this;
+    var subject = this._authUserSubject;
     this.http.get('/auth/logout/').subscribe(function() {
-      self._authUserSubject.next(null);
+      subject.next(null);
     });
   },
 });
 
 
 module.exports = AuthService;
+
 

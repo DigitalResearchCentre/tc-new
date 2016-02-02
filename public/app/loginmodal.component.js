@@ -15,10 +15,8 @@ var LoginModalComponent = ng.core.Component({
 
     this.loginFrame = '/auth?url=/index.html#/home';
     this.loginFrameHeight = 233;
-
-    this.init();
   }],
-  init: function() {
+  ngOnInit: function() {
     var self = this
       , urlParams = new URI().query(true)
       , prompt = urlParams.prompt
@@ -28,6 +26,9 @@ var LoginModalComponent = ng.core.Component({
       , base = '/auth/'
       , src
     ;
+    this._uiService.community$.subscribe(function(community) {
+      
+    })
     this._uiService.loginModel$.subscribe(function(event) {
       switch (event) {
         case 'show-login-prof':

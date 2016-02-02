@@ -1,58 +1,61 @@
 var _ = require('lodash')
   , RouteParams = ng.router.RouteParams
+  , Router = ng.router.Router
+  , Location = ng.router.Location
   , CommunityService = require('../community.service')
   , AuthService = require('../auth.service')
   , UIService = require('../ui.service')
-  , CommunityHomeComponent = require('./home.component')
 ;
-
-var AboutComponent = ng.core.Component({
-  selector: 'tc-community-about',
-  template: '<div>bar bar</div>'
-}).Class({
-  constructor: [RouteParams, CommunityService, function(
-    _routeParams, _communityService
-  ) {
-    this._routeParams = _routeParams;
-    this._communityService = _communityService;
-  }],
-  ngOnInit: function() {
-    var id = this._routeParams.get('id');
-  },
-});
-
-
 
 var CommunityComponent = ng.core.Component({
   selector: 'tc-community',
   templateUrl: '/app/community/community.html',
   directives: [
-    ng.router.ROUTER_DIRECTIVES,
+    ng.router.ROUTER_DIRECTIVES, 
+    require('./about.component'),
+    require('./home.component'),
+    require('./view.component'),
   ],
 }).Class({
-  constructor: [RouteParams, CommunityService, UIService, function(
-    _routeParams, _communityService, _uiService
+  constructor: [
+    RouteParams, Router, Location, CommunityService, UIService, 
+  function(
+    routeParams, router, location, communityService, uiService
   ) {
     console.log('Community');
-    this._routeParams = _routeParams;
-    this._communityService = _communityService;
-    this._uiService = _uiService;
+    this._routeParams = routeParams;
+    this._router = router;
+    this._location = location;
+    this._communityService = communityService;
+    this._uiService = uiService;
+
+    var self = this
+      , id = this._routeParams.get('id')
+      , route = this._routeParams.get('route')
+    ;
   }],
   ngOnInit: function() {
-    var id = this._routeParams.get('id');
-    this._uiService.communitySubject.next(id)
+    var self = this
+      , id = this._routeParams.get('id')
+      , route = this._routeParams.get('route')
+    ;
+    this.route = route;
+    this.community = this._communityService.get(id);
+    this._uiService.communitySubject.next(id);
+    this._communityService.fetch(id, {
+      populate: 'documents entities'
+    }).subscribe(function(cc) {
+      console.log(cc);
+      
+    });
+  },
+  navigate: function(route) {
+    var instruction = this._router.generate([
+      'Community', {id: this.community._id, route: route}
+    ]);
+    this._location.go(instruction.toRootUrl());
+    this.route = route;
   },
 });
-
-ng.router.RouteConfig([{
-  path: '/:id', name: 'Default', component: CommunityHomeComponent
-}, {
-  path: '/:id/home', name: 'CommunityHome',
-  component: CommunityHomeComponent
-}, {
-  path: '/:id/about', name: 'CommunityAbout',
-  component: AboutComponent
-}])(CommunityComponent);
-
 
 module.exports = CommunityComponent;

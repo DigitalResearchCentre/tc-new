@@ -5,6 +5,7 @@ var Observable = Rx.Observable
   , EventEmitter = ng.core.EventEmitter
   , RESTService = require('./rest.service')
   , AuthService = require('./auth.service')
+  , Community = require('./models/community')
 ;
 
 var CommunityService = ng.core.Injectable().Class({
@@ -16,41 +17,27 @@ var CommunityService = ng.core.Injectable().Class({
     this._authService = authService;
 
     this.resourceUrl = 'communities';
-  }],
-  getPublicCommunities: function() {
-    var self = this;
-    if (!this._publicCommunities$) {
-      var subject = new Rx.Subject();
 
-      this._publicCommunities$ = this.list({
+    this.initEventEmitters();
+  }],
+  modelClass: function() {
+    return Community;
+  },
+  initEventEmitters: function() {
+    var self = this;
+    this.publicCommunities$ = this
+      .list({
         search: {
           find: JSON.stringify({public: true}),
         },
-      }).map(function(res) {
-        return res.json();
-      }).merge(subject).map(function(res) {
-        return _.map(res, function(obj) {
-          return self.updateCache(obj);
-        });
-      }).publishReplay(1).refCount();
-    }
-    return this._publicCommunities$;
-  },
-  getMyCommunities: function() {
-    var self = this;
-    return this._authService.getAuthUser().map(function(res) {
-      return _.map(res.memberships, function(membership) {
-        return self.updateCache(membership.community);
-      });
-    }).publishReplay(1).refCount();
+      })
+      .publishReplay(1).refCount();
   },
   get: function(id) {
-    var self = this;
-    if (_.isObject(id)) {
-      id = id._id;
-    }
-    return self.getCache(id);
+    return new Community({_id: id});
   },
 });
 
+
 module.exports = CommunityService;
+

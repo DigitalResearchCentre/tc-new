@@ -28,24 +28,18 @@ var HeaderComponent = ng.core.Component({
     this.source="default";
   }],
   ngOnInit: function() {
-    var that = this
+    var self = this
       , communityService = this._communityService
     ;
-    this._authService.getAuthUser().subscribe(function(authUser) {
-      that.authUser = authUser;
+    this._authService.authUser$.subscribe(function(authUser) {
+      self.authUser = authUser;
     });
-    communityService.getPublicCommunities().subscribe(function(communities) {
-      that.publicCommunities = communities;
-    });
-    communityService.getMyCommunities().subscribe(function(communities) {
-      that.myCommunities = communities;
-      if (!that.community && communities.length == 1) {
-        that._uiService.communitySubject.next(that.myCommunities[0]._id);
-      }
+    communityService.publicCommunities$.subscribe(function(communities) { 
+      self.publicCommunities = communities;
     });
     this._uiService.community$.subscribe(function(id){
-      that.community = communityService.get(id);
-    })
+      self.community = communityService.get(id);
+    });
   },
   showCreateOrJoin: function() {
     return this.authUser && _.isEmpty(this.authUser.memberships);

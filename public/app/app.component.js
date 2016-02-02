@@ -1,9 +1,11 @@
 require('bootstrap');
 require('./app.less');
+require('../../utils/mixin');
 var AuthService = require('./auth.service');
 
 var RouteParams = ng.router.RouteParams
   , HomeComponent = require('./home.component')
+  , CommunityComponent = require('./community/community.component')
 ;
 
 var MemberProfileComponent = ng.core.Component({
@@ -73,7 +75,6 @@ var EditCommunityComponent = ng.core.Component({
             $location.path('/community/' + community._id + '/home');
           });
         }*/
-
 });
 
 
@@ -105,15 +106,15 @@ var AppComponent = ng.core.Component({
   }],
 });
 ng.router.RouteConfig([{
-  path: '/app/', name: 'Default', component: HomeComponent,
+  path: '/app/', name: 'Default', component: HomeComponent, useAsDefault: true,
 }, {
   path: '/app/home', name: 'Home', component: HomeComponent,
 }, {
-  path: '/app/community/...', name: 'Community',
-  component: require('./community/community.component')
-}, {
   path: '/app/new-community', name: 'CreateCommunity',
   component: CreateCommunityComponent
+}, {
+  path: '/app/community/**', name: 'Community',
+  component: CommunityComponent,
 }, {
   path: '/app/profile', name: 'MemberProfile',
   component: MemberProfileComponent
