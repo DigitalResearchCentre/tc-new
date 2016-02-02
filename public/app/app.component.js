@@ -39,7 +39,7 @@ var EditCommunityComponent = ng.core.Component({
 }).Class({
   constructor: [AuthService, function(authService) {
     var community={};
-    authService.getAuthUser().subscribe(function(authUser) {
+    authService.authUser$.subscribe(function(authUser) {
      self.authUser = authUser;
      community.creator=authUser._id;
    });
