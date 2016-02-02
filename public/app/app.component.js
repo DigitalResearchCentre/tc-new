@@ -1,6 +1,7 @@
 require('bootstrap');
 require('./app.less');
 require('../../utils/mixin');
+var AuthService = require('./auth.service');
 
 var RouteParams = ng.router.RouteParams
   , HomeComponent = require('./home.component')
@@ -12,17 +13,81 @@ var MemberProfileComponent = ng.core.Component({
   template: '<div>foo</div>'
 }).Class({
   constructor: function() {
-    
+
   },
 });
 
+function checkCommunity (community) {
+    var message="";
+    if (!community.name) {
+      message="Community name cannot be blank";
+    } else if (!community.abbr) {
+      message="Community abbreviation cannot be blank";
+    } else if (community.name.length>19) {
+      message="Community name "+community.name+" must be less than 20 characters";
+    } else if (community.abbr.length>4)  {
+      message="Community abbreviation "+community.abbr+" must be less than 5 characters";
+    } else if (community.longName && community.longName.length>80) {
+      message="Community long name "+community.longName+" must be less than 80 characters";
+    }
+    return message;
+}
+
+var EditCommunityComponent = ng.core.Component({
+  selector: 'tc-edit-community',
+  templateUrl: 'community/manage/tmpl/edit-community.html'
+}).Class({
+  constructor: [AuthService, function(authService) {
+    var community={};
+    authService.getAuthUser().subscribe(function(authUser) {
+     self.authUser = authUser;
+     community.creator=authUser._id;
+   });
+    community.public=false;
+    community.name="";
+    community.abbr="";
+    community.longName="";
+    community.description="";
+    community.accept=false;
+    community.autoaccept= false;
+    community.alldolead= false;
+    community.haspicture= false;
+    community.image= false;
+    this.community=community;
+    this.message="";
+    this.isCreate=true;
+  }],
+  submit: function() {
+      this.message=checkCommunity(TCService.app.communities, community);
+      if (this.message==="") this.success="Success";
+/*      if (this.message=="") {
+          community.$save(function() {
+            $scope.isCreate=true;
+            //if this is the first community -- send to the main screen, set to add pages
+            //ie: only one membership, and a leader of that!
+            if ($scope.$parent.$parent.userStatus=="1") {
+              $scope.$parent.$parent.community=community;
+              $scope.$parent.$parent.userStatus=="2";
+            }
+            $location.path('/community/' + community._id + '/home');
+          });
+        }*/
+  }
+});
+
+
 var CreateCommunityComponent = ng.core.Component({
   selector: 'tc-create-community',
-  template: '<div>foo</div>'
+  templateUrl: 'community/tmpl/create.html',
+  directives: [EditCommunityComponent]
 }).Class({
-  constructor: function() {
-    
-  },
+  constructor: [AuthService, function(authService) {
+    var self=this;
+     authService.getAuthUser().subscribe(function(authUser) {
+      self.authUser = authUser;
+    });
+    this.name="me";
+  }],
 });
 
 
@@ -30,18 +95,18 @@ var AppComponent = ng.core.Component({
   selector: 'tc-app',
   templateUrl: '/app/app.html',
   directives: [
-    ng.router.ROUTER_DIRECTIVES, 
+    ng.router.ROUTER_DIRECTIVES,
     require('./header.component'),
   ],
 }).Class({
-  constructor: [function() { 
+  constructor: [function() {
     console.log('App');
   }],
 });
 ng.router.RouteConfig([{
   path: '/app/', name: 'Default', component: HomeComponent, useAsDefault: true,
 }, {
-  path: '/app/home', name: 'Home', component: HomeComponent, 
+  path: '/app/home', name: 'Home', component: HomeComponent,
 }, {
   path: '/app/new-community', name: 'CreateCommunity', 
   component: CreateCommunityComponent

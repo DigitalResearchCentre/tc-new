@@ -26,7 +26,7 @@
           </li>
           <template [ngIf]="isAuthenticated()">
             <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" 
+              <a class="dropdown-toggle" data-toggle="dropdown"
                 role="button" aria-haspopup="true" aria-expanded="false">
                 My Communities <span class="caret"></span>
               </a>
@@ -67,32 +67,33 @@
           <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" [routerLink]="['Home']">
-          T<sup style="font-size:100%">C</sup></a>
+          <sup style="font-size:100%">C</sup></a>
       </div>
     </div>
   </nav>
 </div>
 <div style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
   <p style="font-size:200%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">Textual Communities</p>
-  <p *ngIf="isAuthenticated()" style="font-size:110%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">
+  <p *ngIf="isAuthenticated()" style=" text-align: center; margin-bottom: 5px; padding-bottom:0px;" class="wizardp">
     <seg *ngIf="showCreateOrJoin()">
       You do not lead or belong to any communities</seg>
     <seg *ngIf="showAddDocument()">
-      You have a community ("{{currentCommunity?.name}}"), 
+      You have a community ("{{currentCommunity?.name}}"),
       but there are no documents in it</seg>
     <seg *ngIf="showAddPage()">
-      You have a document ("{{currentDoc?.name}}"), 
+      You have a document ("{{currentDoc?.name}}"),
       but there are no pages in it</seg>
-    <seg>Make the edition you want</seg>
+    <!--nseg>Make the edition you want</seg-->
   </p>
 </div>
 <div *ngIf="!isAuthenticated()" class="wizard">
-  <p class="wizardp"><a data-toggle="modal" data-target="#myModal">
-    <button class="btn btn-lg wizardbutton" 
-      onmouseover="this.style.color='#ffe2be';" 
-      onmouseout="this.style.color='white';" 
+  <p class="wizardp">Make the edition you want</p>
+    <a data-toggle="modal" data-target="#myModal">
+    <button class="btn btn-lg wizardbutton"
+      onmouseover="this.style.color='#ffe2be';"
+      onmouseout="this.style.color='white';"
       style="width: 100px;">Start</button>
-  </a></p>
+  </a>
 </div>
 <div *ngIf="isAuthenticated()" class="wizard">
   <p *ngIf="showCreateOrJoin()" class="wizardp">
@@ -100,8 +101,8 @@
       <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
         onmouseout="this.style.color='white';"
-        style="width: 180px;">Create Community</button></a> 
-    or 
+        style="width: 180px;">Create Community</button></a>
+    &nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;
     <a [routerLink]="['MemberProfile']">
       <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
@@ -110,16 +111,16 @@
   </p>
   <p *ngIf="showAddDocument()" class="wizardp">
     <a  (click)="loadModal('add-document')">
-      <button class="btn btn-lg wizardbutton" 
+      <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
-        onmouseout="this.style.color='white';" 
-        style="width: 180px; background-color: #005689;border-color: #005689">
+        onmouseout="this.style.color='white';"
+        style="width: 180px;">
         Add Document</button>
     </a>
   </p>
   <p *ngIf="showAddPage()" class="wizardp">
     <a (click)="loadModal('add-document-page')">
-      <button class="btn btn-lg wizardbutton" 
+      <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
         onmouseout="this.style.color='white';"
         style="width: 180px;background-color: #005689; border-color: #005689">
@@ -128,4 +129,4 @@
   </p>
 </div>
 <tc-login-modal></tc-login-modal>
-
+<tc-manage-modal></tc-manage-modal>

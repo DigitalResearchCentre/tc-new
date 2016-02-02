@@ -17,20 +17,22 @@ var CommunityComponent = ng.core.Component({
     require('./view.component'),
   ],
 }).Class({
-  constructor: [RouteParams, Router, Location, CommunityService, function(
-    routeParams, router, location, communityService 
+  constructor: [
+    RouteParams, Router, Location, CommunityService, UIService, 
+  function(
+    routeParams, router, location, communityService, uiService
   ) {
     console.log('Community');
     this._routeParams = routeParams;
     this._router = router;
     this._location = location;
     this._communityService = communityService;
+    this._uiService = uiService;
 
     var self = this
       , id = this._routeParams.get('id')
       , route = this._routeParams.get('route')
     ;
-    console.log(id);
   }],
   ngOnInit: function() {
     var self = this
@@ -39,7 +41,7 @@ var CommunityComponent = ng.core.Component({
     ;
     this.route = route;
     this.community = this._communityService.get(id);
-    window.ccc = this.community;
+    this._uiService.communitySubject.next(id);
     this._communityService.fetch(id, {
       populate: 'documents entities'
     }).subscribe(function(cc) {
@@ -57,6 +59,3 @@ var CommunityComponent = ng.core.Component({
 });
 
 module.exports = CommunityComponent;
-
-
-
