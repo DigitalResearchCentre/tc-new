@@ -56,8 +56,11 @@ var EditCommunityComponent = ng.core.Component({
     this.isCreate=true;
   }],
   submit: function() {
-      this.message=checkCommunity(TCService.app.communities, community);
-      if (this.message=="") this.success="Success";
+      this.message=checkCommunity(this.community);
+      if (this.message!="") {
+        $location.path('app/new-community')
+      }
+    }
 /*      if (this.message=="") {
           community.$save(function() {
             $scope.isCreate=true;
@@ -70,8 +73,7 @@ var EditCommunityComponent = ng.core.Component({
             $location.path('/community/' + community._id + '/home');
           });
         }*/
-    ;
-  }
+
 });
 
 
