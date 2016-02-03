@@ -1,7 +1,6 @@
 var _ = require('lodash')
   , URI = require('urijs')
   , Rx = require('rxjs')
-  , config = require('../config')
 ;
 
 var CACHE_STORE = {};
