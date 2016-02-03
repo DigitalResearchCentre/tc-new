@@ -166,16 +166,7 @@ _.assign(Resource.prototype, {
     }, this);
   },
   patch: function() {
-    return _.bind(function(req, res, next) {
-      var query = this.getQuery(req).findOne({
-        _id: req.params[this.options.id],
-      });
-      async.waterfall([
-        _.bind(query.exec, query),
-        this.beforeUpdate(req, res, next),
-        this.execSave(req, res, next),
-      ], this.sendData(req, res, next));
-    }, this);
+    return this.update.apply(this, arguments);
   },
   remove: function() {
     return _.bind(function(req, res, next) {

@@ -21,78 +21,40 @@ var Model = _.inherit(Object, function(attrs) {
   var self = this
     , id
   ;
+  this.fields = {};
+  this.attrs = attrs || {};
+  attrs = this.attrs;
 
-  if (attrs === void 0) {
-    attrs = {};
-  }
-  this.cacheField = {};
-  this.options = {};
-  this.attrs = attrs;
-  id = this.getId();
 
-  if (id) {
-    self = _getCache(id);
-    if (self === void 0) {
-      self = _setCache(id, this);
+  if (attrs._id) {
+    self = _getCache(attrs._id);
+    if (_.isUndefined(self)) {
+      self = _setCache(attrs._id, this);
     }
-    self.update(attrs);
   }
+  self._update(attrs);
   return self;
 }, {
-  fieldMap: {
-
+  _createId: function() {
+    var _id = new ObjectID().toJSON();
+    this.fields._id = _id;
+    return _setCache(_id, this);
   },
-  get: function(key, options) {
-    var map = this.fieldMap[key]
-      , value = this.attrs[key]
-      , cacheField = this.cacheField
-      , opts = _.defaults({}, options)
-      , raw = opts.raw
-      , noCache = opts.noCache
-    ;
-    if (!raw && map) {
-      if (_.isFunction(map)) {
-        if (noCache || cacheField[key] === void 0) {
-          cacheField[key] = map.bind(this)(value);
-        }
-        value = cacheField[key];
-      } else {
-        value = map;
-      }
-    }
-    return value;
-  },
-  getOptions: function() {
-    return _.assign(this.options, {
-      idName: '_id',
-    }, this.constructor.options);
-  },
-  getResourceUrl: function() {
-    var resource = this.getOptions().resource;
-    if (resource) {
-      return new URI(config.BACKEND_URL + '/' + resource)
-        .normalize().toString();
-    }
-  },
-  getId: function() {
-    return this.attrs[this.getOptions().idName];
-  },
-  isNew: function() {
-    return !!this.getId();
-  },
-  update: function(attrs) {
-    var fieldMap = this.fieldMap
-      , cacheField = this.cacheField
+  _update: function(data) {
+    var fields = this.constructor.fields || {}
       , self = this
     ;
-    _.assign(this.attrs, attrs);
-    _.each(attrs, function(value, key) {
-      if (fieldMap[key]) {
-        self.get(key, {noCache: true});
+    _.each(data, function(value, key) {
+      if (fields[key]) {
+        value = fields[key](value);
+      } else {
+        value = value;
       }
+      self.fields[key] = value;
     });
     return this;
   },
+<<<<<<< HEAD
   fetch: function(options) {
     var id = this.getId()
       , opts = _.assign({_id: id}, options)
@@ -142,22 +104,14 @@ var Model = _.inherit(Object, function(attrs) {
   // @return {Observer}
   getBackend: function() {
     return {};
+=======
+  get: function(key) {
+    return this.fields[key];
+>>>>>>> 57a553980ce85747bcdd9daec31639104baa3db1
   },
-  fetch: function(options) {
-    var cls = this;
-    return this.getBackend().fetch(options).map(function(res) {
-      if (_.isArray(res)) {
-        return _.map(res, function(obj) {
-          return new cls(obj);
-        });
-      } else {
-        return new cls(res);
-      }
-    });
+  isNew: function() {
+
   },
-  get: function(id) {
-    return _getCache(id);
-  }
 });
 
 module.exports = Model;
