@@ -1,7 +1,5 @@
 var CommunityService = require('./community.service');
 
-
-
 var EditCommunityComponent = ng.core.Component({
   selector: 'tc-edit-community',
   templateUrl: 'community/manage/tmpl/edit-community.html',

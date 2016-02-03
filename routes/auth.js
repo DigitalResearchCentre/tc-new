@@ -55,7 +55,7 @@ router.post('/login', function(req, res, next) {
       }
      // all is well, log me in, return successful user
      req.logIn(user, function (err) {
-       if (url=="") url="/index.html#/home"
+       if (url=="") url="/app/home"
        if(!err) {res.render('closemodal.ejs', {url: url} );} else {}
      });
    });
@@ -148,7 +148,7 @@ router.get('/authenticateTC', function(req, res) {
       var timeNow= new Date().getTime();
       var diff=timeNow-user.local.timestamp;
       if (diff>60*60*1000) {
-          res.redirect("/index.html?prompt=authlinkExpired");
+          res.redirect("/app?prompt=authlinkExpired");
             return;
       }    else {
         user.local.authenticated= "1";
@@ -156,13 +156,13 @@ router.get('/authenticateTC', function(req, res) {
         user.save();
           //log me in
         req.logIn(user, function (err) {
-          res.redirect('/index.html?prompt=TCauthenticateDone&context=newuser');
+          res.redirect('/app?prompt=TCauthenticateDone&context=newuser');
           return;
         });
       return;
       }
     } else {
-      res.redirect("/index.html?prompt=authlinkNotFound");
+      res.redirect("/app?prompt=authlinkNotFound");
   //    res.render('forgothourpassed.ejs', {greeting: 'No user to be authenticated found for that link', greeting2: 'You are likely using an old authentication link. Try logging in again to have a new authentication link sent.', authenticate:"1"});
     }
   });
@@ -194,13 +194,13 @@ router.get('/resetpw', function(req, res) {
       var timeNow= new Date().getTime();
       var diff=timeNow-user.local.timestamp;
       if (diff>1000*60*60) {
-        res.redirect('/index.html?prompt=resetpwExpired');
+        res.redirect('/app?prompt=resetpwExpired');
         return;
       } else {
-        res.redirect('/index.html?prompt=TCresetpw&context='+user.local.email+'&name='+user.local.name);
+        res.redirect('/app?prompt=TCresetpw&context='+user.local.email+'&name='+user.local.name);
       }
     } else {
-      res.redirect('/index.html?prompt=TCresetpwExpired');
+      res.redirect('/app?prompt=TCresetpwExpired');
     }
   });
 });
@@ -284,7 +284,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   // is "complete".  If not, send them down a form to fill out more details.
   //ah... req will have the facebook user, which may NOT have been identified with the local user..
   if (isValidProfile(req.user)) {
-      res.redirect('/index.html');
+      res.redirect('/app');
   } else {
     //first, check if there is a user with this email
     User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
@@ -293,14 +293,14 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
         if (user.facebook.email) {
           //could be not authenticated -- that would get us here
           if (user.local.authenticated=="0") {
-            res.redirect('/index.html?prompt=sendauthenticate&context=facebook');
+            res.redirect('/app?prompt=sendauthenticate&context=facebook');
           }
-           else res.redirect("/index.html?prompt=alreadylocal&context=Facebook&name="+req.user.facebook.email);
+           else res.redirect("/app?prompt=alreadylocal&context=Facebook&name="+req.user.facebook.email);
         } else  {
         //we have a user with no fb account
-          res.redirect('/index.html?prompt=facebookassocemail');
+          res.redirect('/app?prompt=facebookassocemail');
         }
-      } else {res.redirect('/index.html?prompt=facebooklinkemail');}
+      } else {res.redirect('/app?prompt=facebooklinkemail');}
     });
   }
 });
@@ -319,7 +319,7 @@ router.get('/facebookcancel', function(req, res) {
   User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
       deleteUser.remove({});
   });
-  res.render('closemodal.ejs', {url: "/index.html#/home"});
+  res.render('closemodal.ejs', {url: "/app/home"});
 });
 
 //we have the go ahead: link the accounts
@@ -333,7 +333,7 @@ router.get('/facebooklink', function(req, res) {
           deleteUser.remove({});
           user.save();
           req.logIn(user, function (err) {
-            res.render('closemodal.ejs', {url: "/index.html?prompt=showprofile"} );
+            res.render('closemodal.ejs', {url: "/app?prompt=showprofile"} );
           });
       });
     } else { //did not find this user?
@@ -385,7 +385,7 @@ router.post('/facebooklinkemail', function(req, res) {
           //ok, we are all logged in, close the dialog, call the base url, put up profile screen
           //put up the profile screen then
           if(!err) {
-            res.render(res.render('closemodal.ejs', {url: '/index.html?prompt=showprofile'}) );
+            res.render(res.render('closemodal.ejs', {url: '/app?prompt=showprofile'}) );
             return;
           } else{		//handle error
           } });
@@ -436,11 +436,11 @@ router.get('/removeSurplusSM', isLoggedIn, function(req, res) {
   }
   if (req.user.local.authenticated=="0" || req.user.local.name== undefined) {
       req.logout();
-      if (context=="outside") res.render('closemodal.ejs', {url: "/index.html#/home"} );
-      else res.redirect('/index.html#/home');
+      if (context=="outside") res.render('closemodal.ejs', {url: "/app/home"} );
+      else res.redirect('/app#/home');
   } else  {
-    if (context=="outside") res.render('closemodal.ejs', {url: "/index.html"} );
-    else res.redirect('/index.html');
+    if (context=="outside") res.render('closemodal.ejs', {url: "/app"} );
+    else res.redirect('/app');
   }
 });
 
@@ -449,7 +449,7 @@ router.get('/facebookcancel', function(req, res) {
   User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.render('closemodal.ejs', {url: "/index.html#/home"} );
+  res.render('closemodal.ejs', {url: "/app/home"} );
 });
 
 
@@ -474,14 +474,14 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
   // The user has authenticated with Twitter.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req.user)) {
-    if (TCModalState.state==3) res.redirect('/index.html?prompt=showprofile');
-    else res.redirect('/index.html');
+    if (TCModalState.state==3) res.redirect('/app?prompt=showprofile');
+    else res.redirect('/app');
   } else {
-    if (!req.user.local.email) res.redirect('/index.html?prompt=twitteremail');
+    if (!req.user.local.email) res.redirect('/app?prompt=twitteremail');
     else {
       if (req.user.local.authenticated=="0") {
         authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
-        res.redirect('/index.html?prompt=sendauthenticate&context=twitter');
+        res.redirect('/app?prompt=sendauthenticate&context=twitter');
       }
     }
   }
@@ -501,7 +501,7 @@ router.get('/twittercancel', function(req, res) {
   User.findOne({'twitter.id': twitterid}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.render('closemodal.ejs', {url: "/index.html#/home"} );
+  res.render('closemodal.ejs', {url: "/app/home"} );
 });
 
 router.post('/twitterlinklocal', function(req, res) {
@@ -519,7 +519,7 @@ router.post('/twitterlinklocal', function(req, res) {
         req.logout();
         req.logIn(existingUser, function (err) {
           if(!err){
-            res.render('closemodal.ejs', {url: "/index.html#/home?prompt=showprofile"});
+            res.render('closemodal.ejs', {url: "/app/home?prompt=showprofile"});
           } else {
             res.render('error.ejs', {message:"Failed to log in linked twitter account for "+req.body.email, error:err});
           }
@@ -600,8 +600,8 @@ router.get('/google/callback', passport.authenticate('google', {
   // The user has authenticated with google.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   if (isValidProfile(req.user)) {
-    if (TCModalState.state==3) res.redirect('/index.html?prompt=showprofile');
-    else res.redirect('/index.html');
+    if (TCModalState.state==3) res.redirect('/app?prompt=showprofile');
+    else res.redirect('/app');
   } else {
     User.findOne({'local.email':  req.user.google.email }, function(err, user) {
       //there might be a google account already associated with this user. So tell them
@@ -609,14 +609,14 @@ router.get('/google/callback', passport.authenticate('google', {
         if (user.google.email) {
           //could be not authenticated -- that would get us here
           if (user.local.authenticated=="0") {
-            res.redirect('/index.html?prompt=sendauthenticate&context=google');
+            res.redirect('/app?prompt=sendauthenticate&context=google');
           }
-           else res.redirect("/index.html?prompt=alreadylocal&context=Google&name="+req.user.google.email);
+           else res.redirect("/app?prompt=alreadylocal&context=Google&name="+req.user.google.email);
         } else  {
         //we have a user with no google account
-          res.redirect('/index.html?prompt=googleassocemail');
+          res.redirect('/app?prompt=googleassocemail');
         }
-      } else {res.redirect('/index.html?prompt=googlelinkemail');}
+      } else {res.redirect('/app?prompt=googlelinkemail');}
     });
   }
 });
@@ -668,7 +668,7 @@ router.post('/googlelinkemail', function(req, res) {
           //ok, we are all logged in, close the dialog, call the base url, put up profile screen
           //put up the profile screen then
           if(!err) {
-            res.render(res.render('closemodal.ejs', {url: '/index.html?prompt=showprofile'}) );
+            res.render(res.render('closemodal.ejs', {url: '/app?prompt=showprofile'}) );
             return;
           } else{		//handle error
           } });
@@ -776,7 +776,7 @@ router.get('/googlecancel', function(req, res) {
   User.findOne({'google.id': req.user.google.id}, function(err, deleteUser) {
     deleteUser.remove({});
   });
-  res.render('closemodal.ejs', {url: "/index.html#/home"});
+  res.render('closemodal.ejs', {url: "/app/home"});
 });
 
 
@@ -854,7 +854,7 @@ router.get('/unlink/google', function(req, res) {
 // =====================================
 router.get('/logout', function(req, res) {
   req.logout();
-  res.redirect('/index.html#/home');
+  res.redirect('/app#/home');
 });
 
 // route middleware to make sure a user is logged in
@@ -865,7 +865,7 @@ function isLoggedIn(req, res, next) {
     return next();
 
   // if they aren't redirect them to the home page
-  res.redirect('/index.html');
+  res.redirect('/app');
 }
 
 

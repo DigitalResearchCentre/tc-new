@@ -39,7 +39,7 @@ function checkCommunity (community) {
 var CreateCommunityComponent = ng.core.Component({
   selector: 'tc-create-community',
   templateUrl: 'community/tmpl/create.html',
-  directives: [EditCommunityComponent]
+  directives: [require('./editcommunity.component')],
 }).Class({
   constructor: [AuthService, function(authService) {
     var self=this;
