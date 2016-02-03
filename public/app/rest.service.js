@@ -39,6 +39,16 @@ var RESTService = ng.core.Injectable().Class({
       return new cls(res.json());
     });
   },
+  update: function(data, options) {
+    var self = this;
+    options = this.prepareOptions(options);
+    return this.http.put(
+      this.url(), JSON.stringify(data), options
+    ).map(function(res) {
+      var cls = self.modelClass();
+      return new cls(res.json());
+    });
+  },
   detail: function(id, options) {
     var self = this;
     options = this.prepareOptions(options);
@@ -56,6 +66,13 @@ var RESTService = ng.core.Injectable().Class({
         return new cls(data);
       });
     });
+  },
+  save: function(obj, options) {
+    if (obj.isNew()) {
+      return this.create(obj.toJSON(), options);
+    } else {
+      return this.update(obj.toJSON(), options);
+    }
   },
   fetch: function(id, search) {
     return this.detail(id, {
