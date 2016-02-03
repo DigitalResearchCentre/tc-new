@@ -4,13 +4,8 @@ var _ = require('lodash')
 ;
 
 var User = _.inherit(Model, function(data) {
-  _.defaults(this.fields, {
-    memberships: [],
-  });
-
   this._super.constructor.call(this, data);
-});
-_.assign(User, {
+}, {
   fields: {
     memberships: function(memberships) {
       return _.map(memberships, function(membership) {

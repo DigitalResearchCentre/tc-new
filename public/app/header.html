@@ -35,7 +35,7 @@
                   <a [routerLink]="['CreateCommunity']">Create Community</a>
                 </li>
                 <li role="separator" class="divider"></li>
-                <li *ngFor="#membership of authUser.memberships;">
+                <li *ngFor="#membership of authUser.attrs.memberships;">
                   <a [routerLink]="['Community', 
                     {id: membership.community._id, route: 'home'}]">
                     {{membership.community.name}}
@@ -46,7 +46,7 @@
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown" 
                 role="button" aria-haspopup="true" aria-expanded="false">
-                {{authUser.local.name}} <span class="caret"></span>
+                {{authUser.attrs.local.name}} <span class="caret"></span>
               </a>
               <ul class="dropdown-menu">
                 <li><a (click)="logout()">Log Out</a></li>
