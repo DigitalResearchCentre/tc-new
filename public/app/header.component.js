@@ -33,6 +33,7 @@ var HeaderComponent = ng.core.Component({
     ;
     this._authService.authUser$.subscribe(function(authUser) {
       self.authUser = authUser;
+      console.log(authUser);
     });
     communityService.publicCommunities$.subscribe(function(communities) { 
       self.publicCommunities = communities;
@@ -55,9 +56,6 @@ var HeaderComponent = ng.core.Component({
   },
   showAddPage: function() {
     return this.currentDoc && _.isEmpty(this.currentDoc.children);
-  },
-  isAuthenticated: function() {
-    return this._authService.isAuthenticated();
   },
   showLoginModal: function() {
     this._uiService.loginModel$.emit('show');

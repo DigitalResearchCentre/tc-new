@@ -43,6 +43,7 @@ var EntityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Entity, opts);
 });
 
+
 var entityResource = new EntityResource({id: 'entity'});
 entityResource.serve(router, 'entities');
 router.get('/entities/:id/docs/:docId', function(req, res, next) {

@@ -2,7 +2,7 @@ var CommunityService = require('./community.service');
 
 var EditCommunityComponent = ng.core.Component({
   selector: 'tc-edit-community',
-  templateUrl: 'community/manage/tmpl/edit-community.html',
+  templateUrl: '/app/editcommunity.html',
   inputs: [
     'community',
   ],
@@ -11,9 +11,15 @@ var EditCommunityComponent = ng.core.Component({
     this._communityService = communityService;
   }],
   ngOnInit: function() {
-    var community = this.community;
-    if (!community) {
-      this.community = community = this._communityService.create({
+    this.initEdit(this.community);
+    this.message = '';
+  },
+  initEdit: function(community) {
+    if (community) {
+      this.edit = _.clone(community.toJSON());
+      this.community = community;
+    } else {
+      this.edit = {
         public: false,
         name: "",
         abbr: "",
@@ -24,30 +30,18 @@ var EditCommunityComponent = ng.core.Component({
         alldolead: false,
         haspicture: false,
         image: false,
-      });
+      };
     }
-    this.message="";
-    this.isCreate=true;
   },
   submit: function() {
-    this.message=checkCommunity(this.community);
-      if (this.message!="") {
-        this._communityService.save(this.community);
-  //      $location.path('app/new-community')
-      }
-    }
-/*      if (this.message=="") {
-          community.$save(function() {
-            $scope.isCreate=true;
-            //if this is the first community -- send to the main screen, set to add pages
-            //ie: only one membership, and a leader of that!
-            if ($scope.$parent.$parent.userStatus=="1") {
-              $scope.$parent.$parent.community=community;
-              $scope.$parent.$parent.userStatus=="2";
-            }
-            $location.path('/community/' + community._id + '/home');
-          });
-        }*/
+    var self = this;
+    this._communityService.save(this.edit).subscribe(function(community) {
+      console.log(community);
+      self.initEdit(community);
+    }, function(err) {
+      self.message = err.message;
+    });
+  },
 });
 
 module.exports = EditCommunityComponent;

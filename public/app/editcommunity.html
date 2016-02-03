@@ -1,45 +1,48 @@
-  <div *ngIf="message.length>0" class="alert alert-danger">
+  <div *ngIf="message" class="alert alert-danger">
     {{message}}
   </div>
   <div style="text-align: center">
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
     <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
-    [(ngModel)]="community.name">
-    <seg *ngIf="isCreate">
+    [(ngModel)]="edit.name">
+    <seg *ngIf="!community">
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <label>Abbreviation</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
-      <input type="text" placeholder="(4 characters maximum)"
-    [(ngModel)]="community.abbr">
+      <label>Abbreviation</label>
+      <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;">
+      </span>
+      <input type="text" placeholder="(4 characters maximum)" 
+      [(ngModel)]="edit.abbr">
     </seg>
   </div>
   <hr style="border: 1px solid #8c8b8b;">
-  <div class="form-group" *ngIf="!isCreate">
-    <label>Abbreviation</label> <span> {{community.abbr}}  (cannot alter)</span>
+  <div class="form-group" *ngIf="community">
+    <label>Abbreviation</label> <span> {{edit.abbr}}  (cannot alter)</span>
   </div>
   <div class="form-group">
     <label>Long Name</label>
     <input type="text" class="form-control" placeholder="Long Name (80 characters maximum)"
-    [(ngModel)]="community.longName">
+    [(ngModel)]="edit.longName">
   </div>
   <div class="form-group">
     <label>Description</label>
     <textarea class="form-control" placeholder="Description (you can include HTML)"
-      [(ngModel)]="community.description"></textarea>
+      [(ngModel)]="edit.description"></textarea>
   </div>
   <div class="form-group">
     <label>Accessible to others</label> <br/>
-    <input type="checkbox" [(ngModel)]="community.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
-    <span *ngIf="community.public">
-      <input type="checkbox" [(ngModel)]="community.accept" ng-disabled="community.public==false">Anyone can ask to join
+    <input type="checkbox" [(ngModel)]="edit.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
+    <span *ngIf="edit.public">
+      <input type="checkbox" [(ngModel)]="edit.accept" ng-disabled="edit.public==false">Anyone can ask to join
     </span>
-    <span *ngIf="community.accept&&community.public">
-      <input type="checkbox" [(ngModel)]="community.autoaccept" ng-disabled="community.accept==false">Anyone asking joins
+    <span *ngIf="edit.accept&&edit.public">
+      <input type="checkbox" [(ngModel)]="edit.autoaccept" ng-disabled="edit.accept==false">Anyone asking joins
     </span>
-    <span *ngIf="community.autoaccept&&community.public&&community.accept">
-      <input type="checkbox" [(ngModel)]="community.alldolead" ng-disabled="community.autoaccept==false">Everyone joining leads
+    <span *ngIf="edit.autoaccept&&edit.public&&edit.accept">
+      <input type="checkbox" [(ngModel)]="edit.alldolead" ng-disabled="edit.autoaccept==false">Everyone joining leads
     </span>
   </div>
-  <!-- div class="form-group"  ng-controller="UpLoadCtrl">
+  <!-->
+  <div class="form-group"  ng-controller="UpLoadCtrl">
     <form ng-show="!community.image" name="communityForm" >
       <label>Choose community image (max. 300x50)</label> <br/>
       <div  style="width: 200px; margin-left:auto; margin-right:auto">
@@ -62,11 +65,10 @@
         <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null;community.image='';community.haspicture=false; nullImage()">Remove</button>
       </div>
     </div>
-  </div-->
+  </div>
+  </-->
   <hr style="border: 1px solid #8c8b8b;">
   <div  style="text-align: center">
-    <button *ngIf="isCreate" type="button" class="btn btn-primary btn-md" (click)="submit()"
-      >Create</button>
-    <button *ngIf="!isCreate" type="button" class="btn btn-primary btn-md" ng-click="update()"
-      >Update</button>
+    <button type="button" class="btn btn-primary btn-md" (click)="submit()"
+      >{{community ? 'Update': 'Create'}}</button>
   </div>

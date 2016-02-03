@@ -39,6 +39,7 @@ tcApp
   .factory('TCService', TCService)
 ;
 
+
 tcApp.controller('AppCtrl', [
   '$scope', 'TCService', '$q', '$http', '$location', '$window',
   function($scope, TCService, $q, $http, $location, $window) {

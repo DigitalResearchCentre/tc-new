@@ -27,5 +27,6 @@ if (env == 'dev') {
 function handleError(err, stats) {
   console.log(stats.toString({
     colors: true,
+    cached: false,
   }));
 }

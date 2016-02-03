@@ -19,80 +19,57 @@ function _setCache(id, obj) {
 
 var Model = _.inherit(Object, function(attrs) {
   var self = this
-    , id
+    , id = attrs ? attrs._id : null
   ;
-
-  if (attrs === void 0) {
-    attrs = {};
-  }
-  this.cacheField = {};
-  this.options = {};
-  this.attrs = attrs;
-  id = this.getId();
-
+  this.attrs = {};
+  this.json = {};
   if (id) {
     self = _getCache(id);
     if (self === void 0) {
       self = _setCache(id, this);
     }
   }
-  self.update(attrs);
+  self.set(attrs);
   return self;
 }, {
-  fieldMap: {
+  fields: {
 
   },
-  get: function(key, options) {
-    var map = this.fieldMap[key]
-      , value = this.attrs[key]
-      , cacheField = this.cacheField
-      , opts = _.defaults({}, options)
-      , raw = opts.raw
-      , noCache = opts.noCache
-    ;
-    if (!raw && map) {
-      if (_.isFunction(map)) {
-        if (noCache || cacheField[key] === void 0) {
-          cacheField[key] = map.bind(this)(value);
-        }
-        value = cacheField[key];
+  set: function(key, value) {
+    var self = this;
+    if (_.isObject(key)) {
+      _.each(key, function(value, key) {
+        self.set(key, value);
+      });
+      return;
+    }
+    var field = this.fields[key];
+    if (!_.isUndefined(field)) {
+      if (_.isFunction(field)) {
+        this.attrs[key] = field.bind(this)(value);
       } else {
-        value = map;
+        this.attrs[key] = this.json[key] = value;
       }
-    }
-    return value;
-  },
-  getOptions: function() {
-    return _.assign(this.options, {
-      idName: '_id',
-    }, this.constructor.options);
-  },
-  getResourceUrl: function() {
-    var resource = this.getOptions().resource;
-    if (resource) {
-      return new URI(config.BACKEND_URL + '/' + resource)
-        .normalize().toString();
+    } else {
+      this.attrs[key] = value;
     }
   },
-  getId: function() {
-    return this.attrs[this.getOptions().idName];
+  toJSON: function() {
+    return this.json;
   },
   isNew: function() {
-    return !!this.getId();
+    return !this.getId();
   },
-  update: function(attrs) {
-    var fieldMap = this.fieldMap
-      , cacheField = this.cacheField
-      , self = this
-    ;
-    _.assign(this.attrs, attrs);
-    _.each(attrs, function(value, key) {
-      if (fieldMap[key]) {
-        self.get(key, {noCache: true});
-      }
-    });
-    return this;
+  getId: function() {
+    return this.attrs._id;
   },
+  verify: function() {
+    return this.prototype.constructor.verify(this.toJSON());
+  }
+}, {
+  verify: function() {
+    return null;
+  }
 });
 
 module.exports = Model;

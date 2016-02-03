@@ -2,6 +2,7 @@ var URI = require('urijs')
   , URITemplate = require('urijs/src/URITemplate')
   , _ = require('lodash')
   , Model = require('./models/model')
+  , Rx = require('rxjs')
 ;
 var Http = ng.http.Http;
 
@@ -27,25 +28,52 @@ var RESTService = ng.core.Injectable().Class({
       uri.query(options.search);
       options.search = uri.query();
     }
+    options.headers = _.assign({
+      'Content-Type': 'application/json'
+    }, options.headers);
     return options;
   },
   create: function(data, options) {
-    var self = this;
+    var self = this
+      , cls = self.modelClass()
+      , err
+    ;
+    if (data instanceof cls) {
+      err = data.verify();
+    } else {
+      err = cls.verify(data);
+    }
+    if (err) {
+      return Rx.Observable.create(function(obs) {
+        obs.error(err);
+      });
+    }
     options = this.prepareOptions(options);
     return this.http.post(
-      this.url(), JSON.stringify(data), options
+      this.url(), JSON.stringify(data),  options
     ).map(function(res) {
-      var cls = self.modelClass();
       return new cls(res.json());
     });
   },
-  update: function(data, options) {
-    var self = this;
+  update: function(id, data, options) {
+    var self = this
+      , cls = self.modelClass()
+      , err
+    ;
+    if (data instanceof cls) {
+      err = data.verify();
+    } else {
+      err = cls.verify(data);
+    }
+    if (err) {
+      return Rx.Observable.create(function(obs) {
+        obs.error(err);
+      });
+    }
     options = this.prepareOptions(options);
     return this.http.put(
-      this.url(), JSON.stringify(data), options
+      this.url({id: id}), JSON.stringify(data), options
     ).map(function(res) {
-      var cls = self.modelClass();
       return new cls(res.json());
     });
   },
@@ -68,10 +96,11 @@ var RESTService = ng.core.Injectable().Class({
     });
   },
   save: function(obj, options) {
-    if (obj.isNew()) {
-      return this.create(obj.toJSON(), options);
+    var id = obj._id || (_.isFunction(obj.getId) && obj.getId());
+    if (id) {
+      return this.update(id, obj, options);
     } else {
-      return this.update(obj.toJSON(), options);
+      return this.create(obj, options);
     }
   },
   fetch: function(id, search) {

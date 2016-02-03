@@ -17,39 +17,6 @@ var MemberProfileComponent = ng.core.Component({
   },
 });
 
-function checkCommunity (community) {
-    var message="";
-    if (!community.name) {
-      message="Community name cannot be blank";
-    } else if (!community.abbr) {
-      message="Community abbreviation cannot be blank";
-    } else if (community.name.length>19) {
-      message="Community name "+community.name+" must be less than 20 characters";
-    } else if (community.abbr.length>4)  {
-      message="Community abbreviation "+community.abbr+" must be less than 5 characters";
-    } else if (community.longName && community.longName.length>80) {
-      message="Community long name "+community.longName+" must be less than 80 characters";
-    }
-    return message;
-}
-
-
-
-
-var CreateCommunityComponent = ng.core.Component({
-  selector: 'tc-create-community',
-  templateUrl: 'community/tmpl/create.html',
-  directives: [require('./editcommunity.component')],
-}).Class({
-  constructor: [AuthService, function(authService) {
-    var self=this;
-    this.community = {};
-    authService.authUser$.subscribe(function(authUser) {
-      self.authUser = authUser;
-    });
-    this.name="me";
-  }],
-});
 
 
 var AppComponent = ng.core.Component({
@@ -70,7 +37,7 @@ ng.router.RouteConfig([{
   path: '/app/home', name: 'Home', component: HomeComponent,
 }, {
   path: '/app/new-community', name: 'CreateCommunity',
-  component: CreateCommunityComponent
+  component: require('./createcommunity.component')
 }, {
   path: '/app/community/**', name: 'Community',
   component: CommunityComponent,

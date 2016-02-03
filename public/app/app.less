@@ -42,40 +42,44 @@ html, body, tc-app {
     tc-header {
         .flex(0, 0, initial);
 
-    .headerTC {
-        margin-bottom: 0px;
-        background-color: #005689;
-        height: 44px;
-        .navbar-brand {
-            padding-top: 12px;
-            margin-left: 50px;
-            color:white;
-            font-size: 24px;
-            float: none;
+        .headerTC {
+            margin-bottom: 0px;
+            background-color: #005689;
+            height: 44px;
+            .navbar-brand {
+                padding-top: 12px;
+                margin-left: 50px;
+                color:white;
+                font-size: 24px;
+                float: none;
+            }
+            .navbar-brand:hover {
+                background-color: #00456E;
+                color: #AADCE6;
+                text-decoration: none;
+            }
+            /*      .navbar-brand:focus {color: red} */
+            .navbar {height:35px !important; min-height: 30px !important; }
+            .navbar-nav > li a {
+                padding: 0px 10px 0px 10px; font-size: 12px; color: white;
+            }
+            .navbar-nav > li > a:hover {background-color: #00456E; color: white; text-decoration: underline;}
+            .navbar-default .navbar-nav > .open > a {color: white; background-color: #005689; text-decoration: underline;};
+            .navbar-nav > li > a:focus {color: red;}
+            .dropdown-menu > li > a {background-color: white; color: black; }
+            .dropdown-menu >li > a:hover {background-color: white; color: grey; }
+            .navbar-header  {height:41px;}
+            .navbar-default {background-color: #005689; border-color: #005689; font-size: 12px;}
+            .navbar {
+                .container-fluid {padding-right:0;}
+            }
+            .navbar-toggle {top:-8px; background-color: #D0D0D0;}
         }
-        .navbar-brand:hover {
-            background-color: #00456E;
-            color: #AADCE6;
-            text-decoration: none;
-        }
-  /*      .navbar-brand:focus {color: red} */
-        .navbar {height:35px !important; min-height: 30px !important; }
-        .navbar-nav > li a {
-            padding: 0px 10px 0px 10px; font-size: 12px; color: white;
-          }
-        .navbar-nav > li > a:hover {background-color: #00456E; color: white; text-decoration: underline;}
-        .navbar-default .navbar-nav > .open > a {color: white; background-color: #005689; text-decoration: underline;};
-        .navbar-nav > li > a:focus {color: red;}
-        .dropdown-menu > li > a {background-color: white; color: black; }
-        .dropdown-menu >li > a:hover {background-color: white; color: grey; }
-        .navbar-header  {height:41px;}
-        .navbar-default {background-color: #005689; border-color: #005689; font-size: 12px;}
-        .navbar {
-          .container-fluid {padding-right:0;}
-        }
-        .navbar-toggle {top:-8px; background-color: #D0D0D0;}
     }
 
+    tc-create-community {
+        .flex(1, 1, 0);
+        overflow: auto;
     }
 
     tc-community {

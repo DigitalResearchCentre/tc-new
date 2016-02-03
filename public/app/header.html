@@ -13,18 +13,18 @@
             <ul class="dropdown-menu">
               <li *ngFor="#community of publicCommunities">
                 <a [routerLink]="['Community',
-                  {id: community._id, route: 'home'}]">
-                  {{community.name}}</a>
+                  {id: community.getId(), route: 'home'}]">
+                  {{community.attrs.name}}</a>
               </li>
             </ul>
           </li>
-          <li *ngIf="!isAuthenticated()">
+          <li *ngIf="!authUser">
             <a (click)=showLoginModal()>
               <span class="glyphicon glyphicon-user"></span>Sign Up/ 
               <span class="glyphicon glyphicon-log-in"></span> Log In
             </a>
           </li>
-          <template [ngIf]="isAuthenticated()">
+          <template [ngIf]="authUser">
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown"
                 role="button" aria-haspopup="true" aria-expanded="false">
@@ -37,8 +37,8 @@
                 <li role="separator" class="divider"></li>
                 <li *ngFor="#membership of authUser.attrs.memberships;">
                   <a [routerLink]="['Community', 
-                    {id: membership.community._id, route: 'home'}]">
-                    {{membership.community.name}}
+                    {id: membership.community.getId(), route: 'home'}]">
+                    {{membership.community.attrs.name}}
                   </a>
                 </li>
               </ul>
@@ -74,7 +74,7 @@
 </div>
 <div style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
   <p style="font-size:200%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">Textual Communities</p>
-  <p *ngIf="isAuthenticated()" style=" text-align: center; margin-bottom: 5px; padding-bottom:0px;" class="wizardp">
+  <p *ngIf="authUser" style=" text-align: center; margin-bottom: 5px; padding-bottom:0px;" class="wizardp">
     <seg *ngIf="showCreateOrJoin()">
       You do not lead or belong to any communities</seg>
     <seg *ngIf="showAddDocument()">
@@ -83,10 +83,10 @@
     <seg *ngIf="showAddPage()">
       You have a document ("{{currentDoc?.name}}"),
       but there are no pages in it</seg>
-    <!--nseg>Make the edition you want</seg-->
+      <!--><seg>Make the edition you want</seg></-->
   </p>
 </div>
-<div *ngIf="!isAuthenticated()" class="wizard">
+<div *ngIf="!authUser" class="wizard">
   <p class="wizardp">Make the edition you want</p>
     <a data-toggle="modal" data-target="#myModal">
     <button class="btn btn-lg wizardbutton"
@@ -95,7 +95,7 @@
       style="width: 100px;">Start</button>
   </a>
 </div>
-<div *ngIf="isAuthenticated()" class="wizard">
+<div *ngIf="authUser" class="wizard">
   <p *ngIf="showCreateOrJoin()" class="wizardp">
     <a [routerLink]="['CreateCommunity']">
       <button class="btn btn-lg wizardbutton"

@@ -2,7 +2,7 @@ var _ = require('lodash')
   , Model = require('./model')
 ;
 
-var Doc = _.inherit(Model, function(data) {
+var Entity = _.inherit(Model, function(data) {
   return this._super.constructor.call(this, data);
 }, {
   fields: {
@@ -10,6 +10,7 @@ var Doc = _.inherit(Model, function(data) {
   },
 });
 
-module.exports = Doc;
+module.exports = Entity;
+
 
 

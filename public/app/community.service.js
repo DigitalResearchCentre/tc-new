@@ -15,7 +15,6 @@ var CommunityService = ng.core.Injectable().Class({
     RESTService.call(this, http);
 
     this._authService = authService;
-
     this.resourceUrl = 'communities';
 
     this.initEventEmitters();
@@ -32,15 +31,27 @@ var CommunityService = ng.core.Injectable().Class({
         },
       })
       .publishReplay(1).refCount();
+    this._authService.authUser$.subscribe(function(authUser) {
+      self.authUser = authUser;
+    });
   },
   get: function(id) {
     return new Community({_id: id});
   },
-  create: function(attrs) {
-    return new Community(attrs);
+  create: function(data, options) {
+    var authUser = this.authUser
+      , authService = this._authService
+    ;
+    if (!authUser) {
+      return Rx.Observable.throw(new Error('login required'));
+    }
+    data.user = authUser.getId();
+    return RESTService.prototype.create.call(this, data, options)
+      .do(function() {
+        authService.refresh();
+      });
   },
 });
-
 
 module.exports = CommunityService;
 

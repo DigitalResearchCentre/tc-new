@@ -1,4 +1,4 @@
 {
   "verbose": true,
-  "ignoreRoot": [".git", "public", "test"]
+  "ignoreRoot": [".git", "public", "test", "node_modules", "bower_components"]
 }
