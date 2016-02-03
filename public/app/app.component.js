@@ -33,53 +33,7 @@ function checkCommunity (community) {
     return message;
 }
 
-var EditCommunityComponent = ng.core.Component({
-  selector: 'tc-edit-community',
-  templateUrl: 'community/manage/tmpl/edit-community.html'
-}).Class({
-  constructor: [AuthService, function(authService) {
 
-
-  }],
-  ngOnInit: function() {
-    var community=this.community;
-    authService.authUser$.subscribe(function(authUser) {
-     self.authUser = authUser;
-     community.creator=authUser._id;
-   });
-    community.public=false;
-    community.name="";
-    community.abbr="";
-    community.longName="";
-    community.description="";
-    community.accept=false;
-    community.autoaccept= false;
-    community.alldolead= false;
-    community.haspicture= false;
-    community.image= false;
-    this.message="";
-    this.isCreate=true;
-    this.community=community;
-  },
-  submit: function() {
-      this.message=checkCommunity(this.community);
-      if (this.message!="") {
-  //      $location.path('app/new-community')
-      }
-    }
-/*      if (this.message=="") {
-          community.$save(function() {
-            $scope.isCreate=true;
-            //if this is the first community -- send to the main screen, set to add pages
-            //ie: only one membership, and a leader of that!
-            if ($scope.$parent.$parent.userStatus=="1") {
-              $scope.$parent.$parent.community=community;
-              $scope.$parent.$parent.userStatus=="2";
-            }
-            $location.path('/community/' + community._id + '/home');
-          });
-        }*/
-});
 
 
 var CreateCommunityComponent = ng.core.Component({
