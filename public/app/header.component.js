@@ -57,6 +57,7 @@ var HeaderComponent = ng.core.Component({
     return this.currentDoc && _.isEmpty(this.currentDoc.children);
   },
   isAuthenticated: function() {
+    console.log('isAuthenticated');
     return this._authService.isAuthenticated();
   },
   showLoginModal: function() {

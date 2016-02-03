@@ -1,6 +1,7 @@
 var _ = require('lodash')
   , URI = require('urijs')
   , Rx = require('rxjs')
+  , config = require('../config')
 ;
 
 var CACHE_STORE = {};
@@ -21,94 +22,79 @@ var Model = _.inherit(Object, function(attrs) {
   var self = this
     , id
   ;
-  this.fields = {};
-  this.attrs = attrs || {};
-  attrs = this.attrs;
 
+  if (attrs === void 0) {
+    attrs = {};
+  }
+  this.cacheField = {};
+  this.options = {};
+  this.attrs = attrs;
+  id = this.getId();
 
-  if (attrs._id) {
-    self = _getCache(attrs._id);
-    if (_.isUndefined(self)) {
-      self = _setCache(attrs._id, this);
+  if (id) {
+    self = _getCache(id);
+    if (self === void 0) {
+      self = _setCache(id, this);
     }
   }
-  self._update(attrs);
+  self.update(attrs);
   return self;
 }, {
-  _createId: function() {
-    var _id = new ObjectID().toJSON();
-    this.fields._id = _id;
-    return _setCache(_id, this);
+  fieldMap: {
+
   },
-  _update: function(data) {
-    var fields = this.constructor.fields || {}
-      , self = this
+  get: function(key, options) {
+    var map = this.fieldMap[key]
+      , value = this.attrs[key]
+      , cacheField = this.cacheField
+      , opts = _.defaults({}, options)
+      , raw = opts.raw
+      , noCache = opts.noCache
     ;
-    _.each(data, function(value, key) {
-      if (fields[key]) {
-        value = fields[key](value);
+    if (!raw && map) {
+      if (_.isFunction(map)) {
+        if (noCache || cacheField[key] === void 0) {
+          cacheField[key] = map.bind(this)(value);
+        }
+        value = cacheField[key];
       } else {
-        value = value;
+        value = map;
       }
-      self.fields[key] = value;
-    });
-    return this;
-  },
-  fetch: function(options) {
-    var id = this.getId()
-      , opts = _.assign({_id: id}, options)
-      , self = this
-    ;
-    if (!id) {
-      return Rx.Observable.throw(new Error('can not fetch without id'));
     }
-    if (!this._fetch$) {
-      this._fetch$ = this.constructor.getBackend().fetch(opts)
-        .map(function(res) {
-          self.update(res);
-          return self;
-        });
+    return value;
+  },
+  getOptions: function() {
+    return _.assign(this.options, {
+      idName: '_id',
+    }, this.constructor.options);
+  },
+  getResourceUrl: function() {
+    var resource = this.getOptions().resource;
+    if (resource) {
+      return new URI(config.BACKEND_URL + '/' + resource)
+        .normalize().toString();
     }
-    return this._fetch$;
   },
-  save: function() {
-    var self = this
-      , url = this.getResourceUrl()
-      , cls = this.constructor
-      , obs
-    ;
-    if (url) {
-      obs = cls.getBackend().post(this.attrs);
-    } else {
-      obs = Rx.Observable.throw(new Error('resource has not set yet'));
-    }
-    return obs.do(function(res) {
-      var id = self.getId()
-        , err
-      ;
-      // return id should always match existing id
-      if (id && id !== res._id) {
-        err = new Error('model id isn\'t match');
-        self.onSaveError(err);
-        return Rx.Observable.throw(err);
-      }
-      self.update(res);
-    }, function(err) {
-      self.onSaveError(err);
-    });
-  },
-  onSaveError: function(err) {
-  },
-  // @return {Observer}
-  getBackend: function() {
-    return {};
-  },
-  get: function(key) {
-    return this.fields[key];
+  getId: function() {
+    return this.attrs[this.getOptions().idName];
   },
   isNew: function() {
-
+    return !!this.getId();
+  },
+  update: function(attrs) {
+    var fieldMap = this.fieldMap
+      , cacheField = this.cacheField
+      , self = this
+    ;
+    _.assign(this.attrs, attrs);
+    _.each(attrs, function(value, key) {
+      if (fieldMap[key]) {
+        self.get(key, {noCache: true});
+      }
+    });
+    return this;
   },
 });
 
 module.exports = Model;
+

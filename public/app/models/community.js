@@ -4,20 +4,15 @@ var _ = require('lodash')
 ;
 
 var Community = _.inherit(Model, function(data) {
-  _.defaults(this.fields, {
-    documents: [],
-    entities: [],
-  });
-
   return this._super.constructor.call(this, data);
-});
-_.assign(Community, {
+}, {
+  options: {
+    resource: 'nodes',
+  },
   fields: {
-    documents: function(documents) {
-      return _.map(documents, function(doc) {
-        return new Doc(doc);
-      });
-    },
+    documents: function() {
+      return [];
+    }
   },
 });
 

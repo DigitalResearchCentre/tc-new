@@ -35,6 +35,7 @@ var AuthService = ng.core.Class({
       .publishReplay(1).refCount();
   },
   isAuthenticated: function() {
+    console.log(_authUser);
     return (this._authUser || {})._id;
     //return this._authUser && this._authUser.local.authenticated === 1;
   },
