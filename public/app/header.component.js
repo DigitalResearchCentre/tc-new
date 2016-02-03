@@ -46,13 +46,13 @@ var HeaderComponent = ng.core.Component({
     return this.authUser && _.isEmpty(this.authUser.attrs.memberships);
   },
   showAddDocument: function() {
-    var memberships = this.authUser.memberships
+    var memberships = this.authUser.attrs.memberships
       , community
     ;
     if (memberships && memberships.length === 1) {
       community = memberships[0].community;
     }
-    return community && _.isEmpty(community.documents);
+    return community && _.isEmpty(community.attrs.documents);
   },
   showAddPage: function() {
     return this.currentDoc && _.isEmpty(this.currentDoc.children);

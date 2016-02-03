@@ -51,7 +51,7 @@ var CommunityComponent = ng.core.Component({
   },
   navigate: function(route) {
     var instruction = this._router.generate([
-      'Community', {id: this.community._id, route: route}
+      'Community', {id: this.community.getId(), route: route}
     ]);
     this._location.go(instruction.toRootUrl());
     this.route = route;
