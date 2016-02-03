@@ -54,7 +54,6 @@ var Model = _.inherit(Object, function(attrs) {
     });
     return this;
   },
-<<<<<<< HEAD
   fetch: function(options) {
     var id = this.getId()
       , opts = _.assign({_id: id}, options)
@@ -99,15 +98,13 @@ var Model = _.inherit(Object, function(attrs) {
     });
   },
   onSaveError: function(err) {
-  }
-}, {
+  },
   // @return {Observer}
   getBackend: function() {
     return {};
-=======
+  },
   get: function(key) {
     return this.fields[key];
->>>>>>> 57a553980ce85747bcdd9daec31639104baa3db1
   },
   isNew: function() {
 
