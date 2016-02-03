@@ -43,7 +43,7 @@ var HeaderComponent = ng.core.Component({
     });
   },
   showCreateOrJoin: function() {
-    return this.authUser && _.isEmpty(this.authUser.memberships);
+    return this.authUser && _.isEmpty(this.authUser.attrs.memberships);
   },
   showAddDocument: function() {
     var memberships = this.authUser.memberships
