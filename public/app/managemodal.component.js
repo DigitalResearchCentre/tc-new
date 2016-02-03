@@ -13,8 +13,8 @@ var ManageModalComponent = ng.core.Component({
   templateUrl: '/app/managemodal.html',
   directives: [
     require('./managemodalchoice.component'),
+    require('../directives/modaldraggable')
   ],
-
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
     this._uiService = uiService;

@@ -1,7 +1,6 @@
 var _ = require('lodash')
   , URI = require('urijs')
   , Rx = require('rxjs')
-  , config = require('../config')
 ;
 
 var CACHE_STORE = {};
@@ -140,7 +139,7 @@ var Model = _.inherit(Object, function(attrs) {
   onSaveError: function(err) {
   }
 }, {
-  // @return {Observer} 
+  // @return {Observer}
   getBackend: function() {
     return {};
   },
@@ -162,5 +161,3 @@ var Model = _.inherit(Object, function(attrs) {
 });
 
 module.exports = Model;
-
-
