@@ -26,12 +26,6 @@ var Model = _.inherit(Object, function(data) {
     self.fields = {};
   }
   _.assign(self.fields, data);
-  _.each(self.fields, function(value, field) {
-    Object.defineProperty(self, field, {
-      get: function() {return self.fields[field];},
-    });
-  });
-
 
   self._update(data);
   return self;
@@ -57,7 +51,8 @@ var Model = _.inherit(Object, function(data) {
   },
   get: function(key) {
     return this.fields[key];
-  }
+  },
+
 });
 
 
