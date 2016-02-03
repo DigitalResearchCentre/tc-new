@@ -1,12 +1,25 @@
-var modaldraggable = function($document) {
-  return function(scope, element, attr) {
-    var startX = 0, startY = 0, x = 0, y = 0;
-    element.css({
+var ElementRef = ng.core.ElementRef
+  , $ = require('jquery')
+;
+
+var ModalDraggable = ng.core.Directive({
+  selector: '[modal-draggable]',
+}).Class({
+  constructor: [ElementRef, function(elementRef) { 
+    this._elementRef = elementRef;
+  }],
+  ngOnInit: function() {
+    var el = this._elementRef.nativeElement
+      , $el = $(el)
+      , $document = $(document)
+      , startX = 0, startY = 0, x = 0, y = 0
+    ;
+    $el.css({
      position: 'relative',
      cursor: 'pointer',
      display: 'block',
     });
-    element.on('mousedown', function(event) {
+    $el.on('mousedown', function(event) {
       // Prevent default dragging of selected content
       event.preventDefault();
       startX = event.screenX - x;
@@ -28,8 +41,11 @@ var modaldraggable = function($document) {
       $document.off('mousemove', mousemove);
       $document.off('mouseup', mouseup);
     }
-  };
-};
+  }
+});
 
-modaldraggable.$inject = ['$document'];
-module.exports = modaldraggable;
+
+module.exports = ModalDraggable;
+
+
+
