@@ -72,6 +72,13 @@ var DocResource = _.inherit(Resource, function(opts) {
     return function(obj, callback) {
       async.parallel([
         function(cb) {
+          if (req.body.parent) {
+            Doc.findOne({_id: req.body.parent}).exec(cb);
+          } else {
+            cb(null);
+          }
+        },
+        function(cb) {
           if (req.body.revision) {
             var revision = new Revision({
               doc: obj._id,
@@ -90,11 +97,13 @@ var DocResource = _.inherit(Resource, function(opts) {
             });
             async.waterfall([
               _.bind(query.exec, query),
-              function(community, cb) {
+              function(community, cb1) {
                 community.documents.push(obj._id);
-                community.save(cb);
+                community.save(cb1);
               },
-            ], cb);
+            ], function(err, community, numberAffected) {
+              cb(err, community);
+            });
           } else {
             cb(null);
           }
@@ -107,10 +116,23 @@ var DocResource = _.inherit(Resource, function(opts) {
           }
         }
       ], function(err, results) {
+        var parent = results[0];
         if (err) {
           callback(err);
         } else {
-          obj.save(callback);
+          if (parent) {
+            obj.ancestors = parent.ancestors;
+          }
+          obj.save(function(err, obj) {
+            if (!err && parent) {
+              parent.children.push(obj._id);
+              return parent.save(function(err) {
+                callback(err, obj);
+              });
+            } else {
+              callback(err, obj);
+            }
+          });
         }
       });
     };
@@ -122,33 +144,44 @@ userResource.serve(router, 'users');
 
 new CommunityResource({id: 'community'}).serve(router, 'communities');
 router.put('/communities/:id/add-document', function(req, res, next) {
-  var communityId = req.params.id;
-  var doc = new Doc(req.body);
+  var communityId = req.params.id
+    , doc = new Doc(req.body)
+    , community
+  ;
 
   async.waterfall([
     function(cb) {
       Community.findOne({_id: communityId}).exec(cb);
     },
-    function(community, cb) {
-      doc.save(cb);
+    function(obj, cb) {
+      community = obj;
+      doc.save(function(err, doc, numberAffected) {
+        cb(err, doc);
+      });
     },
     function(doc, cb) {
-      doc.commit({
-        name: 'text',
-        attrs: {},
-        children: [{
-          name: 'body',
-          attrs: {},
-          children: [],
-        }]
-      }, cb);
+      community.documents.push(doc);
+      community.save(function(err, community, numberAffected) {
+        cb(err, community);
+      });
     },
     function(community, cb) {
-      community.documents.push(doc);
-      community.save(cb);
-    }
-  ], function(err, results) {
-    var community, doc;
+      doc.commit({
+        tei: {
+          name: 'text',
+          attrs: {},
+          doc: doc._id,
+          children: [{
+            name: 'body',
+            attrs: {},
+            children: [],
+            doc: doc._id,
+          }]
+        },
+        doc: {children: []},
+      }, cb);
+    },
+  ], function(err) {
     if (err) {
       if (doc._id) {
         doc.remove();

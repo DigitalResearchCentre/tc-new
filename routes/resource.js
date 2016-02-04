@@ -87,7 +87,9 @@ _.assign(Resource.prototype, {
   },
   execSave: function(req, res, next) {
     return function(obj, cb) {
-      obj.save(cb);
+      obj.save(function(err, obj, numberAffected) {
+        cb(err, obj);
+      });
     };
   },
   sendData: function(req, res, next) {
