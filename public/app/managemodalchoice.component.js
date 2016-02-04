@@ -16,7 +16,6 @@ var ManageModalChoiceComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
-    this._uiService = uiService;
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
@@ -24,6 +23,7 @@ var ManageModalChoiceComponent = ng.core.Component({
     $('#manageModal').height("188px");
     this.message="";
     this.success="";
+    this.uiService = uiService;
     this._communityService = communityService;
     /*this for scope variables */
   }],
@@ -33,7 +33,7 @@ var ManageModalChoiceComponent = ng.core.Component({
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
     } else {
-      this._communityService.addDocument(this._uiService.community, this.doc)
+      this._communityService.addDocument(this.uiService.community, this.doc)
         .subscribe(function(doc) {
           self.closeModalAD();
         }, function(err) {

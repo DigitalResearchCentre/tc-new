@@ -30,9 +30,13 @@
       </option>
     </select>
   </div>
-  <div x-codemirror class="transcript" ng-model="selectedRevision.text">
-    <textarea></textarea>
+  <tc-codemirror class="transcript" [(content)]="content">
+  </tc-codemirror>
+
+  <div>
+      {{content}}
   </div>
+
   <div class="buttons" ng-if="page">
     <button type="button" class="btn btn-default btn-xs"
       ng-click="save()">save</button>
@@ -40,4 +44,6 @@
       ng-click="commit()">commit</button>
   </div>
 </div>
+
+
 

@@ -1,4 +1,6 @@
-var CommunityService = require('./community.service');
+var CommunityService = require('./community.service')
+  , UIService = require('./ui.service')
+;
 
 var EditCommunityComponent = ng.core.Component({
   selector: 'tc-edit-community',
@@ -7,8 +9,11 @@ var EditCommunityComponent = ng.core.Component({
     'community',
   ],
 }).Class({
-  constructor: [CommunityService, function(communityService) {
+  constructor: [
+    CommunityService, UIService, function(
+      communityService, uiService) {
     this._communityService = communityService;
+    this._uiService = uiService;
   }],
   ngOnInit: function() {
     this.initEdit(this.community);
@@ -36,8 +41,8 @@ var EditCommunityComponent = ng.core.Component({
   submit: function() {
     var self = this;
     this._communityService.save(this.edit).subscribe(function(community) {
-      console.log(community);
       self.initEdit(community);
+      self._uiService.setCommunity(community);
     }, function(err) {
       self.message = err.message;
     });

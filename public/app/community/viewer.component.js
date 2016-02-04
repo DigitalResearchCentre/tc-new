@@ -11,6 +11,7 @@ var ViewerComponent = ng.core.Component({
     'community',
   ],
   directives: [
+    require('../directives/codemirror'),
   ]
 }).Class({
   constructor: [CommunityService, UIService, function(
@@ -21,6 +22,7 @@ var ViewerComponent = ng.core.Component({
     
     this.revisions = [];
     this.page = {};
+    this.content = 'hello world';
   }],
   ngOnInit: function() {
     var self = this
