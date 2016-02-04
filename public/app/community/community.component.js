@@ -46,7 +46,6 @@ var CommunityComponent = ng.core.Component({
       populate: 'documents entities'
     }).subscribe(function(cc) {
       console.log(cc);
-      
     });
   },
   navigate: function(route) {

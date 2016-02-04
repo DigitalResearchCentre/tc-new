@@ -38,21 +38,15 @@ var HeaderComponent = ng.core.Component({
     communityService.publicCommunities$.subscribe(function(communities) { 
       self.publicCommunities = communities;
     });
-    this._uiService.community$.subscribe(function(id){
-      self.community = communityService.get(id);
-    });
   },
   showCreateOrJoin: function() {
     return this.authUser && _.isEmpty(this.authUser.attrs.memberships);
   },
   showAddDocument: function() {
-    var memberships = this.authUser.attrs.memberships
-      , community
-    ;
-    if (memberships && memberships.length === 1) {
-      community = memberships[0].community;
+    var community = this._uiService.community;
+    if (community) {
+      return _.isEmpty(community.attrs.documents);
     }
-    return community && _.isEmpty(community.attrs.documents);
   },
   showAddPage: function() {
     return this.currentDoc && _.isEmpty(this.currentDoc.children);

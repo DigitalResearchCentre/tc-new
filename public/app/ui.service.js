@@ -12,21 +12,19 @@ var UIService = ng.core.Class({
 
     authService.authUser$.subscribe(function(authUser) {
       if (authUser) {
+        self.authUser = authUser;
         var memberships = authUser.attrs.memberships;
         if (!self._community && memberships.length === 1) {
           self.setCommunity(memberships[0].community);
         }
       }
     });
-    this.community$ = this._communitySubject.map(function(community) {
-      self._community = community;
-      return community;
-    }).publishReplay(1).refCount();
+
+    this.community = null;
   }],
   setCommunity: function(community) {
-    console.log(community);
-    if (community !== this._community) {
-      this._communitySubject.next(community);
+    if (community !== this.community) {
+      this.community = community;
     }
     return community;
   }
