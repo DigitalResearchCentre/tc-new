@@ -16,16 +16,38 @@ var AddPageComponent = ng.core.Component({
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
     var self=this;
-    this._uiService = uiService;
+    this.uiService = uiService;
     this.message="";
     this.success="";
     $('#manageModal').width("430px");
     $('#manageModal').height("355px");
-    this.oneormany="OnePage";
+    this.rb={oneormany: "OnePage"};
     this.pageName="";
   }],
-  submit: function() {
+ showSingle: function() {
+    $("#MMADPsingle").show();
+    $("#MMADPmultiple").hide();
   },
+  showMany: function(){
+    $("#MMADPsingle").hide();
+    $("#MMADPmultiple").show();
+  },
+  fromFile: function() {
+    $("#MMAPPSingleFile").show();
+    $("#MMAPPSingleWeb").hide();
+  },
+  fromWeb: function(){
+    $("#MMAPPSingleWeb").show();
+    $("#MMAPPSingleFile").hide();
+  },
+  fromZip: function() {
+    $("#MMAPPMFF").show();
+    $("#MMAPPMFDD").hide();
+  },
+  fromDD: function(){
+    $("#MMAPPMFDD").show();
+    $("#MMAPPMFF").hide();
+  }
 });
 
 module.exports = AddPageComponent;
