@@ -3,17 +3,16 @@ var URI = require('urijs')
   , _ = require('lodash')
   , Model = require('./models/model')
   , Rx = require('rxjs')
+  , config = require('./config')
 ;
 var Http = ng.http.Http;
-
-var BACKEND_URL = 'http://localhost:3000/api/';
 
 var RESTService = ng.core.Injectable().Class({
   constructor: [Http, function(http) {
     this.http = http;
   }],
   url: function(options) {
-    var template = BACKEND_URL + '{resource}/{id}/{func}/';
+    var template = config.BACKEND_URL + '{resource}/{id}/{func}/';
     return URI.expand(template, _.assign({
       resource: this.resourceUrl,
     }, options)).normalize().toString();

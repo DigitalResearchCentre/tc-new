@@ -14,7 +14,7 @@ var DocService = ng.core.Injectable().Class({
     RESTService.call(this, http);
 
     this._authService = authService;
-    this.resourceUrl = 'documents';
+    this.resourceUrl = 'docs';
 
     this.initEventEmitters();
   }],

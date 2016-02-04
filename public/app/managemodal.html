@@ -1,5 +1,8 @@
 <div  id="manageModal" class="modal fade resizable" role="dialog" style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px">
   <div [ngSwitch]="choice">
-    <tc-managemodal-adddocument *ngSwitchWhen="'add-document'"></tc-managemodal-adddocument>
+    <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
+    </tc-managemodal-adddocument>
+    <tc-managemodal-addpage*ngSwitchWhen="'add-page'">
+    </tc-managemodal-addpage>
   </div>
 </div>

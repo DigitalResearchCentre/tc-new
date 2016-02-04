@@ -25,8 +25,18 @@ var UIService = ng.core.Class({
   setCommunity: function(community) {
     if (community !== this.community) {
       this.community = community;
+      if (community) {
+        this.setDocument(community.attrs.documents[0]);
+      }
     }
     return community;
+  },
+  setDocument: function(doc) {
+    if (doc !== this.document) {
+      this.document = doc;
+    }
+    return doc;
+   
   }
 });
 

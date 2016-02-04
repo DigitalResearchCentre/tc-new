@@ -20,7 +20,7 @@ var HeaderComponent = ng.core.Component({
     this._authService = authService;
     console.log(authService);
     this._communityService = communityService;
-    this._uiService = uiService;
+    this.uiService = uiService;
 
     this.loginFrame = '/auth?url=/index.html';
     this.authUser = null;
@@ -43,25 +43,26 @@ var HeaderComponent = ng.core.Component({
     return this.authUser && _.isEmpty(this.authUser.attrs.memberships);
   },
   showAddDocument: function() {
-    var community = this._uiService.community;
+    var community = this.uiService.community;
     if (community) {
       return _.isEmpty(community.attrs.documents);
     }
   },
   showAddPage: function() {
-    return this.currentDoc && _.isEmpty(this.currentDoc.children);
+    var doc = this.uiService.document;
+    return doc && _.isEmpty(doc.children);
   },
   showLoginModal: function() {
-    this._uiService.loginModel$.emit('show');
+    this.uiService.loginModel$.emit('show');
   },
   showLoginProf: function() {
-    this._uiService.loginModel$.emit('show-login-prof');
+    this.uiService.loginModel$.emit('show-login-prof');
   },
   logout: function() {
     this._authService.logout();
   },
   loadModal: function(which) {
-    this._uiService.manageModel$.emit(which);
+    this.uiService.manageModel$.emit(which);
   },
 });
 

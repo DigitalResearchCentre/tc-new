@@ -23,12 +23,11 @@ var Community = _.inherit(Model, function(data) {
       var cls = Entity;
       var results = _.map(objs, function(attrs) {
         if (_.isString(attrs)) {
-          attrs = {_id: attrs};
-        } else if (attrs instanceof cls) {
-          return attrs;
-        } else {
-          return new cls(attrs);
+          attrs = new cls({_id: attrs});
+        } else if (!attrs instanceof cls) {
+          attrs = new cls(attrs);
         }
+        return attrs;
       });
       return results;
     },
@@ -36,12 +35,12 @@ var Community = _.inherit(Model, function(data) {
       var cls = Doc;
       var results = _.map(objs, function(attrs) {
         if (_.isString(attrs)) {
-          attrs = {_id: attrs};
-        } else if (attrs instanceof cls) {
-          return attrs;
-        } else {
-          return new cls(attrs);
+          attrs = new cls({_id: attrs});
+        } else if (!(attrs instanceof cls)) {
+          attrs = new cls(attrs);
         }
+        console.log(attrs);
+        return attrs;
       });
       return results;
     },
