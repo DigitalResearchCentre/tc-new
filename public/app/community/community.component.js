@@ -42,11 +42,6 @@ var CommunityComponent = ng.core.Component({
     this.route = route;
     this.community = this._communityService.get(id);
     this._uiService.setCommunity(this.community);
-    this._communityService.fetch(id, {
-      populate: JSON.stringify('documents entities')
-    }).subscribe(function(cc) {
-      console.log(cc);
-    });
   },
   navigate: function(route) {
     var instruction = this._router.generate([

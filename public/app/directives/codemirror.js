@@ -24,7 +24,7 @@ var CodeMirrorComponent = ng.core.Component({
       mode:  'xml'
     });
     editor.on('change', this.textChange.bind(this));
-    editor.setValue(this.content);
+    editor.setValue(this.content || '');
     console.log(this.content);
   },
   textChange: function(instance) {
