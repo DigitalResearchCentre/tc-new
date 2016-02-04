@@ -1,13 +1,13 @@
 <div class="headerTC">
   <nav class="navbar navbar-default">
     <div class="container-fluid">
-      <div class="collapse navbar-collapse" 
+      <div class="collapse navbar-collapse"
         id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav navbar-left">
           <li><a [routerLink]="['Home']">
               <span class="glyphicon glyphicon-home"></span></a></li>
           <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown" 
+            <a class="dropdown-toggle" data-toggle="dropdown"
               role="button" aria-haspopup="true" aria-expanded="false">
               Public Communities <span class="caret"></span></a>
             <ul class="dropdown-menu">
@@ -20,7 +20,7 @@
           </li>
           <li *ngIf="!authUser">
             <a (click)=showLoginModal()>
-              <span class="glyphicon glyphicon-user"></span>Sign Up/ 
+              <span class="glyphicon glyphicon-user"></span>Sign Up/
               <span class="glyphicon glyphicon-log-in"></span> Log In
             </a>
           </li>
@@ -36,7 +36,7 @@
                 </li>
                 <li role="separator" class="divider"></li>
                 <li *ngFor="#membership of authUser.attrs.memberships;">
-                  <a [routerLink]="['Community', 
+                  <a [routerLink]="['Community',
                     {id: membership.community.getId(), route: 'home'}]">
                     {{membership.community.attrs.name}}
                   </a>
@@ -44,7 +44,7 @@
               </ul>
             </li>
             <li class="dropdown">
-              <a class="dropdown-toggle" data-toggle="dropdown" 
+              <a class="dropdown-toggle" data-toggle="dropdown"
                 role="button" aria-haspopup="true" aria-expanded="false">
                 {{authUser.getName()}} <span class="caret"></span>
               </a>
@@ -123,7 +123,7 @@
       <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
         onmouseout="this.style.color='white';"
-        style="width: 180px;background-color: #005689; border-color: #005689">
+        style="width: 180px">
         Add Page</button>
     </a>
   </p>

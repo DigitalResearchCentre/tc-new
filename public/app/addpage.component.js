@@ -9,15 +9,20 @@ var $ = require('jquery')
 
 var AddPageComponent = ng.core.Component({
   selector: 'tc-managemodal-addpage',
-  templateUrl: '/app/addpage.html',
+  templateUrl: '/community/manage/tmpl/add-document-page.html',
   directives: [
     require('../directives/modaldraggable')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
     var self=this;
-
     this._uiService = uiService;
+    this.message="";
+    this.success="";
+    $('#manageModal').width("430px");
+    $('#manageModal').height("355px");
+    this.oneormany="OnePage";
+    this.pageName="";
   }],
   submit: function() {
   },

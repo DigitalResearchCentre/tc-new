@@ -12,7 +12,8 @@ var ManageModalComponent = ng.core.Component({
   selector: 'tc-manage-modal',
   templateUrl: '/app/managemodal.html',
   directives: [
-    require('./managemodalchoice.component')
+    require('./managemodalchoice.component'),
+    require('./addpage.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -26,7 +27,7 @@ var ManageModalComponent = ng.core.Component({
   init: function() {
     var self = this;
     this._uiService.manageModel$.subscribe(function(event) {
-      self.choice = event.choice || 'add-document';
+      self.choice = event || 'add-document' || 'add-document-page';
       $('#manageModal').modal('show');
     });
   },
