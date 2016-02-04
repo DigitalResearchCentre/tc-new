@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     require('./ui.service'),
     require('./auth.service'),
     require('./community.service'),
+    require('./doc.service'),
   ]).catch(function(err) {
     console.error(err);
   });

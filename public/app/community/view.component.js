@@ -1,5 +1,6 @@
 var CommunityService = require('../community.service')
   , UIService = require('../ui.service')
+  , DocService = require('../doc.service')
 ;
 
 var ViewComponent = ng.core.Component({
@@ -14,12 +15,13 @@ var ViewComponent = ng.core.Component({
     require('./viewer.component'),
   ]
 }).Class({
-  constructor: [CommunityService, UIService, function(
-    communityService, uiService
+  constructor: [CommunityService, UIService, DocService, function(
+    communityService, uiService, docService
   ) {
     console.log('community view');
-    this._communityService = communityService;
     this._uiService = uiService;
+    this._communityService = communityService;
+    this._docService = docService;
   }],
   ngOnInit: function() {
     var self = this
@@ -29,6 +31,12 @@ var ViewComponent = ng.core.Component({
   },
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;
+    console.log(doc);
+    this._docService.fetch(doc.getId(), {
+      populate: JSON.stringify('children')
+    }).subscribe(function(cc) {
+      console.log(cc);
+    });
   },
   selectDoc: function(doc) {
     console.log(doc);

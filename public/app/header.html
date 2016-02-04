@@ -78,10 +78,10 @@
     <seg *ngIf="showCreateOrJoin()">
       You do not lead or belong to any communities</seg>
     <seg *ngIf="showAddDocument()">
-      You have a community ("{{currentCommunity?.name}}"),
+    You have a community ("{{uiService.community?.attrs.name}}"),
       but there are no documents in it</seg>
     <seg *ngIf="showAddPage()">
-      You have a document ("{{currentDoc?.name}}"),
+      You have a document ("{{uiService.document?.attrs.name}}"),
       but there are no pages in it</seg>
       <!--><seg>Make the edition you want</seg></-->
   </p>

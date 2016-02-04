@@ -19,13 +19,13 @@
       <tc-tabs>
         <tc-tab [active]="true" title="By Page">
           <ul class="tree">
-            <li *ngFor="#doc of community.documents" 
+            <li *ngFor="#doc of community.attrs.documents" 
               [class.collapse-node]="!doc.expand">
               <div>
                 <span class="icon" aria-hidden="true"
                   (click)="toggleDoc(doc)"></span>
                 <a (click)="selectDoc(doc)">
-                  {{doc.name}}
+                  {{doc.attrs.name}}
                 </a>
                 <a target="_blank" class="extract-xml"
                   (click)="extractXML($event, doc)">
@@ -33,8 +33,8 @@
               </div>
               <ul>
                 <li *ngFor="#page of doc.children">
-                  <a (click)="selectPage(page._id)">
-                    {{page.name}}
+                  <a (click)="selectPage(page.getId())">
+                    {{page.attrs.name}}
                   </a>
                 </li>
               </ul>
