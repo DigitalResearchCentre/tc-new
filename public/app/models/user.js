@@ -18,7 +18,9 @@ var User = _.inherit(Model, function(data) {
     },
   },
   getName: function() {
-    return this.attrs.local.name;
+    var attrs = this.attrs;
+    var local = attrs.local || attrs.facebook || attrs.google || attrs.twitter;
+    return local ? local.name : '';
   },
   isNew: function() {
     return !this.getId();
