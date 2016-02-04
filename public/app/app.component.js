@@ -45,7 +45,6 @@ ng.router.RouteConfig([{
   component: MemberProfileComponent
 }])(AppComponent);
 
-
 module.exports = AppComponent;
 
 /*

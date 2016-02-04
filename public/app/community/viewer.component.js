@@ -1,4 +1,4 @@
-var CommunityService = require('../community.service')
+var CommunityService = require('../services/community')
   , UIService = require('../ui.service')
   , $ = require('jquery')
   , ImageMap = require('./map')
@@ -8,10 +8,11 @@ var ViewerComponent = ng.core.Component({
   selector: 'tc-viewer',
   templateUrl: '/app/community/viewer.html',
   inputs: [
-    'community',
+    'community', 'page',
   ],
   directives: [
     require('../directives/codemirror'),
+    require('../directives/splitter').SPLITTER_DIRECTIVES,
   ]
 }).Class({
   constructor: [CommunityService, UIService, function(

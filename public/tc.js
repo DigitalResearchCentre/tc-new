@@ -419,10 +419,4 @@ function TCService($resource) {
 TCService.$inject = ['$resource',];
 
 
-var Service = function() {
-};
-_.assign(Service.prototype, {
-  
-});
-
 module.exports = TCService;

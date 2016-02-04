@@ -2,9 +2,9 @@ var Observable = Rx.Observable
   , Http = ng.http.Http
   , forwardRef = ng.core.forwardRef
   , EventEmitter = ng.core.EventEmitter
-  , RESTService = require('./rest.service')
-  , AuthService = require('./auth.service')
-  , Doc = require('./models/doc')
+  , RESTService = require('../rest.service')
+  , AuthService = require('../auth.service')
+  , Doc = require('../models/doc')
 ;
 
 var DocService = ng.core.Injectable().Class({

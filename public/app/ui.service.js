@@ -1,6 +1,6 @@
 var EventEmitter = ng.core.EventEmitter
   , AuthService = require('./auth.service')
-  , CommunityService = require('./community.service')
+  , CommunityService = require('./services/community')
 ;
 
 var UIService = ng.core.Class({

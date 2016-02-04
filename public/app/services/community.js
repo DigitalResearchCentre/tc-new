@@ -3,10 +3,10 @@ var Observable = Rx.Observable
   , Inject = ng.core.Inject
   , forwardRef = ng.core.forwardRef
   , EventEmitter = ng.core.EventEmitter
-  , RESTService = require('./rest.service')
-  , AuthService = require('./auth.service')
-  , Community = require('./models/community')
-  , Doc = require('./models/doc')
+  , RESTService = require('../rest.service')
+  , AuthService = require('../auth.service')
+  , Community = require('../models/community')
+  , Doc = require('../models/doc')
 ;
 
 var CommunityService = ng.core.Injectable().Class({

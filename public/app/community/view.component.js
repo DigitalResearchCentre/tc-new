@@ -1,6 +1,6 @@
-var CommunityService = require('../community.service')
+var CommunityService = require('../services/community')
   , UIService = require('../ui.service')
-  , DocService = require('../doc.service')
+  , DocService = require('../services/doc')
 ;
 
 var ViewComponent = ng.core.Component({
@@ -12,6 +12,7 @@ var ViewComponent = ng.core.Component({
   ],
   directives: [
     require('../tabs.directive').TAB_DIRECTIVES,
+    require('../directives/splitter').SPLITTER_DIRECTIVES,
     require('./viewer.component'),
   ]
 }).Class({

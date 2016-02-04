@@ -1,5 +1,5 @@
 var RouteParams = ng.router.RouteParams
-  , CommunityService = require('../community.service')
+  , CommunityService = require('../services/community')
   , UIService = require('../ui.service')
 ;
 
