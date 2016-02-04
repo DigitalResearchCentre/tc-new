@@ -39,7 +39,6 @@ var Community = _.inherit(Model, function(data) {
         } else if (!(attrs instanceof cls)) {
           attrs = new cls(attrs);
         }
-        console.log(attrs);
         return attrs;
       });
       return results;
