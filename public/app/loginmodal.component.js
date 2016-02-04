@@ -26,9 +26,10 @@ var LoginModalComponent = ng.core.Component({
       , base = '/auth/'
       , src
     ;
-    this._uiService.community$.subscribe(function(community) {
-      
-    })
+    window.closeIFrame = function() {
+      self.closeModal();
+    }
+
     this._uiService.loginModel$.subscribe(function(event) {
       switch (event) {
         case 'show-login-prof':
@@ -77,7 +78,7 @@ var LoginModalComponent = ng.core.Component({
       } else if (prompt=="TCresetpw") {
         src = base + 'TCresetpw?email=' + context + '&name=' + name;
       }
-      document.getElementById("frame").setAttribute("src", src);
+      this.loginFrame = src;
       $('#myModal').modal('show');
     }
   },
@@ -90,7 +91,7 @@ var LoginModalComponent = ng.core.Component({
     // ask the database -- if the current user has a FB ac but no local, 
     // then eliminate the stray fb ac
     // $('#myModal').modal('hide');  close in call to server
-    window.location="/auth/removeSurplusSM";
+    //window.location="/auth/removeSurplusSM";
   },
   showLogProf: function showLogProf (){
     this.loginFrame = '/auth/profile';

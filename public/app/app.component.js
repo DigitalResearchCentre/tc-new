@@ -28,7 +28,6 @@ var AppComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [function() {
-    console.log('App');
   }],
 });
 ng.router.RouteConfig([{
