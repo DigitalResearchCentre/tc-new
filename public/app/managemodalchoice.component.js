@@ -10,7 +10,10 @@ var URI = require('urijs')
 
 var ManageModalChoiceComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument',
-  templateUrl: '/community/manage/tmpl/add-document.html'
+  templateUrl: '/community/manage/tmpl/add-document.html',
+  directives: [
+    require('../directives/modaldraggable')
+  ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
     this._uiService = uiService;

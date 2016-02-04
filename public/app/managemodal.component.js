@@ -12,8 +12,7 @@ var ManageModalComponent = ng.core.Component({
   selector: 'tc-manage-modal',
   templateUrl: '/app/managemodal.html',
   directives: [
-    require('./managemodalchoice.component'),
-    require('../directives/modaldraggable')
+    require('./managemodalchoice.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
