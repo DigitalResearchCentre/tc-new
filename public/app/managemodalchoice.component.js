@@ -24,19 +24,24 @@ var ManageModalChoiceComponent = ng.core.Component({
     $('#manageModal').height("188px");
     this.message="";
     this.success="";
-    this._uiService.community$.subscribe(function(id){
-      self.community = communityService.get(id);
+    this._uiService.community$.subscribe(function(community){
+      self.community = community;
     });
     this._communityService = communityService;
     /*this for scope variables */
   }],
   submit: function() {
-    if (this.doc.name == undefined || this.doc.name.trim()=="" ) {
+    if (this.doc.name === undefined || this.doc.name.trim()=="" ) {
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
     } else {
-      this._communityService.addDocument(self.community, this.doc)
+      this._communityService.addDocument(this.community, this.doc)
+        .subscribe(function(doc) {
+          console.log(doc);
+        }, function(err) {
+          self.message = err.message;
+        })
     }
   },
   closeModalAD: function() {

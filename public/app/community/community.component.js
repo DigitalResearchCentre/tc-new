@@ -41,7 +41,7 @@ var CommunityComponent = ng.core.Component({
     ;
     this.route = route;
     this.community = this._communityService.get(id);
-    this._uiService.communitySubject.next(id);
+    this._uiService.setCommunity(this.community);
     this._communityService.fetch(id, {
       populate: 'documents entities'
     }).subscribe(function(cc) {
