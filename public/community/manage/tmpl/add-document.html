@@ -1,5 +1,5 @@
-<div  >
-  <div modal-draggable class="modalHeader">Add Empty Document to Community "{{community?.name}}"
+<div >
+  <div modal-draggable class="modalHeader">Add Empty Document to Community "{{community.name}}"
     <button type="button" (click)="closeModalAD()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
@@ -16,7 +16,7 @@
    style="margin-top: 30px; margin-left: 20px; margin-right: 20px">
     <label>Document Name&nbsp;&nbsp;</label>
     <input type="text"
-    style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" ng-model="doc.name">
+    style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="doc.name">
     <div id="MMADbutton" style="text-align: center; margin-top: 20px">
       <button type="button" class="btn btn-primary" (click)="submit()">Add Document</button>
     </div>

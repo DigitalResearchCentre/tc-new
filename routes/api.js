@@ -121,6 +121,32 @@ var userResource = new Resource(User, {id: 'user'});
 userResource.serve(router, 'users');
 
 new CommunityResource({id: 'community'}).serve(router, 'communities');
+router.put('/communities/:id/add-document', function(req, res, next) {
+  var communityId = req.params.id;
+  var doc = new Doc(req.body);
+
+  async.waterfall([
+    function(cb) {
+      Community.findOne({_id: communityId}).exec(cb);
+    },
+    function(community, cb) {
+      doc.save(function(err, obj) {
+        if (err) {
+          cb(err);
+        } else {
+          community.documents.push(obj);
+          community.save(cb);
+        }
+      });
+    }
+  ], function(err) {
+    if (err) {
+      next(err);
+    } else {
+      res.json(doc);
+    }
+  });
+});
 
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');

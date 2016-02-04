@@ -6,11 +6,13 @@ var Observable = Rx.Observable
   , RESTService = require('./rest.service')
   , AuthService = require('./auth.service')
   , Community = require('./models/community')
+  , Doc = require('./models/doc')
 ;
 
 var CommunityService = ng.core.Injectable().Class({
   extends: RESTService,
-  constructor: [Http, AuthService, function(http, authService){
+  constructor: [
+    Http, AuthService, function(http, authService){
     var self = this;
     RESTService.call(this, http);
 
@@ -37,6 +39,16 @@ var CommunityService = ng.core.Injectable().Class({
   },
   get: function(id) {
     return new Community({_id: id});
+  },
+  addDocument: function(community, doc) {
+    return this.http.put(
+      this.url({
+        id: community.getId(),
+        func: 'add-document',
+      }), JSON.stringify(doc)
+    ).map(function(res) {
+      return new Doc(res.json());
+    });
   },
   create: function(data, options) {
     var authUser = this.authUser

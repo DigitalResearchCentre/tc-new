@@ -27,6 +27,7 @@ var ManageModalChoiceComponent = ng.core.Component({
     this._uiService.community$.subscribe(function(id){
       self.community = communityService.get(id);
     });
+    this._communityService = communityService;
     /*this for scope variables */
   }],
   submit: function() {
@@ -34,7 +35,8 @@ var ManageModalChoiceComponent = ng.core.Component({
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
-      return
+    } else {
+      this._communityService.addDocument(self.community, this.doc)
     }
   },
   closeModalAD: function() {
