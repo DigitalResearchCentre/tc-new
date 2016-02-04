@@ -18,7 +18,6 @@ var MemberProfileComponent = ng.core.Component({
 });
 
 
-
 var AppComponent = ng.core.Component({
   selector: 'tc-app',
   templateUrl: '/app/app.html',

@@ -898,6 +898,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       , continueTeis
     ;
 
+    console.log('commit');
     docRoot.children = data.doc.children;
 
     async.parallel([
@@ -1004,7 +1005,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
                   }, cb1);
                 },
               ], function(err) {
-                console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
                 console.log(updateEntities);
                 cb(err);
                 
@@ -1013,6 +1013,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
           );
         },
       ], function(err) {
+        console.log('commit');
         console.log(err);
         callback(err);
       });
