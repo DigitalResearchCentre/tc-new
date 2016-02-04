@@ -12,6 +12,7 @@ module.exports = function(options) {
   var env = options.env
     , devtool
   ;
+  console.log(env);
 
   if (env == 'dev') {
     devtool = '#eval';
