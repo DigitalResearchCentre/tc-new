@@ -1,73 +1,62 @@
-<script type="text/ng-template" id="tree.html">
-  <div>
-    <span class="icon" aria-hidden="true"
-      ng-click="toggleEntity(node, doc)"></span>
-    <a ng-click="selectEntity(node, doc)">
-      {{node.name}}
-    </a>
-  </div>
-  <ul ng-if="node.entities">
-    <li ng-repeat="node in node.entities"
-      ng-include="'tree.html'"
-      ng-class="{'collapse-node': !node.expand, leaf: !node.entities}">
-    </li>
-  </ul>
-</script>
-<div class="sidebar">
-  <tc-tabs *ngIf="community">
-    <tc-tab [active]="true" title="Documents">
-      <tc-tabs>
-        <tc-tab [active]="true" title="By Page">
-          <ul class="tree">
-            <li *ngFor="#doc of community.attrs.documents" 
-              [class.collapse-node]="!doc.expand">
-              <div>
-                <span class="icon" aria-hidden="true"
-                  (click)="toggleDoc(doc)"></span>
-                <a (click)="selectDoc(doc)">
-                  {{doc.attrs.name}}
-                </a>
-                <a target="_blank" class="extract-xml"
-                  (click)="extractXML($event, doc)">
-                </a>
-              </div>
-              <ul>
-                <li *ngFor="#page of doc.children">
-                  <a (click)="selectPage(page.getId())">
-                    {{page.attrs.name}}
+<tc-splitter class="content">
+  <tc-pane class="sidebar">
+    <tc-tabs *ngIf="community">
+      <tc-tab [active]="true" title="Documents">
+        <tc-tabs>
+          <tc-tab [active]="true" title="By Page">
+            <ul class="tree">
+              <li *ngFor="#doc of community.attrs.documents" 
+                [class.collapse-node]="!doc.expand">
+                <div>
+                  <span class="icon" aria-hidden="true"
+                    (click)="toggleDoc(doc)"></span>
+                  <a (click)="selectDoc(doc)">
+                    {{doc.attrs.name}}
                   </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </tc-tab>
-        <tc-tab title="By Item">
-          <div>world</div>
-          <ul class="tree">
-            <li *ngFor="#doc of community.documents"
-              [class.collapse-node]="!doc.expand">
-              <div>
-                <span class="icon" aria-hidden="true"
-                  (click)="toggleDoc(doc)"></span>
-                <a (click)="selectDoc(doc)">
-                  {{doc.name}}
-                </a>
-              </div>
-              <ul>
-                <li *ngFor="#node of doc.entities"
-                  ng-include="'tree.html'"
-                  [class.collapse-node]="!node.expand">
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </tc-tab>
-      </tc-tabs>
-    </tc-tab>
-    <tc-tab title="Collations">
-      <p>Collation will go here</p>
-    </tc-tab>
-  </tc-tabs>
-</div>
-<tc-viewer></tc-viewer>
+                  <a target="_blank" class="extract-xml"
+                    (click)="extractXML($event, doc)">
+                  </a>
+                </div>
+                <ul>
+                  <li *ngFor="#page of doc.children">
+                    <a (click)="selectPage(page.getId())">
+                      {{page.attrs.name}}
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </tc-tab>
+          <tc-tab title="By Item">
+            <div>world</div>
+            <ul class="tree">
+              <li *ngFor="#doc of community.documents"
+                [class.collapse-node]="!doc.expand">
+                <div>
+                  <span class="icon" aria-hidden="true"
+                    (click)="toggleDoc(doc)"></span>
+                  <a (click)="selectDoc(doc)">
+                    {{doc.name}}
+                  </a>
+                </div>
+                <ul>
+                  <li *ngFor="#node of doc.entities"
+                    ng-include="'tree.html'"
+                    [class.collapse-node]="!node.expand">
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </tc-tab>
+        </tc-tabs>
+      </tc-tab>
+      <tc-tab title="Collations">
+        <p>Collation will go here</p>
+      </tc-tab>
+    </tc-tabs>
+  </tc-pane>
+  <tc-pane class="viewer">
+    <tc-viewer *ngIf="page" [page]="page"></tc-viewer>
+  </tc-pane>
+</tc-splitter>
 

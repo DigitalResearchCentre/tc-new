@@ -1,0 +1,24 @@
+tc-splitter {
+    .flex-row;
+
+    .splitter {
+        .flex(0, 0, 7px);
+        cursor: col-resize;
+        background: linear-gradient(to right, #505050, #383838);
+    }
+
+    &.horizontal {
+        .flex-column;
+
+        .splitter {
+            cursor: row-resize;
+        }
+    }
+
+    .main-view {
+        padding: 10px;
+    }
+}
+
+
+

@@ -1,4 +1,4 @@
-var CommunityService = require('./community.service')
+var CommunityService = require('./services/community')
   , UIService = require('./ui.service')
 ;
 

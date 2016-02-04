@@ -130,17 +130,29 @@ router.put('/communities/:id/add-document', function(req, res, next) {
       Community.findOne({_id: communityId}).exec(cb);
     },
     function(community, cb) {
-      doc.save(function(err, obj) {
-        if (err) {
-          cb(err);
-        } else {
-          community.documents.push(obj);
-          community.save(cb);
-        }
-      });
+      doc.save(cb);
+    },
+    function(doc, cb) {
+      doc.commit({
+        name: 'text',
+        attrs: {},
+        children: [{
+          name: 'body',
+          attrs: {},
+          children: [],
+        }]
+      }, cb);
+    },
+    function(community, cb) {
+      community.documents.push(doc);
+      community.save(cb);
     }
-  ], function(err) {
+  ], function(err, results) {
+    var community, doc;
     if (err) {
+      if (doc._id) {
+        doc.remove();
+      }
       next(err);
     } else {
       res.json(doc);
