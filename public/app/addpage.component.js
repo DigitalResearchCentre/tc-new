@@ -22,13 +22,13 @@ var AddPageComponent = ng.core.Component({
   ) {
 
     var self=this;
-    this._uiService = uiService;
     this._docService = docService;
+    this.uiService = uiService;
     this.message="";
     this.success="";
     $('#manageModal').width("430px");
     $('#manageModal').height("355px");
-    this.oneormany="OnePage";
+    this.rb={oneormany: "OnePage"};
     this.pageName="";
     console.log("addpage");
   }],
@@ -38,9 +38,32 @@ var AddPageComponent = ng.core.Component({
       name: '1r',
     }).subscribe(function(page) {
       console.log(page);
-      
     })
   },
+  showSingle: function() {
+    $("#MMADPsingle").show();
+    $("#MMADPmultiple").hide();
+  },
+  showMany: function(){
+    $("#MMADPsingle").hide();
+    $("#MMADPmultiple").show();
+  },
+  fromFile: function() {
+    $("#MMAPPSingleFile").show();
+    $("#MMAPPSingleWeb").hide();
+  },
+  fromWeb: function(){
+    $("#MMAPPSingleWeb").show();
+    $("#MMAPPSingleFile").hide();
+  },
+  fromZip: function() {
+    $("#MMAPPMFF").show();
+    $("#MMAPPMFDD").hide();
+  },
+  fromDD: function(){
+    $("#MMAPPMFDD").show();
+    $("#MMAPPMFF").hide();
+  }
 });
 
 module.exports = AddPageComponent;

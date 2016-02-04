@@ -1,6 +1,6 @@
 <div style="font-size: 110%">
-  <div modal-draggable class="modalHeader">Add Page (or Pages) to Document "{{docname}}"
-    <button type="button" ng-click="closeManageModal()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  <div modal-draggable class="modalHeader">Add Page (or Pages) to Document "{{uiService.document.attrs.name}}"
+    <button type="button" (click)="closeManageModal()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
   <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
     {{message}}
@@ -10,8 +10,8 @@
   </div>
 <div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 110%">
   <div class="row">
-    <div class="col-sm-6"><input ng-click="showSingle()" type="radio" ng-model="oneormany" value="OnePage"/> One page</div>
-    <div class="col-sm-6"><input type="radio" ng-model="oneormany" value="ManyPages" ng-click="showMany()"/> Many pages</div>
+    <div class="col-sm-6"><input (click)="showSingle()" checked="checked" name="oneormany"  type="radio" [(ngModel)]="rb.oneormany" value="OnePage"/>One page</div>
+    <div class="col-sm-6"><input type="radio" name="oneormany" [(ngModel)]="rb.oneormany" value="ManyPages" (click)="showMany()"/> Many pages</div>
   </div>
 </div>
 <hr style="border: 1px solid #8c8b8b;">
@@ -20,12 +20,12 @@
   <div class="form-group" style="text-align: center">
     <label style="font-weight: normal">Page name&nbsp;&nbsp;</label>
     <input type="text" style="width: 100px; display: inline-block" class="form-control"  placeholder="Name"
-      ng-model="pageName"/>
+      [(ngModel)]="pageName"/>
   </div>
   <div class="form-group" style="text-align: center; margin-bottom: 5px">
     <label style="font-weight: normal; text-align: center">
-      <input type="radio"  checked="checked" name="MMAPPSF" ng-click="fromFile()"/>Image file on your computer
-      <input type="radio" name="MMAPPSF" ng-click="fromWeb()"/> On the web
+      <input type="radio"  checked="checked" name="MMAPPSF" (click)="fromFile()"/>Image file on your computer
+      <input type="radio" name="MMAPPSF" (click)="fromWeb()"/> On the web
     </label>
     <div class="form-group" id="MMAPPSingleFile" style="margin-top: 10px; text-align: center">
       <input  style="width: 250px; display: inline-block" type="file" x-filereader=""/>&nbsp;
@@ -34,7 +34,7 @@
   <div class="form-group" style="display:none; margin-top: 0px; text-align: center;" id="MMAPPSingleWeb">
     <label style="font-weight: normal; ">Web address: </label>
       <input type="text" style="width: 250px; display: inline-block;" class="form-control"  placeholder="http://"
-        ng-model="page.http"/>
+      [(ngModel)]="page.http"/>
     <p style="text-align: center; font-size: 100%; margin-top:5px"><input type="radio" name="MMAPPweb" checked="checked"/> Load file, if possible<input type="radio" name="MMAPPweb"/>Point to web page</p>
 
   </div>
@@ -43,8 +43,8 @@
   <p  style="text-align: center;  font-size: 110%; margin-bottom: 0px;"><b>Many pages</b></p>
   <p style="font-size: 100%;  margin-top: 8px; margin-bottom: 8px;">File names will be used for page names (change later).</p>
   <label style="font-weight: normal;">
-    <input type="radio"  checked="checked" name="MMAPPMF" ng-click="fromZip()"/> From a zip file
-    <input type="radio" name="MMAPPMF" ng-click="fromDD()"/>Drag and drop files
+    <input type="radio"  checked="checked" name="MMAPPMF" (click)="fromZip()"/> From a zip file
+    <input type="radio" name="MMAPPMF" (click)="fromDD()"/>Drag and drop files
   </label>
     <div class="form-group" id="MMAPPMFF">
     <label style="font-weight: normal;">Zip file&nbsp;&nbsp;</label>
