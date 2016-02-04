@@ -21,10 +21,11 @@ var AddPageComponent = ng.core.Component({
     this.success="";
     $('#manageModal').width("430px");
     $('#manageModal').height("355px");
-    this.rb={oneormany: "OnePage"};
+    this.oneormany="OnePage";
     this.pageName="";
+    this.page={http:""};
   }],
- showSingle: function() {
+   showSingle: function() {
     $("#MMADPsingle").show();
     $("#MMADPmultiple").hide();
   },
@@ -47,7 +48,22 @@ var AddPageComponent = ng.core.Component({
   fromDD: function(){
     $("#MMAPPMFDD").show();
     $("#MMAPPMFF").hide();
-  }
+  },
+  submit: function() {
+    if (this.oneormany=="OnePage") {
+      if (this.pageName=="") {
+        this.message="You must supply a name for the page";
+        return;
+      } else {
+        this.message="";
+        this.success="Page added"
+      }
+    }
+   },
+   closeModalAP: function() {
+     this.message=this.success=this.pageName="";
+     $('#manageModal').modal('hide');
+   }
 });
 
 module.exports = AddPageComponent;

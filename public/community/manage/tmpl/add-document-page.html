@@ -1,6 +1,6 @@
 <div style="font-size: 110%">
   <div modal-draggable class="modalHeader">Add Page (or Pages) to Document "{{uiService.document.attrs.name}}"
-    <button type="button" (click)="closeManageModal()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
   <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
     {{message}}
@@ -10,8 +10,8 @@
   </div>
 <div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 110%">
   <div class="row">
-    <div class="col-sm-6"><input (click)="showSingle()" checked="checked" name="oneormany"  type="radio" [(ngModel)]="rb.oneormany" value="OnePage"/>One page</div>
-    <div class="col-sm-6"><input type="radio" name="oneormany" [(ngModel)]="rb.oneormany" value="ManyPages" (click)="showMany()"/> Many pages</div>
+    <div class="col-sm-6"><input (click)="showSingle()" checked="checked" name="oneormanyRB"  type="radio" [(ngModel)]="oneormany" value="OnePage"/>One page</div>
+    <div class="col-sm-6"><input type="radio" name="oneormanyRB" [(ngModel)]="oneormany" value="ManyPages" (click)="showMany()"/> Many pages</div>
   </div>
 </div>
 <hr style="border: 1px solid #8c8b8b;">
