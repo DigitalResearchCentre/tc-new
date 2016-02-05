@@ -1,17 +1,19 @@
 var EventEmitter = ng.core.EventEmitter
   , AuthService = require('./auth.service')
   , CommunityService = require('./services/community')
+  , DocService = require('./services/doc')
 ;
 
 var UIService = ng.core.Class({
-  constructor: [AuthService, CommunityService,
-    function(authService, communityService){
+  constructor: [AuthService, CommunityService, DocService,
+    function(authService, communityService, docService){
 
     var self = this;
     this.loginModel$ = new EventEmitter();
     this.manageModel$ = new EventEmitter();
     this._communitySubject = new EventEmitter();
     this._communityService = communityService;
+    this._docService = docService;
 
     authService.authUser$.subscribe(function(authUser) {
       if (authUser) {
@@ -40,9 +42,11 @@ var UIService = ng.core.Class({
   setDocument: function(doc) {
     if (doc !== this.document) {
       this.document = doc;
+      this._docService.fetch(doc.getId(), {
+        populate: JSON.stringify('children'),
+      }).subscribe();
     }
     return doc;
-   
   }
 });
 

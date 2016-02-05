@@ -7,6 +7,18 @@ var Doc = _.inherit(Model, function(data) {
 }, {
   fields: {
     _id: {},
+    children: function(objs) {
+      var cls = Doc;
+      var results = _.map(objs, function(attrs) {
+        if (_.isString(attrs)) {
+          attrs = new cls({_id: attrs});
+        } else if (!(attrs instanceof cls)) {
+          attrs = new cls(attrs);
+        }
+        return attrs;
+      });
+      return results;
+    },
   },
 });
 
