@@ -32,17 +32,6 @@ var AddPageComponent = ng.core.Component({
     this.pageName="";
     this.page={http:""};
   }],
-   showSingle: function() {
-    console.log("addpage");
-  }],
-  submit: function() {
-    this._docService.addPage({
-      parent: '56b3c5ddaa381b543ead3592',
-      name: '1r',
-    }).subscribe(function(page) {
-      console.log(page);
-    })
-  },
   showSingle: function() {
     $("#MMADPsingle").show();
     $("#MMADPmultiple").hide();
@@ -74,7 +63,13 @@ var AddPageComponent = ng.core.Component({
         return;
       } else {
         this.message="";
-        this.success="Page added"
+        this._docService.addPage({
+          parent: this.uiService.document.getId(),
+          name: this.pageName,
+        }).subscribe(function(page) {
+          console.log("added "+page)
+          this.success="Page "+page+" added";
+        })
       }
     }
    },
