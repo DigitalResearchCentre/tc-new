@@ -4,6 +4,7 @@
       <tc-tab [active]="true" title="Documents">
         <tc-tabs>
           <tc-tab [active]="true" title="By Page">
+            <button (click)="testAdd()">add</button>
             <ul class="tree">
               <li *ngFor="#doc of community.attrs.documents" 
                 [class.collapse-node]="!doc.expand">
@@ -18,8 +19,8 @@
                   </a>
                 </div>
                 <ul>
-                  <li *ngFor="#page of doc.children">
-                    <a (click)="selectPage(page.getId())">
+                  <li *ngFor="#page of doc.attrs.children">
+                    <a (click)="selectPage(page)">
                       {{page.attrs.name}}
                     </a>
                   </li>
@@ -30,18 +31,17 @@
           <tc-tab title="By Item">
             <div>world</div>
             <ul class="tree">
-              <li *ngFor="#doc of community.documents"
-                [class.collapse-node]="!doc.expand">
+              <li *ngFor="#entity of community.attrs.entities"
+                [class.collapse-node]="!entity.expand">
                 <div>
                   <span class="icon" aria-hidden="true"
-                    (click)="toggleDoc(doc)"></span>
-                  <a (click)="selectDoc(doc)">
+                    (click)="toggleEntity(entity)"></span>
+                  <a (click)="selectEntity(entity)">
                     {{doc.name}}
                   </a>
                 </div>
                 <ul>
-                  <li *ngFor="#node of doc.entities"
-                    ng-include="'tree.html'"
+                  <li *ngFor="#node of entity.attrs.children"
                     [class.collapse-node]="!node.expand">
                   </li>
                 </ul>

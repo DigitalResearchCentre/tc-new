@@ -57,6 +57,13 @@ var AddPageComponent = ng.core.Component({
     $("#MMAPPMFF").hide();
   },
   submit: function() {
+    this._docService.addPage({
+      parent: '56b3c5ddaa381b543ead3592',
+      name: '1r',
+    }).subscribe(function(page) {
+      console.log(page);
+    })
+
     if (this.oneormany=="OnePage") {
       if (this.pageName=="") {
         this.message="You must supply a name for the page";
