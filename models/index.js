@@ -134,15 +134,22 @@ var BaseNodeSchema = function(modelName) {
             objs[node._id] = node;
           });
           _.each(nodes, function(node) {
+            console.log('49494949');
+            console.log(node);
             if (node.ancestors.length === 0) {
               root = node;
             } else {
               parent = objs[_.last(node.ancestors)];
               children = parent.children;
+              console.log(parent);
               var index = _.findIndex(children, function(id) {
+                console.log(id);
+                console.log(node._id);
                 return id.equals(node._id);
               });
               children[index] = node;
+              console.log(index);
+              console.log(children);
             }
           });
           cb(err, root);
@@ -359,7 +366,7 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
 }));
 
 function _loadChildren(cur, queue) {
-  var children = cur.children
+  var children = cur.children || []
     , ancestors = cur.ancestors.concat(cur._id)
     , ids = []
   ;
@@ -483,7 +490,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
           index = _.findIndex(parent.children, function(child) {
             return child.equals(id);
           });
-          if (parent.children.length > index) {
+          if (parent.children.length > index+1) {
             return Doc.findOne(parent.children[index+1]).exec(cb);
           }
           // TODO no siblings
@@ -491,6 +498,8 @@ _.assign(DocSchema.statics, baseDoc.statics, {
         return cb(null, null);
       },
       function(doc, cb) {
+        console.log('asljf');
+        console.log(doc);
         if (!doc) {
           return cb(null, null);
         }
@@ -533,6 +542,12 @@ function _checkLinks(prevs, nexts, teiRoot) {
     , continueTeis = {}
     , prev, next
   ;
+  console.log('teiRoot');
+  console.log(teiRoot);
+  console.log('prevs');
+  console.log(prevs);
+  console.log('nexts');
+  console.log(nexts);
   while (cur.prev) {
     prev = prevs.shift();
     cur.prev = new OId(cur.prev);
@@ -541,6 +556,9 @@ function _checkLinks(prevs, nexts, teiRoot) {
       continueTeis[cur._id] = cur;
       if (prevs.length > 0) {
         cur.prevChildIndex = _.findIndex(prev.children, function(id) {
+          if (id._id) {
+            id = id._id
+          }
           return id.equals(prevs[0]._id);
         });
         cur._children = _.map(prev.children, function(child) {
@@ -573,6 +591,9 @@ function _checkLinks(prevs, nexts, teiRoot) {
     };
     continueTeis[cur._id] = cur;
     cur.prevChildIndex = _.findIndex(prev.children, function(id) {
+      if (id._id) {
+        id = id._id
+      }
       return id.equals(prevs[0]._id);
     });
     cur._children = _.map(prev.children, function(child) {
@@ -592,11 +613,15 @@ function _checkLinks(prevs, nexts, teiRoot) {
     if (next && next._id.equals(cur.next)) {
       cur._id = new OId(cur.next);
       continueTeis[cur._id] = cur;
+
       if (cur.prev && !cur.next.equals(cur.prev)) {
-        return new Error('prev and next conflict' + cur);
+        return new Error('prev and next conflict' + cur.prev + ' ' + cur.next);
       }
       if (nexts.length > 0) {
         cur.nextChildIndex = _.findIndex(next.children, function(id) {
+          if (id._id) {
+            id = id._id
+          }
           return id.equals(nexts[0]._id);
         });
         cur._children = _.map(next.children, function(child) {
@@ -611,7 +636,7 @@ function _checkLinks(prevs, nexts, teiRoot) {
           cur.prevChildIndex = -1;
         }
       } else {
-        return new Error('next element is not match: ' + cur);
+        return new Error('next element is not match: ' + next.children);
       }
 
       if ((cur.children || []).length > 0) {
@@ -632,6 +657,9 @@ function _checkLinks(prevs, nexts, teiRoot) {
     };
     continueTeis[cur._id] = cur;
     cur.nextChildIndex = _.findIndex(next.children, function(id) {
+      if (id._id) {
+        id = id._id
+      }
       return id.equals(nexts[0]._id);
     });
     cur._children = _.map(next.children, function(child) {
@@ -646,6 +674,8 @@ function _checkLinks(prevs, nexts, teiRoot) {
       cur.prevChildIndex = -1;
     }
   }
+  console.log('continueTeis');
+  console.log(continueTeis);
   return continueTeis;
 }
 
@@ -830,6 +860,9 @@ function updateEntityTree(entity, data, entities, updateEntities, callback) {
 }
 
 function _commitTEI(continueTeis, teis, callback) {
+  console.log('_commitTEI');
+  console.log(continueTeis);
+  console.log(teis);
   async.parallel([
     function(cb) {
       var deleteTeis = [];
@@ -844,6 +877,8 @@ function _commitTEI(continueTeis, teis, callback) {
         deleteTeis.push.apply(
           deleteTeis, _children.slice(prevChildIndex + 1, nextChildIndex));
         tei.children = prevChildren.concat(tei.children, nextChildren);
+        console.log('@#$%');
+        console.log(tei);
         if (prevChildIndex < nextChildIndex) {
           $set = {
             children: tei.children,
@@ -876,7 +911,6 @@ function _commitTEI(continueTeis, teis, callback) {
       });
     },
     function(cb) {
-      console.log('--- save text ---');
       if (teis.length > 0) {
         TEI.collection.insert(teis, function(err, objs) {
           console.log('--- save text done ---');
@@ -954,8 +988,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
                 });
               },
               function(cb1) {
+                console.log('--- save doc ---');
                 if (result.docs.length > 0) {
-                  console.log('--- save doc ---');
                   Doc.collection.insert(result.docs, function(err, objs) {
                     console.log('--- save doc done ---');
                     cb1(err, objs);
@@ -976,6 +1010,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
               }
               async.parallel([
                 function(cb1) {
+                  console.log('save teis');
+                  console.log(result.teis);
                   _commitTEI(continueTeis, result.teis, cb1);
                 },
                 function(cb1) {

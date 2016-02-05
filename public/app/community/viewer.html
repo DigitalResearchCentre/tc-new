@@ -5,34 +5,42 @@
   <tc-pane class="text-viewer">
     <div class="transcript-header">
       <label>Prev: </label>
-      <select ng-model="prevLink"
-        ng-options="json2xml(el) for el in links.prev">
+      <select (change)="prevLinkChange($event)">
+        <option *ngFor="#el of links.prev; #i = index" [value]="i"
+          [selected]="el===prevLink">
+          {{json2xml(el)}}
+        </option>
       </select>
       <label>Next: </label>
-      <select ng-model="nextLink"
-        ng-options="json2xml(el) for el in links.next">
+      <select (change)="nextLinkChange($event)">
+        <option *ngFor="#el of links.next; #i = index" [value]="i"
+          [selected]="el===nextLink">
+          {{json2xml(el)}}
+        </option>
       </select>
-
-
-      <select ng-model="selectedRevision">
-        <option *ngFor="#revision of revisions" value="revision">
-          {{revision.created}}
+      <select (change)="revisionChange($event)">
+        <option [value]="0">database revision</option>
+        <option *ngFor="#revision of page.attrs.revisions; #i = index"
+          [value]="i+1">
+          {{revision.attrs.created}}
         </option>
       </select>
       <label>Compare With: </label>
-      <select>
-        <option *ngFor="#revision of page.revisions">
-          {{revision.created}}
+      <select (change)="revisionCompareChange($event)">
+        <option [value]="0">database revision</option>
+        <option *ngFor="#revision of page.attrs.revisions; #i = index"
+          [value]="i+1">
+          {{revision.attrs.created}}
         </option>
       </select>
     </div>
-    <tc-codemirror class="transcript" [(content)]="currentText">
+    <tc-codemirror class="transcript" [(content)]="contentText">
     </tc-codemirror>
     <div class="buttons" ng-if="page">
       <button type="button" class="btn btn-default btn-xs"
-        ng-click="save()">save</button>
+        (click)="save()">save</button>
       <button type="button" class="btn btn-default btn-xs"
-        ng-click="commit()">commit</button>
+        (click)="commit()">commit</button>
     </div>
   </tc-pane>
 </tc-splitter>

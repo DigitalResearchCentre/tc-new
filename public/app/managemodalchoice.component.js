@@ -28,6 +28,7 @@ var ManageModalChoiceComponent = ng.core.Component({
     /*this for scope variables */
   }],
   submit: function() {
+    var self = this;
     if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");

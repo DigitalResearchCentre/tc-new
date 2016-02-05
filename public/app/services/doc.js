@@ -5,6 +5,8 @@ var Observable = Rx.Observable
   , RESTService = require('../rest.service')
   , AuthService = require('../auth.service')
   , Doc = require('../models/doc')
+  , bson = require('bson')()
+  , ObjectID = bson.ObjectID
 ;
 
 function createObjTree(node, queue) {
@@ -134,7 +136,7 @@ function teiElementEqual(el1, el2) {
     (el1.attrs || {}).n === (el2.attrs || {}).n;
 }
 
-function checkLinks(teiRoot, links, docElement) {
+function checkLinks(teiRoot, links, docElement, docRoot) {
   var cur = {
     children: [teiRoot],
   };
@@ -156,8 +158,16 @@ function checkLinks(teiRoot, links, docElement) {
     };
   }
   if (docElement) {
-    delete docElement._id;
-    cur.children.unshift(docElement);
+    while (!_.isEmpty(cur.children) && _.first(cur.children).name !== '#text') {
+      cur = _.first(cur.children);
+    }
+    cur.children.unshift({
+      name: 'pb',
+      doc: docRoot._id,
+      children: [],
+    });
+    console.log(cur);
+    console.log(teiRoot);
   }
   cur = {
     children: [teiRoot],
@@ -220,81 +230,6 @@ function parseTEI(text) {
   return xmlDoc;
 }
 
-function commit(data, opts, callback) {
-  var text = data.text
-    , docResource = data.doc
-    , docElement = data.docElement
-    , links = data.links || {}
-    , xmlDoc = parseTEI(text)
-    , teiRoot = xmlDoc2json(xmlDoc)
-    , docTags = ['pb', 'cb', 'lb']
-    , docRoot = {_id: docResource._id, label: docResource.label, children: []}
-    , queue = [teiRoot]
-    , prevDoc = docRoot
-    , docQueue = []
-    , cur, curDoc, index, label, missingLink
-  ;
-
-  // dfs on TEI tree, find out all document
-  while (queue.length > 0) {
-    cur = queue.pop();
-    if (!_.startsWith(cur.name, '#')) {
-      index = docTags.indexOf(cur.name);
-      // if node is doc
-      if (index > -1) {
-        curDoc = {
-          _id: ObjectID().toJSON(),
-          label: cur.name,
-          children: [],
-        };
-        if ((cur.attrs || {}).n) {
-          curDoc.name = (cur.attrs || {}).n;
-        }
-        if (docTags.indexOf(prevDoc.label) < index) {
-          docQueue.push(prevDoc);
-        }
-        while (docQueue.length > 0) {
-          label = _.last(docQueue).label;
-          if (!label || docTags.indexOf(label) < index) {
-            break;
-          }
-          docQueue.pop();
-        }
-        if (docQueue.length > 0) {
-          _.last(docQueue).children.push(curDoc);
-        }
-        prevDoc = curDoc;
-      }
-      if ((cur.children || []).length === 0) {
-        cur.text = '';
-        cur.doc = prevDoc._id;
-      }
-    } else if (cur.name === '#text') {
-      cur.doc = prevDoc._id;
-    }
-
-    _.forEachRight(cur.children, _.bind(queue.push, queue));
-  }
-
-  var err = checkLinks(teiRoot, links, docElement);
-  if (err && callback) {
-    return callback(err);
-  }
-  if (docElement) {
-    docElement.doc = docRoot._id;
-  }
-
-  docResource.commit = {
-    tei: teiRoot,
-    doc: docRoot,
-  };
-  return docResource.$update(_.assign({}, opts), function() {
-    if (callback) callback(null);
-  });
-}
-
-
-
 var DocService = ng.core.Injectable().Class({
   extends: RESTService,
   constructor: [Http, AuthService, function(http, authService){
@@ -312,16 +247,40 @@ var DocService = ng.core.Injectable().Class({
   initEventEmitters: function() {
     var self = this;
   },
-  addPage: function(page) {
-    var docId = page.parent
+  addPage: function(doc, page) {
+    var docId = doc.getId()
+      , pageId = new ObjectID()
+      , children = doc.attrs.children
       , self = this
     ;
-
-    return this.create(page).do(function() {
-      self.fetch(docId, {
-        populate: JSON.stringify('children'),
+    page._id = pageId;
+    if (_.isEmpty(children)) {
+      return this.update(docId, {
+        commit: {
+          tei: {
+            name: 'text',
+            doc: docId,
+            children: [{
+              name: 'body',
+              doc: docId,
+              children: [{
+                name: 'pb',
+                doc: pageId,
+                children: [],
+              }]
+            }]
+          },
+          doc: {
+            children: [
+              page,
+            ]
+          }
+        }
       });
-    });
+    } else {
+      page.parent = docId;
+      return this.create(page);
+    }
   },
   getTrees: function(doc) {
     var url = this.url({
@@ -331,9 +290,90 @@ var DocService = ng.core.Injectable().Class({
 
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
+        if (!res._body) {
+          return {};
+        }
         return res.json();
       });
   },
+  getLinks: function(page) {
+    return this.http.get(
+      this.url({id: page.getId(), func: 'links'}), 
+      this.prepareOptions({})
+    ).map(function(res) {
+      return res.json();
+    })
+  },
+  json2xml: json2xml,
+  commit: function(data, opts, callback) {
+     var text = data.text
+      , docModel = data.doc
+      , docElement = data.docElement
+      , links = data.links || {}
+      , xmlDoc = parseTEI(text)
+      , teiRoot = xmlDoc2json(xmlDoc)
+      , docTags = ['pb', 'cb', 'lb']
+      , docRoot = {
+        _id: docModel.getId(), label: docModel.attrs.label, children: []}
+      , queue = [teiRoot]
+      , prevDoc = docRoot
+      , docQueue = []
+      , cur, curDoc, index, label, missingLink
+    ;
+
+    // dfs on TEI tree, find out all document
+    while (queue.length > 0) {
+      cur = queue.pop();
+      if (!_.startsWith(cur.name, '#')) {
+        index = docTags.indexOf(cur.name);
+        // if node is doc
+        if (index > -1) {
+          curDoc = {
+            _id: ObjectID().toJSON(),
+            label: cur.name,
+            children: [],
+          };
+          if ((cur.attrs || {}).n) {
+            curDoc.name = (cur.attrs || {}).n;
+          }
+          if (docTags.indexOf(prevDoc.label) < index) {
+            docQueue.push(prevDoc);
+          }
+          while (docQueue.length > 0) {
+            label = _.last(docQueue).label;
+            if (!label || docTags.indexOf(label) < index) {
+              break;
+            }
+            docQueue.pop();
+          }
+          if (docQueue.length > 0) {
+            _.last(docQueue).children.push(curDoc);
+          }
+          prevDoc = curDoc;
+        }
+        if ((cur.children || []).length === 0) {
+          cur.text = '';
+          cur.doc = prevDoc._id;
+        }
+      } else if (cur.name === '#text') {
+        cur.doc = prevDoc._id;
+      }
+
+      _.forEachRight(cur.children, _.bind(queue.push, queue));
+    }
+
+    var err = checkLinks(teiRoot, links, docElement, docRoot);
+    if (err && callback) {
+      return callback(err);
+    }
+
+    return this.update(docModel.getId(), {
+      commit: {
+        tei: teiRoot,
+        doc: docRoot,
+      }
+    });
+  }
 });
 
 function _hidePb(teiRoot) {

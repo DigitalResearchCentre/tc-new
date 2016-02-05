@@ -31,6 +31,15 @@ var CodeMirrorComponent = ng.core.Component({
     });
     editor.on('change', this.textChange.bind(this));
     editor.setValue(this.content || '');
+    this.editor = editor;
+  },
+  ngOnChanges: function(changeRecord) {
+    var editor = this.editor;
+    if (editor) {
+      if (this.content !== editor.getValue()) {
+        editor.setValue(this.content || '');
+      }
+    }
   },
   textChange: function(instance) {
     var newValue = instance.getValue();
@@ -38,7 +47,7 @@ var CodeMirrorComponent = ng.core.Component({
       this.content = newValue;
       this.contentChange.emit(newValue);
     }
-  }
+  },
 });
 
 module.exports = CodeMirrorComponent;

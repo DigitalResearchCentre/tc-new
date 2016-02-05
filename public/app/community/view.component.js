@@ -42,7 +42,20 @@ var ViewComponent = ng.core.Component({
     this._uiService.setDocument(doc);
   },
   selectPage: function(page) {
-    console.log(page);
+    var docService = this._docService
+      , self = this
+    ;
+    docService.fetch(page.getId(), {
+      populate: JSON.stringify('children revisions')
+    }).subscribe(function(res) {
+      self.page = page;
+      console.log(res);
+      
+    });
+
+    docService.getTrees(page).map(function(teiRoot) {
+      console.log(docService.json2xml(teiRoot));    
+    }).subscribe()
   },
   toggleEntity: function() {
     
@@ -50,11 +63,26 @@ var ViewComponent = ng.core.Component({
   selectEntity: function() {
     
   },
-  testAdd: function() {
-    var doc = this._uiService.document;
-    this._docService.addPage(doc, {
-      name: '1r',
-    });
+  extractXML: function($event, doc) {
+    var docService = this._docService;
+      docService.getTrees(doc).subscribe(function(data ) {
+        console.log(data);
+        console.log(docService.json2xml(data));
+
+      });
+      return;
+
+    var docService = this._docService;
+    if (!$event.target.href) {
+      $event.preventDefault();
+      docService.getTrees(doc).subscribe(function(data ) {
+        console.log(data);
+        $event.target.href = 'data:text/xml,' + docService.json2xml(data);
+        setTimeout(function() {
+          $event.target.click();
+        });
+      });
+    } 
   }
 });
 

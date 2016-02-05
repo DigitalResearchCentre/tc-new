@@ -97,10 +97,58 @@ var DocResource = _.inherit(Resource, function(opts) {
             function(cb) {
               // TODO: also need move all subtrees
               if (parent) {
+                var lastId = _.last(parent.children);
                 parent.children.push(doc._id);
                 doc.ancestors = parent.ancestors.concat(parent._id);
-                parent.save(function(err, doc, numberAffected) {
-                  cb(err, doc);
+                parent.save(function(err, parent, numberAffected) {
+                  if (lastId) {
+                    async.waterfall([
+                      function(cb1) {
+                        TEI.find({
+                          docs: lastId,
+                        }).exec(cb1);
+                      },
+                      function(teiLeaves, cb1) {
+                        if (teiLeaves) {
+                          TEI.getTreeFromLeaves(teiLeaves, cb1); 
+                        } else {
+                          cb1(null);
+                        }
+                      },
+                      function(teiRoot, cb1) {
+                        if (!teiRoot) {
+                          return cb1(null);
+                        }
+                        var cur = teiRoot;
+                        var teiparent = teiRoot;
+                        while (!_.isEmpty(cur.children)) {
+                          teiparent = cur;
+                          cur = _.last(cur.children);
+                        }
+                        console.log(teiparent);
+                        if (teiparent) {
+                          var tei = new TEI({
+                            ancestors: cur.ancestors,
+                            children: [],
+                            docs: doc.ancestors.concat(doc._id),
+                            name: 'pb',
+                          });
+                          tei.save(function(err, tei) {
+                            teiparent.children.push(tei._id);
+                            teiparent.save(function(err, tt) {
+                              console.log(tt);
+                              console.log(tei);
+                              cb1(err);
+                            });
+                          });
+                        }
+                      }
+                    ], function(err) {
+                      cb(err, doc);
+                    });
+                  } else {
+                    cb(err, doc);
+                  }
                 });
               } else {
                 cb(null);
@@ -118,7 +166,9 @@ var DocResource = _.inherit(Resource, function(opts) {
             },
           ], function(err, results) {
             var revision = results[0];
-            doc.revisions.push(revision._id);
+            if (revision) {
+              doc.revisions.push(revision._id);
+            }
             doc.save(function(err, doc, numberAffected) {
               parallelCb(err, doc);
             });
@@ -185,22 +235,6 @@ router.put('/communities/:id/add-document', function(req, res, next) {
         cb(err, community);
       });
     },
-    function(community, cb) {
-      doc.commit({
-        tei: {
-          name: 'text',
-          attrs: {},
-          doc: doc._id,
-          children: [{
-            name: 'body',
-            attrs: {},
-            children: [],
-            doc: doc._id,
-          }]
-        },
-        doc: {children: []},
-      }, cb);
-    },
   ], function(err) {
     if (err) {
       if (doc._id) {
@@ -251,6 +285,7 @@ router.get('/docs/:id/links', function(req, res, next) {
     if (err) {
       return next(err);
     }
+    console.log(results);
     _.each(results, function(objs) {
       _.each(objs, function(obj) {
         _.each(obj.children, function(child, i) {

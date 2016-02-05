@@ -63,8 +63,7 @@ var AddPageComponent = ng.core.Component({
         return;
       } else {
         this.message="";
-        this._docService.addPage({
-          parent: this.uiService.document.getId(),
+        this._docService.addPage(this.uiService.document, {
           name: this.pageName,
         }).subscribe(function(page) {
           console.log("added "+page)
