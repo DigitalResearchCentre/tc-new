@@ -313,7 +313,15 @@ var DocService = ng.core.Injectable().Class({
     var self = this;
   },
   addPage: function(page) {
-    return this.create(page);
+    var docId = page.parent
+      , self = this
+    ;
+
+    return this.create(page).do(function() {
+      self.fetch(docId, {
+        populate: JSON.stringify('children'),
+      });
+    });
   },
   getTrees: function(doc) {
     var url = this.url({
