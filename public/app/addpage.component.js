@@ -70,7 +70,13 @@ var AddPageComponent = ng.core.Component({
         return;
       } else {
         this.message="";
-        this.success="Page added"
+        this._docService.addPage({
+          parent: this.uiService.document.getId(),
+          name: this.pageName,
+        }).subscribe(function(page) {
+          console.log("added "+page)
+          this.success="Page "+page+" added";
+        })
       }
     }
    },
