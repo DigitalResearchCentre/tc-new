@@ -32,19 +32,30 @@ var ViewComponent = ng.core.Component({
   },
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;
-    console.log(doc);
     this._docService.fetch(doc.getId(), {
       populate: JSON.stringify('children')
-    }).subscribe(function(cc) {
-      console.log(cc);
-    });
+    }).subscribe();
+    this.selectDoc(doc);
+    console.log(doc);
   },
   selectDoc: function(doc) {
-    console.log(doc);
+    this._uiService.setDocument(doc);
   },
   selectPage: function(page) {
     console.log(page);
   },
+  toggleEntity: function() {
+    
+  },
+  selectEntity: function() {
+    
+  },
+  testAdd: function() {
+    var doc = this._uiService.document;
+    this._docService.addPage(doc, {
+      name: '1r',
+    });
+  }
 });
 
 module.exports = ViewComponent;

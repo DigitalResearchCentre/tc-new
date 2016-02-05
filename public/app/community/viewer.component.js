@@ -1,5 +1,6 @@
 var CommunityService = require('../services/community')
   , UIService = require('../ui.service')
+  , DocService = require('../services/doc')
   , $ = require('jquery')
   , ImageMap = require('./map')
 ;

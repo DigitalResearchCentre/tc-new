@@ -41,12 +41,16 @@ var CommunityService = ng.core.Injectable().Class({
     return new Community({_id: id});
   },
   addDocument: function(community, doc) {
+    var self = this;
     return this.http.put(
       this.url({
         id: community.getId(),
         func: 'add-document',
       }), JSON.stringify(doc), this.prepareOptions({})
     ).map(function(res) {
+      self.fetch(community.getId(), {
+        populate: JSON.stringify('documents entities')
+      }).subscribe();
       return new Doc(res.json());
     });
   },

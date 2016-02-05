@@ -13,7 +13,6 @@ var _ = require('lodash')
   , Revision = models.Revision
   , TEI = models.TEI
 ;
-
 var CommunityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Community, opts);
 }, {
@@ -60,7 +59,6 @@ router.get('/entities/:id/docs/:docId', function(req, res, next) {
 
 var DocResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Doc, opts);
-  this.options.auth.a = 1;
   this.options.auth.update = function(req, res, next) {
     next();
   };
@@ -70,71 +68,93 @@ var DocResource = _.inherit(Resource, function(opts) {
 }, {
   execSave: function(req, res, next) {
     return function(obj, callback) {
-      async.parallel([
-        function(cb) {
-          if (req.body.parent) {
-            Doc.findOne({_id: req.body.parent}).exec(cb);
-          } else {
-            cb(null);
-          }
+      var parent, community, doc;
+      async.waterfall([
+        prevSave,
+        function(results, cb) {
+          parent = results[0];
+          community = results[1];
+          obj.save(function(err, obj, numberAffected) {
+            doc = obj;
+            cb(err, doc);
+          });
         },
-        function(cb) {
-          if (req.body.revision) {
-            var revision = new Revision({
-              doc: obj._id,
-              text: req.body.revision,
+        function(doc, parallelCb) {
+          async.parallel([
+            function(cb) {
+              if (req.body.revision) {
+                var revision = new Revision({
+                  doc: doc._id,
+                  text: req.body.revision,
+                });
+                revision.save(function(err, revision, numberAffected) {
+                  cb(err, revision);
+                });
+              } else {
+                cb(null, doc);
+              }
+            },
+            function(cb) {
+              // TODO: also need move all subtrees
+              if (parent) {
+                parent.children.push(doc._id);
+                doc.ancestors = parent.ancestors.concat(parent._id);
+                parent.save(function(err, doc, numberAffected) {
+                  cb(err, doc);
+                });
+              } else {
+                cb(null);
+              }
+            },
+            function(cb) {
+              if (community) {
+                community.documents.push(doc._id);
+                community.save(function(err) {
+                  cb(err, community);
+                });
+              } else {
+                cb(null);
+              }
+            },
+          ], function(err, results) {
+            var revision = results[0];
+            doc.revisions.push(revision._id);
+            doc.save(function(err, doc, numberAffected) {
+              parallelCb(err, doc);
             });
-            revision.save(cb);
-            obj.revisions.push(revision._id);
-          } else {
-            cb(null);
-          }
+          });
         },
-        function(cb) {
-          if (req.body.community) {
-            var query = Community.findOne({
-              _id: req.body.community
-            });
-            async.waterfall([
-              _.bind(query.exec, query),
-              function(community, cb1) {
-                community.documents.push(obj._id);
-                community.save(cb1);
-              },
-            ], function(err, community, numberAffected) {
-              cb(err, community);
-            });
-          } else {
-            cb(null);
-          }
-        },
-        function(cb) {
+        function(doc, cb) {
           if (req.body.commit) {
             obj.commit(req.body.commit, cb);
           } else {
             cb(null);
           }
         }
-      ], function(err, results) {
-        var parent = results[0];
-        if (err) {
-          callback(err);
-        } else {
-          if (parent) {
-            obj.ancestors = parent.ancestors;
-          }
-          obj.save(function(err, obj) {
-            if (!err && parent) {
-              parent.children.push(obj._id);
-              return parent.save(function(err) {
-                callback(err, obj);
-              });
-            } else {
-              callback(err, obj);
-            }
-          });
-        }
+      ], function(err) {
+        callback(err, doc);
       });
+
+      function prevSave(prevSaveCallback) {
+        async.parallel([
+          function(cb) {
+            if (req.body.parent) {
+              Doc.findOne({_id: req.body.parent}).exec(cb);
+            } else {
+              cb(null);
+            }
+          },
+          function(cb) {
+            if (req.body.community) {
+              Community.findOne({
+                _id: req.body.community
+              }).exec(cb);
+            } else {
+              cb(null);
+            }
+          },
+        ], prevSaveCallback);
+      }
     };
   },
 });
@@ -246,6 +266,8 @@ router.get('/docs/:id/links', function(req, res, next) {
     });
   });
 });
+
+
 
 router.get('/auth', function(req, res, next) {
   if (req.isAuthenticated()) {

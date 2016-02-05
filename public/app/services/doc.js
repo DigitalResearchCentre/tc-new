@@ -315,7 +315,35 @@ var DocService = ng.core.Injectable().Class({
   addPage: function(page) {
     return this.create(page);
   },
+  getTrees: function(doc) {
+    var url = this.url({
+      id: doc.getId(),
+      func: 'texts',
+    });
+
+    return this.http.get(url, this.prepareOptions({}))
+      .map(function(res) {
+        return res.json();
+      });
+  },
 });
 
+function _hidePb(teiRoot) {
+  var firstText = teiRoot
+    , parent, index
+  ;
+  while ((firstText.children || []).length > 0) {
+    index = _.findIndex(firstText.children, function(child) {
+      return !_.isString(child);
+    });
+    firstText.children = firstText.children.slice(index);
+    parent = firstText;
+    firstText = firstText.children[0];
+  }
+  if (parent) {
+    pb = parent.children.shift();
+  }
+  return teiRoot;
+}
 module.exports = DocService;
 
