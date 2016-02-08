@@ -1,0 +1,52 @@
+<div x-auto-height class="manage" ng-controller="ManageCtrl" style="position:relative; top:-5px" >
+  <div class="headerManage" ng-show="isLeader===true || isCreator===true" ng-controller="MemberCtrl">
+    <nav class="navbar navbar-default">
+      <ul class="nav navbar-nav navbar-left">
+        <li><span class="hmbrand">Manage ></span></li>
+        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a (click)="loadModal('add-document')">
+                Add Document</a></li>
+            <li><a (click)="loadModal('add-xml-document')">
+                Load XML Document</a></li>
+            <li><a href="#">Add Image Zip</a></li>
+            <li><a href="#">Delete Document</a></li>
+            <li><a href="#">Edit Document Pages</a></li>
+            <li><a href="#">Rename Document</a></li>
+            <li><a ng-click="loadModal('get-xml-document')">Get Document XML</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Segmenting<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Generic Document Parts</a></li>
+            <li><a href="#">Generic Entity Parts</a></li>
+            <li><a href="#">Single Document Parts</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Auxiliary Files<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">DTD/Schema</a></li>
+            <li><a href="#">Viewer CSS</a></li>
+            <li><a href="#">Viewer Javascript</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Members<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#">Membership</a></li>
+            <li><a href="#">Assign Transcriptions</a></li>
+            <li><a href="#">Invite Members</a></li>
+          </ul>
+        </li>
+        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Management<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="#/community/{{communityId}}/manage">Settings</a></li>
+            <li><a href="#">History</a></li>
+            <li ng-show="isCreator===true"><a href="#">Delete Community</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+
+</div>

@@ -50,18 +50,18 @@ var ViewComponent = ng.core.Component({
     }).subscribe(function(res) {
       self.page = page;
       console.log(res);
-      
+
     });
 
     docService.getTrees(page).map(function(teiRoot) {
-      console.log(docService.json2xml(teiRoot));    
+      console.log(docService.json2xml(teiRoot));
     }).subscribe()
   },
   toggleEntity: function() {
-    
+
   },
   selectEntity: function() {
-    
+
   },
   extractXML: function($event, doc) {
     var docService = this._docService;
@@ -82,10 +82,8 @@ var ViewComponent = ng.core.Component({
           $event.target.click();
         });
       });
-    } 
+    }
   }
 });
 
 module.exports = ViewComponent;
-
-

@@ -6,7 +6,7 @@ var Observable = Rx.Observable
   , AuthService = require('../auth.service')
   , Doc = require('../models/doc')
   , bson = require('bson')()
-  , ObjectID = bson.ObjectID
+//  , ObjectID = bson.ObjectID
 ;
 
 function createObjTree(node, queue) {
@@ -298,7 +298,7 @@ var DocService = ng.core.Injectable().Class({
   },
   getLinks: function(page) {
     return this.http.get(
-      this.url({id: page.getId(), func: 'links'}), 
+      this.url({id: page.getId(), func: 'links'}),
       this.prepareOptions({})
     ).map(function(res) {
       return res.json();
@@ -394,4 +394,3 @@ function _hidePb(teiRoot) {
   return teiRoot;
 }
 module.exports = DocService;
-

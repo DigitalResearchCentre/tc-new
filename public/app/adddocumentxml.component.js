@@ -8,9 +8,9 @@ var URI = require('urijs')
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
 
-var ManageModalChoiceComponent = ng.core.Component({
-  selector: 'tc-managemodal-adddocument',
-  templateUrl: '/community/manage/tmpl/add-document.html',
+var AddDocumentXMLComponent = ng.core.Component({
+  selector: 'tc-managemodal-adddocument-xml',
+  templateUrl: '/community/manage/tmpl/add-xml-document.html',
   directives: [
     require('../directives/modaldraggable')
   ],
@@ -19,12 +19,14 @@ var ManageModalChoiceComponent = ng.core.Component({
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
-    $('#manageModal').width("350px");
-    $('#manageModal').height("188px");
+    $('#manageModal').width("400px");
+    $('#manageModal').height("400px");
     this.message="";
     this.success="";
+    this.text="";
     this.uiService = uiService;
     this._communityService = communityService;
+    this.doc = {name:"", text:""};
     /*this for scope variables */
   }],
   submit: function() {
@@ -33,16 +35,21 @@ var ManageModalChoiceComponent = ng.core.Component({
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
-    } else {
-      this._communityService.addDocument(this.uiService.community, this.doc)
-        .subscribe(function(doc) {
-          self.closeModalAD();
-        }, function(err) {
-          self.message = err.message;
-        })
+      return
     }
+    if (!this.text && !this.filereader) {
+      this.message = 'Either paste text into the text box or choose a file';
+      return;
+    }
+    this.doc.text=this.text || this.filereader;
+    this._communityService.addDocument(this.uiService.community, this.doc)
+      .subscribe(function(doc) {
+        self.closeModalADX();
+      }, function(err) {
+        self.message = err.message;
+      })
   },
-  closeModalAD: function() {
+  closeModalADX: function() {
     this.message=this.success=this.doc.name="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
@@ -50,4 +57,4 @@ var ManageModalChoiceComponent = ng.core.Component({
   }
 });
 
-module.exports = ManageModalChoiceComponent;
+module.exports = AddDocumentXMLComponent;

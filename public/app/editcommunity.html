@@ -1,4 +1,4 @@
-  <div *ngIf="message" class="alert alert-danger">
+<div *ngIf="message" class="alert alert-danger">
     {{message}}
   </div>
   <div style="text-align: center">
@@ -10,7 +10,7 @@
       <label>Abbreviation</label>
       <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;">
       </span>
-      <input type="text" placeholder="(4 characters maximum)" 
+      <input type="text" placeholder="(4 characters maximum)"
       [(ngModel)]="edit.abbr">
     </seg>
   </div>

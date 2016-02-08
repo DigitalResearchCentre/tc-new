@@ -35,7 +35,7 @@ var HeaderComponent = ng.core.Component({
       self.authUser = authUser;
       console.log(authUser);
     });
-    communityService.publicCommunities$.subscribe(function(communities) { 
+    communityService.publicCommunities$.subscribe(function(communities) {
       self.publicCommunities = communities;
     });
   },

@@ -1,7 +1,7 @@
 <nav class="community-header navbar navbar-default">
   <div class="navbar-header">
-    <button type="button" class="navbar-toggle collapsed" 
-      data-toggle="collapse" data-target="#header-navbar-collapse-1" 
+    <button type="button" class="navbar-toggle collapsed"
+      data-toggle="collapse" data-target="#header-navbar-collapse-1"
       aria-expanded="false">
       <span class="sr-only">Toggle navigation</span>
       <span class="icon-bar"></span>
@@ -26,6 +26,7 @@
     </ul>
   </div>
 </nav>
+<tc-manage-community *ngIf="community"></tc-manage-community>
 <div [ngSwitch]="route">
   <tc-community-home *ngSwitchWhen="'home'"
     [community]="community"></tc-community-home>
@@ -42,5 +43,3 @@
   <tc-community-home *ngSwitchDefault
     [community]="community"></tc-community-home>
 </div>
-
-

@@ -11,14 +11,15 @@ var CommunityComponent = ng.core.Component({
   selector: 'tc-community',
   templateUrl: '/app/community/community.html',
   directives: [
-    ng.router.ROUTER_DIRECTIVES, 
+    ng.router.ROUTER_DIRECTIVES,
     require('./about.component'),
     require('./home.component'),
     require('./view.component'),
+    require('./manage.component'),
   ],
 }).Class({
   constructor: [
-    RouteParams, Router, Location, CommunityService, UIService, 
+    RouteParams, Router, Location, CommunityService, UIService,
   function(
     routeParams, router, location, communityService, uiService
   ) {
