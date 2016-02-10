@@ -22,7 +22,7 @@
   </div>
   <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; margin-left: 20px; margin-right: 20px">
     <label>XML file&nbsp;&nbsp;</label>
-    <input style="width: 250px; display: inline-block" type="file" x-filereader=""/>
+    <tc-filereader (filechange)="filechange($event)"></tc-filereader>
     <div style="text-align: center; margin-top: 10px">
       <button type="button" class="btn btn-primary" (click)="submit()">Create</button>
     </div>
