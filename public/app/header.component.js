@@ -40,7 +40,7 @@ var HeaderComponent = ng.core.Component({
     });
   },
   showCreateOrJoin: function() {
-    return this.authUser && _.isEmpty(this.authUser.attrs.memberships);
+    return this.authUser && this.authUser.attrs.local.authenticated=="1" && _.isEmpty(this.authUser.attrs.memberships);
   },
   showAddDocument: function() {
     var community = this.uiService.community;

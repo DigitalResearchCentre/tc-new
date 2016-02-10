@@ -18,13 +18,13 @@
               </li>
             </ul>
           </li>
-          <li *ngIf="!authUser">
+          <li *ngIf="!authUser || authUser.attrs.local.authenticated=='0'">
             <a (click)=showLoginModal()>
               <span class="glyphicon glyphicon-user"></span>Sign Up/
               <span class="glyphicon glyphicon-log-in"></span> Log In
             </a>
           </li>
-          <template [ngIf]="authUser">
+          <template [ngIf]="authUser && authUser.attrs.local.authenticated=='1'">
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown"
                 role="button" aria-haspopup="true" aria-expanded="false">
@@ -81,7 +81,7 @@
     You have a community ("{{uiService.community?.attrs.name}}"),
       but there are no documents in it</seg>
     <seg *ngIf="showAddPage()">
-      You have a document ("{{uiService.document?.attrs.name}}"),
+      You have a community ("{{uiService.community?.attrs.name}}") with a document ("{{uiService.document?.attrs.name}}"),
       but there are no pages in it</seg>
       <!--><seg>Make the edition you want</seg></-->
   </p>

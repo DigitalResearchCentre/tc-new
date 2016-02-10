@@ -23,8 +23,11 @@
 							<strong>name</strong>: <%= user.local.name %><br>
 							<strong>password</strong>: (Hidden)<br>
 						</p>
-						<p style="margin:0px 5px 0px 5px"><b>Authenticated account</b></p>
-
+            <% if (user.local.authenticated=="1") { %>
+						        <p style="margin:0px 5px 0px 5px"><b>Authenticated account</b></p>
+            <% } else { %>
+                    <p style="margin:0px 5px 0px 5px"><b>Account not authenticated</b></p>
+            <% } %>
 						<!-- a href="/changeid" class="btn btn-default">Change email</a -->
 					<% } else { %>
 					<% } %>
