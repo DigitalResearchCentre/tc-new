@@ -5,8 +5,8 @@ var Observable = Rx.Observable
   , RESTService = require('../rest.service')
   , AuthService = require('../auth.service')
   , Doc = require('../models/doc')
-  , bson = require('bson')()
-//  , ObjectID = bson.ObjectID
+  , bson = require('bson')
+  , ObjectID = bson.ObjectID
 ;
 
 function createObjTree(node, queue) {
@@ -302,7 +302,7 @@ var DocService = ng.core.Injectable().Class({
       this.prepareOptions({})
     ).map(function(res) {
       return res.json();
-    })
+    });
   },
   json2xml: json2xml,
   commit: function(data, opts, callback) {

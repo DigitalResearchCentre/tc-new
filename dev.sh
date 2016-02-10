@@ -12,7 +12,7 @@ wait
 
 
 # install dependencies:
-# $ cd tc && npm install
+# cd tc && npm install
 
 # run the app:
-# $ DEBUG=tc:* npm start
+# DEBUG=tc:* npm start
