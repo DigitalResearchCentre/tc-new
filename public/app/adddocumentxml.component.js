@@ -4,15 +4,17 @@ var URI = require('urijs')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
   , TCService = require('./tc')
+;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
 
 var AddDocumentXMLComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument-xml',
-  templateUrl: '/community/manage/tmpl/add-xml-document.html',
+  templateUrl: '/app/adddocumentxml.html',
   directives: [
-    require('../directives/modaldraggable')
+    require('../directives/modaldraggable'),
+    require('./directives/filereader'),
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -28,7 +30,11 @@ var AddDocumentXMLComponent = ng.core.Component({
     this._communityService = communityService;
     this.doc = {name:"", text:""};
     /*this for scope variables */
+    this.filecontent = '';
   }],
+  filechange: function(filecontent) {
+    this.filecontent = filecontent;
+  },
   submit: function() {
     var self = this;
     if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
@@ -36,18 +42,18 @@ var AddDocumentXMLComponent = ng.core.Component({
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
       return
-    }
-    if (!this.text && !this.filereader) {
+    };
+    if (!this.text && !this.filecontent) {
       this.message = 'Either paste text into the text box or choose a file';
       return;
     }
-    this.doc.text=this.text || this.filereader;
+    this.doc.text=this.text || this.filecontent;
     this._communityService.addDocument(this.uiService.community, this.doc)
       .subscribe(function(doc) {
         self.closeModalADX();
       }, function(err) {
         self.message = err.message;
-      })
+      });
   },
   closeModalADX: function() {
     this.message=this.success=this.doc.name="";
