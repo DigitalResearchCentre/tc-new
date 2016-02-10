@@ -41,8 +41,8 @@ var AddDocumentXMLComponent = ng.core.Component({
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
-      return
-    };
+      return;
+    }
     if (!this.text && !this.filecontent) {
       this.message = 'Either paste text into the text box or choose a file';
       return;
