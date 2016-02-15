@@ -1,5 +1,7 @@
 var $ = require('jquery');
 var URI = require('urijs')
+  , Router = ng.router.Router
+  , Location = ng.router.Location
   , UIService = require('./ui.service')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
@@ -10,12 +12,12 @@ var URI = require('urijs')
 
 var AddDocumentComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument',
-  templateUrl: '/community/manage/tmpl/add-document.html',
+  templateUrl: '/app/adddocument.html',
   directives: [
     require('../directives/modaldraggable')
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
+  constructor: [Router, Location, CommunityService, AuthService, UIService, function(router, location, communityService, authService, uiService) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
@@ -25,6 +27,8 @@ var AddDocumentComponent = ng.core.Component({
     this.success="";
     this.uiService = uiService;
     this._communityService = communityService;
+    this._router = router;
+    this._location = location;
     /*this for scope variables */
   }],
   submit: function() {
@@ -36,13 +40,22 @@ var AddDocumentComponent = ng.core.Component({
     } else {
       this._communityService.addDocument(this.uiService.community, this.doc)
         .subscribe(function(doc) {
-          self.closeModalAD();
+          console.log("loaded the doc");
+          self.success="Document "+self.doc.name+" created."
+          $('#MMADdiv').css("margin-top", "0px");
+          $('#MMADbutton').css("margin-top", "10px");
+          var instruction = self._router.generate([
+            'Community', {id: self.uiService.community.attrs._id, route: "view"}
+          ]);
+          self._location.go(instruction.toRootUrl());
+          self.route="view";
+    //      self.closeModalAD();
         }, function(err) {
           self.message = err.message;
         })
     }
   },
-  closeModalAXD: function() {
+  closeModalAD: function() {
     this.message=this.success=this.doc.name="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
