@@ -32,6 +32,10 @@ var HeaderComponent = ng.core.Component({
       , communityService = this._communityService
     ;
     this._authService.authUser$.subscribe(function(authUser) {
+  /*    if (authUser && authUser.attrs.local.authenticated=="0") {
+        self._authService.logout();
+        self.authUser=null;
+      } else */
       self.authUser = authUser;
       console.log(authUser);
     });

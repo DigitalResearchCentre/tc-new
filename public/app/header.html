@@ -86,7 +86,7 @@
       <!--><seg>Make the edition you want</seg></-->
   </p>
 </div>
-<div *ngIf="!authUser" class="wizard">
+<div *ngIf="!authUser || authUser.attrs.local.authenticated=='0'" class="wizard">
   <p class="wizardp">Make the edition you want</p>
     <a data-toggle="modal" data-target="#myModal">
     <button class="btn btn-lg wizardbutton"

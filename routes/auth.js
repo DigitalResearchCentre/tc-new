@@ -50,7 +50,8 @@ router.post('/login', function(req, res, next) {
       //are we authenticated? if not...send email and return message
       if (!isValidProfile(user)) {
         authenticateUser (user.local.email, user, req.protocol + '://' + req.get('host'));
-        res.render('authenticate.ejs', {context:"email", user: user})
+        res.render('authenticate.ejs', {context:"email", user: user});
+        req.logout();
         return;
       }
      // all is well, log me in, return successful user
@@ -114,6 +115,7 @@ router.post('/signup', function(req, res) {
         if (err) {}
         authenticateUser (newUser.local.email, newUser, req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: newUser})
+        req.logout();
         return;
       });
     }
@@ -127,9 +129,9 @@ router.post('/signup', function(req, res) {
 router.get('/sendauthenticate', function(req, res) {
   var user=req.user;
   authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
-  req.logout();
   // render the page and pass in any flash data if it exists
   res.render('authenticate.ejs', {user: user, context: req.query.context} );
+  req.logout();
 });
 
 router.get('/authlinkExpired', function(req, res) {
@@ -376,6 +378,7 @@ router.post('/facebooklinkemail', function(req, res) {
         if (!isValidProfile(existingUser)) {
           authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
           res.render('authenticate.ejs', {context:"email", user: existingUser})
+          req.logout();
           return;
         }
         //do we need this? yes...
@@ -413,6 +416,7 @@ router.get('/facebooknew', function(req, res) {
   //now we send the email from here and here alone
   authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
   res.render('authenticate.ejs', {context:"facebook", user: req.user});
+  req.logout();
 });
 
 //check if there is a surplus SM acc with this user...
@@ -515,6 +519,7 @@ router.post('/twitterlinklocal', function(req, res) {
       if (existingUser.local.authenticated=="0") {
         authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {user: existingUser, context: "twitter"} );
+        req.logout();
       } else {
         req.logout();
         req.logIn(existingUser, function (err) {
@@ -571,6 +576,7 @@ router.post('/twitteremail', function(req, res) {
       req.user.save();
       authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
       res.render('authenticate.ejs', {context:"twitter", user: req.user});
+      req.logout();
     }
   });
 });
@@ -659,6 +665,7 @@ router.post('/googlelinkemail', function(req, res) {
         if (!isValidProfile(existingUser)) {
           authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
           res.render('authenticate.ejs', {context:"google", user: existingUser})
+          req.logout();
           return;
         }
         //do we need this? yes...
@@ -761,14 +768,21 @@ router.post('/googlelinkemail', function(req, res) {
 });
 	//just set up a new account
 router.get('/googlenew', function(req, res) {
-  req.user.local.email=req.user.google.email;
-  req.user.local.name=req.user.google.name;
-  req.user.local.password=req.user.generateHash("X"); //place holder
-  req.user.local.authenticated= "0";
-  req.user.save();
+  console.log("here "+req.user);
+  //we must make a new user!
+  var newuser =new User();
+  newuser.google=req.user.google;
+  newuser.local.email=req.user.google.email;
+  newuser.local.name=req.user.google.name;
+  newuser.local.password=req.user.generateHash("X"); //place holder
+  newuser.local.authenticated= "0";
+  newuser.save(function(err) {
+    if (err) {}
+    authenticateUser (newuser.local.email, newuser, req.protocol + '://' + req.get('host'));
+    res.render('authenticate.ejs', {context:"google", user: newuser});
+    req.logout();
+  });
   //now we send the email from here and here alone
-  authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
-  res.render('authenticate.ejs', {context:"google", user: req.user});
 });
 
 //cancel this google linkage
@@ -891,6 +905,7 @@ function authenticateUser (email, user, thisUrl) {
   var hash=randomStringAsBase64Url(20);
   var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: thisUrl});
   //console.log( TCAddresses.replyto+" "+TCAddresses.from);
+  console.log("here 2 "+user)
   user.local.timestamp=new Date().getTime();
   user.local.hash=hash;
   user.save();
