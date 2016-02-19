@@ -1136,10 +1136,12 @@ function _commitTEI(continueTeis, teis, callback) {
           $set = {
             children: tei.children,
           };
+          /*
           if (tei.children.length === 0) {
             $set.docs = tei.docs;
             $set.entities = tei.entities;
           }
+          */
           return TEI.collection.update({_id: new OId(id)}, {
             $set: $set,
           }, cb1);
@@ -1405,7 +1407,6 @@ module.exports = {
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
-
 
 
 
