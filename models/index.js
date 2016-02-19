@@ -91,6 +91,27 @@ var ActionSchema = new Schema({
 
 });
 
+function _findCommonAncestors(ancestors1, ancestors2) {
+  var common = [];
+  if (!_.isArray(ancestors1)) {
+    ancestors1 = ancestors1.ancestors;
+  }
+  if (!_.isArray(ancestors2)) {
+    ancestors2 = ancestors2.ancestors;
+  }
+
+  _.each(_.zip(ancestors1, ancestors2), function(ids) {
+    if (ids[0] && ids[1] && ids[0].equals(ids[1])) {
+      common.push(ids[0]);
+    } else {
+      return false;
+    }
+  });
+  ancestors1 = ancestors1.slice(common.length);
+  ancestors2 = ancestors2.slice(common.length);
+  return [common, ancestors1, ancestors2];
+}
+
 var BaseNodeSchema = function(modelName) {
   return {
     schema: {
@@ -109,6 +130,27 @@ var BaseNodeSchema = function(modelName) {
       },
     },
     statics: {
+      /*
+       * @param tree - nested tree style data, 
+       *              ex. {name: foo, children: [{name: child1, children: []}]}
+       */
+      import: function(tree, callback) {
+        var cls = this
+          , queue = []
+          , nodes = [tree]
+        ;
+        tree = _prepareNode(tree);
+        tree.children = _loadChildren(tree, queue);
+        while (queue.length > 0) {
+          cur = queue.shift();
+          cur.children = _loadChildren(cur, queue);
+          if (_.isString(cur._id)) {
+            cur._id = new OId(cur._id);
+          }
+          nodes.push(cur);
+        }
+        return cls.collection.insert(nodes, callback);
+      },
       getTreeFromLeaves: function(nodes, cb) {
         var cls = this
           , ancestors = {}
@@ -133,50 +175,55 @@ var BaseNodeSchema = function(modelName) {
           _.each(nodes, function(node) {
             objs[node._id] = node;
           });
-          _.each(nodes, function(node) {
-            console.log('49494949');
-            console.log(node);
+          _.each(objs, function(node) {
             if (node.ancestors.length === 0) {
               root = node;
             } else {
               parent = objs[_.last(node.ancestors)];
               children = parent.children;
-              console.log(parent);
               var index = _.findIndex(children, function(id) {
-                console.log(id);
-                console.log(node._id);
                 return id.equals(node._id);
               });
               children[index] = node;
-              console.log(index);
-              console.log(children);
             }
           });
           cb(err, root);
         });
       },
-      getNodesBetween: function(ancestors1, ancestors2, callback) {
+      /*
+       * @param tree - nested tree style data, 
+       *              ex. {name: foo, children: [{name: child1, children: []}]}
+       * @param prev - prev continue element
+       * @param after - left bound to insert after, null means insert at
+       *                beginning of prev's child
+       * @param next - next continue element
+       * @param before - right bound to insert before, null means insert at the
+       *                end fo next's child
+       */
+      replaceNodesBetween: function(
+        tree, prev, after, next, before, callback
+      ) {
+        var cls = this
+          , common = []
+          , prevAncestors = prev.ancestors.concat(prev._id)
+          , nextAncestors = next.ancestors.concat(next._id)
+        ;
+      },
+      getNodesBetween: function(
+        ancestors1, ancestors2, includeAncestors, callback) {
         var nodes = []
           , common = []
           , ancestors = []
           , cls = this
         ;
-        if (!_.isArray(ancestors1)) {
-          ancestors1 = ancestors1.ancestors;
+        if (_.isFunction(includeAncestors)) {
+          callback = includeAncestors;
+          includeAncestors = true;
         }
-        if (!_.isArray(ancestors2)) {
-          ancestors2 = ancestors2.ancestors;
-        }
-
-        _.each(_.zip(ancestors1, ancestors2), function(ids) {
-          if (ids[0] && ids[1] && ids[0].equals(ids[1])) {
-            common.push(ids[0]);
-          } else {
-            return false;
-          }
-        });
-        ancestors1 = ancestors1.slice(common.length);
-        ancestors2 = ancestors2.slice(common.length);
+        var results = _findCommonAncestors(ancestors1, ancestors2);
+        common = results[0];
+        ancestors1 = results[1];
+        ancestors2 = results[2];
 
         async.parallel([
           function(cb) {
@@ -216,6 +263,7 @@ var BaseNodeSchema = function(modelName) {
 
           if (ancestors1.length > 0) {
             var found = null;
+            // find siblings between an1 and an2
             _.each(children, function(id) {
               if (id.equals(ancestors2[0]._id)) {
                 return false;
@@ -254,7 +302,11 @@ var BaseNodeSchema = function(modelName) {
               {_id: {$in: ancestors}}
             ],
           }, function(err, objs) {
-            callback(err, common.concat(ancestors1, ancestors2, objs));
+            if (!includeAncestors) {
+              callback(err, objs);
+            } else {
+              callback(err, common.concat(ancestors1, ancestors2, objs));
+            }
           });
         });
       },
@@ -276,6 +328,186 @@ var BaseNodeSchema = function(modelName) {
             return cb(null, null);
           },
         ], callback);
+      },
+      getOutterBound: function(leaves, callback) {
+        var cls = this;
+
+        async.waterfall([
+          function(cb) {
+            cls.getTreeFromLeaves(leaves, cb);
+          },
+          function(root, cb) {
+            var cur = root
+              , prevId, nextId
+            ;
+            while (cur && !_.isEmpty(cur.children)) {
+              var found = _.findIndex(cur.children, function(child) {
+                return !(_.isString(child) || child instanceof OId);
+              });
+              if (found > -1) {
+                cur = cur.children[found];
+              } else {
+                break;
+              }
+            }
+            if (cur) {
+              prevId = cur._id;
+            }
+            cur = root;
+            while (cur && !_.isEmpty(cur.children)) {
+              var found = _.findLastIndex(cur.children, function(child) {
+                return !(_.isString(child) || child instanceof OId); 
+              });
+              if (found > -1) {
+                cur = cur.children[found];
+              } else {
+                break;
+              }
+            }
+            if (cur) {
+              nextId = cur._id;
+            }
+
+            async.parallel([
+              function(cb1) {
+                if (prevId) {
+                  var stop = false
+                    , prev = null
+                  ;
+                  async.whilst(function() {
+                    return !stop;
+                  }, function(cb2) {
+                    cls.getDFSPrev(prevId, function(err, node) {
+                      if (!node) {
+                        stop = true;
+                      } else if (
+                        node.name === '#text' && node.text.trim() === ''
+                      ) {
+                        prevId = node._id;
+                      } else {
+                        prev = node;
+                        stop = true;
+                      }
+                      cb2(err);
+                    });
+                  }, function(err) {
+                    if (err) {
+                      return cb1(err);
+                    }
+                    if (prev) {
+                      cls.find({
+                        _id: {$in: prev.ancestors.concat(prev._id)}
+                      }, cb1);
+                    } else {
+                      cb1(null, []);
+                    }
+                  });
+                } else {
+                  cb1(null, []);
+                }
+              },
+              function(cb1) {
+                if (nextId) {
+                  var stop = false
+                    , next = null
+                  ;
+                  async.whilst(function() {
+                    return !stop;
+                  }, function(cb2) {
+                    cls.getDFSNext(nextId, function(err, node) {
+                      console.log('nnn');
+                      console.log(node);
+                      if (!node) {
+                        stop = true;
+                      } else if (
+                        node.name === '#text' && node.text.trim() === ''
+                      ) {
+                        nextId = node._id;
+                      } else {
+                        console.log(node.name);
+                        next = node;
+                        stop = true;
+                      }
+                      cb2(err);
+                    });
+                  }, function(err) {
+                    if (err) {
+                      return cb1(err);
+                    }
+                    if (next) {
+                      cls.find({
+                        _id: {$in: next.ancestors.concat(next._id)}
+                      }, cb1);
+                    } else {
+                      cb1(null, []);
+                    }
+                  });
+                } else {
+                  cb1(null, []);
+                }
+              },
+            ], cb);
+          },
+        ], callback);
+      },
+      getDFSNext: function(id, callback) {
+        var cls = this;
+        async.waterfall([
+          function(cb) {
+            cls.findOne({_id: id}).exec(cb);
+          },
+          function(obj, cb) {
+            if (!obj) {
+              return cb(null, obj);
+            }
+            cls.find({_id: {$in: obj.ancestors}}).exec(cb);
+          },
+          function(ancestors, cb) {
+            var cur = id
+              , dfsNextId
+            ;
+            _.forEachRight(ancestors, function(parent) {
+              var index = _.findIndex(parent.children, function(childId) {
+                return childId.equals(cur);
+              });
+              if (index < parent.children.length - 1) {
+                dfsNextId = parent.children[index + 1];
+                return false;
+              } else {
+                cur = parent._id;
+              }
+            });
+            if (dfsNextId) {
+              cls.findOne({_id: dfsNextId}).exec(function(err, dfsNext) {
+                if (err) {
+                  cb(err);
+                } else {
+                  async.whilst(function() {
+                    return (dfsNext.children || []).length > 0;
+                  }, function(cb1) {
+                    cls.findOne({_id: _.first(dfsNext.children)}).exec(
+                      function(err, obj) {
+                        dfsNext = obj;
+                        cb1(err, obj);
+                      }
+                    );
+                  }, function(err) {
+                    if (err) {
+                      return cb(err);
+                    }
+                    if (dfsNext) {
+                      cb(null, dfsNext);
+                    }
+                  });
+                }
+              });
+            } else {
+              cb(null, null);
+            }
+
+          }
+        ], callback);
+       
       },
       getDFSPrev: function(id, callback) {
         var cls = this;
@@ -365,10 +597,22 @@ var DocSchema = new Schema(_.assign(baseDoc.schema, {
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
 
+function _prepareNode(node) {
+  if (!node.ancestors) {
+    node.ancestors = [];
+  }
+  if (!node._id) {
+    node._id = new OId();
+  } else if (_.isString(node._id)) {
+    node._id = new OId(node._id);
+  }
+  return node;
+}
 function _loadChildren(cur, queue) {
   var children = cur.children || []
-    , ancestors = cur.ancestors.concat(cur._id)
     , ids = []
+    , ancestors = cur.ancestors.concat(cur._id)
+    , _children = []
   ;
   for (var i = 0, len = children.length; i < len; i++) {
     var child = children[i];
@@ -381,13 +625,29 @@ function _loadChildren(cur, queue) {
       child.name = '' + (i + 1);
     }
     child.ancestors = ancestors;
-    queue.push(child);
+    _children.unshift(child);
     ids.push(child._id);
   }
+  _.each(_children, function(child) {
+    queue.unshift(child);
+  });
   return ids;
 }
 
 _.assign(DocSchema.statics, baseDoc.statics, {
+  getOutterBoundTexts: function(id, callback) {
+    TEI.find({
+      $and: [
+        {docs: id},
+        {$nor: [{name: '#text', text: /^\s+$/}]},
+      ]
+    }).exec(function(err, nodes) {
+      if (err) {
+        return callback(err);
+      }
+      TEI.getOutterBound(nodes, callback);
+    });
+  },
   getEntityIds: function(docId, entityId, callback) {
     if (_.isString(docId)) {
       docId = new OId(docId);
@@ -498,8 +758,6 @@ _.assign(DocSchema.statics, baseDoc.statics, {
         return cb(null, null);
       },
       function(doc, cb) {
-        console.log('asljf');
-        console.log(doc);
         if (!doc) {
           return cb(null, null);
         }
@@ -542,12 +800,6 @@ function _checkLinks(prevs, nexts, teiRoot) {
     , continueTeis = {}
     , prev, next
   ;
-  console.log('teiRoot');
-  console.log(teiRoot);
-  console.log('prevs');
-  console.log(prevs);
-  console.log('nexts');
-  console.log(nexts);
   while (cur.prev) {
     prev = prevs.shift();
     cur.prev = new OId(cur.prev);
@@ -674,8 +926,6 @@ function _checkLinks(prevs, nexts, teiRoot) {
       cur.prevChildIndex = -1;
     }
   }
-  console.log('continueTeis');
-  console.log(continueTeis);
   return continueTeis;
 }
 
@@ -718,6 +968,9 @@ function _parseTei(teiRoot, docRoot) {
   while (queue.length > 0) {
     cur = queue.shift();
     if (cur.name === '#text') {
+      cur.children = [];
+    }
+    if (!cur.children) {
       cur.children = [];
     }
     if (cur.entity) {
@@ -874,12 +1127,12 @@ function _commitTEI(continueTeis, teis, callback) {
           , nextChildren = _children.slice(nextChildIndex)
           , $set
         ;
+        console.log('#############');
+        console.log(tei);
         deleteTeis.push.apply(
           deleteTeis, _children.slice(prevChildIndex + 1, nextChildIndex));
-        tei.children = prevChildren.concat(tei.children, nextChildren);
-        console.log('@#$%');
-        console.log(tei);
         if (prevChildIndex < nextChildIndex) {
+          tei.children = prevChildren.concat(tei.children, nextChildren);
           $set = {
             children: tei.children,
           };
@@ -937,10 +1190,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
 
     async.parallel([
       function(cb) {
-        Doc.getPrevTexts(self._id, cb);
-      },
-      function(cb) {
-        Doc.getNextTexts(self._id, cb);
+        Doc.getOutterBoundTexts(self._id, cb);
       },
       function(cb) {
         var rootDocId = self._id;
@@ -950,7 +1200,8 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         Community.findOne({documents: rootDocId}).exec(cb);
       },
     ], function(err, results) {
-      var community = results[2]
+      var bounds = results[0]
+        , community = results[1]
         , entities = []
         , updateEntities = []
         , fakeEntity
@@ -962,7 +1213,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       if (!community) {
         return callback(err);
       }
-      continueTeis = _checkLinks(results[0], results[1], teiRoot);
+      continueTeis = _checkLinks(bounds[0], bounds[1], teiRoot);
       if (continueTeis.error) {
         return callback(continueTeis);
       } 
@@ -1010,8 +1261,6 @@ _.assign(DocSchema.methods, baseDoc.methods, {
               }
               async.parallel([
                 function(cb1) {
-                  console.log('save teis');
-                  console.log(result.teis);
                   _commitTEI(continueTeis, result.teis, cb1);
                 },
                 function(cb1) {
@@ -1156,5 +1405,7 @@ module.exports = {
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
+
+
 
 

@@ -6,7 +6,7 @@ var Observable = Rx.Observable
   , AuthService = require('../auth.service')
   , Doc = require('../models/doc')
   , bson = require('bson')
-  , ObjectID = bson.ObjectID
+  , ObjectID = bson().ObjectID
 ;
 
 function createObjTree(node, queue) {
@@ -287,6 +287,7 @@ var DocService = ng.core.Injectable().Class({
       id: doc.getId(),
       func: 'texts',
     });
+    console.log(url);
 
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
