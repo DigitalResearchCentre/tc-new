@@ -6,7 +6,7 @@ var Observable = Rx.Observable
   , AuthService = require('../auth.service')
   , Doc = require('../models/doc')
   , bson = require('bson')
-  , ObjectID = bson.ObjectID
+  , ObjectID = bson().ObjectID
 ;
 
 function createObjTree(node, queue) {
@@ -158,16 +158,11 @@ function checkLinks(teiRoot, links, docElement, docRoot) {
     };
   }
   if (docElement) {
-    while (!_.isEmpty(cur.children) && _.first(cur.children).name !== '#text') {
-      cur = _.first(cur.children);
-    }
     cur.children.unshift({
       name: 'pb',
       doc: docRoot._id,
       children: [],
     });
-    console.log(cur);
-    console.log(teiRoot);
   }
   cur = {
     children: [teiRoot],
@@ -320,10 +315,14 @@ var DocService = ng.core.Injectable().Class({
       , docQueue = []
       , cur, curDoc, index, label, missingLink
     ;
+    var err = checkLinks(teiRoot, links, docElement, docRoot);
+    if (err && callback) {
+      return callback(err);
+    }
 
     // dfs on TEI tree, find out all document
     while (queue.length > 0) {
-      cur = queue.pop();
+      cur = queue.shift();
       if (!_.startsWith(cur.name, '#')) {
         index = docTags.indexOf(cur.name);
         // if node is doc
@@ -359,12 +358,10 @@ var DocService = ng.core.Injectable().Class({
         cur.doc = prevDoc._id;
       }
 
-      _.forEachRight(cur.children, _.bind(queue.push, queue));
-    }
-
-    var err = checkLinks(teiRoot, links, docElement, docRoot);
-    if (err && callback) {
-      return callback(err);
+      _.forEachRight(cur.children, function(child) {
+        console.log(child);
+        queue.unshift(child);
+      });
     }
 
     return this.update(docModel.getId(), {

@@ -96,59 +96,74 @@ var DocResource = _.inherit(Resource, function(opts) {
             },
             function(cb) {
               // TODO: also need move all subtrees
+              var prevIndex, prevs, teiparent;
               if (parent) {
-                var lastId = _.last(parent.children);
                 parent.children.push(doc._id);
                 doc.ancestors = parent.ancestors.concat(parent._id);
-                parent.save(function(err, parent, numberAffected) {
-                  if (lastId) {
-                    async.waterfall([
-                      function(cb1) {
-                        TEI.find({
-                          docs: lastId,
-                        }).exec(cb1);
-                      },
-                      function(teiLeaves, cb1) {
-                        if (teiLeaves) {
-                          TEI.getTreeFromLeaves(teiLeaves, cb1); 
-                        } else {
-                          cb1(null);
-                        }
-                      },
-                      function(teiRoot, cb1) {
-                        if (!teiRoot) {
-                          return cb1(null);
-                        }
-                        var cur = teiRoot;
-                        var teiparent = teiRoot;
-                        while (!_.isEmpty(cur.children)) {
-                          teiparent = cur;
-                          cur = _.last(cur.children);
-                        }
-                        console.log(teiparent);
-                        if (teiparent) {
-                          var tei = new TEI({
-                            ancestors: cur.ancestors,
-                            children: [],
-                            docs: doc.ancestors.concat(doc._id),
-                            name: 'pb',
-                          });
-                          tei.save(function(err, tei) {
-                            teiparent.children.push(tei._id);
-                            teiparent.save(function(err, tt) {
-                              console.log(tt);
-                              console.log(tei);
-                              cb1(err);
-                            });
-                          });
-                        }
-                      }
-                    ], function(err) {
-                      cb(err, doc);
+                async.waterfall([
+                  function(cb1) {
+                    parent.save(function(err, parent, numberAffected) {
+                      cb1(err, parent);
                     });
-                  } else {
-                    cb(err, doc);
+                  },
+                  function(parent, cb1) {
+                    doc.save(function(err, doc, numberAffected) {
+                      cb1(err, doc);
+                    });
+                  },
+                  function(doc, cb1) {
+                    Doc.getPrevTexts(doc._id, cb1)
+                  },
+                  function(prevTexts, cb1) {
+                    prevs = prevTexts;
+                    if (!prevs || prevs.length === 0) {
+                      return cb1(null);
+                    }
+                    prevIndex = _.findLastIndex(prevs, function(prev) {
+                      return [
+                        '#text', 'pb', 'cb', 'lb'
+                      ].indexOf(prev.name) === -1;
+                    });
+                    teiparent = prevs[prevIndex];
+                    var tei = new TEI({
+                      ancestors: teiparent.ancestors.concat(teiparent._id),
+                      children: [],
+                      docs: doc.ancestors.concat(doc._id),
+                      name: 'pb',
+                    });
+                    tei.save(function(err, tei, numberAffected) {
+                      cb1(err, tei);
+                    });
+                  },
+                  function(tei, cb1) {
+                    if (teiparent) {
+                      _.each(teiparent.children, function(child, i) {
+                        if (child._id) {
+                          teiparent.children[i] = child._id;
+                        }
+                      });
+                      if (prevIndex < prevs.length - 1) {
+                        var childIndex = _.findLastIndex(
+                          prevs[prevIndex].children, 
+                          function(id) {
+                            if (id._id) {
+                              id = id._id
+                            }
+                            return id.equals(prevs[prevIndex+1]._id);
+                          }
+                        );
+                        teiparent.children.splice(childIndex+1, 0, tei._id);
+                      } else {
+                        teiparent.children.push(tei._id);
+                      }
+                      teiparent.save(function(err, tt) {
+                        cb1(err);
+                      });
+
+                    }
                   }
+                ], function(err) {
+                  cb(err, doc);
                 });
               } else {
                 cb(null);
@@ -274,6 +289,18 @@ router.get('/docs/:id/texts', function(req, res, next) {
 
 router.get('/docs/:id/links', function(req, res, next) {
   var docId = req.params.id;
+
+  Doc.getOutterBoundTexts(docId, function(err, bounds) {
+    if (err) {
+      return next(err);
+    }
+    res.json({
+      prev: bounds[0],
+      next: bounds[1],
+    });
+  });
+
+  /*
   async.parallel([
     function(cb) {
       Doc.getPrevTexts(docId, cb);
@@ -285,7 +312,6 @@ router.get('/docs/:id/links', function(req, res, next) {
     if (err) {
       return next(err);
     }
-    console.log(results);
     _.each(results, function(objs) {
       _.each(objs, function(obj) {
         _.each(obj.children, function(child, i) {
@@ -300,6 +326,7 @@ router.get('/docs/:id/links', function(req, res, next) {
       next: results[1],
     });
   });
+  */
 });
 
 

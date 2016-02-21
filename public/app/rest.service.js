@@ -6,6 +6,8 @@ var URI = require('urijs')
   , config = require('./config')
 ;
 var Http = ng.http.Http;
+window.URI = URI;
+window.URITemplate = URITemplate;
 
 var RESTService = ng.core.Injectable().Class({
   constructor: [Http, function(http) {
@@ -23,10 +25,11 @@ var RESTService = ng.core.Injectable().Class({
   prepareOptions: function(options) {
     options = _.clone(options || {});
     if (!_.isString(options.search)) {
-      var uri = new URI();
+      var uri = new URI('');
       uri.query(options.search);
       options.search = uri.query();
     }
+
     options.headers = _.assign({
       'Content-Type': 'application/json'
     }, options.headers);
