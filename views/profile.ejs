@@ -7,7 +7,7 @@
 </head>
 <body class="jumbotron text-center" style="padding: 5px 15px 15px 15px; width: 580px;  margin:0px 10px 5px 5px; font-size:120%">
 			<h5><span class="fa fa-anchor"></span> Linked logins for Textual Communities for <%= user.local.name %></h5>
-		<p>Textual Communities is using the email address <%= user.local.email %> to identify you and the communities to which you belong. You can use social media to log in to this account by linking accounts here.
+		<p>Textual Communities is using the email address <%= user.local.email %> to identify you and the communities to which you belong. You can link your social media accounts here.
 		</p>
 		<div class="row">
 
@@ -98,7 +98,7 @@
 
 						<a href="/auth/unlink/google" class="btn btn-danger btn-sm">Unlink</a>
 					<% } else { %>
-						<a href="/auth/connect/google" class="btn btn-danger btn-sm">Connect Google</a>
+						<a href="/auth/connect/google" target="_parent" class="btn btn-danger btn-sm">Connect Google</a>
 					<% } %>
 
 				</div>

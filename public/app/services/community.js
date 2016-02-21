@@ -33,7 +33,10 @@ var CommunityService = ng.core.Injectable().Class({
         },
       })
       .publishReplay(1).refCount();
-    this._authService.authUser$.subscribe(function(authUser) {
+      this.allCommunities$ = this
+        .list({})
+        .publishReplay(1).refCount();
+      this._authService.authUser$.subscribe(function(authUser) {
       self.authUser = authUser;
     });
   },
@@ -70,4 +73,3 @@ var CommunityService = ng.core.Injectable().Class({
 });
 
 module.exports = CommunityService;
-

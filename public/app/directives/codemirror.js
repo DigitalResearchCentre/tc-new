@@ -3,6 +3,7 @@ var CodeMirror = require('codemirror/lib/codemirror')
   , $ = require('jquery')
   , EventEmitter = ng.core.EventEmitter
   , ElementRef = ng.core.ElementRef
+  , UIService = require('../ui.service')
 ;
 
 var CodeMirrorComponent = ng.core.Component({
@@ -15,9 +16,9 @@ var CodeMirrorComponent = ng.core.Component({
     'contentChange',
   ]
 }).Class({
-  constructor: [ElementRef, function(elementRef) { 
+  constructor: [ElementRef, UIService, function(elementRef, uiService) {
     this._elementRef = elementRef;
-
+    this._uiService=uiService;
     this.contentChange = new EventEmitter();
   }],
   ngOnInit: function() {
@@ -30,6 +31,7 @@ var CodeMirrorComponent = ng.core.Component({
       mode:  'xml'
     });
     editor.on('change', this.textChange.bind(this));
+    console.log("text is"+this.content);
     editor.setValue(this.content || '');
     this.editor = editor;
   },
@@ -37,6 +39,11 @@ var CodeMirrorComponent = ng.core.Component({
     var editor = this.editor;
     if (editor) {
       if (this.content !== editor.getValue()) {
+        if (this.content=="<text><body/></text>") {
+          this.content="bill";
+          this._uiService.manageModal$.emit("edit-new-page");
+        }
+        console.log("text2 is"+this.content);
         editor.setValue(this.content || '');
       }
     }
@@ -51,4 +58,3 @@ var CodeMirrorComponent = ng.core.Component({
 });
 
 module.exports = CodeMirrorComponent;
-

@@ -38,7 +38,7 @@ var AddDocumentComponent = ng.core.Component({
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
     } else {
-      this._communityService.addDocument(this.uiService.community, this.doc)
+        this._communityService.addDocument(this.uiService.community, this.doc)
         .subscribe(function(doc) {
           console.log("loaded the doc");
           self.success="Document "+self.doc.name+" created."

@@ -1,0 +1,25 @@
+<div *ngIf="uiService.community">
+  <div modal-draggable class="modalHeader">Edit New Page in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
+    <button type="button" (click)="closeModalNP()" class="close"
+    data-dismiss="modal"
+    style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
+  </button>
+  </div>
+<form action="">
+  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+    {{message}}
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
+    {{success}}
+  </div>
+  <div id="MMADdiv" class="form-group"
+   style="margin-top: 30px; margin-left: 20px; margin-right: 20px">
+    <label>Entity Name ("Hamlet", "Book of John")</label>
+    <input type="text"
+    style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="entity.name">
+    <div id="MMADbutton" style="text-align: center; margin-top: 20px">
+      <button type="button" class="btn btn-primary" (click)="submit()">Choose</button>
+    </div>
+  </div>
+</form>
+</div>

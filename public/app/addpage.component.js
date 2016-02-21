@@ -57,6 +57,7 @@ var AddPageComponent = ng.core.Component({
     $("#MMAPPMFF").hide();
   },
   submit: function() {
+    var self = this;
     if (this.oneormany=="OnePage") {
       if (this.pageName=="") {
         this.message="You must supply a name for the page";
@@ -64,10 +65,10 @@ var AddPageComponent = ng.core.Component({
       } else {
         this.message="";
         this._docService.addPage(this.uiService.document, {
-          name: this.pageName,
+          name: this.pageName, text: '<text><body><pb n="'+this.pageName+'"/></body></text>'
         }).subscribe(function(page) {
-          console.log("added "+page)
-          this.success="Page "+page+" added";
+          console.log("added "+self.pageName)
+          self.success="Page "+self.pageName+" added";
         })
       }
     }

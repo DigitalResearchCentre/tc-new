@@ -2,6 +2,7 @@ var _ = require('lodash')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
   , UIService = require('./ui.service')
+  , DocService = require('./services/doc')
 ;
 
 var HeaderComponent = ng.core.Component({
@@ -13,13 +14,14 @@ var HeaderComponent = ng.core.Component({
     require('./managemodal.component'),
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, function(
-    communityService, authService, uiService
+  constructor: [CommunityService, AuthService, UIService, DocService, function(
+    communityService, authService, uiService, docService
   ) {
     console.log('Header');
     this._authService = authService;
     console.log(authService);
     this._communityService = communityService;
+    this._docService = docService;
     this.uiService = uiService;
 
     this.loginFrame = '/auth?url=/index.html';
@@ -32,19 +34,19 @@ var HeaderComponent = ng.core.Component({
       , communityService = this._communityService
     ;
     this._authService.authUser$.subscribe(function(authUser) {
-  /*    if (authUser && authUser.attrs.local.authenticated=="0") {
-        self._authService.logout();
-        self.authUser=null;
-      } else */
       self.authUser = authUser;
-      console.log(authUser);
+//      console.log(authUser);
     });
     communityService.publicCommunities$.subscribe(function(communities) {
       self.publicCommunities = communities;
     });
+    communityService.allCommunities$.subscribe(function(communities) {
+      self.allCommunities = communities;
+    });
+
   },
   showCreateOrJoin: function() {
-    return this.authUser && this.authUser.attrs.local.authenticated=="1" && _.isEmpty(this.authUser.attrs.memberships);
+    return this.authUser && this.authUser.attrs.local && this.authUser.attrs.local.authenticated=="1" && _.isEmpty(this.authUser.attrs.memberships);
   },
   showAddDocument: function() {
     var community = this.uiService.community;
@@ -53,8 +55,8 @@ var HeaderComponent = ng.core.Component({
     }
   },
   showAddPage: function() {
-    var doc = this.uiService.document;
-    return doc && _.isEmpty(doc.children);
+    var doc=this.uiService.document;
+    return doc && _.isEmpty(doc.attrs.children);;
   },
   showLoginModal: function() {
     this.uiService.loginModel$.emit('show');
@@ -66,8 +68,11 @@ var HeaderComponent = ng.core.Component({
     this._authService.logout();
   },
   loadModal: function(which) {
-    this.uiService.manageModel$.emit(which);
+    this.uiService.manageModal$.emit(which);
   },
+  showNoUser: function() {
+    return !this.authUser || !this.authUser.attrs.local || this.authUser.attrs.local.authenticated=='0';
+  }
 });
 
 module.exports = HeaderComponent;

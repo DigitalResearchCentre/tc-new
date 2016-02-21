@@ -18,13 +18,13 @@
               </li>
             </ul>
           </li>
-          <li *ngIf="!authUser || authUser.attrs.local.authenticated=='0'">
+          <li *ngIf="showNoUser()">
             <a (click)=showLoginModal()>
               <span class="glyphicon glyphicon-user"></span>Sign Up/
               <span class="glyphicon glyphicon-log-in"></span> Log In
             </a>
           </li>
-          <template [ngIf]="authUser && authUser.attrs.local.authenticated=='1'">
+          <template [ngIf]="authUser && authUser.attrs.local && authUser.attrs.local.authenticated=='1'">
             <li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown"
                 role="button" aria-haspopup="true" aria-expanded="false">
@@ -86,7 +86,7 @@
       <!--><seg>Make the edition you want</seg></-->
   </p>
 </div>
-<div *ngIf="!authUser || authUser.attrs.local.authenticated=='0'" class="wizard">
+<div *ngIf="showNoUser()" class="wizard">
   <p class="wizardp">Make the edition you want</p>
     <a data-toggle="modal" data-target="#myModal">
     <button class="btn btn-lg wizardbutton"

@@ -15,7 +15,7 @@ var ManageCommunityComponent = ng.core.Component({
     this._authService = authService;
   }],
   loadModal: function(which) {
-    this._uiService.manageModel$.emit(which);
+    this._uiService.manageModal$.emit(which);
   },
 });
 

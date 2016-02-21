@@ -21,7 +21,7 @@ var ViewerComponent = ng.core.Component({
   ) {
     this._docService = docService;
     this._uiService = uiService;
-    
+
     this.revisions = [];
   }],
   ngOnInit: function() {
@@ -31,8 +31,8 @@ var ViewerComponent = ng.core.Component({
     var $imageMap = $('.image_map');
     var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
     var imageMap = new ImageMap(
-      $imageMap[0], 
-      'http://textualcommunities.usask.ca/api/docs/3063121/has_image/', 
+      $imageMap[0],
+      'http://textualcommunities.usask.ca/api/docs/3063121/has_image/',
       options);
     this.links = {prev: [], next: []};
     this.prevLink = null;
@@ -44,6 +44,7 @@ var ViewerComponent = ng.core.Component({
       , self = this
     ;
     if (page) {
+      docService.page=page;
       docService.getLinks(this.page).subscribe(function(data) {
         _.forEachRight(data.prev, function(el) {
           console.log(el);
@@ -151,5 +152,3 @@ var ViewerComponent = ng.core.Component({
 });
 
 module.exports = ViewerComponent;
-
-

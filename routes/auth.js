@@ -408,16 +408,29 @@ router.post('/facebooklinkemail', function(req, res) {
 
 //just set up a new account
 router.get('/facebooknew', function(req, res) {
-  req.user.local.email=req.user.facebook.email;
-  req.user.local.name=req.user.facebook.name;
-  req.user.local.password=req.user.generateHash("X"); //place holder
-  req.user.local.authenticated= "0";
-  req.user.save();
-  //now we send the email from here and here alone
-  authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
-  res.render('authenticate.ejs', {context:"facebook", user: req.user});
-  req.logout();
+
+  if (req.user.local.name) {
+    var thisUser=new User();
+    thisUser.facebook=req.user.facebook;
+    req.user.facebook=undefined;
+    req.user.save();
+  } else {
+    var thisUser=req.user;
+  }
+  thisUser.local.email=thisUser.facebook.email;
+  thisUser.local.name=thisUser.facebook.name;
+  thisUser.local.password=thisUser.generateHash("X"); //place holder
+  thisUser.local.authenticated= "0";
+  thisUser.save(function(err) {
+    if (err) {}
+    authenticateUser (thisUser.local.email, thisUser, req.protocol + '://' + req.get('host'));
+    res.render('authenticate.ejs', {context:"facebook", user: thisUser});
+    req.logout();
+  });
 });
+
+
+
 
 //check if there is a surplus SM acc with this user...
 //also: check; if not authenticated, log out.  Handles clicks on modal backdrop too
@@ -768,18 +781,25 @@ router.post('/googlelinkemail', function(req, res) {
 });
 	//just set up a new account
 router.get('/googlenew', function(req, res) {
-  console.log("here "+req.user);
-  //we must make a new user!
-  var newuser =new User();
-  newuser.google=req.user.google;
-  newuser.local.email=req.user.google.email;
-  newuser.local.name=req.user.google.name;
-  newuser.local.password=req.user.generateHash("X"); //place holder
-  newuser.local.authenticated= "0";
-  newuser.save(function(err) {
+    //we must make a new user!
+//  console.log("before1 "+req.user);
+  if (req.user.local.name) {
+    var thisUser=new User();
+    thisUser.google=req.user.google;
+    req.user.google=undefined;
+    req.user.save();
+  } else {
+    var thisUser=req.user;
+  }
+  console.log("before "+thisUser);
+  thisUser.local.email=thisUser.google.email;
+  thisUser.local.name=thisUser.google.name;
+  thisUser.local.password=thisUser.generateHash("X"); //place holder
+  thisUser.local.authenticated= "0";
+  thisUser.save(function(err) {
     if (err) {}
-    authenticateUser (newuser.local.email, newuser, req.protocol + '://' + req.get('host'));
-    res.render('authenticate.ejs', {context:"google", user: newuser});
+    authenticateUser (thisUser.local.email, thisUser, req.protocol + '://' + req.get('host'));
+    res.render('authenticate.ejs', {context:"google", user: thisUser});
     req.logout();
   });
   //now we send the email from here and here alone
@@ -905,7 +925,7 @@ function authenticateUser (email, user, thisUrl) {
   var hash=randomStringAsBase64Url(20);
   var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: thisUrl});
   //console.log( TCAddresses.replyto+" "+TCAddresses.from);
-  console.log("here 2 "+user)
+//  console.log("here 2 "+user)
   user.local.timestamp=new Date().getTime();
   user.local.hash=hash;
   user.save();
