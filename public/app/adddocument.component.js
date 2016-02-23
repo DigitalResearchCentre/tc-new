@@ -45,7 +45,7 @@ var AddDocumentComponent = ng.core.Component({
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
           //tell the system we have this document as current
-          uiService.setDocument(this.doc)
+          uiService.setDocument(doc);
           self._router.navigate(['Community', {
             id: uiService.community.getId(), route: 'view'
           }]);
