@@ -12,18 +12,18 @@ _.mixin({
 
     return child;
   },
-  dfs: function (node, fn) {
-    var queue = []
-      , cur
-    ;
+  dfs: function (queue, fn) {
+    var cur;
     queue.push(node);
     while(queue.length > 0) {
-      cur = queue.pop();
+      cur = queue.shift();
       fn(cur);
-      _.forEachRight(cur.children, _.bind(queue.push, queue));
+      _.forEachRight(cur.children, _.bind(queue.unshift, queue));
     }
+    return queue;
   },
 });
 
 module.exports = _;
+
 

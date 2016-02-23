@@ -55,8 +55,9 @@ var HeaderComponent = ng.core.Component({
     }
   },
   showAddPage: function() {
-    var doc=this.uiService.document;
-    return doc && _.isEmpty(doc.attrs.children);;
+    var doc = this.uiService.document;
+    console.log(doc);
+    return doc && _.isEmpty(doc.attrs.children);
   },
   showLoginModal: function() {
     this.uiService.loginModel$.emit('show');

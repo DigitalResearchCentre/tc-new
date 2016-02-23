@@ -41,6 +41,7 @@ var UIService = ng.core.Class({
   setDocument: function(doc) {
     if (doc !== this.document) {
       this.document = doc;
+      this.document.expand = true;
       this._docService.fetch(doc.getId(), {
         populate: JSON.stringify('children'),
       }).subscribe();

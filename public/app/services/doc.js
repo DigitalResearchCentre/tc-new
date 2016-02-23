@@ -313,7 +313,8 @@ var DocService = ng.core.Injectable().Class({
       , teiRoot = xmlDoc2json(xmlDoc)
       , docTags = ['pb', 'cb', 'lb']
       , docRoot = {
-        _id: docModel.getId(), label: docModel.attrs.label, children: []}
+        _id: docModel.getId(), label: docModel.attrs.label, children: []
+      }
       , queue = [teiRoot]
       , prevDoc = docRoot
       , docQueue = []
@@ -325,6 +326,11 @@ var DocService = ng.core.Injectable().Class({
     }
 
     // dfs on TEI tree, find out all document
+    /*
+    _.dfs(teiRoot, function(node) {
+      
+    });
+    */
     while (queue.length > 0) {
       cur = queue.shift();
       if (!_.startsWith(cur.name, '#')) {
@@ -368,6 +374,7 @@ var DocService = ng.core.Injectable().Class({
       });
     }
 
+    return;
     return this.update(docModel.getId(), {
       commit: {
         tei: teiRoot,

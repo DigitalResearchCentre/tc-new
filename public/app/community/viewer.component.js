@@ -109,7 +109,7 @@ var ViewerComponent = ng.core.Component({
     var index = $event.target.value
       , revisions = this.page.attrs.revisions
     ;
-    if (index == 0) {
+    if (index === 0) {
       this.contentText = this.dbText;
     } else {
       this.contentText = revisions[index-1].attrs.text;

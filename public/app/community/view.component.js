@@ -48,14 +48,12 @@ var ViewComponent = ng.core.Component({
     docService.fetch(page.getId(), {
       populate: JSON.stringify('children revisions')
     }).subscribe(function(res) {
-      console.log(page)
       self.page = page;
-      console.log(res);
     });
 
     docService.getTrees(page).map(function(teiRoot) {
       console.log(docService.json2xml(teiRoot));
-    }).subscribe()
+    }).subscribe();
   },
   toggleEntity: function() {
 
