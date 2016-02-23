@@ -6,8 +6,12 @@ var Observable = Rx.Observable
   , AuthService = require('../auth.service')
   , Doc = require('../models/doc')
   , bson = require('bson')
-//  , ObjectID = bson().ObjectID
+  , ObjectID = bson.ObjectID
 ;
+
+if (!ObjectID) {
+  ObjectID = bson().ObjectID;
+}
 
 function createObjTree(node, queue) {
   var obj = {
