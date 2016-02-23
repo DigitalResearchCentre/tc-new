@@ -47,7 +47,6 @@ var AddDocumentComponent = ng.core.Component({
           self.success="Document "+self.doc.name+" created.";
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
-
           uiService.communityComponent$.emit({navigate: 'view'});
           self.closeModalAD();
         }, function(err) {

@@ -30,7 +30,7 @@ var EditNewPageComponent = ng.core.Component({
     this.choice="Prose";
   }],
   ngOnInit: function() {
-    this.entity={name:"Freddy"};
+    this.entity={name:"Moby Dick"};
   },
   submit: function() {
     var self = this;

@@ -17,14 +17,14 @@
     <label>Entity Name ("Hamlet", "Book of John")</label>
     <input type="text"
     style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="entity.name"/>
-    <p><input type="radio" name="chooseStructure" value="Prose"/>Prose</p>
+    <p><input type="radio" checked="checked" name="chooseStructure" value="Prose"/>Prose</p>
     <p><input type="radio" name="chooseStructure" value="Poetry"/>Poetry</p>
     <p><input type="radio" name="chooseStructure" value="Play"/>Play</p>
     <p><input type="radio" name="chooseStructure" value="Letter"/>Letter</p>
     <p><input type="radio" name="chooseStructure" value="Plain"/>Plain text</p>
     <p><input type="radio" name="chooseStructure" value="Empty"/>Empty page</p>
     <div [ngSwitch]="choice">
-      <tc-newpage-prose *ngSwitchWhen="'Prose'">
+      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity">
       </tc-newpage-prose>
     </div>
     <div id="MMADbutton" style="text-align: center; margin-top: 20px">

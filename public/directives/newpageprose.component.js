@@ -5,8 +5,8 @@ var $ = require('jquery');
 
 var NewPageProseComponent = ng.core.Component({
   selector: 'tc-newpage-prose',
-  templateUrl: '/community/manage/tmpl/new-page-prose.html',
-  inputs: [ 'entity', 'community',],
+  templateUrl: '/directives/new-page-prose.html',
+  inputs: [ 'entity',],
 }).Class({
   constructor: [ function() {
     var bill="fred";
