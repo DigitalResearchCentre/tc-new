@@ -9,6 +9,10 @@ var Observable = Rx.Observable
   , ObjectID = bson().ObjectID
 ;
 
+if (!ObjectID) {
+  ObjectID = bson.ObjectID;
+}
+
 function createObjTree(node, queue) {
   var obj = {
     name: node.nodeName,
