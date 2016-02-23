@@ -41,7 +41,7 @@ var AddDocumentComponent = ng.core.Component({
         this._communityService.addDocument(this.uiService.community, this.doc)
         .subscribe(function(doc) {
           console.log("loaded the doc");
-          self.success="Document "+self.doc.name+" created."
+          self.success="Document "+self.doc.name+" created.";
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
           var instruction = self._router.generate([
@@ -52,7 +52,7 @@ var AddDocumentComponent = ng.core.Component({
     //      self.closeModalAD();
         }, function(err) {
           self.message = err.message;
-        })
+        });
     }
   },
   closeModalAD: function() {

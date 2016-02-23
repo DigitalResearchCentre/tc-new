@@ -3,6 +3,7 @@ var URI = require('urijs')
   , UIService = require('./ui.service')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
+  , DocService = require('./services/doc')
   , TCService = require('./tc')
 ;
 //require('jquery-ui/draggable');
@@ -17,7 +18,10 @@ var AddDocumentXMLComponent = ng.core.Component({
     require('./directives/filereader'),
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
+  constructor: [
+    CommunityService, AuthService, UIService, DocService, function(
+      communityService, authService, uiService, docService
+    ) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
@@ -28,6 +32,8 @@ var AddDocumentXMLComponent = ng.core.Component({
     this.text="";
     this.uiService = uiService;
     this._communityService = communityService;
+    this._docService = docService;
+
     this.doc = {name:"", text:""};
     /*this for scope variables */
     this.filecontent = '';
@@ -36,20 +42,33 @@ var AddDocumentXMLComponent = ng.core.Component({
     this.filecontent = filecontent;
   },
   submit: function() {
-    var self = this;
+    var self = this
+      , docService = this._docService
+      , text = this.text || this.filecontent
+    ;
     if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
       return;
     }
-    if (!this.text && !this.filecontent) {
+    if (!text) {
       this.message = 'Either paste text into the text box or choose a file';
       return;
     }
-    this.doc.text=this.text || this.filecontent;
     this._communityService.addDocument(this.uiService.community, this.doc)
-      .subscribe(function(doc) {
+      .flatMap(function(doc) {
+        return docService.commit({
+          doc: doc,
+          text: text,
+          links: {
+            prev: [],
+            next: [],
+          },
+        });
+      })
+      .subscribe(function(res) {
+        console.log(res);
         self.closeModalADX();
       }, function(err) {
         self.message = err.message;
