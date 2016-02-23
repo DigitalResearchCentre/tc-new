@@ -4,7 +4,6 @@
       <tc-tab [active]="true" title="Documents">
         <tc-tabs>
           <tc-tab [active]="true" title="By Page">
-            <button (click)="testAdd()">add</button>
             <ul class="tree">
               <li *ngFor="#doc of community.attrs.documents" 
                 [class.collapse-node]="!doc.expand">
@@ -23,6 +22,8 @@
                     <a (click)="selectPage(page)">
                       {{page.attrs.name}}
                     </a>
+                    <span (click)="addPageAfter(page)" 
+                      class="add-page-after"></span>
                   </li>
                 </ul>
               </li>

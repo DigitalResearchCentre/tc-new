@@ -68,12 +68,13 @@ var DocResource = _.inherit(Resource, function(opts) {
 }, {
   execSave: function(req, res, next) {
     return function(obj, callback) {
-      var parent, community, doc;
+      var parent, community, doc, after;
       async.waterfall([
         prevSave,
         function(results, cb) {
           parent = results[0];
-          community = results[1];
+          after = results[1];
+          community = results[2];
           obj.save(function(err, obj, numberAffected) {
             doc = obj;
             cb(err, doc);
@@ -99,6 +100,17 @@ var DocResource = _.inherit(Resource, function(opts) {
               var prevIndex, prevs, teiparent;
               if (parent) {
                 parent.children.push(doc._id);
+              } else if (after) {
+                parent = _.last(after.ancestors);
+                var index = _.findIndex(parent.children, function(id) {
+                  if (id._id) {
+                    id = id._id;
+                  }
+                  return id.equals(after._id);
+                });
+                parent.children.splice(index + 1, 0, doc._id);
+              }
+              if (parent) {
                 doc.ancestors = parent.ancestors.concat(parent._id);
                 async.waterfall([
                   function(cb1) {
@@ -112,7 +124,7 @@ var DocResource = _.inherit(Resource, function(opts) {
                     });
                   },
                   function(doc, cb1) {
-                    Doc.getPrevTexts(doc._id, cb1)
+                    Doc.getPrevTexts(doc._id, cb1);
                   },
                   function(prevTexts, cb1) {
                     prevs = prevTexts;
@@ -147,7 +159,7 @@ var DocResource = _.inherit(Resource, function(opts) {
                           prevs[prevIndex].children, 
                           function(id) {
                             if (id._id) {
-                              id = id._id
+                              id = id._id;
                             }
                             return id.equals(prevs[prevIndex+1]._id);
                           }
@@ -165,6 +177,8 @@ var DocResource = _.inherit(Resource, function(opts) {
                 ], function(err) {
                   cb(err, doc);
                 });
+              } else if(after) {
+
               } else {
                 cb(null);
               }
@@ -205,6 +219,15 @@ var DocResource = _.inherit(Resource, function(opts) {
           function(cb) {
             if (req.body.parent) {
               Doc.findOne({_id: req.body.parent}).exec(cb);
+            } else {
+              cb(null);
+            }
+          },
+          function(cb) {
+            if (req.body.after) {
+              Doc.findOne({
+                _id: req.body.after
+              }).populate('ancestors').exec(cb);
             } else {
               cb(null);
             }

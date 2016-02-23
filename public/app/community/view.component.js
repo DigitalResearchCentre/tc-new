@@ -42,18 +42,11 @@ var ViewComponent = ng.core.Component({
     this._uiService.setDocument(doc);
   },
   selectPage: function(page) {
-    var docService = this._docService
-      , self = this
-    ;
-    docService.fetch(page.getId(), {
-      populate: JSON.stringify('children revisions')
-    }).subscribe(function(res) {
-      self.page = page;
-    });
-
-    docService.getTrees(page).map(function(teiRoot) {
-      console.log(docService.json2xml(teiRoot));
-    }).subscribe();
+    this.page = page;
+    this._uiService.selectPage(page);
+  },
+  addPageAfter: function(page) {
+    this._uiService.manageModal$.emit('add-document-page');
   },
   toggleEntity: function() {
 
