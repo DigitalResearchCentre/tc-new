@@ -39,10 +39,16 @@ var CommunityComponent = ng.core.Component({
     var self = this
       , id = this._routeParams.get('id')
       , route = this._routeParams.get('route')
+      , uiService = this._uiService
     ;
     this.route = route;
     this.community = this._communityService.get(id);
-    this._uiService.setCommunity(this.community);
+    uiService.setCommunity(this.community);
+    uiService.communityComponent$.subscribe(function(event) {
+      if (event.navigate) {
+        self.navigate(event.navigate);
+      }
+    });
   },
   navigate: function(route) {
     var instruction = this._router.generate([

@@ -6,6 +6,7 @@ var URI = require('urijs')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
   , TCService = require('./tc')
+;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
@@ -32,24 +33,23 @@ var AddDocumentComponent = ng.core.Component({
     /*this for scope variables */
   }],
   submit: function() {
-    var self = this;
+    var self = this
+      , uiService = this.uiService
+    ;
     if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
     } else {
-        this._communityService.addDocument(this.uiService.community, this.doc)
+        this._communityService.addDocument(uiService.community, this.doc)
         .subscribe(function(doc) {
           console.log("loaded the doc");
           self.success="Document "+self.doc.name+" created.";
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
-          var instruction = self._router.generate([
-            'Community', {id: self.uiService.community.attrs._id, route: "view"}
-          ]);
-          self._location.go(instruction.toRootUrl());
-          self.route="view";
-    //      self.closeModalAD();
+
+          uiService.communityComponent$.emit({navigate: 'view'});
+          self.closeModalAD();
         }, function(err) {
           self.message = err.message;
         });
