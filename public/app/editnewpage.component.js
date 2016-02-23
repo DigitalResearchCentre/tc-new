@@ -12,7 +12,8 @@ var EditNewPageComponent = ng.core.Component({
   selector: 'tc-managemodal-edit-new-page',
   templateUrl: '/app/editnewpage.html',
   directives: [
-    require('../directives/modaldraggable')
+    require('../directives/modaldraggable'),
+    require('../directives/newpageprose.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -26,7 +27,11 @@ var EditNewPageComponent = ng.core.Component({
     this.text="";
     this.uiService = uiService;
     this._communityService = communityService;
+    this.choice="Prose";
   }],
+  ngOnInit: function() {
+    this.entity={name:"Freddy"};
+  },
   submit: function() {
     var self = this;
     if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
