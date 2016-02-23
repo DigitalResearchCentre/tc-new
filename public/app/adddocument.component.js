@@ -1,12 +1,10 @@
 var $ = require('jquery');
 var URI = require('urijs')
   , Router = ng.router.Router
-  , Location = ng.router.Location
   , UIService = require('./ui.service')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
   , TCService = require('./tc')
-;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
@@ -18,7 +16,7 @@ var AddDocumentComponent = ng.core.Component({
     require('../directives/modaldraggable')
   ],
 }).Class({
-  constructor: [Router, Location, CommunityService, AuthService, UIService, function(router, location, communityService, authService, uiService) {
+  constructor: [Router, CommunityService, AuthService, UIService, function(router, communityService, authService, uiService) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
@@ -29,7 +27,6 @@ var AddDocumentComponent = ng.core.Component({
     this.uiService = uiService;
     this._communityService = communityService;
     this._router = router;
-    this._location = location;
     /*this for scope variables */
   }],
   submit: function() {
@@ -48,8 +45,11 @@ var AddDocumentComponent = ng.core.Component({
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
 
-          uiService.communityComponent$.emit({navigate: 'view'});
-          self.closeModalAD();
+          self._router.navigate(['Community', {
+            id: uiService.community.getId(), route: 'view'
+          }]);
+
+    //      self.closeModalAD();
         }, function(err) {
           self.message = err.message;
         });
