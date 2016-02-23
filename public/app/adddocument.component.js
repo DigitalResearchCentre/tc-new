@@ -44,10 +44,12 @@ var AddDocumentComponent = ng.core.Component({
           self.success="Document "+self.doc.name+" created.";
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
+          //tell the system we have this document as current
+          uiService.setDocument(this.doc)
           self._router.navigate(['Community', {
             id: uiService.community.getId(), route: 'view'
           }]);
-          self.closeModalAD();
+  //        self.closeModalAD();
         }, function(err) {
           self.message = err.message;
         });
