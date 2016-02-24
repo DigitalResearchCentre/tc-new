@@ -378,7 +378,6 @@ var DocService = ng.core.Injectable().Class({
       });
     }
 
-    return;
     return this.update(docModel.getId(), {
       commit: {
         tei: teiRoot,
