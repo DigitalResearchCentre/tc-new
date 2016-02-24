@@ -1,4 +1,5 @@
 var $ = require('jquery')
+  , Router = ng.router.Router
   , UIService = require('./ui.service')
   , CommunityService = require('./services/community')
   , DocService = require('./services/doc')
@@ -16,13 +17,14 @@ var AddPageComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    CommunityService, AuthService, UIService, DocService,
+    Router, CommunityService, AuthService, UIService, DocService,
   function(
-    communityService, authService, uiService, docService
+    router, communityService, authService, uiService, docService
   ) {
 
     var self=this;
     this._docService = docService;
+    this._router = router;
     this.uiService = uiService;
     this.message="";
     this.success="";
@@ -57,19 +59,34 @@ var AddPageComponent = ng.core.Component({
     $("#MMAPPMFF").hide();
   },
   submit: function() {
-    var self = this;
+    var self = this
+      , uiService = this.uiService
+      , router = this._router
+    ;
     if (this.oneormany=="OnePage") {
-      if (this.pageName=="") {
+      if (this.pageName === "") {
         this.message="You must supply a name for the page";
         return;
       } else {
         this.message="";
-        this._docService.addPage(this.uiService.document, {
-          name: this.pageName, text: '<text><body><pb n="'+this.pageName+'"/></body></text>'
-        }).subscribe(function(page) {
-          console.log("added "+self.pageName)
+        var options = {
+          name: this.pageName, 
+          text: '<text><body><pb n="'+this.pageName+'"/></body></text>'
+        };
+        if (this.parent) {
+          options.parent = this.parent;
+        } else if (this.after) {
+          options.after = this.after;
+        }
+        this._docService.addPage(options).subscribe(function(page) {
+          uiService.selectPage(page);
+          router.navigate(['Community', {
+            id: uiService.community.getId(), route: 'view'
+          }]);
+
+          console.log("added "+self.pageName);
           self.success="Page "+self.pageName+" added";
-        })
+        });
       }
     }
    },

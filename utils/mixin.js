@@ -12,6 +12,11 @@ _.mixin({
 
     return child;
   },
+  /*
+   * @param queue - [treeNode]
+   * @return queue - queue of unchecked nodes
+   * dfs may exit iteration early by explicitly returning false
+   */
   dfs: function (queue, fn) {
     var cur;
     queue.push(node);

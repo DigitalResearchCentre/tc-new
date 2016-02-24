@@ -2,8 +2,6 @@
   <div [ngSwitch]="choice">
     <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
     </tc-managemodal-adddocument>
-    <!--tc-managemodal-addpage *ngSwitchWhen="'add-document-page'">
-    </tc-managemodal-addpage-->
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'">
     </tc-managemodal-adddocument-xml>
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'">

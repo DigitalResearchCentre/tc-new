@@ -39,15 +39,33 @@ var UIService = ng.core.Class({
     return community;
   },
   setDocument: function(doc) {
+    var self =  this;
     if (doc !== this.document) {
       this.document = doc;
       this.document.expand = true;
       this._docService.fetch(doc.getId(), {
         populate: JSON.stringify('children'),
-      }).subscribe();
+      }).subscribe(function(doc) {
+        var first = _.first(doc.attrs.children);
+        if (first) {
+          self.selectPage(first);
+        }
+      });
     }
     return doc;
-  }
+  },
+  selectPage: function(page) {
+    var docService = this._docService
+      , self = this
+    ;
+    docService.fetch(page.getId(), {
+      populate: JSON.stringify('children revisions')
+    }).subscribe();
+
+    docService.getTrees(page).map(function(teiRoot) {
+      console.log(docService.json2xml(teiRoot));
+    }).subscribe();
+  },
 });
 
 module.exports = UIService;

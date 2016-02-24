@@ -246,38 +246,44 @@ var DocService = ng.core.Injectable().Class({
   initEventEmitters: function() {
     var self = this;
   },
-  addPage: function(doc, page) {
-    var docId = doc.getId()
+  addPage: function(page) {
+    var self = this
       , pageId = new ObjectID()
-      , children = doc.attrs.children
-      , self = this
+      , docId
     ;
     page._id = pageId;
-    if (_.isEmpty(children)) {
-      return this.update(docId, {
-        commit: {
-          tei: {
-            name: 'text',
-            doc: docId,
-            children: [{
-              name: 'body',
+    if (page.parent) {
+      docId = page.parent.getId()
+      if (_.isEmpty(page.parent.attrs.children)) {
+        page.parent = docId;
+        return this.update(docId, {
+          commit: {
+            tei: {
+              name: 'text',
               doc: docId,
               children: [{
-                name: 'pb',
-                doc: pageId,
-                children: [],
+                name: 'body',
+                doc: docId,
+                children: [{
+                  name: 'pb',
+                  doc: pageId,
+                  children: [],
+                }]
               }]
-            }]
-          },
-          doc: {
-            children: [
-              page,
-            ]
+            },
+            doc: {
+              children: [
+                page,
+              ]
+            }
           }
-        }
-      });
-    } else {
-      page.parent = docId;
+        });
+      } else {
+        page.parent = docId;
+        return this.create(page);
+      }
+    } else if (page.after) {
+      page.after = page.after.getId();
       return this.create(page);
     }
   },
@@ -326,11 +332,9 @@ var DocService = ng.core.Injectable().Class({
     }
 
     // dfs on TEI tree, find out all document
-    /*
-    _.dfs(teiRoot, function(node) {
+    _.dfs([teiRoot], function(node) {
       
     });
-    */
     while (queue.length > 0) {
       cur = queue.shift();
       if (!_.startsWith(cur.name, '#')) {
