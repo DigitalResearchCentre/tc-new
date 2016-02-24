@@ -253,7 +253,7 @@ var DocService = ng.core.Injectable().Class({
     ;
     page._id = pageId;
     if (page.parent) {
-      docId = page.parent.getId()
+      docId = page.parent.getId();
       if (_.isEmpty(page.parent.attrs.children)) {
         page.parent = docId;
         return this.update(docId, {
