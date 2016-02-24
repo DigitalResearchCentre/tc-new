@@ -328,13 +328,16 @@ var DocService = ng.core.Injectable().Class({
     ;
     var err = checkLinks(teiRoot, links, docElement, docRoot);
     if (err && callback) {
+      console.log(err);
       return callback(err);
     }
 
     // dfs on TEI tree, find out all document
+    /*
     _.dfs([teiRoot], function(node) {
       
     });
+    */
     while (queue.length > 0) {
       cur = queue.shift();
       if (!_.startsWith(cur.name, '#')) {

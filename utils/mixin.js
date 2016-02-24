@@ -19,7 +19,6 @@ _.mixin({
    */
   dfs: function (queue, fn) {
     var cur;
-    queue.push(node);
     while(queue.length > 0) {
       cur = queue.shift();
       fn(cur);
