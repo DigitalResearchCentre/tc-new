@@ -13,14 +13,16 @@ var EditNewPageComponent = ng.core.Component({
   templateUrl: '/app/editnewpage.html',
   directives: [
     require('../directives/modaldraggable'),
-    require('../directives/newpageprose.component')
+    require('../directives/newpageprose.component'),
+    require('../directives/newpagepoetry.component'),
+    require('../directives/newpageplay.component'),
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
-    this.entity = {name:""};
-    $('#manageModal').width("400px");
+    this.entity = {name:"Moby Dick", sample:'"Moby Dick", "Oliver Twist"'};
+    $('#manageModal').width("510px");
     $('#manageModal').height("600px");
     this.message="";
     this.success="";
@@ -29,31 +31,24 @@ var EditNewPageComponent = ng.core.Component({
     this._communityService = communityService;
     this.choice="Prose";
   }],
-  ngOnInit: function() {
-    this.entity={name:"Moby Dick"};
-  },
   submit: function() {
-    var self = this;
-    if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
-      this.message = 'The document must have a name';
-      $('#MMADdiv').css("margin-top", "0px");
-      $('#MMADbutton').css("margin-top", "10px");
-      return;
+  },
+  choose: function(choice) {
+    switch (choice) {
+      case "Prose":
+          this.entity = {name:"Moby Dick", sample:'"Moby Dick", "Oliver Twist"'};
+          break;
+      case "Poetry":
+          this.entity = {name:"Commedia", sample:'"Commedia", "The Prelude"'};
+          break;
+      case "Play":
+          this.entity = {name:"Hamlet", sample:'"Hamlet", "The Doll House"'};
+          break;
     }
-    if (!this.text && !this.filecontent) {
-      this.message = 'Either paste text into the text box or choose a file';
-      return;
-    }
-    this.doc.text=this.text || this.filecontent;
-    this._communityService.addDocument(this.uiService.community, this.doc)
-      .subscribe(function(doc) {
-        self.closeModalADX();
-      }, function(err) {
-        self.message = err.message;
-      });
+    this.choice=choice;
   },
   closeModalNP: function() {
-    this.message=this.success=this.doc.name="";
+    this.message=this.success="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');

@@ -40,8 +40,6 @@ var AddDocumentComponent = ng.core.Component({
     } else {
         this._communityService.addDocument(uiService.community, this.doc)
         .subscribe(function(doc) {
-          console.log("loaded the doc");
-          self.success="Document "+self.doc.name+" created.";
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
           //tell the system we have this document as current
@@ -49,7 +47,7 @@ var AddDocumentComponent = ng.core.Component({
           self._router.navigate(['Community', {
             id: uiService.community.getId(), route: 'view'
           }]);
-  //        self.closeModalAD();
+          self.closeModalAD();
         }, function(err) {
           self.message = err.message;
         });

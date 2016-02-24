@@ -9,7 +9,6 @@ var NewPageProseComponent = ng.core.Component({
   inputs: [ 'entity',],
 }).Class({
   constructor: [ function() {
-    var bill="fred";
   }],
 });
 

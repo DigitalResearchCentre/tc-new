@@ -13,23 +13,26 @@
     {{success}}
   </div>
   <div id="MMADdiv" class="form-group"
-   style="margin-top: 30px; margin-left: 20px; margin-right: 20px">
-    <label>Entity Name ("Hamlet", "Book of John")</label>
+   style="margin-top: 15px; margin-left: 15px; margin-right: 30px">
+    <label>Entity Name ({{entity.sample}})</label>&nbsp;&nbsp;
     <input type="text"
     style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="entity.name"/>
-    <p><input type="radio" checked="checked" name="chooseStructure" value="Prose"/>Prose</p>
-    <p><input type="radio" name="chooseStructure" value="Poetry"/>Poetry</p>
-    <p><input type="radio" name="chooseStructure" value="Play"/>Play</p>
-    <p><input type="radio" name="chooseStructure" value="Letter"/>Letter</p>
-    <p><input type="radio" name="chooseStructure" value="Plain"/>Plain text</p>
-    <p><input type="radio" name="chooseStructure" value="Empty"/>Empty page</p>
-    <div [ngSwitch]="choice">
-      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity">
-      </tc-newpage-prose>
-    </div>
-    <div id="MMADbutton" style="text-align: center; margin-top: 20px">
+  </div>
+  <div style="margin-left: 40px; margin-top: 10px">
+    <p class="NewDocPage"><input type="radio" checked="checked" name="chooseStructure" (click)="choose('Prose')" value="Prose"/>Prose</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Poetry')" value="Poetry"/>Poetry</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Play')" value="Play"/>Play</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" value="Letter"/>Letter</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" value="Plain"/>Plain text</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" value="Empty"/>Empty page</p>
+  </div>
+  <div [ngSwitch]="choice">
+      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity"></tc-newpage-prose>
+      <tc-newpage-poetry *ngSwitchWhen="'Poetry'" [entity]="entity"></tc-newpage-poetry>
+      <tc-newpage-play *ngSwitchWhen="'Play'" [entity]="entity"></tc-newpage-play>
+  </div>
+  <div id="MMADbutton" style="text-align: center; margin-top: 10px">
       <button type="button" class="btn btn-primary" (click)="submit()">Choose</button>
-    </div>
   </div>
 </form>
 </div>
