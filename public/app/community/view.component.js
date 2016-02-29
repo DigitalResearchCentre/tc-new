@@ -55,25 +55,15 @@ var ViewComponent = ng.core.Component({
 
   },
   extractXML: function($event, doc) {
+    var self=this;
     var docService = this._docService;
-      docService.getTrees(doc).subscribe(function(data ) {
-        console.log(data);
-        console.log(docService.json2xml(data));
-
+    self._uiService.manageModal$.emit("extract-xml-doc");
+    docService.getTrees(doc).subscribe(function(data ) {
+        self._uiService.sendXMLData$.emit(docService.json2xml(data));
+  //      console.log(data);
+  //      console.log(docService.json2xml(data));
       });
       return;
-
-    var docService = this._docService;
-    if (!$event.target.href) {
-      $event.preventDefault();
-      docService.getTrees(doc).subscribe(function(data ) {
-        console.log(data);
-        $event.target.href = 'data:text/xml,' + docService.json2xml(data);
-        setTimeout(function() {
-          $event.target.click();
-        });
-      });
-    }
   }
 });
 

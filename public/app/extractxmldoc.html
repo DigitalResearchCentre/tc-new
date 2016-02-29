@@ -1,0 +1,17 @@
+<div style="height:100%">
+  <div modal-draggable class="modalHeader">Extract XML for Document "{{uiService.document.attrs.name}}" in Community "{{uiService.community.attrs.name}}"
+    <button type="button" (click)="closeModalEXD()" class="close"
+    data-dismiss="modal"
+    style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
+  </button>
+  </div>
+  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+    {{message}}
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
+    {{success}}
+  </div>
+  <div style="width: 98%; height: 98%; margin: auto">
+    <textarea style="width: 98%; height: 96%; resize: none; margin:auto">{{outputXML}}</textarea>
+  </div>
+</div>

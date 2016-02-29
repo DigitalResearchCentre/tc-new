@@ -1,5 +1,5 @@
 <div  id="manageModal" class="modal fade resizable" role="dialog" style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px">
-  <div [ngSwitch]="choice">
+  <div [ngSwitch]="choice" style="height:98%">
     <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
     </tc-managemodal-adddocument>
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'">
@@ -8,5 +8,7 @@
     </tc-managemodal-addpage>
     <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'">
     </tc-managemodal-edit-new-page>
+    <tc-managemodal-extract-xml-doc *ngSwitchWhen="'extract-xml-doc'">
+    </tc-managemodal-extract-xml-doc>
   </div>
 </div>

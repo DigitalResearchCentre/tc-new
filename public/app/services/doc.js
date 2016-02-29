@@ -335,7 +335,7 @@ var DocService = ng.core.Injectable().Class({
     // dfs on TEI tree, find out all document
     /*
     _.dfs([teiRoot], function(node) {
-      
+
     });
     */
     while (queue.length > 0) {
@@ -376,7 +376,7 @@ var DocService = ng.core.Injectable().Class({
       }
 
       _.forEachRight(cur.children, function(child) {
-        console.log(child);
+    //    console.log(child);
         queue.unshift(child);
       });
     }

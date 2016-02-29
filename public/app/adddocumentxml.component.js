@@ -68,8 +68,8 @@ var AddDocumentXMLComponent = ng.core.Component({
         });
       })
       .subscribe(function(res) {
-        console.log(res);
-        self.closeModalADX();
+        self.success="XML document "+self.doc.name+" loaded successfully"
+  //        self.closeModalADX();
       }, function(err) {
         self.message = err.message;
       });

@@ -1,12 +1,6 @@
 var $ = require('jquery');
 var URI = require('urijs')
   , UIService = require('./ui.service')
-  , CommunityService = require('./services/community')
-  , AuthService = require('./auth.service')
-  , TCService = require('./tc')
-//require('jquery-ui/draggable');
-//require('jquery-ui/resizable');
-//require('jquery-ui/dialog');
 
 var EditNewPageComponent = ng.core.Component({
   selector: 'tc-managemodal-edit-new-page',
@@ -18,20 +12,19 @@ var EditNewPageComponent = ng.core.Component({
     require('../directives/newpageplay.component'),
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
+  constructor: [UIService, function(uiService) {
     var self=this;
-//    var Doc = TCService.Doc, doc = new Doc();
     this.entity = {name:"Moby Dick", sample:'"Moby Dick", "Oliver Twist"'};
     $('#manageModal').width("510px");
     $('#manageModal').height("600px");
-    this.message="";
-    this.success="";
-    this.text="";
+    this.message=this.success="";
     this.uiService = uiService;
-    this._communityService = communityService;
     this.choice="Prose";
   }],
   submit: function() {
+      var newPage=$("#NewDoc").text();
+      this.uiService.newPage$.emit(newPage);
+      this.closeModalNP();
   },
   choose: function(choice) {
     switch (choice) {
@@ -52,6 +45,7 @@ var EditNewPageComponent = ng.core.Component({
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
+    this.uiService.newPage$.emit("");
   }
 });
 

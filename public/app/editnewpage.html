@@ -1,5 +1,5 @@
 <div *ngIf="uiService.community">
-  <div modal-draggable class="modalHeader">Edit New Page in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
+  <div id="ENPhead" modal-draggable class="modalHeader">Edit New Page in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
     <button type="button" (click)="closeModalNP()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
@@ -19,15 +19,15 @@
     style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="entity.name"/>
   </div>
   <div style="margin-left: 40px; margin-top: 10px">
-    <p class="NewDocPage"><input type="radio" checked="checked" name="chooseStructure" (click)="choose('Prose')" value="Prose"/>Prose</p>
-    <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Poetry')" value="Poetry"/>Poetry</p>
-    <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Play')" value="Play"/>Play</p>
-    <p class="NewDocPage"><input type="radio" name="chooseStructure" value="Letter"/>Letter</p>
-    <p class="NewDocPage"><input type="radio" name="chooseStructure" value="Plain"/>Plain text</p>
-    <p class="NewDocPage"><input type="radio" name="chooseStructure" value="Empty"/>Empty page</p>
+    <p class="NewDocPage"><input type="radio" checked="checked" name="chooseStructure" (click)="choose('Prose')">Prose</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Poetry')">Poetry</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Play')">Play</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure">Letter</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure">Plain text</p>
+    <p class="NewDocPage"><input type="radio" name="chooseStructure">Empty page</p>
   </div>
   <div [ngSwitch]="choice">
-      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity"></tc-newpage-prose>
+      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity" [(template)]="template"></tc-newpage-prose>
       <tc-newpage-poetry *ngSwitchWhen="'Poetry'" [entity]="entity"></tc-newpage-poetry>
       <tc-newpage-play *ngSwitchWhen="'Play'" [entity]="entity"></tc-newpage-play>
   </div>

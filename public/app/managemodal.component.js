@@ -15,7 +15,8 @@ var ManageModalComponent = ng.core.Component({
     require('./adddocument.component'),
     require('./addpage.component'),
     require('./adddocumentxml.component'),
-    require('./editnewpage.component')
+    require('./editnewpage.component'),
+    require('./extractxmldoc.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -29,7 +30,7 @@ var ManageModalComponent = ng.core.Component({
   init: function() {
     var self = this;
     this._uiService.manageModal$.subscribe(function(event) {
-      self.choice = event || 'add-document' || 'add-document-page' || 'add-xml-document' || 'edit-new-page';
+      self.choice = event || 'add-document' || 'add-document-page' || 'add-xml-document' || 'edit-new-page' || 'extract-xml-doc';
       $('#manageModal').modal('show');
     });
   },
