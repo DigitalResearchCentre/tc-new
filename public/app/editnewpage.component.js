@@ -1,6 +1,6 @@
-var $ = require('jquery');
-var URI = require('urijs')
+var $ = require('jquery')
   , UIService = require('./ui.service')
+;
 
 var EditNewPageComponent = ng.core.Component({
   selector: 'tc-managemodal-edit-new-page',
@@ -11,20 +11,23 @@ var EditNewPageComponent = ng.core.Component({
     require('../directives/newpagepoetry.component'),
     require('../directives/newpageplay.component'),
   ],
+  inputs: [
+    'page',
+  ],
 }).Class({
   constructor: [UIService, function(uiService) {
     var self=this;
+    this.uiService = uiService;
     this.entity = {name:"Moby Dick", sample:'"Moby Dick", "Oliver Twist"'};
     $('#manageModal').width("510px");
     $('#manageModal').height("600px");
     this.message=this.success="";
-    this.uiService = uiService;
     this.choice="Prose";
   }],
   submit: function() {
-      var newPage=$("#NewDoc").text();
-      this.uiService.newPage$.emit(newPage);
-      this.closeModalNP();
+    var newPage=$("#NewDoc").text();
+    this.page.contentText = newPage;
+    this.closeModalNP();
   },
   choose: function(choice) {
     switch (choice) {
@@ -45,7 +48,6 @@ var EditNewPageComponent = ng.core.Component({
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
-    this.uiService.newPage$.emit("");
   }
 });
 

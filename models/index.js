@@ -702,8 +702,6 @@ _.assign(DocSchema.statics, baseDoc.statics, {
         Doc.getDFSPrev(id, cb);
       },
       function(doc, cb) {
-        console.log('dfs prev doc');
-        console.log(doc);
         if (!doc) {
           return cb(null, null);
         }

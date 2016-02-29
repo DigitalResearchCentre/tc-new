@@ -90,10 +90,20 @@ var ViewerComponent = ng.core.Component({
           }
         }
         var t  = docService.json2xml(teiRoot);
-        self.contentText = self.dbText = t.replace('<pb/>', '') ;
+        self.dbText = t.replace('<pb/>', '');
+        self.setContentText(self.dbText);
       });
     } else {
       this.pb = null;
+    }
+  },
+  setContentText: function(contentText) {
+    this.page.contentText = contentText;
+    if (contentText === "<text><body/></text>") {
+      this._uiService.manageModal$.emit({
+        type: 'edit-new-page',
+        page: this.page,
+      });
     }
   },
   json2xml: function(data) {
@@ -110,9 +120,9 @@ var ViewerComponent = ng.core.Component({
       , revisions = this.page.attrs.revisions
     ;
     if (index === 0) {
-      this.contentText = this.dbText;
+      this.setContentText(this.dbText);
     } else {
-      this.contentText = revisions[index-1].attrs.text;
+      this.setContentText(revisions[index-1].attrs.text);
     }
   },
   revisionCompareChange: function($event) {
@@ -124,7 +134,7 @@ var ViewerComponent = ng.core.Component({
       , docService = this._docService
     ;
     docService.update(page.getId(), {
-      revision: this.contentText,
+      revision: this.page.contentText,
     }).subscribe(function() {
       docService.fetch(page.getId(), {
         populate: JSON.stringify('revisions'),
@@ -137,7 +147,7 @@ var ViewerComponent = ng.core.Component({
     var docService = this._docService;
     docService.commit({
       doc: page,
-      text: this.contentText,
+      text: this.page.contentText,
       docElement: true,
       links: {
         prev: links.prev.slice(0, _.findIndex(links.prev, this.prevLink) + 1),

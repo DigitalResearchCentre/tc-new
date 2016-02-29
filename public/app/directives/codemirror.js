@@ -39,15 +39,7 @@ var CodeMirrorComponent = ng.core.Component({
     var editor = this.editor;
     if (editor) {
       if (this.content !== editor.getValue()) {
-        if (this.content=="<text><body/></text>") {
-          this._uiService.manageModal$.emit("edit-new-page");
-          this._uiService.newPage$.subscribe(function(newText) {
-            newText="<text><body>\r"+newText+"</body></text>"
-            editor.setValue(newText || '');
-          });
-        } else {
-          editor.setValue(this.content || '');
-        }
+        editor.setValue(this.content || '');
       }
     }
   },
@@ -61,3 +53,5 @@ var CodeMirrorComponent = ng.core.Component({
 });
 
 module.exports = CodeMirrorComponent;
+
+

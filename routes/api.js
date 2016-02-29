@@ -112,7 +112,7 @@ var DocResource = _.inherit(Resource, function(opts) {
                   },
                   function(doc, cb1) {
                     Doc.getPrevTexts(doc._id, function(err, prevTexts) {
-                      if (!prevs || prevs.length === 0) {
+                      if (!prevTexts || prevTexts.length === 0) {
                         TEI.findOne({
                           docs: parent._id, ancestors: []
                         }).exec(function(err, tei) {
@@ -138,6 +138,7 @@ var DocResource = _.inherit(Resource, function(opts) {
                       ].indexOf(prev.name) === -1;
                     });
                     teiparent = prevs[prevIndex];
+                    console.log(teiparent);
                     var tei = new TEI({
                       ancestors: teiparent.ancestors.concat(teiparent._id),
                       children: [],
