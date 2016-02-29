@@ -42,7 +42,11 @@ app.set('view engine', 'ejs');
 app.use(logger('dev'));
 
 // required for passport
-app.use(session({ secret: 'ilovescotchscotchyscotchscotch' }));
+app.use(session({
+  key: 'session',
+  secret: 'ilovescotchscotchyscotchscotch',
+  store: require('mongoose-session')(mongoose),
+}));
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
