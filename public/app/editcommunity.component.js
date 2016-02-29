@@ -12,8 +12,12 @@ var EditCommunityComponent = ng.core.Component({
   constructor: [
     CommunityService, UIService, function(
       communityService, uiService) {
+    var self=this;
     this._communityService = communityService;
     this._uiService = uiService;
+    this._communityService.allCommunities$.subscribe(function(communities) {
+      self._allCommunities = communities;
+    });
   }],
   ngOnInit: function() {
     this.initEdit(this.community);
@@ -39,8 +43,18 @@ var EditCommunityComponent = ng.core.Component({
     }
   },
   submit: function() {
-    var self = this;
+    //is there a community with this name?
+    var self=this;
+    if (self._allCommunities.length>0) {
+      var matchedcom=self._allCommunities.filter(function (obj){return obj.attrs.abbr === self.edit.abbr;})[0];
+      if (matchedcom) {
+        self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
+        return;
+      }
+    }
+    this.message=this.success="";
     this._communityService.save(this.edit).subscribe(function(community) {
+      self.success='Community "'+self.edit.name+'" saved'
       self.initEdit(community);
       self._uiService.setCommunity(community);
     }, function(err) {
