@@ -16,6 +16,8 @@
                   <a target="_blank" class="extract-xml"
                     (click)="extractXML($event, doc)">
                   </a>
+                  <span (click)="addFirstPage(doc)" 
+                    class="add-page-after"></span>
                 </div>
                 <ul>
                   <li *ngFor="#page of doc.attrs.children">

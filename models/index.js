@@ -339,9 +339,10 @@ var BaseNodeSchema = function(modelName) {
           function(root, cb) {
             var cur = root
               , prevId, nextId
+              , found
             ;
             while (cur && !_.isEmpty(cur.children)) {
-              var found = _.findIndex(cur.children, function(child) {
+              found = _.findIndex(cur.children, function(child) {
                 return !(_.isString(child) || child instanceof OId);
               });
               if (found > -1) {
@@ -355,7 +356,7 @@ var BaseNodeSchema = function(modelName) {
             }
             cur = root;
             while (cur && !_.isEmpty(cur.children)) {
-              var found = _.findLastIndex(cur.children, function(child) {
+              found = _.findLastIndex(cur.children, function(child) {
                 return !(_.isString(child) || child instanceof OId); 
               });
               if (found > -1) {
@@ -415,8 +416,6 @@ var BaseNodeSchema = function(modelName) {
                     return !stop;
                   }, function(cb2) {
                     cls.getDFSNext(nextId, function(err, node) {
-                      console.log('nnn');
-                      console.log(node);
                       if (!node) {
                         stop = true;
                       } else if (
@@ -424,7 +423,6 @@ var BaseNodeSchema = function(modelName) {
                       ) {
                         nextId = node._id;
                       } else {
-                        console.log(node.name);
                         next = node;
                         stop = true;
                       }
@@ -704,6 +702,8 @@ _.assign(DocSchema.statics, baseDoc.statics, {
         Doc.getDFSPrev(id, cb);
       },
       function(doc, cb) {
+        console.log('dfs prev doc');
+        console.log(doc);
         if (!doc) {
           return cb(null, null);
         }
@@ -809,7 +809,7 @@ function _checkLinks(prevs, nexts, teiRoot) {
       if (prevs.length > 0) {
         cur.prevChildIndex = _.findIndex(prev.children, function(id) {
           if (id._id) {
-            id = id._id
+            id = id._id;
           }
           return id.equals(prevs[0]._id);
         });
@@ -844,7 +844,7 @@ function _checkLinks(prevs, nexts, teiRoot) {
     continueTeis[cur._id] = cur;
     cur.prevChildIndex = _.findIndex(prev.children, function(id) {
       if (id._id) {
-        id = id._id
+        id = id._id;
       }
       return id.equals(prevs[0]._id);
     });
@@ -872,7 +872,7 @@ function _checkLinks(prevs, nexts, teiRoot) {
       if (nexts.length > 0) {
         cur.nextChildIndex = _.findIndex(next.children, function(id) {
           if (id._id) {
-            id = id._id
+            id = id._id;
           }
           return id.equals(nexts[0]._id);
         });
@@ -910,7 +910,7 @@ function _checkLinks(prevs, nexts, teiRoot) {
     continueTeis[cur._id] = cur;
     cur.nextChildIndex = _.findIndex(next.children, function(id) {
       if (id._id) {
-        id = id._id
+        id = id._id;
       }
       return id.equals(nexts[0]._id);
     });

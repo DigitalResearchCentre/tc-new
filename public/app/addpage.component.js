@@ -11,10 +11,13 @@ var $ = require('jquery')
 
 var AddPageComponent = ng.core.Component({
   selector: 'tc-managemodal-addpage',
-  templateUrl: '/community/manage/tmpl/add-document-page.html',
+  templateUrl: '/app/addpage.html',
   directives: [
     require('../directives/modaldraggable')
   ],
+  inputs: [
+    'parent', 'after',
+  ]
 }).Class({
   constructor: [
     Router, CommunityService, AuthService, UIService, DocService,
@@ -34,6 +37,11 @@ var AddPageComponent = ng.core.Component({
     this.pageName="";
     this.page={http:""};
   }],
+  ngOnChanges: function() {
+    console.log(this.parent);
+    console.log(this.after);
+    
+  },
   showSingle: function() {
     $("#MMADPsingle").show();
     $("#MMADPmultiple").hide();

@@ -24,13 +24,17 @@ var ManageModalComponent = ng.core.Component({
 /*
     this.loginFrame = '/auth?url=/index.html#/home';
     this.loginFrameHeight = 233; */
-
-    this.init();
   }],
-  init: function() {
+  ngOnInit: function() {
     var self = this;
     this._uiService.manageModal$.subscribe(function(event) {
-      self.choice = event || 'add-document' || 'add-document-page' || 'add-xml-document' || 'edit-new-page' || 'extract-xml-doc';
+      // 'add-document' || 'add-document-page' || 'add-xml-document' || 'edit-new-page' || 'extract-xml-doc'
+      self.choice = event || 'add-document';
+      if (event.type === 'add-document-page') {
+        self.choice = event.type;
+        self.docParent = event.parent;
+        self.docAfter = event.after;
+      }
       $('#manageModal').modal('show');
     });
   },

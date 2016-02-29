@@ -10,6 +10,7 @@ var express = require('express')
   , bodyParser = require('body-parser')
   , flash = require('connect-flash')
   , session = require('express-session')
+  , MongoStore = require('connect-mongo')(session)
   , config = require('./config')
   , passport = require('./passport')
 ;
@@ -45,7 +46,9 @@ app.use(logger('dev'));
 app.use(session({
   key: 'session',
   secret: 'ilovescotchscotchyscotchscotch',
-  store: require('mongoose-session')(mongoose),
+  store: new MongoStore({mongooseConnection: mongoose.connection}),
+  resave: false,
+  saveUninitialized: false,
 }));
 app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions

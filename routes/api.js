@@ -16,26 +16,18 @@ var _ = require('lodash')
 var CommunityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Community, opts);
 }, {
-  execSave: function(req, res, next) {
-    return function(community) {
-      var cb = _.last(arguments);
-      var user = req.user;
-      async.waterfall([
-        _.bind(community.save, community),
-        function(community, numberAffected, cb) {
-          user.memberships.push({
-            community: community._id,
-            role: User.CREATOR,
-          });
-          cb(null);
-        },
-        _.bind(user.save, user),
-        function(user, numberAffected, cb) {
-          cb(null, community);
-        },
-      ], cb);
+  afterCreate: function(req, res, next) {
+    return function(community, cb) {
+      var  user = req.user;
+      user.memberships.push({
+        community: community._id,
+        role: User.CREATOR,
+      });
+      user.save(function(err, user) {
+        cb(err, community);
+      });
     };
-  },
+  }
 });
 
 var EntityResource = _.inherit(Resource, function(opts) {
@@ -71,16 +63,11 @@ var DocResource = _.inherit(Resource, function(opts) {
       var parent, community, doc, after;
       async.waterfall([
         prevSave,
-        function(results, cb) {
-          parent = results[0];
-          after = results[1];
-          community = results[2];
-          obj.save(function(err, obj, numberAffected) {
-            doc = obj;
-            cb(err, doc);
-          });
-        },
-        function(doc, parallelCb) {
+        function(_parent, _after, _community, _doc, parallelCb) {
+          parent = _parent;
+          after = _after;
+          community = _community;
+          doc = _doc;
           async.parallel([
             function(cb) {
               if (req.body.revision) {
@@ -99,7 +86,7 @@ var DocResource = _.inherit(Resource, function(opts) {
               // TODO: also need move all subtrees
               var prevIndex, prevs, teiparent;
               if (parent) {
-                parent.children.push(doc._id);
+                parent.children.unshift(doc._id);
               } else if (after) {
                 parent = _.last(after.ancestors);
                 var index = _.findIndex(parent.children, function(id) {
@@ -124,7 +111,21 @@ var DocResource = _.inherit(Resource, function(opts) {
                     });
                   },
                   function(doc, cb1) {
-                    Doc.getPrevTexts(doc._id, cb1);
+                    Doc.getPrevTexts(doc._id, function(err, prevTexts) {
+                      if (!prevs || prevs.length === 0) {
+                        TEI.findOne({
+                          docs: parent._id, ancestors: []
+                        }).exec(function(err, tei) {
+                          var teis = [];
+                          if (tei) {
+                            teis.push(tei);
+                          }
+                          cb1(err, teis);
+                        });
+                      } else {
+                        cb1(err, prevTexts);
+                      }
+                    });
                   },
                   function(prevTexts, cb1) {
                     prevs = prevTexts;
@@ -166,19 +167,18 @@ var DocResource = _.inherit(Resource, function(opts) {
                         );
                         teiparent.children.splice(childIndex+1, 0, tei._id);
                       } else {
-                        teiparent.children.push(tei._id);
+                        teiparent.children.unshift(tei._id);
                       }
                       teiparent.save(function(err, tt) {
                         cb1(err);
                       });
-
+                    } else {
+                      cb1(null);
                     }
                   }
                 ], function(err) {
                   cb(err, doc);
                 });
-              } else if(after) {
-
               } else {
                 cb(null);
               }
@@ -194,6 +194,10 @@ var DocResource = _.inherit(Resource, function(opts) {
               }
             },
           ], function(err, results) {
+            console.log(' finish parallel ');
+            if (err) {
+              parallelCb(err);
+            }
             var revision = results[0];
             if (revision) {
               doc.revisions.push(revision._id);
@@ -241,7 +245,15 @@ var DocResource = _.inherit(Resource, function(opts) {
               cb(null);
             }
           },
-        ], prevSaveCallback);
+          function(cb) {
+            obj.save(function(err, obj, numberAffected) {
+              doc = obj;
+              cb(err, doc);
+            });
+          }
+        ], function(err, results) {
+          prevSaveCallback.apply(null, [err].concat(results));
+        });
       }
     };
   },

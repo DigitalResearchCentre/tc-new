@@ -45,8 +45,17 @@ var ViewComponent = ng.core.Component({
     this.page = page;
     this._uiService.selectPage(page);
   },
+  addFirstPage: function(doc) {
+    this._uiService.manageModal$.emit({
+      type: 'add-document-page',
+      parent: doc,
+    });
+  },
   addPageAfter: function(page) {
-    this._uiService.manageModal$.emit('add-document-page');
+    this._uiService.manageModal$.emit({
+      type: 'add-document-page',
+      after: page,
+    });
   },
   toggleEntity: function() {
 

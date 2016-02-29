@@ -92,6 +92,16 @@ _.assign(Resource.prototype, {
       });
     };
   },
+  afterCreate: function(req, res, next) {
+    return function(obj, cb) {
+      cb(null, obj);
+    };
+  },
+  afterUpdate: function(req, res, next) {
+    return function(obj, cb) {
+      cb(null, obj);
+    };
+  },
   sendData: function(req, res, next) {
     var fields = _parseJSON(req.query.fields, [])
       , optFields
@@ -141,6 +151,7 @@ _.assign(Resource.prototype, {
       async.waterfall([
         this.beforeCreate(req, res, next),
         this.execSave(req, res, next),
+        this.afterCreate(req, res, next),
       ], this.sendData(req, res, next));
     }, this);
   },
@@ -163,6 +174,7 @@ _.assign(Resource.prototype, {
         _.bind(query.exec, query),
         this.beforeUpdate(req, res, next),
         this.execSave(req, res, next),
+        this.afterUpdate(req, res, next),
       ], this.sendData(req, res, next));
     }, this);
   },

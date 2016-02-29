@@ -249,6 +249,7 @@ var DocService = ng.core.Injectable().Class({
   addPage: function(page) {
     var self = this
       , pageId = new ObjectID()
+      , obs = Observable.empty()
       , docId
     ;
     page._id = pageId;
@@ -256,7 +257,7 @@ var DocService = ng.core.Injectable().Class({
       docId = page.parent.getId();
       if (_.isEmpty(page.parent.attrs.children)) {
         page.parent = docId;
-        return this.update(docId, {
+        obs = this.update(docId, {
           commit: {
             tei: {
               name: 'text',
@@ -280,12 +281,16 @@ var DocService = ng.core.Injectable().Class({
         });
       } else {
         page.parent = docId;
-        return this.create(page);
+        obs = this.create(page);
       }
     } else if (page.after) {
       page.after = page.after.getId();
-      return this.create(page);
+      obs = this.create(page);
     }
+    return obs.map(function(page) {
+      console.log(page);
+      return page;
+    });
   },
   getTrees: function(doc) {
     var url = this.url({
@@ -367,10 +372,8 @@ var DocService = ng.core.Injectable().Class({
           }
           prevDoc = curDoc;
         }
-        if ((cur.children || []).length === 0) {
-          cur.text = '';
-          cur.doc = prevDoc._id;
-        }
+        cur.text = '';
+        cur.doc = prevDoc._id;
       } else if (cur.name === '#text') {
         cur.doc = prevDoc._id;
       }

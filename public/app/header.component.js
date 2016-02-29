@@ -68,6 +68,12 @@ var HeaderComponent = ng.core.Component({
     this._authService.logout();
   },
   loadModal: function(which) {
+    if (which === 'add-document-page') {
+      which = {
+        type: which,
+        parent: this.uiService.document,
+      };
+    }
     this.uiService.manageModal$.emit(which);
   },
   showNoUser: function() {
