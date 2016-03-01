@@ -51,6 +51,11 @@ var EditCommunityComponent = ng.core.Component({
         self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
         return;
       }
+      var matchedname=self._allCommunities.filter(function (obj){return obj.attrs.name === self.edit.name;})[0];
+      if (matchedname) {
+        self.message='There is already a community with the name "'+self.edit.name+'"';
+        return;
+      }
     }
     this.message=this.success="";
     this._communityService.save(this.edit).subscribe(function(community) {

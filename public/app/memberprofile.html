@@ -1,0 +1,24 @@
+<div style="margin-right:auto; margin-left:auto; width:700px">
+    <p style="margin-top:10px"><button type="button" class="btn btn-primary btn-sm" [routerLink]="['CreateCommunity']">Create Community</button></p>
+
+<h4>Member Profile for {{authUser.attrs.local.name}}</h4>
+  <p style="margin:3px">This account is associated with the email address {{authUser.attrs.local.email}}</p>
+  <div *ngIf="nmemberships">
+    <p>You belong to {{nmemberships}} <span *ngIf="nmemberships>1">communities:</span><span *ngIf="nmemberships==1">community:</span></p>
+    <table style="border-spacing: 10px 2px; border-collapse: separate;">
+      <tr><th>Name</th><th>Long name</th><th>Role</th><th>When joined</th></tr>
+      <tr *ngFor="#membership of memberships" class="commMembership">
+        <td width="120px">{{membership.community.attrs.name}}</td><td width="180px">{{membership.community.attrs.longName}}</td><td>{{membership.role}}</td><td>{{membership.created}}</td>
+      <!-- td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td -->
+      </tr>
+    </table>
+  </div>
+  <!-- div>
+    <p>You can join these communities:</p>
+    <table style="border-spacing: 10px 2px; border-collapse: separate;">
+    <tr><th>Name</th><th>Long name</th></tr>
+    <tr ng-repeat="community in communities" class="commMembership" ng-show="community.available">
+      <td  width="120px">{{community.name}}</td><td width="180px">{{community.longName}}</td><td width="180px"><p read-more limit="2" content="{{community.description}}"></p></td><td><button type="button" class="btn btn-primary btn-sm" ng-click="joinComm(community._id)">Join</button></td>
+    </tr>
+  </div-->
+</div>

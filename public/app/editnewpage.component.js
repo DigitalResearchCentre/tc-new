@@ -1,5 +1,6 @@
 var $ = require('jquery')
   , UIService = require('./ui.service')
+  , DocService = require('./services/doc')
 ;
 
 var EditNewPageComponent = ng.core.Component({
@@ -15,15 +16,23 @@ var EditNewPageComponent = ng.core.Component({
     'page',
   ],
 }).Class({
-  constructor: [UIService, function(uiService) {
+  constructor: [UIService, DocService, function(uiService, docService) {
     var self=this;
     this.uiService = uiService;
+    this.docService = docService;
     this.entity = {name:"Moby Dick", sample:'"Moby Dick", "Oliver Twist"'};
     $('#manageModal').width("510px");
     $('#manageModal').height("600px");
     this.message=this.success="";
     this.choice="Prose";
+    this.prev={'length':0};
   }],
+  ngOnInit: function() {
+    var self=this;
+    this.docService.getLinks(this.page).subscribe(function(data) {
+      self.prev=data.prev;
+    });
+  },
   submit: function() {
     var newPage=$("#NewDoc").text();
     this.page.contentText = newPage;

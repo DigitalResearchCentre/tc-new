@@ -7,7 +7,7 @@
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'"
       [parent]="docParent" [after]="docAfter">
     </tc-managemodal-addpage>
-    <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'">
+    <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'" [page]="page">
     </tc-managemodal-edit-new-page>
     <tc-managemodal-extract-xml-doc *ngSwitchWhen="'extract-xml-doc'">
     </tc-managemodal-extract-xml-doc>
