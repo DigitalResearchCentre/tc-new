@@ -37,6 +37,9 @@ var AddDocumentComponent = ng.core.Component({
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
+    } else if (self.alreadyDoc(uiService.community, self.doc.name.trim())){
+        self.message='Document "'+self.doc.name+' "already exists';
+        return;
     } else {
         this._communityService.addDocument(uiService.community, this.doc)
         .subscribe(function(doc) {
@@ -58,6 +61,16 @@ var AddDocumentComponent = ng.core.Component({
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
+  },
+  alreadyDoc: function(community, docname) {
+    if (community.attrs.documents.length>0) {
+      var matcheddoc=community.attrs.documents.filter(function (obj){return obj.attrs.name === docname;})[0];
+      if (matcheddoc) return true;
+      else return false;
+    } else {
+      return false;
+    }
+    var bill="1"
   }
 });
 
