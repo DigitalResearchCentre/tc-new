@@ -49,7 +49,6 @@ var ViewerComponent = ng.core.Component({
         _.forEachRight(data.prev, function(el) {
           console.log(el);
           console.log(el.name);
-          console.log(el.name === 'pb');
           if (el.name === '#text' || el.name === 'pb') {
             data.prev.pop();
           } else {
@@ -57,9 +56,6 @@ var ViewerComponent = ng.core.Component({
           }
         });
         _.forEachRight(data.next, function(el) {
-          console.log(el);
-          console.log(el.name);
-          console.log(el.name === 'pb');
           if (el.name === '#text' || el.name === 'pb') {
             data.next.pop();
           } else {
@@ -71,30 +67,9 @@ var ViewerComponent = ng.core.Component({
         self.nextLink = _.last(data.next);
       });
       docService.getTrees(this.page).subscribe(function(teiRoot) {
-        var firstText = teiRoot
-          , parent, index
-        ;
-        while ((firstText.children || []).length > 0) {
-          index = _.findIndex(firstText.children, function(child) {
-            return !_.isString(child);
-          });
-          firstText.children = firstText.children.slice(index);
-          parent = firstText;
-          firstText = firstText.children[0];
-        }
-        if (parent) {
-          self.pb = parent.children.shift();
-          if (self.pb.name !== 'pb') {
-            parent.children.unshift(self.pb);
-            self.pb = null;
-          }
-        }
-        var t  = docService.json2xml(teiRoot);
-        self.dbText = t.replace('<pb/>', '');
+        self.dbText = docService.json2xml(teiRoot);
         self.setContentText(self.dbText);
       });
-    } else {
-      this.pb = null;
     }
   },
   setContentText: function(contentText) {
@@ -148,7 +123,6 @@ var ViewerComponent = ng.core.Component({
     docService.commit({
       doc: page,
       text: this.page.contentText,
-      docElement: true,
       links: {
         prev: links.prev.slice(0, _.findIndex(links.prev, this.prevLink) + 1),
         next: links.next.slice(0, _.findIndex(links.next, this.nextLink) + 1),

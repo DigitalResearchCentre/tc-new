@@ -13,6 +13,14 @@ if (!ObjectID) {
   ObjectID = bson().ObjectID;
 }
 
+function handleError(err, callback) {
+  if (_.isFunction(callback)) {
+    callback(err);
+  }
+  return Observable.throw(err);
+}
+
+
 function createObjTree(node, queue) {
   var obj = {
     name: node.nodeName,
@@ -140,7 +148,7 @@ function teiElementEqual(el1, el2) {
     (el1.attrs || {}).n === (el2.attrs || {}).n;
 }
 
-function checkLinks(teiRoot, links, docElement, docRoot) {
+function checkLinks(teiRoot, links) {
   var cur = {
     children: [teiRoot],
   };
@@ -160,13 +168,6 @@ function checkLinks(teiRoot, links, docElement, docRoot) {
       message: 'Prev TEI elements missing',
       element: missingLink,
     };
-  }
-  if (docElement) {
-    cur.children.unshift({
-      name: 'pb',
-      doc: docRoot._id,
-      children: [],
-    });
   }
   cur = {
     children: [teiRoot],
@@ -322,19 +323,17 @@ var DocService = ng.core.Injectable().Class({
       , links = data.links || {}
       , xmlDoc = parseTEI(text)
       , teiRoot = xmlDoc2json(xmlDoc)
-      , docTags = ['pb', 'cb', 'lb']
+      , docTags = ['text', 'pb', 'cb', 'lb']
       , docRoot = {
         _id: docModel.getId(), label: docModel.attrs.label, children: []
       }
       , queue = [teiRoot]
-      , prevDoc = docRoot
       , docQueue = []
-      , cur, curDoc, index, label, missingLink
+      , cur, prevDoc, curDoc, index, label, missingLink
     ;
-    var err = checkLinks(teiRoot, links, docElement, docRoot);
-    if (err && callback) {
-      console.log(err);
-      return callback(err);
+    var err = checkLinks(teiRoot, links);
+    if (err) {
+      return handleError(err, callback);
     }
 
     // dfs on TEI tree, find out all document
@@ -345,38 +344,52 @@ var DocService = ng.core.Injectable().Class({
     */
     while (queue.length > 0) {
       cur = queue.shift();
+      console.log(cur);
       if (!_.startsWith(cur.name, '#')) {
         index = docTags.indexOf(cur.name);
-        // if node is doc
+        // if node is doc 
         if (index > -1) {
-          curDoc = {
-            _id: ObjectID().toJSON(),
-            label: cur.name,
-            children: [],
-          };
-          if ((cur.attrs || {}).n) {
-            curDoc.name = (cur.attrs || {}).n;
-          }
-          if (docTags.indexOf(prevDoc.label) < index) {
-            docQueue.push(prevDoc);
-          }
-          while (docQueue.length > 0) {
-            label = _.last(docQueue).label;
-            if (!label || docTags.indexOf(label) < index) {
-              break;
+          if (cur.name === docRoot.label) {
+            if (!prevDoc) {
+              curDoc = docRoot;
+              docQueue.push(curDoc);
+            } else {
+              return handleError({
+                message: 'duplicate ' + cur.name  + ' element',
+                element: cur,
+              }, callback);
             }
-            docQueue.pop();
-          }
-          if (docQueue.length > 0) {
-            _.last(docQueue).children.push(curDoc);
+          } else if (prevDoc){
+            curDoc = {
+              _id: ObjectID().toJSON(),
+              label: cur.name,
+              children: [],
+            };
+            if ((cur.attrs || {}).n) {
+              curDoc.name = (cur.attrs || {}).n;
+            }
+            if (docTags.indexOf(prevDoc.label) < index) {
+              docQueue.push(prevDoc);
+            }
+            while (docQueue.length > 0) {
+              label = _.last(docQueue).label;
+              if (!label || docTags.indexOf(label) < index) {
+                break;
+              }
+              docQueue.pop();
+            }
+            if (docQueue.length > 0) {
+              _.last(docQueue).children.push(curDoc);
+            }
           }
           prevDoc = curDoc;
         }
         cur.text = '';
-        cur.doc = prevDoc._id;
-      } else if (cur.name === '#text') {
+      }
+      if (prevDoc) {
         cur.doc = prevDoc._id;
       }
+
 
       _.forEachRight(cur.children, function(child) {
     //    console.log(child);

@@ -951,6 +951,7 @@ function _parseTei(teiRoot, docRoot) {
     docs.push(cur);
     docMap[cur._id] = cur;
   }
+  console.log(docMap);
 
   console.log('--- parse entity ---');
   //  Entity
