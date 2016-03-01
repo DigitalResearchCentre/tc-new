@@ -56,6 +56,7 @@ var AddDocumentXMLComponent = ng.core.Component({
       this.message = 'Either paste text into the text box or choose a file';
       return;
     }
+    this.doc.label = 'text';
     this._communityService.addDocument(this.uiService.community, this.doc)
       .flatMap(function(doc) {
         return docService.commit({
