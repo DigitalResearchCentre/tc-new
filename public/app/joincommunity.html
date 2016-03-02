@@ -1,0 +1,12 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Join community "{{uiService.community.attrs.name}}"
+    <button type="button" (click)="closeModalJC()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+    {{message}}
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
+    {{success}}
+  </div>
+  <p>Dear {{authUser.attrs.local.name}} You are joined!!!</p>
+</div>

@@ -74,7 +74,8 @@ var ViewerComponent = ng.core.Component({
   },
   setContentText: function(contentText) {
     this.page.contentText = contentText;
-    if (contentText === "<text><body/></text>") {
+    if (this.page.attrs.children.length==0 && this.page.attrs.revisions.length==0) {
+//    if (contentText === "<text><body/></text>") {
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
         page: this.page,

@@ -16,7 +16,8 @@ var ManageModalComponent = ng.core.Component({
     require('./addpage.component'),
     require('./adddocumentxml.component'),
     require('./editnewpage.component'),
-    require('./extractxmldoc.component')
+    require('./extractxmldoc.component'),
+    require('./joincommunity.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
