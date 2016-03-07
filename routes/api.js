@@ -29,6 +29,19 @@ var CommunityResource = _.inherit(Resource, function(opts) {
     };
   }
 });
+router.get('/communities/:id/memberships/', function(req, res, next) {
+  User.find({
+    memberships: {
+      $elemMatch: {community: req.params.id},
+    },
+  }).exec(function(err, users) {
+    if (err) {
+      next(err);
+    } else {
+      res.json(users);
+    }
+  });
+});
 
 var EntityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Entity, opts);
