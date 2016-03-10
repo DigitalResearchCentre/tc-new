@@ -12,6 +12,12 @@ var URI = require('urijs')
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
+function example(communityService, community, user) {
+  communityService.addMember(community, user, 'MEMBER')
+    .subscribe(function(updatedUser){
+      console.log(updatedUser);
+    });
+}
 
 var JoinCommunityComponent = ng.core.Component({
   selector: 'tc-managemodal-join-community',

@@ -7,6 +7,7 @@ var Observable = Rx.Observable
   , AuthService = require('../auth.service')
   , Community = require('../models/community')
   , Doc = require('../models/doc')
+  , User = require('../models/user')
 ;
 
 var CommunityService = ng.core.Injectable().Class({
@@ -20,6 +21,7 @@ var CommunityService = ng.core.Injectable().Class({
     this.resourceUrl = 'communities';
 
     this.initEventEmitters();
+    window.cscs = this;
   }],
   modelClass: function() {
     return Community;
@@ -66,6 +68,21 @@ var CommunityService = ng.core.Injectable().Class({
         populate: JSON.stringify('documents entities')
       }).subscribe();
       return new Doc(res.json());
+    });
+  },
+  addMember: function(community, user, role) {
+    return this.http.put(
+      this.url({
+        id: community.getId(),
+        func: 'add-member',
+      }),
+      JSON.stringify({
+        user: user.getId(),
+        role: role,
+      }),
+      this.prepareOptions({})
+    ).map(function(res) {
+      return new User(res.json());
     });
   },
   create: function(data, options) {
