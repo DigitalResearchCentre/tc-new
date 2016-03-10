@@ -38,6 +38,7 @@ var JoinCommunityComponent = ng.core.Component({
 
     communityService.getMemberships(this.community)
       .subscribe(function(memberships) {
+        //filter out the community leader or creator
         console.log(memberships);
       });
 

@@ -28,6 +28,9 @@ var MemberProfileComponent = ng.core.Component({
   loadModal: function(which) {
     this.uiService.manageModal$.emit(which);
   },
+  joinCommunity: function(community) {
+
+  },
   showCommunity: function(community) {
     if (this.nmemberships) {
       var matchedmem=this.memberships.filter(function (obj){return obj.community.attrs._id === community.attrs._id;})[0];
