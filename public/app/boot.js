@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
     require('./auth.service'),
     require('./services/community'),
     require('./services/doc'),
+    require('./rest.service'),
   ]).catch(function(err) {
     console.error(err);
   });
 });
-

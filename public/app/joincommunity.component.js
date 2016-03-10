@@ -4,6 +4,7 @@ var URI = require('urijs')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
   , RESTService = require('./rest.service')
+  , config = require('./config')
 /*  , TCMailer=require('./TCMailer')
   , TCAddresses=require('./TCMailer').addresses; */
 
@@ -31,26 +32,32 @@ var JoinCommunityComponent = ng.core.Component({
     this.message="";
     this.success="";
     this.uiService = uiService;
+    this.community = uiService.community
     this.authUser = authService._authUser;
-
-
-    restService.http.post(config.BACKEND_URL + 'sendmail', {
-      from: 'from@example.com',
-      to: 'to@example.com',
-      subject: 'Hello World',
-      html: '<h3>Hi</h3>',
-      text: 'Hi',
-    }).subscribe(function(res) {
-      console.log('send mail success');
-    });
-
-  }],
+    this.communityleader={email:"peter.robinson@usask.ca"}
+    var self=this;
+    restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
+        var tpl=_.template(result._body);
+        var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.name, communityname: self.community.attrs.name})
+        restService.http.post(config.BACKEND_URL + 'sendmail', {
+          from: self.communityleader.email,
+          to: self.authUser.attrs.local.email,
+          subject: 'Your application to join Textual Community "'+self.community.attrs.name+'"',
+          html: messagetext,
+          text: messagetext.replace(/<[^>]*>/g, '')
+        }).subscribe(function(res) {
+          console.log('send mail success');
+        });
+      }, function(err) {
+        console.log(err);
+      });
+    }],
   closeModalJC: function() {
     this.message=this.success=this.doc.name="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
-  }
+  },
 });
 
 module.exports = JoinCommunityComponent;
