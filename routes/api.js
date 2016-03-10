@@ -311,6 +311,41 @@ router.put('/communities/:id/add-document', function(req, res, next) {
   });
 });
 
+
+router.put('/communities/:id/add-member', function(req, res, next) {
+  var communityId = req.params.id
+    , userId = req.body.user
+    , role = req.body.role
+    , community
+  ;
+  async.parallel([
+    function(cb) {
+      Community.findOne({_id: communityId}).exec(cb);
+    },
+    function(cb) {
+      User.findOne({_id: userId}).exec(cb);
+    },
+  ], function(err, results) {
+    if (err) {
+      next(err);
+    } else {
+      var community = results[0]
+        , user = results[1]
+      ;
+      user.memberships.push({
+        community: community._id,
+        role: role,
+      });
+      user.save(function(err, user) {
+        if (err) {
+          return next(err);
+        }
+        res.json(user);
+      });
+    }
+  });
+});
+
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, 'docs');
 router.get('/docs/:id/entities/:entityId?', function(req, res, next) {
