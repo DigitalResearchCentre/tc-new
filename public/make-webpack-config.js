@@ -10,14 +10,16 @@ var webpack = require('webpack')
 
 module.exports = function(options) {
   var env = options.env
-    , devtool
+    , devtool, debug
   ;
   console.log(env);
 
-  if (env == 'dev') {
-    devtool = '#eval';
+  if (env === 'dev') {
+    devtool = '#inline-source-map';
+    debug = true;
   }else{
     devtool = '#source-map';
+    debug = false;
   }
 
   return {

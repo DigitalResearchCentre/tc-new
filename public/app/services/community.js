@@ -43,6 +43,17 @@ var CommunityService = ng.core.Injectable().Class({
   get: function(id) {
     return new Community({_id: id});
   },
+  getMemberships: function(community) {
+    var self = this;
+    return this.http.get(
+      this.url({
+        id: community.getId(),
+        func: 'memberships',
+      }), this.prepareOptions({})
+    ).map(function(res) {
+      return res.json();
+    });
+  },
   addDocument: function(community, doc) {
     var self = this;
     return this.http.put(

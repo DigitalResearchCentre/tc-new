@@ -35,7 +35,12 @@ var JoinCommunityComponent = ng.core.Component({
     this.community = uiService.community
     this.authUser = authService._authUser;
     this.communityleader={email:"peter.robinson@usask.ca"}
-    var self=this;
+
+    communityService.getMemberships(this.community)
+      .subscribe(function(memberships) {
+        console.log(memberships);
+      });
+
     restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
         var tpl=_.template(result._body);
         var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.name, communityname: self.community.attrs.name})
