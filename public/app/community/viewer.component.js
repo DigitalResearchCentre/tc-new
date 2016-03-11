@@ -3,6 +3,7 @@ var CommunityService = require('../services/community')
   , DocService = require('../services/doc')
   , $ = require('jquery')
   , ImageMap = require('./map')
+  , OpenSeadragon = require('openseadragon')
 ;
 
 var ViewerComponent = ng.core.Component({
@@ -28,12 +29,41 @@ var ViewerComponent = ng.core.Component({
     var self = this
       , community = this.community
     ;
-    var $imageMap = $('.image_map');
-    var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
-    var imageMap = new ImageMap(
-      $imageMap[0],
-      'http://textualcommunities.usask.ca/api/docs/3063121/has_image/',
-      options);
+    var viewer = OpenSeadragon({
+      id: 'imageMap',
+      prefixUrl: '/images/',
+      preserveViewport: true,
+      visibilityRatio:    1,
+      minZoomLevel:       1,
+      defaultZoomLevel:   1,
+      sequenceMode:       true,
+      tileSources: [{
+        "profile": [
+          "http://iiif.io/api/image/2/level2.json",
+          {
+            "supports": [
+              "canonicalLinkHeader", "profileLinkHeader", "mirroring",
+              "rotationArbitrary", "sizeAboveFull", "regionSquare"
+            ], 
+            "qualities": [
+              "default", "color", "gray", "bitonal"
+            ], 
+            "formats": [
+              "jpg", "png", "gif", "webp"
+            ]
+          }
+        ], 
+        "protocol": "http://iiif.io/api/image",
+        "sizes": [],
+        "height": 1479,
+        "width": 2334,
+        "@context": "http://iiif.io/api/image/2/context.json",
+        "@id": "http://206.12.59.55:5004/Ad147r.jpg"
+      }]
+    });
+    //var $imageMap = $('.image_map');
+    //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
+
     this.links = {prev: [], next: []};
     this.prevLink = null;
     this.nextLink = null;
@@ -74,7 +104,8 @@ var ViewerComponent = ng.core.Component({
   },
   setContentText: function(contentText) {
     this.page.contentText = contentText;
-    if (this.page.attrs.children.length==0 && this.page.attrs.revisions.length==0) {
+    if (this.page.attrs.children.length === 0 && 
+        this.page.attrs.revisions.length === 0) {
 //    if (contentText === "<text><body/></text>") {
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
