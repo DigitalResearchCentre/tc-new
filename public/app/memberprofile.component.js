@@ -29,7 +29,7 @@ var MemberProfileComponent = ng.core.Component({
     this.uiService.manageModal$.emit(which);
   },
   joinCommunity: function(community) {
-
+    this.uiService.manageModal$.emit({type:'join-community', community: community});
   },
   showCommunity: function(community) {
     if (this.nmemberships) {

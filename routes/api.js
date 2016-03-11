@@ -171,7 +171,7 @@ var DocResource = _.inherit(Resource, function(opts) {
                       });
                       if (prevIndex < prevs.length - 1) {
                         var childIndex = _.findLastIndex(
-                          prevs[prevIndex].children, 
+                          prevs[prevIndex].children,
                           function(id) {
                             if (id._id) {
                               id = id._id;
@@ -426,6 +426,7 @@ router.get('/auth', function(req, res, next) {
 
 
 router.post('/sendmail', function(req, res, next) {
+  console.log("we are in send mail "+req.body)
   TCMailer.nodemailerMailgun.sendMail(req.body, function(err, status) {
     if (!err) {
       res.json(status);

@@ -12,16 +12,17 @@ var URI = require('urijs')
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
-function example(communityService, community, user) {
+/* function example(communityService, community, user) {
   communityService.addMember(community, user, 'MEMBER')
     .subscribe(function(updatedUser){
       console.log(updatedUser);
     });
-}
+} */
 
 var JoinCommunityComponent = ng.core.Component({
   selector: 'tc-managemodal-join-community',
   templateUrl: '/app/joincommunity.html',
+  inputs : ['joiningcommunity',],
   directives: [
     require('../directives/modaldraggable')
   ],
@@ -30,40 +31,42 @@ var JoinCommunityComponent = ng.core.Component({
     CommunityService, AuthService, UIService, RESTService, function(
       communityService, authService, uiService, restService
     ) {
-    var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
     $('#manageModal').width("400px");
     $('#manageModal').height("400px");
     this.message="";
     this.success="";
+    this.communityService=communityService;
     this.uiService = uiService;
-    this.community = uiService.community
+    this.community = uiService.community;
+    this.restService=restService;
     this.authUser = authService._authUser;
     this.communityleader={email:"peter.robinson@usask.ca"}
-
-    communityService.getMemberships(this.community)
-      .subscribe(function(memberships) {
-        //filter out the community leader or creator
-        console.log(memberships);
-      });
-
-    restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
-        var tpl=_.template(result._body);
-        var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.name, communityname: self.community.attrs.name})
-        restService.http.post(config.BACKEND_URL + 'sendmail', {
-          from: self.communityleader.email,
-          to: self.authUser.attrs.local.email,
-          subject: 'Your application to join Textual Community "'+self.community.attrs.name+'"',
-          html: messagetext,
-          text: messagetext.replace(/<[^>]*>/g, '')
-        }).subscribe(function(res) {
-          console.log('send mail success');
-        });
-      }, function(err) {
-        console.log(err);
-      });
     }],
+  ngOnInit: function() {
+      var self = this;
+      self.communityService.getMemberships(self.joiningcommunity)
+        .subscribe(function(memberships) {
+          //filter out the community leader or creator
+          console.log(memberships);
+        });
+      self.restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
+          var tpl=_.template(result._body);
+          var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.name, communityname: self.community.attrs.name})
+          self.restService.http.post(config.BACKEND_URL + 'sendmail', JSON.stringify({
+            from: self.communityleader.email,
+            to: self.authUser.attrs.local.email,
+            subject: 'Your application to join Textual Community "'+self.community.attrs.name+'"',
+            html: messagetext,
+            text: messagetext.replace(/<[^>]*>/g, '')
+          })).subscribe(function(res) {
+            console.log('send mail success');
+          });
+        }, function(err) {
+          console.log(err);
+        });
+  },
   closeModalJC: function() {
     this.message=this.success=this.doc.name="";
     $('#MMADdiv').css("margin-top", "30px");

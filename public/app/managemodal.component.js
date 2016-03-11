@@ -38,6 +38,9 @@ var ManageModalComponent = ng.core.Component({
       } else if (event.type === 'edit-new-page') {
         self.choice = event.type;
         self.page = event.page;
+      }  else if (event.type === 'join-community') {
+            self.community = event.community;
+            self.choice = event.type;
       }
       $('#manageModal').modal('show');
     });
