@@ -54,13 +54,18 @@ var JoinCommunityComponent = ng.core.Component({
       self.restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
           var tpl=_.template(result._body);
           var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.name, communityname: self.community.attrs.name})
-          self.restService.http.post(config.BACKEND_URL + 'sendmail', JSON.stringify({
-            from: self.communityleader.email,
-            to: self.authUser.attrs.local.email,
-            subject: 'Your application to join Textual Community "'+self.community.attrs.name+'"',
-            html: messagetext,
-            text: messagetext.replace(/<[^>]*>/g, '')
-          })).subscribe(function(res) {
+          self.restService.http.post(
+            config.BACKEND_URL + 'sendmail', 
+            JSON.stringify({
+              from: self.communityleader.email,
+              to: self.authUser.attrs.local.email,
+              subject: 'Your application to join Textual Community "' + 
+                self.community.attrs.name+'"',
+              html: messagetext,
+              text: messagetext.replace(/<[^>]*>/g, '')
+            }),
+            self.restService.prepareOptions({})
+          ).subscribe(function(res) {
             console.log('send mail success');
           });
         }, function(err) {

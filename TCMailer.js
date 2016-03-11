@@ -7,6 +7,10 @@ var auth = {
     domain: 'sandboxffe4fd20caa34236aa24e41fdfae8643.mailgun.org'
   }
 };
+
+
+console.log(mg(auth));
+
 exports.nodemailerMailgun = nodemailer.createTransport(mg(auth));
 
 exports.addresses = {

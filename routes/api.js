@@ -426,7 +426,7 @@ router.get('/auth', function(req, res, next) {
 
 
 router.post('/sendmail', function(req, res, next) {
-  console.log("we are in send mail "+req.body)
+
   TCMailer.nodemailerMailgun.sendMail(req.body, function(err, status) {
     if (!err) {
       res.json(status);
