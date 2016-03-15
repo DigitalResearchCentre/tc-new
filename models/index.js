@@ -98,10 +98,6 @@ var InvitationSchema = new Schema({
 
 });
 
-var ActionSchema = new Schema({
-
-});
-
 function _findCommonAncestors(ancestors1, ancestors2) {
   var common = [];
   if (!_.isArray(ancestors1)) {

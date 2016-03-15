@@ -37,7 +37,9 @@ var MemberProfileComponent = ng.core.Component({
     this.memberships= authService._authUser.attrs.memberships;
     this.communityleader={email:"peter.robinson@usask.ca", name:"Peter Robinson"}
     this.communityService.allCommunities$.subscribe(function(communities) {
-      self.allCommunities = communities;
+      console.log(communities);
+      self.joinableCommunities = _.filter(
+        communities, self.showCommunity.bind(self));
     });
 
   }],
@@ -79,33 +81,27 @@ var MemberProfileComponent = ng.core.Component({
           }, function(err) {
             console.log(err);
           });
-      self.restService.http.get('/app/joinletternotifyleader.ejs').subscribe(function(result) {
-          var tpl=_.template(result._body);
-          var messagetext=tpl({username: self.authUser.attrs.local.name, hash: randomStringAsBase64Url(20), url: config.BACKEND_URL,  communityemail: self.communityleader.email, useremail: self.authUser.attrs.local.email, communityname: community.attrs.name, communityowner: self.communityleader.name})
-          self.restService.http.post(
-            config.BACKEND_URL + 'sendmail',
-            JSON.stringify({
-              from: self.communityleader.email,
-              to: self.communityleader.email,
-              subject: ' Application from '+self.authUser.attrs.local.name+' to join Textual Community "' +
-                community.attrs.name,
-              html: messagetext,
-              text: messagetext.replace(/<[^>]*>/g, '')
-            }),
-            self.restService.prepareOptions({})
-          ).subscribe(function(res) {
-            console.log('send mail success');
-          });
-        }, function(err) {
-          console.log(err);
-        });
+      self.restService.http.post(
+        config.BACKEND_URL + 'actions', 
+        JSON.stringify({
+          type: 'request-membership',
+          payload: {
+            user: self.authUser.getId(),
+            community: community.getId(),
+            role: 'MEMBER',
+          }
+        }),
+        self.restService.prepareOptions({})
+      ).subscribe();
     });
   }
     this.uiService.manageModal$.emit({type:'join-community', community: community, });
   },
   showCommunity: function(community) {
     if (this.nmemberships) {
-      var matchedmem=this.memberships.filter(function (obj){return obj.community.attrs._id === community.attrs._id;})[0];
+      var matchedmem=this.memberships.filter(function (obj){
+        return obj.community.attrs._id === community.attrs._id;
+      })[0];
       if (matchedmem) return false;
     }
     if (!community.attrs.public) return false;
@@ -115,3 +111,6 @@ var MemberProfileComponent = ng.core.Component({
 });
 
 module.exports = MemberProfileComponent;
+
+
+

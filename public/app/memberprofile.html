@@ -19,9 +19,15 @@
       <thead>
         <tr><th>Name</th><th>Long name</th></tr>
       </thead>
-      <tbody *ngFor="#community of allCommunities">
-        <tr *ngIf="showCommunity(community)" class="commMembership">
-          <td  width="120px">{{community.attrs.name}}</td><td width="180px">{{community.attrs.longName}}</td><td width="180px"><p>{{community.attrs.description}}</p></td><td><button type="button" class="btn btn-primary btn-sm"  (click)="joinCommunity(community)">Join</button></td>
+      <tbody>
+        <tr *ngFor="#community of joinableCommunities"
+          class="commMembership">
+          <td  width="120px">{{community.attrs.name}}</td>
+          <td width="180px">{{community.attrs.longName}}</td>
+          <td width="180px"><p>{{community.attrs.description}}</p></td>
+          <td><button 
+              type="button" class="btn btn-primary btn-sm"
+              (click)="joinCommunity(community)">Join</button></td>
         </tr>
       </tbody>
     </table>
