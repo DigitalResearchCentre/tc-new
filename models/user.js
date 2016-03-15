@@ -11,7 +11,7 @@ var userSchema = Schema({
     email        : String,
     password     : String,
     name	 : String,
-    hash		 : String,
+    hash         : String,
     timestamp	 : String,
     authenticated : String
   },

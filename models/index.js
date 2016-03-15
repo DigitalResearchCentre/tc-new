@@ -4,6 +4,7 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema
   , ObjectId = Schema.Types.ObjectId
   , OId = mongoose.Types.ObjectId
+  , bcrypt   = require('bcrypt-nodejs')
 ;
 
 var CommunitySchema = new Schema({
@@ -67,6 +68,16 @@ _.assign(CommunitySchema.statics, {
   optionalFields: ['status'],
 });
 var Community = mongoose.model('Community', CommunitySchema);
+
+
+var MembershipRequestSchema = new Schema({
+  user: {type: ObjectId, ref: 'User'},
+  community: {type: ObjectId, ref: 'Community'},
+  role: String,
+  hash: String,
+  created: {type: Date, default: Date.now},
+});
+
 
 var TaskSchema = new Schema({
   user: {type: ObjectId, ref: 'User'},
@@ -1405,6 +1416,7 @@ module.exports = {
   Entity: Entity,
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
+  MembershipRequest: mongoose.model('MemberRequest', MembershipRequestSchema),
 };
 
 

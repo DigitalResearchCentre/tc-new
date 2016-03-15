@@ -1,4 +1,5 @@
-var CommunityService = require('../services/community')
+var ElementRef = ng.core.ElementRef
+  , CommunityService = require('../services/community')
   , UIService = require('../ui.service')
   , DocService = require('../services/doc')
   , $ = require('jquery')
@@ -17,24 +18,27 @@ var ViewerComponent = ng.core.Component({
     require('../directives/splitter').SPLITTER_DIRECTIVES,
   ]
 }).Class({
-  constructor: [DocService, UIService, function(
-    docService, uiService
+  constructor: [DocService, UIService, ElementRef, function(
+    docService, uiService, elementRef
   ) {
     this._docService = docService;
     this._uiService = uiService;
+    this._elementRef = elementRef;
 
     this.revisions = [];
   }],
   ngOnInit: function() {
     var self = this
       , community = this.community
+      , $el = $(this._elementRef.nativeElement)
+      , width = $el.width()
+      , height = $el.height()
     ;
     var viewer = OpenSeadragon({
       id: 'imageMap',
       prefixUrl: '/images/',
       preserveViewport: true,
       visibilityRatio:    1,
-      minZoomLevel:       1,
       defaultZoomLevel:   1,
       sequenceMode:       true,
       tileSources: [{
@@ -61,12 +65,24 @@ var ViewerComponent = ng.core.Component({
         "@id": "http://206.12.59.55:5004/Ad147r.jpg"
       }]
     });
+    this.viewer = viewer;
+    this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
 
     this.links = {prev: [], next: []};
     this.prevLink = null;
     this.nextLink = null;
+  },
+  onResize: function() {
+    if (!this.viewer) return;
+    var viewport = this.viewer.viewport
+      , x = viewport.containerSize.x
+      , y = viewport.containerSize.y
+      , w = x / 2334
+      , h = y / 1479
+    ;
+    viewport.minZoomImageRatio = w > h ? h / w : 1;
   },
   ngOnChanges: function() {
     var docService = this._docService
@@ -77,8 +93,6 @@ var ViewerComponent = ng.core.Component({
       docService.page=page;
       docService.getLinks(this.page).subscribe(function(data) {
         _.forEachRight(data.prev, function(el) {
-          console.log(el);
-          console.log(el.name);
           if (el.name === '#text' || el.name === 'pb') {
             data.prev.pop();
           } else {

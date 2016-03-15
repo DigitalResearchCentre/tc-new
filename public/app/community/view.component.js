@@ -1,4 +1,5 @@
 var CommunityService = require('../services/community')
+  , Viewer = require('./viewer.component')
   , UIService = require('../ui.service')
   , DocService = require('../services/doc')
 ;
@@ -13,8 +14,11 @@ var ViewComponent = ng.core.Component({
   directives: [
     require('../tabs.directive').TAB_DIRECTIVES,
     require('../directives/splitter').SPLITTER_DIRECTIVES,
-    require('./viewer.component'),
-  ]
+    Viewer,
+  ],
+  queries: {
+    viewer: new ng.core.ViewChild(Viewer),
+  },
 }).Class({
   constructor: [CommunityService, UIService, DocService, function(
     communityService, uiService, docService
@@ -29,6 +33,11 @@ var ViewComponent = ng.core.Component({
       , community = this.community
     ;
     console.log(community);
+  },
+  onResize: function($event) {
+    if (this.viewer) {
+      this.viewer.onResize();
+    }
   },
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;
