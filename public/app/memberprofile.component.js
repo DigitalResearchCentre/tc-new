@@ -8,6 +8,14 @@ var AuthService = require('./auth.service')
     , base64url = require('base64url')
     , crypto = require('crypto');
 
+    /* function example(communityService, community, user) {
+      communityService.addMember(community, user, 'MEMBER')
+        .subscribe(function(updatedUser){
+          console.log(updatedUser);
+        });
+    } */
+
+
 function randomStringAsBase64Url(size) {
       return base64url(crypto.randomBytes(size));
     }
@@ -42,9 +50,15 @@ var MemberProfileComponent = ng.core.Component({
   },
   joinCommunity: function(community) {
     var self = this;
+    if (community.attrs.accept && community.attrs.autoaccept) {
+
+    }
+    if (community.attrs.accept && !community.attrs.autoaccept) {
     self.communityService.getMemberships(community)
       .subscribe(function(memberships) {
         console.log(memberships);
+        
+        //who is the leader of this community
         self.restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
             var tpl=_.template(result._body);
             var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.email, communityname: community.attrs.name, communityowner: self.communityleader.name})
@@ -86,7 +100,8 @@ var MemberProfileComponent = ng.core.Component({
           console.log(err);
         });
     });
-//    this.uiService.manageModal$.emit({type:'join-community', community: community});
+  }
+    this.uiService.manageModal$.emit({type:'join-community', community: community, });
   },
   showCommunity: function(community) {
     if (this.nmemberships) {
