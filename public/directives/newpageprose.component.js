@@ -6,10 +6,12 @@ var $ = require('jquery');
 var NewPageProseComponent = ng.core.Component({
   selector: 'tc-newpage-prose',
   templateUrl: '/directives/new-page-prose.html',
-  inputs: [ 'entity',],
+  inputs: [ 'entity', 'page',],
 }).Class({
   constructor: [ function() {
   }],
+    ngOnInit: function() {
+    }
 });
 
 module.exports = NewPageProseComponent;

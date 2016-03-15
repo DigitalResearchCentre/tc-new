@@ -37,6 +37,7 @@ var EditCommunityComponent = ng.core.Component({
         accept: false,
         autoaccept: false,
         alldolead: false,
+        alltranscribeall: false,
         haspicture: false,
         image: false,
       };

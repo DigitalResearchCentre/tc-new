@@ -15,20 +15,20 @@
     </seg>
   </div>
   <hr style="border: 1px solid #8c8b8b;">
-  <div class="form-group" *ngIf="community">
+  <div class="form-group" *ngIf="community" style="margin-right:15px; margin-left: 15px">
     <label>Abbreviation</label> <span> {{edit.abbr}}  (cannot alter)</span>
   </div>
-  <div class="form-group">
+  <div class="form-group" style="margin-right:15px; margin-left: 15px">
     <label>Long Name</label>
     <input type="text" class="form-control" placeholder="Long Name (80 characters maximum)"
     [(ngModel)]="edit.longName">
   </div>
-  <div class="form-group">
+  <div class="form-group" style="margin-right:15px; margin-left: 15px">
     <label>Description</label>
-    <textarea class="form-control" placeholder="Description (you can include HTML)"
+    <textarea class="form-control" rows="8" cols="50" placeholder="Description (you can include HTML)"
       [(ngModel)]="edit.description"></textarea>
   </div>
-  <div class="form-group">
+  <div class="form-group" style="margin-right:10px; margin-left: 5px">
     <label>Accessible to others</label> <br/>
     <input type="checkbox" [(ngModel)]="edit.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
     <span *ngIf="edit.public">
@@ -40,7 +40,11 @@
     <span *ngIf="edit.autoaccept&&edit.public&&edit.accept">
       <input type="checkbox" [(ngModel)]="edit.alldolead" ng-disabled="edit.autoaccept==false">Everyone joining leads
     </span>
-  </div>
+    <span *ngIf="(edit.autoaccept||edit.accept) && !edit.alldolead" style="float:right">
+      <input type="checkbox" [(ngModel)]="edit.alltranscribeall" ng-disabled="edit.alldolead==true">Everyone joining transcribes everything
+    </span>
+
+    </div>
   <!-->
   <div class="form-group"  ng-controller="UpLoadCtrl">
     <form ng-show="!community.image" name="communityForm" >

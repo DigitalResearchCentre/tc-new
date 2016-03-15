@@ -28,9 +28,9 @@
     <p class="NewDocPage"><input type="radio" name="chooseStructure">Empty page</p>
   </div>
   <div [ngSwitch]="choice">
-      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity" [(template)]="template"></tc-newpage-prose>
-      <tc-newpage-poetry *ngSwitchWhen="'Poetry'" [entity]="entity"></tc-newpage-poetry>
-      <tc-newpage-play *ngSwitchWhen="'Play'" [entity]="entity"></tc-newpage-play>
+      <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity" [(template)]="template" [page]="page"></tc-newpage-prose>
+      <tc-newpage-poetry *ngSwitchWhen="'Poetry'" [entity]="entity" [page]="page" ></tc-newpage-poetry>
+      <tc-newpage-play *ngSwitchWhen="'Play'" [entity]="entity" [page]="page"></tc-newpage-play>
   </div>
   <div id="MMADbutton" style="text-align: center; margin-top: 10px">
       <button type="button" class="btn btn-primary" (click)="submit()">Choose</button>

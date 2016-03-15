@@ -16,6 +16,7 @@ var CommunitySchema = new Schema({
   accept: Boolean,
   autoaccept: Boolean,
   alldolead: Boolean,
+  alltranscribeall: Boolean,
   haspicture: Boolean,
   image: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
@@ -131,7 +132,7 @@ var BaseNodeSchema = function(modelName) {
     },
     statics: {
       /*
-       * @param tree - nested tree style data, 
+       * @param tree - nested tree style data,
        *              ex. {name: foo, children: [{name: child1, children: []}]}
        */
       import: function(tree, callback) {
@@ -191,7 +192,7 @@ var BaseNodeSchema = function(modelName) {
         });
       },
       /*
-       * @param tree - nested tree style data, 
+       * @param tree - nested tree style data,
        *              ex. {name: foo, children: [{name: child1, children: []}]}
        * @param prev - prev continue element
        * @param after - left bound to insert after, null means insert at
@@ -357,7 +358,7 @@ var BaseNodeSchema = function(modelName) {
             cur = root;
             while (cur && !_.isEmpty(cur.children)) {
               found = _.findLastIndex(cur.children, function(child) {
-                return !(_.isString(child) || child instanceof OId); 
+                return !(_.isString(child) || child instanceof OId);
               });
               if (found > -1) {
                 cur = cur.children[found];
@@ -505,7 +506,7 @@ var BaseNodeSchema = function(modelName) {
 
           }
         ], callback);
-       
+
       },
       getDFSPrev: function(id, callback) {
         var cls = this;
@@ -678,7 +679,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
           };
         }
         TEI.db.db.command({
-          distinct: 'teis', 
+          distinct: 'teis',
           key: key,
           query: query,
         }, cb);
@@ -709,7 +710,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
       },
       function(teiLeaves, cb) {
         if (teiLeaves) {
-          TEI.getTreeFromLeaves(teiLeaves, cb); 
+          TEI.getTreeFromLeaves(teiLeaves, cb);
         } else {
           cb(null, null);
         }
@@ -724,7 +725,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
       ;
       while ((cur.children || []).length > 0) {
         index = _.findLastIndex(cur.children, function(child) {
-          return !(_.isString(child) || child instanceof OId) && 
+          return !(_.isString(child) || child instanceof OId) &&
             !(child.name === '#text' && child.text.trim() === '');
         });
         if (index !== -1) {
@@ -763,7 +764,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
       },
       function(teiLeaves, cb) {
         if (teiLeaves) {
-          TEI.getTreeFromLeaves(teiLeaves, cb); 
+          TEI.getTreeFromLeaves(teiLeaves, cb);
         } else {
           cb(null, null);
         }
@@ -778,7 +779,7 @@ _.assign(DocSchema.statics, baseDoc.statics, {
       ;
       while ((cur.children || []).length > 0) {
         index = _.findIndex(cur.children, function(child) {
-          return !(_.isString(child) || child instanceof OId) && 
+          return !(_.isString(child) || child instanceof OId) &&
             !(child.name === '#text' && child.text.trim() === '');
         });
         if (index !== -1) {
@@ -1108,7 +1109,7 @@ function updateEntityTree(entity, data, entities, updateEntities, callback) {
       updateEntityTree(
         item.entityChild, item.child, entities, updateEntities, cb);
     }, callback);
-  });  
+  });
 }
 
 function _commitTEI(continueTeis, teis, callback) {
@@ -1217,7 +1218,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
       continueTeis = _checkLinks(bounds[0], bounds[1], teiRoot);
       if (continueTeis.error) {
         return callback(continueTeis);
-      } 
+      }
       result = _parseTei(teiRoot, docRoot);
       self.children = docRoot.children;
       entityRoot = result.entityRoot;
@@ -1255,7 +1256,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         },
         function(cb) {
           updateEntityTree(
-            fakeEntity, entityRoot, entities, updateEntities, 
+            fakeEntity, entityRoot, entities, updateEntities,
             function(err) {
               if (err) {
                 return cb(err);
@@ -1293,7 +1294,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
               ], function(err) {
                 console.log(updateEntities);
                 cb(err);
-                
+
               });
             }
           );
@@ -1359,7 +1360,7 @@ _.assign(EntitySchema.statics, baseEntity.statics, {
           };
         }
         TEI.db.db.command({
-          distinct: 'teis', 
+          distinct: 'teis',
           key: key,
           query: query,
         }, cb);
@@ -1406,6 +1407,3 @@ module.exports = {
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
 };
-
-
-

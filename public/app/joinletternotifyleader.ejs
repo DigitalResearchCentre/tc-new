@@ -1,0 +1,21 @@
+<html>
+<head>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+</head>
+
+<body style="padding-top:20px; word-wrap:break-word;">
+<div class="container">
+<div class="page-header text-center">
+        <h1><span class="fa fa-anchor"></span>Request to join "<%= communityname %>" from <%= username %> </h1>
+    </div>
+<p>Dear <%= communityowner %> at <%= communityemail %> </p>
+<p><%= username %> <%= useremail %> has requested to join community "<%= communityname %>". This request has been sent to you, as leader and/or creator of this community.</p>
+<p>To approve this request, <a href="<%= url %>auth/acceptMember?hash=<%= hash %>">click on this link</a>.</p>
+<p>If you don't want to approve this request, do nothing.</p>
+<p>With best wishes</p>
+<br/>
+<p>Textual Communities administration</p>
+</div>
+</body>
+</html>

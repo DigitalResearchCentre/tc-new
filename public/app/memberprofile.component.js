@@ -1,6 +1,16 @@
 var AuthService = require('./auth.service')
     , CommunityService = require('./services/community')
     , UIService = require('./ui.service')
+    , URI = require('urijs')
+    , AuthService = require('./auth.service')
+    , RESTService = require('./rest.service')
+    , config = require('./config')
+    , base64url = require('base64url')
+    , crypto = require('crypto');
+
+function randomStringAsBase64Url(size) {
+      return base64url(crypto.randomBytes(size));
+    }
 
 var MemberProfileComponent = ng.core.Component({
   selector: 'tc-member-profile',
@@ -9,13 +19,15 @@ var MemberProfileComponent = ng.core.Component({
     ng.router.ROUTER_DIRECTIVES,
   ],
 }).Class({
-  constructor: [AuthService, CommunityService, UIService, function(authService, communityService, uiService) {
+  constructor: [AuthService, CommunityService, UIService, RESTService, function(authService, communityService, uiService, restService) {
     var self=this;
     this.communityService = communityService;
     this.uiService=uiService;
+    this.restService=restService;
     this.authUser = authService._authUser;
     this.nmemberships= authService._authUser.attrs.memberships.length;
     this.memberships= authService._authUser.attrs.memberships;
+    this.communityleader={email:"peter.robinson@usask.ca", name:"Peter Robinson"}
     this.communityService.allCommunities$.subscribe(function(communities) {
       self.allCommunities = communities;
     });
@@ -29,7 +41,52 @@ var MemberProfileComponent = ng.core.Component({
     this.uiService.manageModal$.emit(which);
   },
   joinCommunity: function(community) {
-    this.uiService.manageModal$.emit({type:'join-community', community: community});
+    var self = this;
+    self.communityService.getMemberships(community)
+      .subscribe(function(memberships) {
+        console.log(memberships);
+        self.restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
+            var tpl=_.template(result._body);
+            var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.email, communityname: community.attrs.name, communityowner: self.communityleader.name})
+            self.restService.http.post(
+              config.BACKEND_URL + 'sendmail',
+              JSON.stringify({
+                from: self.communityleader.email,
+                to: self.authUser.attrs.local.email,
+                subject: 'Your application to join Textual Community "' +
+                  community.attrs.name+'"',
+                html: messagetext,
+                text: messagetext.replace(/<[^>]*>/g, '')
+              }),
+              self.restService.prepareOptions({})
+            ).subscribe(function(res) {
+              console.log('send mail success');
+            });
+          }, function(err) {
+            console.log(err);
+          });
+      self.restService.http.get('/app/joinletternotifyleader.ejs').subscribe(function(result) {
+          var tpl=_.template(result._body);
+          var messagetext=tpl({username: self.authUser.attrs.local.name, hash: randomStringAsBase64Url(20), url: config.BACKEND_URL,  communityemail: self.communityleader.email, useremail: self.authUser.attrs.local.email, communityname: community.attrs.name, communityowner: self.communityleader.name})
+          self.restService.http.post(
+            config.BACKEND_URL + 'sendmail',
+            JSON.stringify({
+              from: self.communityleader.email,
+              to: self.communityleader.email,
+              subject: ' Application from '+self.authUser.attrs.local.name+' to join Textual Community "' +
+                community.attrs.name,
+              html: messagetext,
+              text: messagetext.replace(/<[^>]*>/g, '')
+            }),
+            self.restService.prepareOptions({})
+          ).subscribe(function(res) {
+            console.log('send mail success');
+          });
+        }, function(err) {
+          console.log(err);
+        });
+    });
+//    this.uiService.manageModal$.emit({type:'join-community', community: community});
   },
   showCommunity: function(community) {
     if (this.nmemberships) {

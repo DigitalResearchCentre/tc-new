@@ -29,6 +29,7 @@ var EditNewPageComponent = ng.core.Component({
   }],
   ngOnInit: function() {
     var self=this;
+//    this.page=page;
     this.docService.getLinks(this.page).subscribe(function(data) {
       self.prev=data.prev;
     });
