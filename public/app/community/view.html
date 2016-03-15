@@ -1,4 +1,4 @@
-<tc-splitter class="content">
+<tc-splitter class="content" (resize)="onResize($event)">
   <tc-pane class="sidebar">
     <tc-tabs *ngIf="community">
       <tc-tab [active]="true" title="Documents">

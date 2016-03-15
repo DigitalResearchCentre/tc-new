@@ -1,4 +1,5 @@
 var _ = require('lodash')
+  , crypto = require('crypto')
   , async = require('async')
   , express = require('express')
   , router = express.Router()
@@ -6,6 +7,7 @@ var _ = require('lodash')
   , models = require('../models')
   , TCMailer = require('../TCMailer')
   , mongoose = require('mongoose')
+  , Action = models.Action
   , Community = models.Community
   , User = models.User
   , Doc = models.Doc
@@ -413,6 +415,134 @@ router.get('/docs/:id/links', function(req, res, next) {
   */
 });
 
+function confirmMembership(action) {
+  var payload = action.payload
+    , user = payload.user
+    , community = payload.community
+    , role = payload.role
+    , hash = payload.hash
+  ;
+}
+
+function requestMembership(action, cb) {
+  var buf = crypto.randomBytes(256)
+    , payload = action.payload
+  ;
+  payload.hash = buf.toString('hex');
+  async.parallel([
+    function(cb) {
+      User.findOne({_id: payload.user}, cb);
+    },
+    function(cb) {
+      Community.findOne({_id: payload.community}, cb);
+    },
+    function(cb) {
+      User.find({
+        'memberships.community': payload.community,
+        'memberships.role': User.CREATOR,
+      }, cb);
+    },
+    function(cb) {
+      new Action(action).save(function(err, obj) {
+        cb(err, obj);
+      });
+    },
+  ], function(err, results) {
+    var user = results[0]
+      , community = results[1]
+      , leader = results[2]
+      , action = results[3]
+      , message = user.local.name + ' is applying for ' + payload.role +
+        ' in community ' + community.name
+    ;
+    if (!err) {
+      TCMailer.nodemailerMailgun.sendMail({
+        from: TCMailer.addresses.from,
+        to: leader.local.email,
+        subject: 'Please confirm membership for ' + user.local.name + 
+          ' (' + user.local.email + ')',
+        html: message,
+        text: message.replace(/<[^>]*>/g, '')
+      });
+      var obj = action.toObject();
+      delete obj.payload.hash;
+      cb(err, obj);
+    } else {
+      cb(err);
+    }
+  });
+}
+
+function validateAction(action) {
+  return action.type && action.payload;
+}
+
+router.get('/actions/:id', function(req, res, next) {
+  Action.findOne({_id: req.params.id}, function(err, action) {
+    var payload = action.payload
+      , role = payload.role
+    ;
+    if (payload.hash && payload.hash === req.params.hash) {
+      async.parallel([
+        function(cb) {
+          User.findOne({_id: payload.user}, cb);
+        },
+        function(cb) {
+          Community.findOne({_id: payload.community}, cb);
+        },
+      ], function(err, results) {
+        var user = results[0]
+          , community = results[1]
+        ;
+        user.memberships.push({
+          community: community._id,
+          role: role,
+        });
+        async.parallel([
+          function(cb) {
+            user.save(function(err, obj) {
+              cb(err, obj);
+            });
+          },
+          function(cb) {
+            payload.hash = '';
+            payload.save(function(err, obj) {
+              cb(err, obj);
+            });
+          },
+        ], function(err) {
+          if (err) {
+            next(err);
+          } else {
+            res.json({message: 'success'});
+          }
+        });
+      });
+    } else {
+      res.json({message: 'invalid hash'});
+    }
+  });
+});
+
+router.post('/actions', function(req, res, next) {
+  var action = req.body;
+  if (!validateAction(action)) {
+    return cb({error: 'Action format error'});
+  }
+  switch (action.type) {
+    case 'request-membership':
+      requestMembership(action, function(err, _action) {
+        if (err) {
+          next(err);
+        } else {
+          res.json(_action);
+        }
+      });
+      break;
+    default: 
+      res.json({error: 'action not found'});
+  }
+});
 
 
 router.get('/auth', function(req, res, next) {

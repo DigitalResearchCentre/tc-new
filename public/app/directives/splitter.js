@@ -1,4 +1,5 @@
-var ContentChildren = ng.core.ContentChildren
+var EventEmitter = ng.core.EventEmitter
+  , ContentChildren = ng.core.ContentChildren
   , ElementRef = ng.core.ElementRef
   , $ = require('jquery')
 ;
@@ -15,6 +16,7 @@ var Pane = ng.core.Component({
 var Splitter = ng.core.Class({
   constructor: [ElementRef, function(elementRef) { 
     this._elementRef = elementRef;
+    this.resize = new EventEmitter();
   }],
   ngOnInit: function() {
     var el = this._elementRef.nativeElement
@@ -53,6 +55,7 @@ var Splitter = ng.core.Class({
       $right.css(
         'flex', 
         ((fullSize - leftSize) / leftSize).toString() + ' 1 ');
+      self.resize.emit();
 
 
       function getSize(size, min, max) {
@@ -87,7 +90,10 @@ ng.core.Component({
   ],
   inputs: [
     'min', 'max',
-  ]
+  ],
+  outputs: [
+    'resize'
+  ],
 })(Splitter);
 
 module.exports = {
@@ -95,5 +101,6 @@ module.exports = {
   Pane: Pane,
   SPLITTER_DIRECTIVES: [Splitter, Pane],
 };
+
 
 
