@@ -70,11 +70,10 @@ _.assign(CommunitySchema.statics, {
 var Community = mongoose.model('Community', CommunitySchema);
 
 
-var MembershipRequestSchema = new Schema({
-  user: {type: ObjectId, ref: 'User'},
-  community: {type: ObjectId, ref: 'Community'},
-  role: String,
-  hash: String,
+var ActionSchema = new Schema({
+  type: String,
+  payload: Schema.Types.Mixed,
+  error: Schema.Types.Boolean,
   created: {type: Date, default: Date.now},
 });
 
@@ -1416,7 +1415,7 @@ module.exports = {
   Entity: Entity,
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
-  MembershipRequest: mongoose.model('MemberRequest', MembershipRequestSchema),
+  Action: mongoose.model('Action', ActionSchema),
 };
 
 
