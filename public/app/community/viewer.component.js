@@ -40,6 +40,9 @@ var ViewerComponent = ng.core.Component({
       visibilityRatio:    1,
       defaultZoomLevel:   1,
       sequenceMode:       true,
+      // TODO:  
+      // while uploading, we need make:
+      // image name as page name, order by name, reorder, rename
       tileSources: [{
         "profile": [
           "http://iiif.io/api/image/2/level2.json",

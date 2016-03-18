@@ -4,12 +4,14 @@ var _ = require('lodash')
   , crypto = require('crypto')
   , async = require('async')
   , express = require('express')
+  , multer = require('multer')
   , router = express.Router()
   , Resource = require('./resource')
   , models = require('../models')
   , TCMailer = require('../TCMailer')
   , mongoose = require('mongoose')
   , config = require('../config')
+  , gridfs = require('../gridfs')
   , Action = models.Action
   , Community = models.Community
   , User = models.User
@@ -577,8 +579,20 @@ router.get('/auth', function(req, res, next) {
 }, userResource.detail());
 
 
-router.post('/sendmail', function(req, res, next) {
 
+var upload = multer({
+  storage: gridfs,
+});
+router.post('/upload', upload.any(), function(req, res, next) {
+  console.log(req.files);
+  res.json(req.files);
+});
+
+router.get('/gridfs/:id',  function(req, res, next) {
+  gridfs.gfs.createReadStream({_id: req.params.id}).pipe(res);
+});
+
+router.post('/sendmail', function(req, res, next) {
   TCMailer.nodemailerMailgun.sendMail(req.body, function(err, status) {
     if (!err) {
       res.json(status);

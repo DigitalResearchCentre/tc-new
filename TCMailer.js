@@ -9,8 +9,6 @@ var auth = {
 };
 
 
-console.log(mg(auth));
-
 exports.nodemailerMailgun = nodemailer.createTransport(mg(auth));
 
 exports.addresses = {
