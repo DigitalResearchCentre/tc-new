@@ -589,7 +589,14 @@ router.post('/upload', upload.any(), function(req, res, next) {
 });
 
 router.get('/gridfs/:id',  function(req, res, next) {
-  gridfs.gfs.createReadStream({_id: req.params.id}).pipe(res);
+  gridfs.gfs.findOne({ _id: req.params.id }, function(err, file) {
+    res.set('Content-Length', file.length);
+    res.set('Content-Type', file.contentType);
+    res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');
+    gridfs.gfs.createReadStream({
+      _id: req.params.id,
+    }).pipe(res);
+  })
 });
 
 router.post('/sendmail', function(req, res, next) {

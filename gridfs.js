@@ -20,7 +20,10 @@ _.assign(GridFSStorage.prototype, {
     var ws = gfs.createWriteStream({
       _id: id,
       filename: file.originalname,
+      mode: 'w',
       mimetype: file.mimetype,
+      content_type: file.mimetype,
+      contentType: file.mimetype,
     });
 
     file.stream.pipe(ws);
