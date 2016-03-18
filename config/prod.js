@@ -22,4 +22,5 @@ module.exports = {
     }
   },
   port: 80,
+  BACKEND_URL: 'http://206.12.59.55/:3000/api/',  
 };

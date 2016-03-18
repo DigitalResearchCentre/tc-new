@@ -4,6 +4,9 @@ var $ = require('jquery')
   , CommunityService = require('./services/community')
   , DocService = require('./services/doc')
   , AuthService = require('./auth.service')
+  , Dropzone = require('dropzone')
+  , ElementRef = ng.core.ElementRef
+  , config = require('./config')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
@@ -13,34 +16,58 @@ var AddPageComponent = ng.core.Component({
   selector: 'tc-managemodal-addpage',
   templateUrl: '/app/addpage.html',
   directives: [
-    require('../directives/modaldraggable')
+    require('./directives/filereader'),
+    require('../directives/modaldraggable'),
   ],
   inputs: [
     'parent', 'after',
   ]
 }).Class({
   constructor: [
-    Router, CommunityService, AuthService, UIService, DocService,
+    Router, CommunityService, AuthService, UIService, DocService, ElementRef,
   function(
-    router, communityService, authService, uiService, docService
+    router, communityService, authService, uiService, docService, elementRef
   ) {
-
-    var self=this;
     this._docService = docService;
     this._router = router;
+    this._elementRef = elementRef;
+
     this.uiService = uiService;
     this.message="";
     this.success="";
-    $('#manageModal').width("430px");
-    $('#manageModal').height("355px");
     this.oneormany="OnePage";
     this.pageName="";
     this.page={http:""};
   }],
+  ngOnInit: function() {
+    var el = this._elementRef.nativeElement
+      , $el = $(el)
+      , self = this
+    ;
+    $('#manageModal').width("430px");
+    $('#manageModal').height("355px");
+    $('.dropzone', $el).dropzone({url: config.BACKEND_URL + 'upload'});
+  },
   ngOnChanges: function() {
     console.log(this.parent);
     console.log(this.after);
     
+  },
+  handleUpload: function(data) {
+    console.log(data);
+    var id = data.id;
+    var index = _.findIndex(this.uploadProgresses, {id: id});
+    if (index === -1) {
+      this.uploadProgresses.push({id: id, percent: 0});
+    }
+    if (this.uploadProgresses[index]) {
+      this.zone.run(() => {
+        this.uploadProgresses[index].percent = data.progress.percent;
+      });
+    }
+  },
+  filechange: function(filecontent) {
+    this.filecontent = filecontent;
   },
   showSingle: function() {
     $("#MMADPsingle").show();
@@ -86,6 +113,9 @@ var AddPageComponent = ng.core.Component({
         } else if (this.after) {
           options.after = this.after;
         }
+        console.log(options);
+        return ;
+
         this._docService.addPage(options).subscribe(function(page) {
           uiService.selectPage(page);
           router.navigate(['Community', {
@@ -105,3 +135,6 @@ var AddPageComponent = ng.core.Component({
 });
 
 module.exports = AddPageComponent;
+
+
+ 

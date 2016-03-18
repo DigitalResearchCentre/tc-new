@@ -19,6 +19,7 @@ var AppComponent = ng.core.Component({
     ng.router.ROUTER_DIRECTIVES,
     require('./header.component'),
     require('./memberprofile.component'),
+    require('./directives/filereader'),
   ],
 }).Class({
   constructor: [function() {
