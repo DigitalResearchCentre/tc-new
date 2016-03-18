@@ -1,0 +1,22 @@
+<form method="post" enctype="multipart/form-data"
+  class="fileupload fileupload-new" data-provides="fileupload">
+  <div class="error alert alert-block alert-warning hide"></div>
+  <div class="alert alert-success fade in hide">Success !</div>
+  <ul class="file-list"></ul>
+  <div class="error alert alert-block alert-warning hide"></div>
+  <span class="btn btn-file btn-primary">
+    <span class="fileupload-new">Select file</span>
+    <span class="fileupload-exists">Change</span>
+    <input type="file" name="<%- name %>"/>
+  </span>
+  <span class="fileupload-preview"></span>
+  <a href="#" class="close fileupload-exists" data-dismiss="fileupload"
+    style="float: none">×</a>
+  <div class="progress progress-striped active">
+    <div class="progress-bar" role="progressbar" style="width: 0%"
+      aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">
+      <span class="sr-only"></span>
+    </div>
+  </div>
+</form>
+
