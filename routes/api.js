@@ -1,6 +1,6 @@
 var _ = require('lodash')
   , ejs = require('ejs')
-  , fs = require('fs') 
+  , fs = require('fs')
   , crypto = require('crypto')
   , async = require('async')
   , express = require('express')
@@ -464,14 +464,14 @@ function requestMembership(action, callback) {
     if (!err) {
       message = ejs.render(
       fs.readFileSync(
-        __dirname + '/../views/joinletternotifyleader.ejs', 'utf8'), 
+        __dirname + '/../views/joinletternotifyleader.ejs', 'utf8'),
         {
-          username: user.local.name, 
-          hash: action.payload.hash, 
+          username: user.local.name,
+          hash: action.payload.hash,
           url: `${config.BACKEND_URL}actions/${action._id}`,
-          communityemail: leader.email, 
-          useremail: user.local.email, 
-          communityname: community.name, 
+          communityemail: leader.email,
+          useremail: user.local.email,
+          communityname: community.name,
           communityowner: leader.name
         }
       );
@@ -561,7 +561,7 @@ router.post('/actions', function(req, res, next) {
         }
       });
       break;
-    default: 
+    default:
       next({error: 'action not found'});
   }
 });

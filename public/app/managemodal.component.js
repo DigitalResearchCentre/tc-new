@@ -41,6 +41,9 @@ var ManageModalComponent = ng.core.Component({
       }  else if (event.type === 'join-community') {
             self.community = event.community;
             self.choice = event.type;
+            self.communityleader=event.communityleader;
+            self.communityleader=event.communityleader;
+            self.status=event.status;
       }
       $('#manageModal').modal('show');
     });

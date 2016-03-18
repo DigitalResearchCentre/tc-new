@@ -1,12 +1,18 @@
 <div style="font-size: 110%">
-  <div modal-draggable class="modalHeader">Join community "{{uiService.community.attrs.name}}"
+  <div modal-draggable class="modalHeader">Joining community "{{joiningcommunity.attrs.name}}"
     <button type="button" (click)="closeModalJC()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
-  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
-    {{message}}
-  </div>
-  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
-    {{success}}
-  </div>
-  <p>Dear {{authUser.attrs.local.name}} You are joined!!!</p>
+  <div *ngIf="status=='autoaccept'" style="margin-left: 20px; margin-right: 20px">
+    <p> You have asked to join community "{{joiningcommunity.attrs.name}}" led by {{communityleader.name}}. As this community is set to accept as a member
+     anyone who asks to join, you are now a member of this community.</p>
+     <p>An email has been sent to  {{communityleader.name}}, informing him or her that you have joined this community, and giving your
+       email address.
+    </p>
+</div>
+<div *ngIf="status=='requestaccept'" style="margin-left: 20px; margin-right: 20px">
+  <p> You have asked to join community "{{joiningcommunity.attrs.name}}" led by {{communityleader.name}}. Requests to join this community must be approved by a community leader.</p>
+  <p>An email has been sent to  {{communityleader.name}}, informing him or her that you have asked to join this community, and giving your
+     email address.
+  </p>
+</div>
 </div>

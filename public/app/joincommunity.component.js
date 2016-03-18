@@ -13,7 +13,7 @@ var UIService = require('./ui.service')
 var JoinCommunityComponent = ng.core.Component({
   selector: 'tc-managemodal-join-community',
   templateUrl: '/app/joincommunity.html',
-  inputs : ['joiningcommunity',],
+  inputs : ['joiningcommunity', 'communityleader', 'status'],
   directives: [
     require('../directives/modaldraggable')
   ],
