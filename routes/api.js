@@ -459,10 +459,6 @@ function requestMembership(action, callback) {
       , action = results[3]
       , message
     ;
-    console.log(results);
-    console.log(err);
-    console.log(action);
-    console.log('--------------------');
     if (!err) {
       message = ejs.render(
       fs.readFileSync(

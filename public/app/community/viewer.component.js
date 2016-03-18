@@ -64,7 +64,7 @@ var ViewerComponent = ng.core.Component({
         "height": 1479,
         "width": 2334,
         "@context": "http://iiif.io/api/image/2/context.json",
-        "@id": "http://206.12.59.55:5004/Ad147r.jpg"
+        "@id": "http://206.12.59.55:5004/56ec4c3ccf0b3c9c2ae51c8b",
       }]
     });
     this.viewer = viewer;

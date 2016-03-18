@@ -29,19 +29,30 @@ var MemberProfileComponent = ng.core.Component({
 }).Class({
   constructor: [AuthService, CommunityService, UIService, RESTService, function(authService, communityService, uiService, restService) {
     var self=this;
+    this._authService = authService;
     this.communityService = communityService;
     this.uiService=uiService;
     this.restService=restService;
     this.authUser = authService._authUser;
     this.nmemberships= authService._authUser.attrs.memberships.length;
     this.memberships= authService._authUser.attrs.memberships;
-    this.communityleader={email:"peter.robinson@usask.ca", name:"Peter Robinson"}
+
+    authService.authUser$.subscribe(this.onMemberhipUpdate.bind(this))
+    this.communityleader = {
+      email:"peter.robinson@usask.ca", name:"Peter Robinson"
+    };
+    this.onMemberhipUpdate();
+  }],
+  onMemberhipUpdate: function() {
+    var self = this;
+    this.memberships = this.authUser.attrs.memberships;
+    this.nmemberships = this.memberships.length;
     this.communityService.allCommunities$.subscribe(function(communities) {
       self.joinableCommunities = _.filter(
-        communities, self.showCommunity.bind(self));
+        communities, self.showCommunity.bind(self)
+      );  
     });
-
-  }],
+  },
   formatDate: function(rawdate) {
     var date = new Date(rawdate)
     return date.toDateString()
@@ -65,10 +76,11 @@ var MemberProfileComponent = ng.core.Component({
         if (community.attrs.accept && community.attrs.autoaccept) {
           joinstatus="autoaccept";
           self.communityService.addMember(community, self.authUser, 'MEMBER')
-            .subscribe(function(updatedUser){
-              console.log(updatedUser);
+            .subscribe(function(){
+              self._authService.refresh();
             });
-          self.restService.http.get('/app/joinnotifyauto.ejs').subscribe(function(result) {
+          self.restService.http.get('/app/joinnotifyauto.ejs')
+            .subscribe(function(result) {
               var tpl=_.template(result._body);
               var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.email, communityname: community.attrs.name, communityowner: self.communityleader.name, communityemail:self.communityleader.name})
               self.restService.http.post(
@@ -92,7 +104,8 @@ var MemberProfileComponent = ng.core.Component({
         if (community.attrs.accept && !community.attrs.autoaccept) {
             //who is the leader of this community
             joinstatus="requestaccept";
-            self.restService.http.get('/app/joinletter.ejs').subscribe(function(result) {
+            self.restService.http.get('/app/joinletter.ejs')
+              .subscribe(function(result) {
                 var tpl=_.template(result._body);
                 var messagetext=tpl({username: self.authUser.attrs.local.name, useremail: self.authUser.attrs.local.email, communityname: community.attrs.name, communityowner: self.communityleader.name, communityemail: self.communityleader.email})
                 self.restService.http.post(
