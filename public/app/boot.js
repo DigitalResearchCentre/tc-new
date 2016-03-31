@@ -4,8 +4,6 @@ require('script!angular2/bundles/angular2-all.umd');
 
 var AppComponent = require('./app.component');
 
-console.log(require("libxmljs"));
-
 document.addEventListener('DOMContentLoaded', function() {
   ng.platform.browser.bootstrap(AppComponent, [
     ng.http.HTTP_PROVIDERS,
