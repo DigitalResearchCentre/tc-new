@@ -15,6 +15,7 @@ var express = require('express')
   , passport = require('./passport')
 ;
 
+
 mongoose.connect(config.database.uri);
 
 app.use(logger('dev'));

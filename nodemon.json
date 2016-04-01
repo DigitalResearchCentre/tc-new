@@ -1,4 +1,0 @@
-{
-  "verbose": true,
-  "ignoreRoot": [".git", "public", "test", "spec", "node_modules", "bower_components"]
-}

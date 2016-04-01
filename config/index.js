@@ -20,6 +20,4 @@ module.exports = _.assign({
         'callbackURL'   : 'http://localhost:3000/auth/google/callback'
     }
   }
-
-
-}, require('./' + process.env.TC_ENV));
+}, require('./' + process.env.NODE_ENV));

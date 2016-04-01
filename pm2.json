@@ -1,0 +1,34 @@
+{
+  "apps": [{
+    "name": "tc",
+    "script": "bin/www",
+    "watch": true,
+    "ignore_watch" : [
+      ".git", ".DS_Store",
+      "public", 
+      "data", 
+      "spec", 
+      "node_modules", 
+      "bower_components" 
+    ],
+    "watch_options": {
+      "followSymlinks": false
+    },
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "env_production" : {
+       "NODE_ENV": "production"
+    }
+  }, {
+    "name": "tc-client",
+    "script": "public/index.js",
+    "watch": ["public/make-webpack-config.js", "public/index.js"],
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "env_production" : {
+       "NODE_ENV": "production"
+    }
+  }]
+}

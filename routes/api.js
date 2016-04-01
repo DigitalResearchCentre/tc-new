@@ -11,7 +11,8 @@ var _ = require('lodash')
   , TCMailer = require('../TCMailer')
   , mongoose = require('mongoose')
   , config = require('../config')
-  , gridfs = require('../gridfs')
+  , gridfs = require('../utils/gridfs')
+  , libxml = require('libxmljs')
   , Action = models.Action
   , Community = models.Community
   , User = models.User
@@ -602,6 +603,23 @@ router.post('/sendmail', function(req, res, next) {
     } else {
       next(err);
     }
+  });
+});
+
+router.post('/validate', function(req, res, next) {
+  var xmlDoc, errors;
+  try {
+    xmlDoc = libxml.parseXml(req.body.xml);
+    xmlDoc.setDtd('TEI', 'TEI-TC', './data/TEI-transcr-TC.dtd');
+    xmlDoc = libxml.parseXml(xmlDoc.toString(), {
+      dtdvalid: true,
+    })
+    errors = xmlDoc.errors;
+  } catch (err) {
+    errors = err;
+  }
+  res.json({
+    error: errors
   });
 });
 
