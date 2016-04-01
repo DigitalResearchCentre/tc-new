@@ -12,14 +12,13 @@ module.exports = function(options) {
   var env = options.env
     , devtool, debug
   ;
-  console.log(env);
 
-  if (env === 'dev') {
-    devtool = '#inline-source-map';
-    debug = true;
-  }else{
+  if (env === 'production') {
     devtool = '#source-map';
     debug = false;
+  }else{
+    devtool = '#eval-cheap-module-source-map';
+    debug = true;
   }
 
   return {
@@ -72,7 +71,9 @@ module.exports = function(options) {
     },
     plugins: [
       new webpack.DefinePlugin({
-        'process.env.TC_ENV': JSON.stringify(env),
+        'process.env': {
+          NODE_ENV: JSON.stringify(env),
+        },
       }),
       new ResolverPlugin(new ResolverPlugin.DirectoryDescriptionFilePlugin(
         'bower.json', ['main']
