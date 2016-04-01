@@ -587,6 +587,7 @@ router.post('/upload', upload.any(), function(req, res, next) {
 
 router.get('/gridfs/:id',  function(req, res, next) {
   gridfs.gfs.findOne({ _id: req.params.id }, function(err, file) {
+    console.log(file);
     res.set('Content-Length', file.length);
     res.set('Content-Type', file.contentType);
     res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');
