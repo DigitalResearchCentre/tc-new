@@ -43,28 +43,26 @@ var AddPageComponent = ng.core.Component({
     var el = this._elementRef.nativeElement
       , $el = $(el)
       , self = this
+      , url = config.IMAGE_UPLOAD_URL
+      , $dropzone = $('.dropzone', $el);
     ;
+    this.$dropzone = $dropzone;
     $('#manageModal').width("430px");
     $('#manageModal').height("355px");
-    $('.dropzone', $el).dropzone({url: config.BACKEND_URL + 'upload'});
+    if (config.env !== 'production') {
+      url += '?env=' + config.env;
+    }
+    $dropzone.dropzone({
+      url: url,
+      autoProcessQueue: false,
+    });
+    $dropzone.on('success', function(res) {
+      console.log(res);
+    });
   },
   ngOnChanges: function() {
     console.log(this.parent);
     console.log(this.after);
-    
-  },
-  handleUpload: function(data) {
-    console.log(data);
-    var id = data.id;
-    var index = _.findIndex(this.uploadProgresses, {id: id});
-    if (index === -1) {
-      this.uploadProgresses.push({id: id, percent: 0});
-    }
-    if (this.uploadProgresses[index]) {
-      this.zone.run(() => {
-        this.uploadProgresses[index].percent = data.progress.percent;
-      });
-    }
   },
   filechange: function(filecontent) {
     this.filecontent = filecontent;
@@ -120,6 +118,11 @@ var AddPageComponent = ng.core.Component({
             id: uiService.community.getId(), route: 'view'
           }]);
 
+          self.$dropzone.each(function(i, el) {
+            console.log(el);
+            console.log(arguments);
+            el.dropzone.processQueue();
+          });
           console.log("added "+self.pageName);
           self.success="Page "+self.pageName+" added";
         });

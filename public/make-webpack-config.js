@@ -63,7 +63,7 @@ module.exports = function(options) {
     },
     resolve: {
       root: [clientRoot],
-      modulesDirectories: ['web_modules', 'bower_components', 'node_modules', ],
+      modulesDirectories: ['web_modules', 'node_modules', 'bower_components', ],
       alias: {
         bower: bowerRoot,
         node: nodeRoot,
