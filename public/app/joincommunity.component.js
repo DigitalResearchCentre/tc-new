@@ -24,8 +24,8 @@ var JoinCommunityComponent = ng.core.Component({
     ) {
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
-    $('#manageModal').width("400px");
-    $('#manageModal').height("400px");
+    $('#manageModal').width("300px");
+    $('#manageModal').height("300px");
     this.message="";
     this.success="";
     this.communityService=communityService;

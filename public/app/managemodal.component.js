@@ -17,7 +17,8 @@ var ManageModalComponent = ng.core.Component({
     require('./adddocumentxml.component'),
     require('./editnewpage.component'),
     require('./extractxmldoc.component'),
-    require('./joincommunity.component')
+    require('./joincommunity.component'),
+    require('./viewmembers.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -41,8 +42,8 @@ var ManageModalComponent = ng.core.Component({
       }  else if (event.type === 'join-community') {
             self.community = event.community;
             self.choice = event.type;
-            self.communityleader=event.communityleader;
-            self.communityleader=event.communityleader;
+            if (event.status=="alldolead") self.communityleader=null;
+            else self.communityleader=event.communityleader;
             self.status=event.status;
       }
       $('#manageModal').modal('show');

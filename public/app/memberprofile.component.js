@@ -6,8 +6,10 @@ var AuthService = require('./auth.service')
     , RESTService = require('./rest.service')
     , config = require('./config')
     , base64url = require('base64url')
-    , crypto = require('crypto');
-
+    , crypto = require('crypto')
+    , Router = ng.router.Router
+    , Location = ng.router.Location
+;
     /* function example(communityService, community, user) {
       communityService.addMember(community, user, 'MEMBER')
         .subscribe(function(updatedUser){
@@ -27,9 +29,11 @@ var MemberProfileComponent = ng.core.Component({
     ng.router.ROUTER_DIRECTIVES,
   ],
 }).Class({
-  constructor: [AuthService, CommunityService, UIService, RESTService, function(authService, communityService, uiService, restService) {
+  constructor: [AuthService, Router, Location, CommunityService, UIService, RESTService, function(authService, router, location, communityService, uiService, restService) {
     var self=this;
     this._authService = authService;
+    this._router = router;
+    this._location = location;
     this.communityService = communityService;
     this.uiService=uiService;
     this.restService=restService;
@@ -50,7 +54,7 @@ var MemberProfileComponent = ng.core.Component({
     this.communityService.allCommunities$.subscribe(function(communities) {
       self.joinableCommunities = _.filter(
         communities, self.showCommunity.bind(self)
-      );  
+      );
     });
   },
   formatDate: function(rawdate) {
@@ -60,8 +64,22 @@ var MemberProfileComponent = ng.core.Component({
   loadModal: function(which) {
     this.uiService.manageModal$.emit(which);
   },
+  isLeader: function (community) {
+    var memberships=this.memberships;
+    var leaderfound=memberships.filter(function (obj){return obj.community.attrs._id === community.attrs._id && (obj.role === "CREATOR" || obj.role === "LEADER");})[0];
+    if (leaderfound) return true;
+    else return false;
+  },
   joinCommunity: function(community) {
     var self = this;
+    if (community.attrs.accept && community.attrs.autoaccept && community.attrs.alldolead) {
+      self.communityService.addMember(community, self.authUser, 'LEADER')
+        .subscribe(function(){
+          self._authService.refresh();
+        });
+      self.uiService.manageModal$.emit({type:'join-community', community: community, communityleader: "all", status:"alldolead" });
+      return;
+    }
     //need function to get the leader of this community
     self.communityService.getMemberships(community)
       .subscribe(function(users) {
@@ -140,6 +158,12 @@ var MemberProfileComponent = ng.core.Component({
           });
         };
       });
+  },
+  navigate: function(community, route) {
+    var instruction = this._router.generate([
+      'Community', {id: community.getId(), route: route}
+    ]);
+    this._location.go(instruction.toRootUrl());
   },
   showCommunity: function(community) {
     if (this.nmemberships) {
