@@ -113,8 +113,6 @@ var AddPageComponent = ng.core.Component({
         } else if (this.after) {
           options.after = this.after;
         }
-        console.log(options);
-        return ;
 
         this._docService.addPage(options).subscribe(function(page) {
           uiService.selectPage(page);
