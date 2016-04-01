@@ -1,0 +1,31 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">View members of community "{{community.attrs.name}}"
+    <button type="button" (click)="closeModalVM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+<div style="margin: 10px">
+<h4>Members of Community {{community.attrs.name}}</h4>
+  <div>
+    <p>This community has {{nmembers}} <span *ngIf="nmembers>1">members:</span><span *ngIf="nmembers==1">member:</span></p>
+    <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
+      <thead>
+        <tr>
+          <th style="border-bottom-width:0px" class="col-md-3">Name</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Email</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Role</th>
+          <th style="border-bottom-width:0px" class="col-md-3">Joined</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Contact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="#member of members" class="commMembership">
+          <td  style="border-top-width:0px">{{member.local.name}}</td>
+          <td style="border-top-width:0px">{{member.local.email}}</td>
+          <td style="border-top-width:0px">{{member.role}}</td>
+          <td style="border-top-width:0px">{{member.created}}</td>
+          <td style="border-top-width:0px">{{member.created}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>

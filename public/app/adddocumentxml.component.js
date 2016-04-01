@@ -4,7 +4,6 @@ var URI = require('urijs')
   , CommunityService = require('./services/community')
   , AuthService = require('./auth.service')
   , DocService = require('./services/doc')
-  , TCService = require('./tc')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');

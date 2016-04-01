@@ -1,6 +1,6 @@
 <div *ngIf="uiService.community">
-  <div id="ENPhead" modal-draggable class="modalHeader">Edit new text in page "{{page.attrs.name}}" in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
-  <button type="button" (click)="closeModalNP()" class="close"
+  <div id="ENPhead" modal-draggable class="modalHeader">New text in page "{{page.attrs.name}}" in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
+<button type="button" (click)="closeModalNP()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
   </button>
@@ -13,11 +13,9 @@
     {{success}}
   </div>
   <div id="MMADdiv" class="form-group"
-   style="margin-top: 15px; margin-left: 15px; margin-right: 30px">
-    <label>Entity Name ({{entity.sample}})</label>&nbsp;&nbsp;
-    <input type="text"
-    style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="entity.name"/>
-  </div>
+   style="margin-top: 15px; margin-left: 15px; margin-right: 30px; text-align: center; font-weight: bold">
+  <p>What kind of text do you want to transcribe?</p>
+</div>
   <div style="margin-left: 40px; margin-top: 10px">
     <p *ngIf="prev.length" class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Previous')">Continue previous page</p>
     <p class="NewDocPage"><input type="radio" checked="checked" name="chooseStructure" (click)="choose('Prose')">Prose</p>
@@ -26,6 +24,13 @@
     <p class="NewDocPage"><input type="radio" name="chooseStructure">Letter</p>
     <p class="NewDocPage"><input type="radio" name="chooseStructure">Plain text</p>
     <p class="NewDocPage"><input type="radio" name="chooseStructure">Empty page</p>
+  </div>
+  <div id="MMADdiv" class="form-group"
+   style="margin-top: 15px; margin-left: 15px; margin-right: 30px">
+    <p>Entity Name ({{entity.sample}})&nbsp;&nbsp;
+    <input type="text"
+    style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="entity.name"/>
+  </p>
   </div>
   <div [ngSwitch]="choice">
       <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity" [(template)]="template" [page]="page"></tc-newpage-prose>

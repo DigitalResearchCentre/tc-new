@@ -32,6 +32,3 @@ $.post('/api/validate', {
 }, function(res) {
   console.log(res);
 });
-
-
-

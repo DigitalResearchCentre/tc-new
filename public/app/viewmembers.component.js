@@ -10,10 +10,9 @@ var UIService = require('./ui.service')
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
 
-var JoinCommunityComponent = ng.core.Component({
-  selector: 'tc-managemodal-join-community',
-  templateUrl: '/app/joincommunity.html',
-  inputs : ['joiningcommunity', 'communityleader', 'status'],
+var ViewMembersComponent = ng.core.Component({
+  selector: 'tc-managemodal-view-members',
+  templateUrl: '/app/viewmembers.html',
   directives: [
     require('../directives/modaldraggable')
   ],
@@ -23,21 +22,31 @@ var JoinCommunityComponent = ng.core.Component({
       communityService, authService, uiService
     ) {
 //    var Doc = TCService.Doc, doc = new Doc();
+    var self=this;
     this.doc = {name:""};
-    $('#manageModal').width("300px");
-    $('#manageModal').height("300px");
+    $('#manageModal').width("800px");
+    $('#manageModal').height("500px");
     this.message="";
     this.success="";
+    this.community = uiService.community;
     this.communityService=communityService;
     this.uiService = uiService;
-    this.community = uiService.community;
     this.authUser = authService._authUser;
-    this.communityleader={email:"peter.robinson@usask.ca", name:"Peter Robinson"}
+    this.communityService.getMemberships(this.community)
+      .subscribe(function(members) {
+        self.members=members;
+        self.nmembers=members.length;
+        self.members.forEach (function(member){
+          var thismembership=member.memberships.filter(function(obj){return (obj.community === self.community.attrs._id)})[0];
+          member.role=thismembership.role;
+          member.created=formatDate(thismembership.created);
+        })
+      });
     }],
   ngOnInit: function() {
       var self = this;
   },
-  closeModalJC: function() {
+  closeModalVM: function() {
     this.message=this.success=this.doc.name="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
@@ -45,5 +54,9 @@ var JoinCommunityComponent = ng.core.Component({
   },
 });
 
+function formatDate (rawdate) {
+  var date = new Date(rawdate)
+  return date.toDateString()
+};
 
-module.exports = JoinCommunityComponent;
+module.exports = ViewMembersComponent;

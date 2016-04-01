@@ -4,6 +4,7 @@ var ElementRef = ng.core.ElementRef
   , DocService = require('../services/doc')
   , $ = require('jquery')
   , OpenSeadragon = require('openseadragon')
+  , config = require('../config')
 ;
 
 var ViewerComponent = ng.core.Component({
@@ -40,7 +41,7 @@ var ViewerComponent = ng.core.Component({
       visibilityRatio:    1,
       defaultZoomLevel:   1,
       sequenceMode:       true,
-      // TODO:  
+      // TODO:
       // while uploading, we need make:
       // image name as page name, order by name, reorder, rename
       tileSources: [{
@@ -50,15 +51,15 @@ var ViewerComponent = ng.core.Component({
             "supports": [
               "canonicalLinkHeader", "profileLinkHeader", "mirroring",
               "rotationArbitrary", "sizeAboveFull", "regionSquare"
-            ], 
+            ],
             "qualities": [
               "default", "color", "gray", "bitonal"
-            ], 
+            ],
             "formats": [
               "jpg", "png", "gif", "webp"
             ]
           }
-        ], 
+        ],
         "protocol": "http://iiif.io/api/image",
         "sizes": [],
         "height": 1479,
@@ -120,7 +121,7 @@ var ViewerComponent = ng.core.Component({
   },
   setContentText: function(contentText) {
     this.page.contentText = contentText;
-    if (this.page.attrs.children.length === 0 && 
+    if (this.page.attrs.children.length === 0 &&
         this.page.attrs.revisions.length === 0) {
 //    if (contentText === "<text><body/></text>") {
       this._uiService.manageModal$.emit({
@@ -162,6 +163,18 @@ var ViewerComponent = ng.core.Component({
       docService.fetch(page.getId(), {
         populate: JSON.stringify('revisions'),
       }).subscribe();
+    });
+  },
+  preview: function() {
+    //parse first!
+    $.post(config.BACKEND_URL+'validate', {
+      xml: this.page.contentText,
+    }, function(res) {
+      console.log(res);
+      this._uiService.manageModal$.emit({
+        type: 'preview-page',
+        page: this.page,
+      });
     });
   },
   commit: function() {
