@@ -18,7 +18,8 @@ var ManageModalComponent = ng.core.Component({
     require('./editnewpage.component'),
     require('./extractxmldoc.component'),
     require('./joincommunity.component'),
-    require('./viewmembers.component')
+    require('./viewmembers.component'),
+    require('./previewpage.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -39,6 +40,9 @@ var ManageModalComponent = ng.core.Component({
       } else if (event.type === 'edit-new-page') {
         self.choice = event.type;
         self.page = event.page;
+      }  else if (event.type === 'preview-page') {
+          self.choice = event.type;
+          self.page = event.page;
       }  else if (event.type === 'join-community') {
             self.community = event.community;
             self.choice = event.type;
