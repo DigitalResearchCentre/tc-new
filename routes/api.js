@@ -619,7 +619,11 @@ router.post('/validate', function(req, res, next) {
     errors = err;
   }
   res.json({
-    error: errors
+    error:   _.map(errors, function(err) {
+      return _.assign({}, err, {
+        message: err.message,
+      });
+    }),
   });
 });
 
