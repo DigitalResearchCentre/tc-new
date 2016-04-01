@@ -4,6 +4,7 @@ var ElementRef = ng.core.ElementRef
   , DocService = require('../services/doc')
   , $ = require('jquery')
   , OpenSeadragon = require('openseadragon')
+  , config = require('../config')
 ;
 
 var ViewerComponent = ng.core.Component({
@@ -165,9 +166,15 @@ var ViewerComponent = ng.core.Component({
     });
   },
   preview: function() {
+    //parse first!
+    $.post(config.BACKEND_URL+'validate', {
+      xml: this.page.contentText,
+    }, function(res) {
+      console.log(res);
       this._uiService.manageModal$.emit({
-      type: 'preview-page',
-      page: this.page,
+        type: 'preview-page',
+        page: this.page,
+      });
     });
   },
   commit: function() {
