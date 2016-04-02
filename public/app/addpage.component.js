@@ -119,8 +119,6 @@ var AddPageComponent = ng.core.Component({
           }]);
 
           self.$dropzone.each(function(i, el) {
-            console.log(el);
-            console.log(arguments);
             el.dropzone.processQueue();
           });
           console.log("added "+self.pageName);
