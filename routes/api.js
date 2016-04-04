@@ -279,6 +279,8 @@ var DocResource = _.inherit(Resource, function(opts) {
             }
           },
           function(cb) {
+            console.log('---------------------');
+            console.log(obj);
             obj.save(function(err, obj, numberAffected) {
               doc = obj;
               cb(err, doc);

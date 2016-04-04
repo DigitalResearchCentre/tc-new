@@ -29,6 +29,14 @@ var CommunityComponent = ng.core.Component({
     this._location = location;
     this._communityService = communityService;
     this._uiService = uiService;
+    uiService.abc = 1;
+    uiService.def = 1000;
+    setInterval(function() {
+      uiService.abc += 1;
+    }, 2000);
+    setInterval(function() {
+      uiService.def += 10;
+    }, 5000);
 
     var self = this
       , id = this._routeParams.get('id')

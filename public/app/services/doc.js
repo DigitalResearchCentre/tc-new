@@ -289,7 +289,6 @@ var DocService = ng.core.Injectable().Class({
       obs = this.create(page);
     }
     return obs.map(function(page) {
-      console.log(page);
       return page;
     });
   },

@@ -44,38 +44,29 @@ var ViewerComponent = ng.core.Component({
       // TODO:
       // while uploading, we need make:
       // image name as page name, order by name, reorder, rename
-      tileSources: [{
-        "profile": [
-          "http://iiif.io/api/image/2/level2.json",
-          {
-            "supports": [
-              "canonicalLinkHeader", "profileLinkHeader", "mirroring",
-              "rotationArbitrary", "sizeAboveFull", "regionSquare"
-            ],
-            "qualities": [
-              "default", "color", "gray", "bitonal"
-            ],
-            "formats": [
-              "jpg", "png", "gif", "webp"
-            ]
-          }
-        ],
-        "protocol": "http://iiif.io/api/image",
-        "sizes": [],
-        "height": 1479,
-        "width": 2334,
-        "@context": "http://iiif.io/api/image/2/context.json",
-        "@id": "http://206.12.59.55:5004/56ec4c3ccf0b3c9c2ae51c8b",
-      }]
     });
     this.viewer = viewer;
+    this.onPageChange();
     this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
-
     this.links = {prev: [], next: []};
     this.prevLink = null;
     this.nextLink = null;
+  },
+  ngOnChanges: function() {
+    var image = _.get(this.page, 'attrs.image');
+    if (image && image != this.image) {
+      this.onPageChange()
+    }
+  },
+  onPageChange: function() {
+    var viewer = this.viewer;
+    this.image = this.page.attrs.image;
+
+    $.get(config.IIIF_URL + this.image + '/info.json', function(source) {
+      viewer.open([source]);
+    });
   },
   onResize: function() {
     if (!this.viewer) return;
