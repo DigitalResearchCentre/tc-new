@@ -1,16 +1,13 @@
 require('bootstrap');
 require('./app.less');
 require('../../utils/mixin');
-var AuthService = require('./auth.service');
+var AuthService = require('./services/auth');
 
 var RouteParams = ng.router.RouteParams
   , HomeComponent = require('./home.component')
   , CommunityComponent = require('./community/community.component')
   , MemberProfileComponent = require('./memberprofile.component')
 ;
-
-
-
 
 var AppComponent = ng.core.Component({
   selector: 'tc-app',

@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
     ng.http.HTTP_PROVIDERS,
     ng.router.ROUTER_PROVIDERS,
     require('./ui.service'),
-    require('./auth.service'),
+    require('./services/auth'),
     require('./services/community'),
     require('./services/doc'),
-    require('./rest.service'),
+    require('./services/rest'),
   ]).catch(function(err) {
     console.error(err);
   });

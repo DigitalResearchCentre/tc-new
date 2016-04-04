@@ -1,9 +1,9 @@
 var URI = require('urijs')
   , URITemplate = require('urijs/src/URITemplate')
   , _ = require('lodash')
-  , Model = require('./models/model')
   , Rx = require('rxjs')
-  , config = require('./config')
+  , Model = require('../models/model')
+  , config = require('../config')
 ;
 var Http = ng.http.Http;
 window.URI = URI;

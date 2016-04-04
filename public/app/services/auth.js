@@ -1,8 +1,8 @@
 var Http = ng.http.Http
   , forwardRef = ng.core.forwardRef
   , Inject = ng.core.Inject
-  , RESTService = require('./rest.service')
-  , User = require('./models/user')
+  , RESTService = require('./rest')
+  , User = require('../models/user')
   , Rx = require('rxjs')
 ;
 
@@ -19,6 +19,9 @@ var AuthService = ng.core.Class({
 
     this.initEventEmitters();
   }],
+  modelClass: function() {
+    return User;
+  },
   initEventEmitters: function() {
     var self = this;
 
@@ -33,9 +36,6 @@ var AuthService = ng.core.Class({
         return self._authUser;
       })
       .publishReplay(1).refCount();
-  },
-  modelClass: function() {
-    return User;
   },
   refresh: function() {
     this._refresh.next(null);

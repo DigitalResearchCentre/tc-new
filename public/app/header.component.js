@@ -1,6 +1,6 @@
 var _ = require('lodash')
   , CommunityService = require('./services/community')
-  , AuthService = require('./auth.service')
+  , AuthService = require('./services/auth')
   , UIService = require('./ui.service')
   , DocService = require('./services/doc')
   , config = require('./config')
