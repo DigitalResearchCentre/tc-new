@@ -3,7 +3,7 @@ var _ = require('lodash')
   , Router = ng.router.Router
   , Location = ng.router.Location
   , CommunityService = require('../services/community')
-  , AuthService = require('../auth.service')
+  , AuthService = require('../services/auth')
   , UIService = require('../ui.service')
 ;
 

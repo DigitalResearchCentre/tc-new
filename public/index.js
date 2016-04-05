@@ -1,13 +1,8 @@
 var webpack = require('webpack')
   , stdio = require('stdio')
-  , config, compiler, ops, env
+  , env = process.env.NODE_ENV
+  , config, compiler, ops
 ;
-
-ops = stdio.getopt({
-  env: {args: 1, description: 'ex. development, production, test'}
-});
-
-env = (ops.env || process.env.NODE_ENV || 'development');
 
 config = require('./make-webpack-config')({
   env: env
@@ -15,7 +10,7 @@ config = require('./make-webpack-config')({
 
 compiler = webpack(config);
 
-if (env == 'development') {
+if (env === 'development') {
   compiler.watch({
     aggregateTimeout: 300,
     poll: 1000,

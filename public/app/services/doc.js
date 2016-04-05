@@ -2,8 +2,8 @@ var Observable = Rx.Observable
   , Http = ng.http.Http
   , forwardRef = ng.core.forwardRef
   , EventEmitter = ng.core.EventEmitter
-  , RESTService = require('../rest.service')
-  , AuthService = require('../auth.service')
+  , RESTService = require('./rest')
+  , AuthService = require('./auth')
   , Doc = require('../models/doc')
   , bson = require('bson')
   , ObjectID = bson.ObjectID
@@ -289,7 +289,6 @@ var DocService = ng.core.Injectable().Class({
       obs = this.create(page);
     }
     return obs.map(function(page) {
-      console.log(page);
       return page;
     });
   },

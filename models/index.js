@@ -599,6 +599,7 @@ _.assign(NodeSchema.methods, baseNode.methods);
 var baseDoc = BaseNodeSchema('Doc');
 var DocSchema = new Schema(_.assign(baseDoc.schema, {
   label: String,
+  image: ObjectId,
   revisions: [{type: ObjectId, ref: 'Revision'}],
 }));
 

@@ -2,7 +2,7 @@ var $ = require('jquery');
 var URI = require('urijs')
   , UIService = require('./ui.service')
   , CommunityService = require('./services/community')
-  , AuthService = require('./auth.service')
+  , AuthService = require('./services/auth')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');

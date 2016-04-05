@@ -21,6 +21,17 @@ var _ = require('lodash')
   , Revision = models.Revision
   , TEI = models.TEI
 ;
+
+
+router.use(function(req, res, next) {
+  res.set({
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 
+      'Origin, X-Requested-With, Content-Type, Accept, Key, Cache-Control',
+  });
+  next();
+});
+
 var CommunityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Community, opts);
 }, {
@@ -268,6 +279,8 @@ var DocResource = _.inherit(Resource, function(opts) {
             }
           },
           function(cb) {
+            console.log('---------------------');
+            console.log(obj);
             obj.save(function(err, obj, numberAffected) {
               doc = obj;
               cb(err, doc);
@@ -587,7 +600,9 @@ router.post('/upload', upload.any(), function(req, res, next) {
 
 router.get('/gridfs/:id',  function(req, res, next) {
   gridfs.gfs.findOne({ _id: req.params.id }, function(err, file) {
-    console.log(file);
+    if (err || !file) {
+      return next(err, file);
+    }
     res.set('Content-Length', file.length);
     res.set('Content-Type', file.contentType);
     res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');

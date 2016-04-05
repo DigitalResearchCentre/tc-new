@@ -9,12 +9,13 @@ var CodeMirror = require('codemirror/lib/codemirror')
 var CodeMirrorComponent = ng.core.Component({
   selector: 'tc-codemirror',
   template: '<textarea [(ngModel)]="content"></textarea>',
+  changeDetection: ng.core.ChangeDetectionStrategy.OnPush,
   inputs: [
     'content'
   ],
   outputs: [
     'contentChange',
-  ]
+  ],
 }).Class({
   constructor: [ElementRef, UIService, function(elementRef, uiService) {
     this._elementRef = elementRef;
@@ -31,7 +32,6 @@ var CodeMirrorComponent = ng.core.Component({
       mode:  'xml'
     });
     editor.on('change', this.textChange.bind(this));
-    console.log("text is"+this.content);
     editor.setValue(this.content || '');
     this.editor = editor;
   },

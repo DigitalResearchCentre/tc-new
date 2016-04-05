@@ -2,6 +2,7 @@ var mongoose = require('mongoose')
   , Grid = require('gridfs-stream')
   , fs = require('fs')
   , _ = require('lodash')
+  , config = require('../config')
   , gfs
 ;
 
@@ -21,9 +22,8 @@ _.assign(GridFSStorage.prototype, {
       _id: id,
       filename: file.originalname,
       mode: 'w',
-      mimetype: file.mimetype,
       content_type: file.mimetype,
-      contentType: file.mimetype,
+      metadata: _.pick(req.query, ['env'])
     });
 
     file.stream.pipe(ws);

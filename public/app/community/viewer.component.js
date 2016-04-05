@@ -44,38 +44,23 @@ var ViewerComponent = ng.core.Component({
       // TODO:
       // while uploading, we need make:
       // image name as page name, order by name, reorder, rename
-      tileSources: [{
-        "profile": [
-          "http://iiif.io/api/image/2/level2.json",
-          {
-            "supports": [
-              "canonicalLinkHeader", "profileLinkHeader", "mirroring",
-              "rotationArbitrary", "sizeAboveFull", "regionSquare"
-            ],
-            "qualities": [
-              "default", "color", "gray", "bitonal"
-            ],
-            "formats": [
-              "jpg", "png", "gif", "webp"
-            ]
-          }
-        ],
-        "protocol": "http://iiif.io/api/image",
-        "sizes": [],
-        "height": 1479,
-        "width": 2334,
-        "@context": "http://iiif.io/api/image/2/context.json",
-        "@id": "http://206.12.59.55:5004/56ec4c3ccf0b3c9c2ae51c8b",
-      }]
     });
     this.viewer = viewer;
+    this.onPageChange();
     this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
-
     this.links = {prev: [], next: []};
     this.prevLink = null;
     this.nextLink = null;
+  },
+  onPageChange: function() {
+    var viewer = this.viewer;
+    this.image = this.page.attrs.image;
+
+    $.get(config.IIIF_URL + this.image + '/info.json', function(source) {
+      if (viewer) viewer.open([source]);
+    });
   },
   onResize: function() {
     if (!this.viewer) return;
@@ -90,9 +75,13 @@ var ViewerComponent = ng.core.Component({
   ngOnChanges: function() {
     var docService = this._docService
       , page = this.page
+      , image = _.get(page, 'attrs.image')
       , self = this
     ;
     if (page) {
+      if (image && image != this.image) {
+        this.onPageChange();
+      }
       docService.page=page;
       docService.getLinks(this.page).subscribe(function(data) {
         _.forEachRight(data.prev, function(el) {
@@ -123,7 +112,6 @@ var ViewerComponent = ng.core.Component({
     this.page.contentText = contentText;
     if (this.page.attrs.children.length === 0 &&
         this.page.attrs.revisions.length === 0) {
-//    if (contentText === "<text><body/></text>") {
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
         page: this.page,
