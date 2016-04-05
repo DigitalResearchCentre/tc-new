@@ -1,0 +1,14 @@
+<div *ngIf="node">
+  <span (click)="onToggle(node)" class="icon" 
+    [class.expand]="node.expand"></span>
+  <a (click)="onSelect(node)">{{node.get("name")}}</a>
+</div>
+<ul class="tree" 
+  *ngIf="node && node.expand && node.get('children').length > 0">
+  <li *ngFor="#child of node.get('children')" 
+    [class.expand]="node.expand">
+    <tc-tree [node]="child" 
+      (expand)="onExpand($event)" (select)="onSelect($event)"
+      ></tc-tree>
+  </li>
+</ul>

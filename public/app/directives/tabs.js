@@ -1,6 +1,4 @@
-var ContentChildren = ng.core.ContentChildren;
-
-var Tab = ng.core.Component({
+let Tab = ng.core.Component({
   selector: 'tc-tab',
   inputs: [
     'title', 'active',
@@ -16,9 +14,6 @@ var Tab = ng.core.Component({
   },
 });
 
-window.tabs = [];
-console.log(Tab);
-console.log(new ng.core.ContentChildren(Tab));
 var Tabs = ng.core.Component({
   selector: 'tc-tabs',
   template: `
@@ -29,26 +24,20 @@ var Tabs = ng.core.Component({
     <ng-content></ng-content>
   `,
   queries: {
-    tabs: 'tc-tab',
+    tabs: new ng.core.ContentChildren(Tab),
   },
   directives: [Tab],
 }).Class({
   constructor: [function() { 
     this._activeTab = null;
   }],
-  ngAfterContentInit: function() {
-    var tabs = this.tabs.filter(function(tab) {
-      return tab.active;
-    });
-    window.tabs.push(this.tabs);
-    console.log(this.tabs.filter(()=>true));
+  ngAfterContentChecked: function() {
+    var tabs = this.tabs.filter((tab) => tab.active);
     if (tabs.length > 0) {
-      tabs.forEach(function(tab) {
-        tab.active = false;
-      });
-      this.active(tabs.first);
+      tabs.forEach((tab) => { tab.active = false; });
+      this.active(tabs[0]);
     } else if (this.tabs.length > 0){
-      this.active(this.tabs.first);
+      this.active(this.tabs[0]);
     }
   },
   active: function(tab) {
@@ -65,7 +54,4 @@ module.exports = {
   Tabs: Tabs,
   Tab: Tab,
 };
-
-
-
 

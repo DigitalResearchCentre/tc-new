@@ -82,9 +82,6 @@ ng.core.Component({
     '<ng-content></ng-content>',
     '<div class="splitter"></div>',
   ].join(' '),
-  queries: {
-    panes: new ng.core.ContentChildren(Pane),
-  },
   directives: [
     Pane, Splitter,
   ],

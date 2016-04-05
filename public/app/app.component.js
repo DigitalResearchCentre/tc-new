@@ -1,6 +1,7 @@
 require('bootstrap');
 require('./app.less');
 require('../../utils/mixin');
+
 var AuthService = require('./services/auth');
 
 var RouteParams = ng.router.RouteParams
