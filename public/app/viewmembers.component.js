@@ -14,7 +14,7 @@ var ViewMembersComponent = ng.core.Component({
   selector: 'tc-managemodal-view-members',
   templateUrl: '/app/viewmembers.html',
   directives: [
-    require('../directives/modaldraggable')
+    require('./directives/modaldraggable')
   ],
 }).Class({
   constructor: [

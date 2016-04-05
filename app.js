@@ -63,7 +63,7 @@ app.use('/auth', require('./routes/auth'));
 app.all('/app/*', function(req, res) {
   res.status(200).set({
     'content-type': 'text/html; charset=utf-8'
-  }).sendFile(path.join(__dirname, 'public/t.html'));
+  }).sendFile(path.join(__dirname, 'public/index.html'));
 });
 
 // catch 404 and forward to error handler

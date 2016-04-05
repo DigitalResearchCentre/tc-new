@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+    function closeIFrame(url){
+      var frame=document.getElementById('frame');
+      angular.element(frame).scope().login.closeModal();
+      frame.setAttribute("src","/auth");
+      window.location=url;
+    }
+    </script>
+  </head>
+  <!-- body ng-app="TCApp" ng-controller="AppCtrl"
+    ng-class="{'hide-header': hideHeader}"  class="modal-backdrop fade in"-->
+  <body ng-app="TCApp" class="jumbotron" ng-controller="AppCtrl"
+      ng-class="{'hide-header': hideHeader}" style="margin:0px; padding:0px">
+    <div class="tc-header">
+      <div id="Minimize">
+        <a ng-click="hideHeader = !hideHeader" id="editArrow"
+          title="{{hideHeader ? 'Show' : 'Hide'}} headers">
+          <img height="26" id="arrowImg"/>
+        </a>
+      </div>
+      <div class="headerTC">
+        <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-left">
+              <li><a href="/index.html#/home"><span class="glyphicon glyphicon-home"></span></a></li>
+              <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Public Communities <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li ng-repeat="community in app.communities" ng-show="community.public">
+                    <a href="#/community/{{community._id}}/home">
+                      {{community.name}}</a>
+                  </li>
+                </ul>
+              </li>
+              <li ng-if="!app.authUser.local.name ">
+                <a href="" data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-user"></span> Sign Up/ <span class="glyphicon glyphicon-log-in"></span> Log In</a>
+              </li>
+              <li *ngIf="app.authUser.local.name && app.authUser.local.authenticated">
+                <a href="#/community/new">Create Community {{app.authUser.local.name }} {{app.authUser.local.authenticated}}</a>
+              </li>
+              <li ng-show="app.authUser.memberships.length" ng-if="app.authUser.local.name" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My Communities <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="#/community/new">Create Community</a>
+                  </li>
+                  <li ng-show="app.authUser.memberships.length" role="separator" class="divider"></li>
+                  <li ng-repeat="membership in app.authUser.memberships">
+                    <a href="#/community/{{membership.community._id}}/home">
+                      {{membership.community.name}}</a>
+                  </li>
+                </ul>
+              </li>
+              <li ng-if="app.authUser.local.name" class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{app.authUser.local.name}} <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="#" ng-click="logout()">Log Out</a></li>
+                  <li><a href="#" ng-click="login.showLogProf()">Login Profile</a></li>
+                  <li><a href="#/profile">Member Profile</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          <div class="navbar-header navbar-right">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#/home">T<sup style="font-size:100%">C</sup></a>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+
+  <!-- let us have the community header first, if we have one. else, just give us the main tc -->
+    <div ng-view class="tc-content jumbotron"></div>
+    <div id="myModal" class="modal fade" role="dialog" >
+      <div class="modal-dialog"  style="position:relative; top: 60px;">
+          <button type="button" ng-click="login.closeModal()" class="close" data-dismiss="modal" style="position:relative; left: -40px; top: 40px; font-size:300%; font-weight:200">&times;</button>
+          <iframe ng-src="{{login.loginFrame}}" id="frame"  height="233px" width="586px"></iframe>
+      </div>
+    </div>
+    <div  id="manageModal" class="modal fade resizable" role="dialog" style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px">
+      <div ng-include="'community/manage/tmpl/'+source+'.html'"></div>
+    </div>
+   <script type="text/javascript" src="dist/vendor.bundle.js"></script>
+    <script type="text/javascript" src="dist/app.bundle.js"></script>
+  </body>
+</html>

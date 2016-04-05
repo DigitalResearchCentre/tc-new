@@ -7,10 +7,10 @@ var EditNewPageComponent = ng.core.Component({
   selector: 'tc-managemodal-edit-new-page',
   templateUrl: '/app/editnewpage.html',
   directives: [
-    require('../directives/modaldraggable'),
-    require('../directives/newpageprose.component'),
-    require('../directives/newpagepoetry.component'),
-    require('../directives/newpageplay.component'),
+    require('./directives/modaldraggable'),
+    require('./directives/newpageprose.component'),
+    require('./directives/newpagepoetry.component'),
+    require('./directives/newpageplay.component'),
   ],
   inputs: [
     'page',

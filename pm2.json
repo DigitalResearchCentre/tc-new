@@ -22,8 +22,8 @@
     }
   }, {
     "name": "tc-client",
-    "script": "public/index.js",
-    "watch": ["public/make-webpack-config.js", "public/index.js"],
+    "script": "public/webpack.js",
+    "watch": ["public/webpack.js"],
     "env": {
       "NODE_ENV": "development"
     },

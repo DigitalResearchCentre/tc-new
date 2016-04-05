@@ -15,7 +15,7 @@ var JoinCommunityComponent = ng.core.Component({
   templateUrl: '/app/joincommunity.html',
   inputs : ['joiningcommunity', 'communityleader', 'status'],
   directives: [
-    require('../directives/modaldraggable')
+    require('./directives/modaldraggable')
   ],
 }).Class({
   constructor: [

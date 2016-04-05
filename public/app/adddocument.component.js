@@ -14,7 +14,7 @@ var AddDocumentComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument',
   templateUrl: '/app/adddocument.html',
   directives: [
-    require('../directives/modaldraggable')
+    require('./directives/modaldraggable')
   ],
 }).Class({
   constructor: [Router, CommunityService, AuthService, UIService, function(router, communityService, authService, uiService) {

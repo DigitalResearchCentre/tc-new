@@ -6,7 +6,7 @@ var ExtractXMLDocComponent = ng.core.Component({
   selector: 'tc-managemodal-extract-xml-doc',
   templateUrl: '/app/extractxmldoc.html',
   directives: [
-    require('../directives/modaldraggable'),
+    require('./directives/modaldraggable'),
   ],
 }).Class({
   constructor: [UIService, function(uiService) {

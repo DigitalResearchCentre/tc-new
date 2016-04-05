@@ -13,7 +13,7 @@ var AddDocumentXMLComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument-xml',
   templateUrl: '/app/adddocumentxml.html',
   directives: [
-    require('../directives/modaldraggable'),
+    require('./directives/modaldraggable'),
     require('./directives/filereader'),
   ],
 }).Class({

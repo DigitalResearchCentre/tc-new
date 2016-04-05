@@ -2,7 +2,7 @@ var $ = require('jquery');
 
 var NewPagePoetryComponent = ng.core.Component({
   selector: 'tc-newpage-poetry',
-  templateUrl: '/directives/new-page-poetry.html',
+  templateUrl: '/app/directives/new-page-poetry.html',
   inputs: [ 'entity', 'page'],
 }).Class({
   constructor: [ function() {

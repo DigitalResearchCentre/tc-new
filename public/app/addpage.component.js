@@ -17,7 +17,7 @@ var AddPageComponent = ng.core.Component({
   templateUrl: '/app/addpage.html',
   directives: [
     require('./directives/filereader'),
-    require('../directives/modaldraggable'),
+    require('./directives/modaldraggable'),
   ],
   inputs: [
     'parent', 'after',

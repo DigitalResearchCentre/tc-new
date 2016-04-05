@@ -11,7 +11,7 @@ var PreviewPageComponent = ng.core.Component({
   selector: 'tc-managemodal-preview-page',
   templateUrl: '/app/previewpage.html',
   directives: [
-    require('../directives/modaldraggable'),
+    require('./directives/modaldraggable'),
   ],
   inputs: [
     'page', 'error', 'lines', 'content',
