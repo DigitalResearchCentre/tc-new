@@ -12,7 +12,7 @@ var ViewComponent = ng.core.Component({
     'community',
   ],
   directives: [
-    require('../tabs.directive').TAB_DIRECTIVES,
+    require('../directives/tabs').TAB_DIRECTIVES,
     require('../directives/splitter').SPLITTER_DIRECTIVES,
     Viewer,
   ],

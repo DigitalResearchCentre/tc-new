@@ -34,6 +34,13 @@ module.exports = function(options) {
     module: {
       loaders: [
         {
+          test: /\.js$/, loader: "babel-loader",
+          exclude: [/node_modules/, /bower_components/], 
+          query: {
+            presets: ['es2015',],
+          }
+        },
+        {
           test: /\.png(\?v=\d+\.\d+\.\d+)?$/,
           loader: "url?minetype=image/jpg&prefix=dist/"
         }, {

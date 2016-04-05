@@ -1,7 +1,7 @@
 var $ = require('jquery')
   , UIService = require('./ui.service')
   , DocService = require('./services/doc')
-  , RESTService = require('./rest.service')
+  , RESTService = require('./services/rest')
 ;
 
 var self;
