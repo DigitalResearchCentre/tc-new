@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "postinstall": "bower install",
-    "start": "pm2 start pm2.json",
-    "reload": "pm2 reload tc tc-client",
-    "logs": "pm2 logs",
+    "start": "pm2 startOrReload pm2.json",
+    "logs": "pm2 logs tc tc-client",
     "test": "$(npm bin)/jasmine"
   },
   "dependencies": {
