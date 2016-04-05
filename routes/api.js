@@ -632,7 +632,7 @@ router.post('/validate', function(req, res, next) {
     })
     errors = xmlDoc.errors;
   } catch (err) {
-    errors = err;
+    errors = [err];
   }
   res.json({
     error:   _.map(errors, function(err) {
