@@ -27,7 +27,6 @@ var PreviewPageComponent = ng.core.Component({
     this.message=this.success="";
   }],
   ngOnInit: function() {
-    pageContent=this.content;
     this.docService.getLinks(this.page).subscribe(function(data) {
       self.prev=data.prev;
     });
