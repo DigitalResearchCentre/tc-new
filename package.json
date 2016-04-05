@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "bower install",
     "start": "pm2 startOrReload pm2.json",
-    "logs": "pm2 logs tc tc-client",
+    "logs": "pm2 logs",
     "test": "$(npm bin)/jasmine"
   },
   "dependencies": {
@@ -58,7 +58,7 @@
     "systemjs": "0.19.6",
     "urijs": "^1.17.0",
     "url-loader": "^0.5.7",
-    "zone.js": "^0.6.6"
+    "zone.js": "0.6.8"
   },
   "devDependencies": {
     "JSONPath": "^0.10.0",
