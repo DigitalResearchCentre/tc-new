@@ -3,7 +3,6 @@ var _ = require('lodash')
   , AuthService = require('./auth.service')
   , UIService = require('./ui.service')
   , DocService = require('./services/doc')
-  , config = require('./config')
 ;
 
 var HeaderComponent = ng.core.Component({

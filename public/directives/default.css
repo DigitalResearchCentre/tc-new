@@ -1,0 +1,104 @@
+
+teiHeader {
+    display: none;
+}
+head {
+    font-weight:bold;
+}
+div {
+    margin-top: 2px;
+	display: block;
+}
+p {
+	margin-top: 2px;
+  display: inline-block;
+}
+
+
+.il {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-top: 15px;
+    top: -14px;
+}
+
+.b {
+    font-weight:bold;
+}
+
+.bold {
+    font-weight:bold;
+}
+
+
+.strike {
+    text-decoration: line-through;
+}
+
+
+.ul {
+    text-decoration: underline;
+}
+
+.ital {
+   font-style: italic;
+}
+
+
+td.circsmall {
+	border: 1px solid black;
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	text-align: center
+}
+
+td.squareborder {
+	border: 1px solid black;
+}
+
+td.circlarge {
+	border: 1px solid black;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	text-align: center
+}
+
+.italic {
+   font-style: italic;
+}
+
+
+.ud {
+    border-bottom: dotted;
+}
+
+gap {
+	background-color:#CCC;
+}
+
+
+unclear {
+    background: #CCC;
+}
+
+ex {
+ font-style: italic;
+}
+
+.sup  {
+    font-size: 50%;
+ 	vertical-align: top;
+}
+
+q::before {
+	content:"";
+}
+
+q::after {
+	content:""';
+}

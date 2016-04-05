@@ -167,14 +167,18 @@ var ViewerComponent = ng.core.Component({
   },
   preview: function() {
     //parse first!
+    var self=this;
     $.post(config.BACKEND_URL+'validate', {
-      xml: this.page.contentText,
+      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+this.page.contentText+"</TEI>",
     }, function(res) {
       console.log(res);
-      this._uiService.manageModal$.emit({
-        type: 'preview-page',
-        page: this.page,
-      });
+      self._uiService.manageModal$.emit({
+          type: 'preview-page',
+          page: self.page,
+          error: res.error,
+          content: self.page.contentText,
+          lines: self.page.contentText.split("\n")
+        });
     });
   },
   commit: function() {

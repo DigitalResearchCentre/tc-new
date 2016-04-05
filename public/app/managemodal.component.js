@@ -43,6 +43,9 @@ var ManageModalComponent = ng.core.Component({
       }  else if (event.type === 'preview-page') {
           self.choice = event.type;
           self.page = event.page;
+          self.error = event.error;
+          self.content = event.content;
+          self.lines = event.lines;
       }  else if (event.type === 'join-community') {
             self.community = event.community;
             self.choice = event.type;
