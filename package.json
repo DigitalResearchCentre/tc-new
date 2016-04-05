@@ -31,6 +31,7 @@
     "express-session": "^1.13.0",
     "file-loader": "^0.8.5",
     "gridfs-stream": "^1.1.1",
+    "immutable": "^3.7.6",
     "imports-loader": "^0.6.5",
     "jquery": "^2.2.2",
     "less": "^2.6.0",

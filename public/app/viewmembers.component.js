@@ -1,7 +1,7 @@
 var $ = require('jquery');
 var UIService = require('./ui.service')
   , CommunityService = require('./services/community')
-  , AuthService = require('./auth.service')
+  , AuthService = require('./services/auth')
 /*  , TCMailer=require('./TCMailer')
   , TCAddresses=require('./TCMailer').addresses; */
 

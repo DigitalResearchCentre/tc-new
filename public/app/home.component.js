@@ -1,4 +1,4 @@
-var AuthService = require('./auth.service')
+var AuthService = require('./services/auth')
   , UIService = require('./ui.service')
 ;
 

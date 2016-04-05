@@ -1,7 +1,7 @@
 var CommunityService = require('../services/community')
   , UIService = require('../ui.service')
   , DocService = require('../services/doc')
-  , AuthService = require('../auth.service')
+  , AuthService = require('../services/auth')
 ;
 
 var ManageCommunityComponent = ng.core.Component({

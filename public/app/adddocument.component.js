@@ -3,7 +3,7 @@ var URI = require('urijs')
   , Router = ng.router.Router
   , UIService = require('./ui.service')
   , CommunityService = require('./services/community')
-  , AuthService = require('./auth.service')
+  , AuthService = require('./services/auth')
   , TCService = require('./tc')
 ;
 //require('jquery-ui/draggable');
