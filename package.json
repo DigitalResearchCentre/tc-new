@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "bower install",
     "start": "pm2 startOrReload pm2.json",
-    "prod": "pm2 startOrReload pm2.json production",
+    "prod": "pm2 startOrReload pm2.json --env production",
     "logs": "pm2 logs",
     "test": "$(npm bin)/jasmine"
   },
