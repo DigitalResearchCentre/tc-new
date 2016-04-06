@@ -1,6 +1,6 @@
 var AuthService = require('./services/auth')
     , CommunityService = require('./services/community')
-    , UIService = require('./ui.service')
+    , UIService = require('./services/ui')
     , URI = require('urijs')
     , RESTService = require('./services/rest')
     , config = require('./config')

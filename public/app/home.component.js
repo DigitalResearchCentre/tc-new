@@ -1,5 +1,5 @@
 var AuthService = require('./services/auth')
-  , UIService = require('./ui.service')
+  , UIService = require('./services/ui')
 ;
 
 

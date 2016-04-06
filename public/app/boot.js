@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
   ng.platform.browser.bootstrap(AppComponent, [
     ng.http.HTTP_PROVIDERS,
     ng.router.ROUTER_PROVIDERS,
-    require('./ui.service'),
+    require('./services/ui'),
     require('./services/auth'),
     require('./services/community'),
     require('./services/doc'),

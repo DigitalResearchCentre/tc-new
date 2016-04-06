@@ -1,6 +1,6 @@
 var CommunityService = require('../services/community')
   , Viewer = require('./viewer.component')
-  , UIService = require('../ui.service')
+  , UIService = require('../services/ui')
   , DocService = require('../services/doc')
 ;
 

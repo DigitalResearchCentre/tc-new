@@ -1,5 +1,5 @@
 var $ = require('jquery')
-  , UIService = require('./ui.service')
+  , UIService = require('./services/ui')
   , DocService = require('./services/doc')
 ;
 

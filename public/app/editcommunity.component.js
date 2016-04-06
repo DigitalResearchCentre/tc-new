@@ -1,5 +1,5 @@
 var CommunityService = require('./services/community')
-  , UIService = require('./ui.service')
+  , UIService = require('./services/ui')
 ;
 
 var EditCommunityComponent = ng.core.Component({

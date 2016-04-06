@@ -73,6 +73,7 @@
     "file-loader": "^0.8.4",
     "imports-loader": "^0.6.4",
     "jasmine": "^2.4.1",
+    "jasmine-core": "^2.4.1",
     "less": "^2.5.1",
     "less-loader": "^2.2.0",
     "node-libs-browser": "^0.5.2",

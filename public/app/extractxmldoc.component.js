@@ -1,6 +1,6 @@
 var $ = require('jquery');
 var URI = require('urijs')
-, UIService = require('./ui.service')
+, UIService = require('./services/ui')
 
 var ExtractXMLDocComponent = ng.core.Component({
   selector: 'tc-managemodal-extract-xml-doc',

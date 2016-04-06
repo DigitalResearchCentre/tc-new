@@ -1,6 +1,6 @@
 var $ = require('jquery');
 var URI = require('urijs')
-  , UIService = require('./ui.service')
+  , UIService = require('./services/ui')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');

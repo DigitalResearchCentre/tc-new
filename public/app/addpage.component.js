@@ -1,6 +1,6 @@
 var $ = require('jquery')
   , Router = ng.router.Router
-  , UIService = require('./ui.service')
+  , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
   , DocService = require('./services/doc')
   , AuthService = require('./services/auth')

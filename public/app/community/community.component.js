@@ -4,7 +4,7 @@ var _ = require('lodash')
   , Location = ng.router.Location
   , CommunityService = require('../services/community')
   , AuthService = require('../services/auth')
-  , UIService = require('../ui.service')
+  , UIService = require('../services/ui')
 ;
 
 var CommunityComponent = ng.core.Component({

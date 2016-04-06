@@ -1,7 +1,7 @@
 var $ = require('jquery');
 var URI = require('urijs')
   , Router = ng.router.Router
-  , UIService = require('./ui.service')
+  , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
   , AuthService = require('./services/auth')
   , TCService = require('./tc')

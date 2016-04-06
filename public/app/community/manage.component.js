@@ -1,5 +1,5 @@
 var CommunityService = require('../services/community')
-  , UIService = require('../ui.service')
+  , UIService = require('../services/ui')
   , DocService = require('../services/doc')
   , AuthService = require('../services/auth')
 ;

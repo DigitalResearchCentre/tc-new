@@ -1,6 +1,6 @@
 var ElementRef = ng.core.ElementRef
   , CommunityService = require('../services/community')
-  , UIService = require('../ui.service')
+  , UIService = require('../services/ui')
   , DocService = require('../services/doc')
   , $ = require('jquery')
   , OpenSeadragon = require('openseadragon')

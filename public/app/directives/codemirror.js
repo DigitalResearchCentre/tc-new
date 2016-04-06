@@ -3,7 +3,7 @@ var CodeMirror = require('codemirror/lib/codemirror')
   , $ = require('jquery')
   , EventEmitter = ng.core.EventEmitter
   , ElementRef = ng.core.ElementRef
-  , UIService = require('../ui.service')
+  , UIService = require('../services/ui')
 ;
 
 var CodeMirrorComponent = ng.core.Component({

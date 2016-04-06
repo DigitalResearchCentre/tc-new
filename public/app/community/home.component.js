@@ -1,6 +1,6 @@
 var RouteParams = ng.router.RouteParams
   , CommunityService = require('../services/community')
-  , UIService = require('../ui.service')
+  , UIService = require('../services/ui')
 ;
 
 var CommunityHomeComponent = ng.core.Component({
