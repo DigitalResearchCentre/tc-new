@@ -8,14 +8,15 @@
   <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
     {{success}}
   </div>
-<div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 110%">
-  <div class="row">
-    <div class="col-sm-6"><input (click)="showSingle()" checked="checked" name="oneormanyRB"  type="radio" [(ngModel)]="oneormany" value="OnePage"/>One page</div>
-    <div class="col-sm-6"><input type="radio" name="oneormanyRB" [(ngModel)]="oneormany" value="ManyPages" (click)="showMany()"/> Many pages</div>
+<div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 8px; margin-bottom: 5px; font-size: 110%">
+  <div class="row" >
+    <div class="col-sm-6"><input id="MMADBS" (click)="showSingle()" name="oneormanyRB"  checked="checked" value="OnePage" type="radio"  />One page</div>
+    <div class="col-sm-6"><input (click)="showMany()" name="oneormanyRB" type="radio"  value="ManyPages"> Many pages</div>
+    {{oneormany}}     {{oneormany}}
   </div>
 </div>
 <hr style="border: 1px solid #8c8b8b;">
-<div id="MMADPsingle"  style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 100%">
+<div style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 100%">
   <p style="text-align: center;  font-size: 100%"><b>One page</b></p>
   <div class="form-group" style="text-align: center">
     <label style="font-weight: normal">Page name&nbsp;&nbsp;</label>
@@ -24,7 +25,7 @@
   </div>
   <div class="form-group" style="text-align: center; margin-bottom: 5px">
     <label style="font-weight: normal; text-align: center">
-      <input type="radio"  checked="checked" name="MMAPPSF" (click)="fromFile()"/>Image file on your computer
+      <input type="radio"  checked="checked" name="MMAPPSF" (click)="fromFile()"/>Image file on your computer (Click on dropzone below)
       <input type="radio" name="MMAPPSF" (click)="fromWeb()"/> On the web
     </label>
     <div class="form-group" id="MMAPPSingleFile" style="margin-top: 10px; text-align: center">
@@ -39,7 +40,7 @@
 
   </div>
 </div>
-<div id="MMADPmultiple"  style="display: none; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px;  font-size: 100%; text-align: center">
+<div   style="display: none; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px;  font-size: 100%; text-align: center">
   <p  style="text-align: center;  font-size: 110%; margin-bottom: 0px;"><b>Many pages</b></p>
   <p style="font-size: 100%;  margin-top: 8px; margin-bottom: 8px;">File names will be used for page names (change later).</p>
   <label style="font-weight: normal;">

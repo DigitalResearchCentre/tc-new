@@ -47,7 +47,7 @@ var AddPageComponent = ng.core.Component({
       , url = config.IMAGE_UPLOAD_URL
       , $dropzone = $('.dropzone', $el)
     ;
-    $('#manageModal').width("430px");
+    $('#manageModal').width("530px");
     $('#manageModal').height("355px");
     if (config.env !== 'production') {
       url += '?env=' + config.env;
@@ -56,6 +56,7 @@ var AddPageComponent = ng.core.Component({
       url: url,
       autoProcessQueue: true,
       uploadMultiple: false,
+      dictDefaultMessage: "Drop files here to upload, or click to upload a file",
     });
     this.dropzone = $dropzone[0].dropzone;
     this.dropzone.on('success', this.onImageUploaded.bind(this));
@@ -69,12 +70,14 @@ var AddPageComponent = ng.core.Component({
     this.filecontent = filecontent;
   },
   showSingle: function() {
-    $("#MMADPsingle").show();
-    $("#MMADPmultiple").hide();
-  },
+/*    $("#MMADPsingle").show();
+    $("#MMADPmultiple").hide(); */
+    this.oneormany="OnePage";
+},
   showMany: function(){
-    $("#MMADPsingle").hide();
-    $("#MMADPmultiple").show();
+/*    $("#MMADPsingle").hide();
+    $("#MMADPmultiple").show(); */
+    this.oneormany="ManyPages";
   },
   fromFile: function() {
     $("#MMAPPSingleFile").show();
@@ -101,7 +104,7 @@ var AddPageComponent = ng.core.Component({
       , router = this._router
     ;
     var options = {
-      name: this.pageName, 
+      name: this.pageName,
       image: _.last(this.images),
       text: '<text><body><pb n="'+this.pageName+'"/></body></text>',
     };
@@ -141,11 +144,10 @@ var AddPageComponent = ng.core.Component({
    },
    closeModalAP: function() {
      this.message=this.success=this.pageName="";
+     this.oneormany="OnePage";
+     $('MMADBS').prop('checked', true);
      $('#manageModal').modal('hide');
    }
 });
 
 module.exports = AddPageComponent;
-
-
- 
