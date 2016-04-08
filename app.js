@@ -1,5 +1,5 @@
 var express = require('express')
-  , _ = require('./utils/mixin')
+  , _ = require('./common/mixin')
   , mongoose = require('mongoose')
   , Promise = mongoose.Promise
   , path = require('path')

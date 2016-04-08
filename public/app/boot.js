@@ -3,7 +3,7 @@ require('script!reflect-metadata/Reflect.js');
 require('script!zone.js/dist/zone.js');
 require('script!rxjs/bundles/Rx.umd');
 require('script!angular2/bundles/angular2-all.umd');
-require('../../utils/mixin');
+require('../../common/mixin');
 
 var AppComponent = require('./app.component');
 
