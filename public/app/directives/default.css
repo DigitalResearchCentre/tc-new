@@ -1,0 +1,66 @@
+
+teiHeader {
+    display: none;
+}
+
+head {
+    font-weight:bold;
+}
+
+p, lb, div {
+    display: block;
+}
+
+div {
+    margin-top: 12px;
+}
+
+p {
+    margin: 1em 0;
+}
+
+hi[rend="il"] {
+    position: relative;
+    display: inline-block;
+    width: 0;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-top: 15px;
+    top: -14px;
+}
+
+hi[rend="b"] {
+    font-weight:bold;
+}
+
+
+hi[rend="strike"] {
+    text-decoration: line-through;
+}
+
+hi[rend="sup"] {
+    font-size: 50%;
+ 	vertical-align: top;
+}
+
+hi[rend="ul"] {
+    text-decoration: underline;
+}
+
+hi[rend="ital"] {
+   font-style: italic;
+}
+
+
+hi[rend="ud"] {
+    border-bottom: dotted;
+}
+
+gap {
+	background-color:#CCC;
+}
+
+
+unclear {
+    background: #CCC;
+}
