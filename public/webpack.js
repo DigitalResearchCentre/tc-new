@@ -24,6 +24,7 @@ var config = {
   entry: {
     //vendor: path.join(clientRoot, 'vendor.js'),
     boot: path.join(clientRoot, 'app/boot.js'),
+    test: path.join(clientRoot, 'root.spec.js'),
   },
   output: {
     path: path.join(clientRoot, 'dist'),
@@ -81,6 +82,7 @@ var config = {
         jQuery: "jquery",
         "window.jQuery": "jquery"
     }),
+    new require('jasmine-webpack-plugin')(),
     // prevent webpack accident include server security information
     new IgnorePlugin(new RegExp('config\/prod.*')),
     new webpack.optimize.CommonsChunkPlugin({
@@ -90,6 +92,7 @@ var config = {
       }
     }),
   ],
+  debug: debug,
   devtool: devtool,
 };
 

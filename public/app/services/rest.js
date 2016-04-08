@@ -6,8 +6,6 @@ var URI = require('urijs')
   , config = require('../config')
 ;
 var Http = ng.http.Http;
-window.URI = URI;
-window.URITemplate = URITemplate;
 
 var RESTService = ng.core.Injectable().Class({
   constructor: [Http, function(http) {

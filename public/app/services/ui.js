@@ -40,6 +40,12 @@ var UIService = ng.core.Class({
     }
     return community;
   },
+  setState: function(key, value) {
+    return _.set(_state, key, value);
+  },
+  selectCommunity: function(community) {
+    this.community = community;
+  },
   setDocument: function(doc) {
     var self =  this;
     if (doc !== this.document) {
