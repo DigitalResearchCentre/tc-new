@@ -4,7 +4,6 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema
   , ObjectId = Schema.Types.ObjectId
   , OId = mongoose.Types.ObjectId
-  , bcrypt   = require('bcrypt-nodejs')
 ;
 
 var CommunitySchema = new Schema({

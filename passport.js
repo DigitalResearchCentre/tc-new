@@ -13,7 +13,7 @@ var TCAddresses=require('./TCMailer').addresses;
 // load up the user model
 var User = require('./models/user');
 var config = require('./config');
-configAuth = config.auth;
+var configAuth = config.auth;
 // expose this function to our app using module.exports
 
   // =========================================================================

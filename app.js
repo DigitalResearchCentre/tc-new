@@ -15,6 +15,7 @@ var express = require('express')
   , passport = require('./passport')
 ;
 
+let a = 1;
 
 mongoose.connect(config.database.uri);
 

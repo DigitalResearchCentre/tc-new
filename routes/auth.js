@@ -14,9 +14,8 @@ var TCModalState = {state:0};
 // =====================================
 
 router.get('/', function(req, res) {
-        url=req.query.url
-        res.render('index.ejs', {url: url}); // load the index.ejs file
-    });
+    res.render('index.ejs', {url: req.query.url}); // load the index.ejs file
+});
 
 
 // =====================================

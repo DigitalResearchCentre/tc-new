@@ -9,7 +9,7 @@ require('script!zone.js/dist/zone.js');
 require('script!rxjs/bundles/Rx.umd');
 require('script!angular2/bundles/angular2-all.umd');
 
-require('../utils/mixin');
+require('../common/mixin');
 
 var requireAll = (requireContext) => { 
   requireContext.keys().map(requireContext); 
@@ -77,7 +77,6 @@ var xml = `
 `;
 
 parser.parseString(xml);
-
 
 /*
 doc-leaf - text - 56ac

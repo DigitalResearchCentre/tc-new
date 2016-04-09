@@ -1,16 +1,19 @@
-process.env.TC_ENV = 'test';
+console.log(process.env.NODE_ENV);
+process.env.NODE_ENV = 'test';
 
+var bson = require('bson');
+console.log(bson.ObjectId);
+let a = 'a';
+
+return ;
 var _ = require('lodash')
   , async = require('async')
-  , mongoose = require('mongoose')
-  , config = require('../config')
   , models = require('../models')
-  , ObjectId = mongoose.Types.ObjectId
+  , ObjectId = {}.Types.ObjectId
   , TEI = models.TEI
   , Doc = models.Doc
   , Community = models.Community
 ;
-mongoose.connect(config.database.uri);
 
 TEST_TEI = {
   name: 'text',
