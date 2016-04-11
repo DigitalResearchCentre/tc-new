@@ -1,4 +1,4 @@
-<div style="font-size: 110%">
+<div style="font-size: 110%; height:100%">
   <div modal-draggable class="modalHeader">Add Page (or Pages) to Document "{{uiService.document.attrs.name}}"
     <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
@@ -8,57 +8,34 @@
   <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
     {{success}}
   </div>
-<div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 8px; margin-bottom: 5px; font-size: 110%">
+<div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 8px; margin-bottom: 5px; font-size: 110%; height:32px">
   <div class="row" >
     <div class="col-sm-6"><input id="MMADBS" (click)="showSingle()" name="oneormanyRB"  checked="checked" value="OnePage" type="radio"  />One page</div>
     <div class="col-sm-6"><input (click)="showMany()" name="oneormanyRB" type="radio"  value="ManyPages"> Many pages</div>
-    {{oneormany}}     {{oneormany}}
   </div>
 </div>
-<hr style="border: 1px solid #8c8b8b;">
-<div style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 100%">
-  <p style="text-align: center;  font-size: 100%"><b>One page</b></p>
-  <div class="form-group" style="text-align: center">
+<hr style="border: 1px solid #8c8b8b; margin-top: 5px">
+<div *ngIf="oneormany=='OnePage'" style="margin-left: 10px; margin-right: 25px; margin-top: 5px; margin-bottom: 5px; font-size: 100%; height: 32px">
+  <div class="form-group" style="text-align: center; margin:0px">
     <label style="font-weight: normal">Page name&nbsp;&nbsp;</label>
     <input type="text" style="width: 100px; display: inline-block" class="form-control"  placeholder="Name"
       [(ngModel)]="pageName"/>
   </div>
-  <div class="form-group" style="text-align: center; margin-bottom: 5px">
-    <label style="font-weight: normal; text-align: center">
-      <input type="radio"  checked="checked" name="MMAPPSF" (click)="fromFile()"/>Image file on your computer (Click on dropzone below)
-      <input type="radio" name="MMAPPSF" (click)="fromWeb()"/> On the web
-    </label>
-    <div class="form-group" id="MMAPPSingleFile" style="margin-top: 10px; text-align: center">
-      <form class="dropzone"></form>
-    </div>
-  </div>
-  <div class="form-group" style="display:none; margin-top: 0px; text-align: center;" id="MMAPPSingleWeb">
-    <label style="font-weight: normal; ">Web address: </label>
-      <input type="text" style="width: 250px; display: inline-block;" class="form-control"  placeholder="http://"
-      [(ngModel)]="imageUrl"/>
-    <p style="text-align: center; font-size: 100%; margin-top:5px"><input type="radio" name="MMAPPweb" checked="checked"/> Load file, if possible<input type="radio" name="MMAPPweb"/>Point to web page</p>
-
-  </div>
 </div>
-<div   style="display: none; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px;  font-size: 100%; text-align: center">
-  <p  style="text-align: center;  font-size: 110%; margin-bottom: 0px;"><b>Many pages</b></p>
+<div  *ngIf="oneormany=='ManyPages'" style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 20px;  font-size: 100%; text-align: center">
   <p style="font-size: 100%;  margin-top: 8px; margin-bottom: 8px;">File names will be used for page names (change later).</p>
-  <label style="font-weight: normal;">
-    <input type="radio"  checked="checked" name="MMAPPMF" (click)="fromZip()"/> From a zip file
-    <input type="radio" name="MMAPPMF" (click)="fromDD()"/>Drag and drop files
-  </label>
-    <div class="form-group" id="MMAPPMFF">
-    <label style="font-weight: normal;">Zip file&nbsp;&nbsp;</label>
-  </div>
   <div class="form-group" id="MMAPPMFDD" style="display:none">
-    <label style="font-weight: normal;">Drop files here&nbsp;</label>
+    <label style="font-weight: normal;">Drop files in the dropzone below&nbsp;</label>
     <textarea style="margin-bottom: 0px" rows="3" cols="45"></textarea>
   </div>
 </div>
-<hr style="border: 1px solid #8c8b8b;">
-<form action="">
-  <div class="form-group" style="text-align: center">
-    <button type="button" class="btn btn-primary" (click)="submit()">Add</button>
+<div class="form-group" style="margin-top: 10px; margin-right: 10px; margin-left: 10px; margin-bottom: 0px; text-align: center; ">
+  <form class="dropzone" style=""></form>
+</div>
+<hr style="border: 1px solid #8c8b8b; margin-bottom: 15px">
+<form action="" style="width:100%; height: 32px">
+  <div class="form-group" style="text-align: center;">
+    <button id="MMADBAdd" type="button" class="btn btn-primary" (click)="submit()">Add</button>
   </div>
 </form>
 </div>

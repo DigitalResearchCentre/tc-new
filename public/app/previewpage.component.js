@@ -41,8 +41,15 @@ var PreviewPageComponent = ng.core.Component({
 
 window.uploadDone=function(){
   /* grab css and js file */
-  $('#previewdiv').contents().find('body').html(self.content);
-  $('#previewdiv').contents().find('body').attr("id", "previewBody");
+  var p4=self.content;
+    p4=p4.replace(/<head/g, "<h3");
+		p4=p4.replace(/<\/head/g, "</h3");
+		p4=p4.replace(/<row/g, "<tr");
+		p4=p4.replace(/<\/row/g, "</tr");
+		p4=p4.replace(/<cell/g, "<td");
+		p4=p4.replace(/<\/cell/g, "</td");
+    p4=p4.replace(/ rend=/g, " class=");
+  $('#previewdiv').contents().find('body').html(p4);
   self.restService.http.get('http://code.jquery.com/jquery-1.10.2.min.js').subscribe(function(jqueryfile) {
      $('#previewdiv').contents().find('head').append("<script type='text/javascript'>"+jqueryfile._body+"</script>\r");
      self.restService.http.get('/app/directives/default.css').subscribe(function(cssfile) {

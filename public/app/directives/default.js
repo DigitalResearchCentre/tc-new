@@ -1,4 +1,4 @@
-/note: due to synchronization problems, include another javascript file in this file using the routine here given
+//note: due to synchronization problems, include another javascript file in this file using the routine here given
 console.log("loading")
 var prepareMe = function(){
 
@@ -16,18 +16,15 @@ var prepareMe = function(){
  var $gap=$('#previewdiv').contents().find('gap');
  var $unclear=$('#previewdiv').contents().find('unclear');
   //put everything in a container div, except select div
- $('#previewBody').css({"margin-left":"15px", "margin-right":"18px"});
- $('#previewBody').children().wrapAll('<div id="TCPContainer" style="margin-top: 10px;  padding-top:10px";>');  //this will contain what we are editing -- margin divs go left, right, above, below
+// $('#previewBody').css({"margin-left":"15px", "margin-right":"18px"});
+ $('#previewdiv').contents().find('body').css({"margin-left":"15px", "margin-right":"18px"});
+ $('#previewdiv').contents().find('body').children().wrapAll('<div id="TCPContainer" style="margin-top: 10px;  padding-top:10px">');  //this will contain what we are editing -- margin divs go left, right, above, below
  if ($expan.length || $abbr.length || $sic.length || $corr.length || $reg.length || $orig.length || $choice.length || $am.length || $ex.length) {
    makeSelectMenu();
    toggleOrig();
  }
  doNotes();
  doFrame();
- $('[rend]').each (function (i) {
-   $(this).attr("class", $(this).attr("rend"));
-   $(this).removeAttr("rend");
- });
  if ($app.length) {
    makeAppReadingsMenu();
    chooseReadings();
@@ -41,7 +38,7 @@ var prepareMe = function(){
    doGaps();
    doBreaks();
    doTables();
-//  adjustDivs();
+   adjustDivs();
 };
  prepareMe();
 
@@ -137,47 +134,47 @@ function makeAppReadingsMenu(){
   	var rightonly=0;
  	var leftonly=0;
  	var leftandright=0;
- 	if ($('#TCrm').length!=0 && $('#TClm').length==0) rightonly=1;
- 	else if ($('#TClm').length!=0 && $('#TCrm').length==0) leftonly=1;
-    else if ($('#TClm').length!=0 && $('#TCrm').length!=0) leftandright=1;
-    var origwidth=$('#previewBody').width();
-    $('#previewBody').css({"width":"3000px"});
-    $('#TCPContainer').css({"float":"left"});
-    var width = $('#TCPContainer').width();
-    $('#previewBody').css({"width":""});
+ 	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) rightonly=1;
+ 	else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) leftonly=1;
+    else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) leftandright=1;
+    var origwidth=$('#previewdiv').contents().find('body').width();
+    $('#previewdiv').contents().find('body').css({"width":"3000px"});
+    $('#previewdiv').contents().find('#TCPContainer').css({"float":"left"});
+    var width = $('#previewdiv').contents().find('#TCPContainer').width();
+    $('#previewdiv').contents().find('body').css({"width":""});
     //set minwidth...
     var minwidth=width;
     if (rightonly==1) minwidth=width+width/4+10;
     if (leftonly==1) minwidth=width+width/4+10;
     if (leftandright==1) minwidth=width+(width*0.4)+10;
     if (minwidth>1200) minwidth=1200;
-    $('#previewBody').css({"min-width": minwidth+"px"});
+    $('#previewdiv').contents().find('body').css({"min-width": minwidth+"px"});
  // 	$('body').width(width);
- 	if ($('#TCtm').length!=0) {
- 		$('#TCtm').css({"position":"relative", "width":"100%"}) ;
-		if ($('#tl').length!=0) $('#tl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
-		if ($('#tm').length!=0) $('#tm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
-		if ($('#tr').length!=0) $('#tr').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
+ 	if ($('#previewdiv').contents().find('#TCtm').length!=0) {
+ 		$('#previewdiv').contents().find('#TCtm').css({"position":"relative", "width":"100%"}) ;
+		if ($('#previewdiv').contents().find('#tl').length!=0) $('#previewdiv').contents().find('#tl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
+		if ($('#previewdiv').contents().find('#tm').length!=0) $('#previewdiv').contents().find('#tm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
+		if ($('#previewdiv').contents().find('#tr').length!=0) $('#previewdiv').contents().find('#tr').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
 		//add dummy div here, to clear
-		if ($('#TCdummy').length==0)  $('#TCtm').after('<div id="TCdummy" style="clear: both"></div>');
+		if ($('#previewdiv').contents().find('#TCdummy').length==0)  $('#previewdiv').contents().find('#TCtm').after('<div id="TCdummy" style="clear: both"></div>');
 	}
-	if ($('#TCbm').length!=0) {
-		$('#TCbm').css({"position":"relative", "width":"100%", "margin-top":"20px", "top":"20"}) ;
-		if ($('#bl').length!=0) $('#bl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
-		if ($('#bm').length!=0) $('#bm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
-		if ($('#br').length!=0) $('#br').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
+	if ($('#previewdiv').contents().find('#TCbm').length!=0) {
+		$('#previewdiv').contents().find('#TCbm').css({"position":"relative", "width":"100%", "margin-top":"20px", "top":"20"}) ;
+		if ($('#previewdiv').contents().find('#bl').length!=0) $('#previewdiv').contents().find('#bl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
+		if ($('#previewdiv').contents().find('#bm').length!=0) $('#previewdiv').contents().find('#bm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
+		if ($('#previewdiv').contents().find('#br').length!=0) $('#previewdiv').contents().find('#br').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
 		//add dummy div here, to clear
-		if ($('#TCdummy2').length==0)  $('#TCbm').after('<div id="TCdummy2" style="clear: both;">&nbsp;</div>');
+		if ($('#previewdiv').contents().find('#TCdummy2').length==0)  $('#previewdiv').contents().find('#TCbm').after('<div id="TCdummy2" style="clear: both;">&nbsp;</div>');
 	}
 
- 	if ($('#TCrm').length==0 && $('#TClm').length==0) {
- 		$('#TCPContainer').css({"margin-left": "15px", "margin-right": "15px"});
+ 	if ($('#previewdiv').contents().find('#TCrm').length==0 && $('#previewdiv').contents().find('#TClm').length==0) {
+ 		$('#previewdiv').contents().find('#TCPContainer').css({"margin-left": "15px", "margin-right": "15px"});
  	}
- 	if ($('#TCrm').length!=0 && $('#TClm').length==0) { //right only
+ 	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) { //right only
  		//set up for float..
- 		$('#TCPContainer').css({"float":"left", "width":"79%", "margin-left": "5px", "margin-right": "5px"});
- 		$('#TCrm').css({"margin-left":"5", "margin-right":"5", "width": "18%", "float": "left"});
-  		$('#TCrm').children('note').each(function (i) {
+ 		$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"79%", "margin-left": "5px", "margin-right": "5px"});
+ 		$('#previewdiv').contents().find('#TCrm').css({"margin-left":"5", "margin-right":"5", "width": "18%", "float": "left"});
+  		$('#previewdiv').contents().find('#TCrm').children('note').each(function (i) {
  			var did=$(this).attr('id');
  			$("[data-id='" + did + "']").show();
  			var dideltop=$("[data-id='" + did + "']").position().top;
@@ -185,11 +182,11 @@ function makeAppReadingsMenu(){
  			$(this).css({"top": dideltop});
  		});
 	}
- 	if ($('#TClm').length!=0 && $('#TCrm').length==0) {//left only
+ 	if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) {//left only
  		//set up for float..
-  		$('#TCPContainer').css({"float":"left", "width":"79%", "margin-left": "5px", "margin-right": "5px"});
-		$('#TClm').css({"margin-left":"5", "margin-right":"5", "width": "18%", "float": "left"});
-  		$('#TClm').children('note').each(function (i) {
+  		$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"79%", "margin-left": "5px", "margin-right": "5px"});
+		$('#previewdiv').contents().find('#TClm').css({"margin-left":"5", "margin-right":"5", "width": "18%", "float": "left"});
+  		$('#previewdiv').contents().find('#TClm').children('note').each(function (i) {
  			var did=$(this).attr('id');
  			$("[data-id='" + did + "']").show();
  			var dideltop=$("[data-id='" + did + "']").position().top;
@@ -198,19 +195,19 @@ function makeAppReadingsMenu(){
  		});
  		//adjust top of elements in the div, according
  	}
- 	 if ($('#TClm').length!=0 && $('#TCrm').length!=0) {//left and right
+ 	 if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) {//left and right
  		//set up for float..
- 		$('#TClm').css({"margin-left":"2", "margin-right":"2", "width": "12%", "float": "left"});
-	 	$('#TCPContainer').css({"float":"left", "width":"73%", "margin-left": "2px", "margin-right": "2px"});
-		$('#TCrm').css({"margin-left":"2", "margin-right":"2", "width": "12%", "float": "left"});
- 		 $('#TCrm').children('note').each(function (i) {
+ 		$('#previewdiv').contents().find('#TClm').css({"margin-left":"2", "margin-right":"2", "width": "12%", "float": "left"});
+	 	$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"73%", "margin-left": "2px", "margin-right": "2px"});
+		$('#previewdiv').contents().find('#TCrm').css({"margin-left":"2", "margin-right":"2", "width": "12%", "float": "left"});
+ 		 $v('#TCrm').children('note').each(function (i) {
  			var did=$(this).attr('id');
  			$("[data-id='" + did + "']").show();
  			var dideltop=$("[data-id='" + did + "']").position().top;
  			$("[data-id='" + did + "']").hide();
  			$(this).css({"top": dideltop});
  		});
- 		 $('#TClm').children('note').each(function (i) {
+ 		 $('#previewdiv').contents().find('#TClm').children('note').each(function (i) {
  			var did=$(this).attr('id');
  			$("[data-id='" + did + "']").show();
  			var dideltop=$("[data-id='" + did + "']").position().top;
@@ -227,18 +224,18 @@ function makeAppReadingsMenu(){
 	notesdiv.id="TCnotes";
 	notesdiv.style.width="100%";
  	notesdiv.style.clear="both";
-	$('#TCPContainer').after(notesdiv);
+	$('#previewdiv').contents().find('#TCPContainer').after(notesdiv);
  	var notenum=0;
  	//in older tei: we used rend.  Now, we use place
-  	$('note').each (function (i) {
+  	$('#previewdiv').contents().find('note').each (function (i) {
   	// here is the logic.  simple rend=marg or marg-right: put it in the right margin, aligned at same height as original
   		if ($(this).attr('place')=='margin' || $(this).attr('place')=='margin-right' ) {
   			var top=$(this).position().top;
-  			if ($('#TCrm').length==0) {
+  			if ($('#previewdiv').contents().find('#TCrm').length==0) {
   				rmdiv=document.createElement('div');
   				rmdiv.id="TCrm";
   				rmdiv.style.marginRight="15px";
-  				$('#TCPContainer').after(rmdiv);
+  				$('#previewdiv').contents().find('#TCPContainer').after(rmdiv);
   			}
 			var newnote=document.createElement('note');
 			newnote.innerHTML=$(this).html();
@@ -246,15 +243,15 @@ function makeAppReadingsMenu(){
 			newnote.id='TCnote'+i;
 			$(this).attr('data-id','TCnote'+i);
 			newnote.style.top=top+'px';
-			$('#TCrm').append(newnote);
+			$('#previewdiv').contents().find('#TCrm').append(newnote);
 			$(this).hide();
   		} else if ($(this).attr('place')=='margin-left') {
   			var top=$(this).position().top;
-  			if ($('#TClm').length==0) {
+  			if ($('#previewdiv').contents().find('#TClm').length==0) {
   				lmdiv=document.createElement('div');
   				lmdiv.id="TClm";
   				lmdiv.style.marginLeft="15px";
-  				$('#TCPContainer').before(lmdiv);
+  				$('#previewdiv').contents().find('#TCPContainer').before(lmdiv);
   			}
 			var newnote=document.createElement('note');
 			newnote.innerHTML=$(this).html();
@@ -262,11 +259,11 @@ function makeAppReadingsMenu(){
 			newnote.id='TCnote'+i;
 			$(this).attr('data-id','TCnote'+i);
 			newnote.style.top=top+'px';
-			$('#TClm').append(newnote);
+			$('#previewdiv').contents().find('#TClm').append(newnote);
 			$(this).hide();
   		} else if ( $(this).attr('type')=='ed') {
  			notenum+=1;
- 			if (notenum=="1") $('#TCnotes').append("<hr/>");
+ 			if (notenum=="1") $('#previewdiv').contents().find('#TCnotes').append("<hr/>");
   			var mynote='<a href="#n'+notenum+'">'+notenum+'</a>. '+ $(this).html();
   			if ($(this).attr('resp'))
   				mynote+="&nbsp;("+$(this).attr('resp')+")&nbsp;&nbsp;&nbsp;";
@@ -274,7 +271,7 @@ function makeAppReadingsMenu(){
   			var newnote=document.createElement('note');
   			newnote.innerHTML=mynote
   			newnote.id=notenum;
-  			$('#TCnotes').append(newnote);
+  			$('#previewdiv').contents().find('#TCnotes').append(newnote);
   		} else if ($(this).attr('place')) {
   			var rendval=$(this).attr('place');
   			createTBMNote(rendval, $(this));
@@ -283,7 +280,8 @@ function makeAppReadingsMenu(){
  }
 
 function doFrame() {
-	$('fw').each (function (i) {
+	$('#previewdiv').contents().find('fw').each (function (i) {
+    console.log("got a fw")
 		var rendval=$(this).attr('place');
 		createTBMNote(rendval, $(this));
 	});
@@ -295,35 +293,35 @@ function doFrame() {
 			 case 'tm':
 			 case 'tl':
 			 case 'tr':
-				if ($('#TCtm').length==0) {
+				if ($('#previewdiv').contents().find('#TCtm').length==0) {
 					TCtmdiv=document.createElement('div');
 					TCtmdiv.id='TCtm';
 					TCtmdiv.style.marginTop="10px";
-					if ($('#TClm').length!=0) $('#TClm').before(TCtmdiv);
-					else $('#TCPContainer').before(TCtmdiv);
+					if ($('#previewdiv').contents().find('#TClm').length!=0) $('#previewdiv').contents().find('#TClm').before(TCtmdiv);
+					else $('#previewdiv').contents().find('#TCPContainer').before(TCtmdiv);
 					var thisdiv=TCtmdiv;
 					break;
-				} else var thisdiv=document.getElementById('TCtm');
+				} else var thisdiv=$('#previewdiv').contents().find('#TCtm');
 				break;
 			case 'bm':
 			case 'bl':
 			case 'br':
 			default:
-				if ($('#TCbm').length==0) {
+				if ($('#previewdiv').contents().find('#TCbm').length==0) {
 					TCbmdiv=document.createElement('div');
 					TCbmdiv.id='TCbm';
 					TCbmdiv.style.clear="both";
-					if ($('#TCrm').length!=0) $('#TCrm').after(TCbmdiv);
-					else $('#TCPContainer').after(TCbmdiv);
+					if ($('#previewdiv').contents().find('#TCrm').length!=0) $('#TCrm').after(TCbmdiv);
+					else $('#previewdiv').contents().find('#TCPContainer').after(TCbmdiv);
 					var thisdiv=TCbmdiv;
 					break;
-				} else var thisdiv=document.getElementById('TCbm')
+				} else var thisdiv=$('#previewdiv').contents().find('#TCbm')
 		}
 	    if ($('#'+rendval).length==0) {
 				var innerdiv=document.createElement('div');
 				innerdiv.id=rendval;
 				thisdiv.appendChild(innerdiv)
-			 } else var innerdiv=document.getElementById(rendval);
+      } else var innerdiv=$('#previewdiv').contents().find('#'+rendval);
 		var newnote=document.createElement('note');
 		if (thiselement.prop("tagName")=="FW") {
 			switch (thiselement.attr("type")) {
