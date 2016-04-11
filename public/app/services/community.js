@@ -45,6 +45,9 @@ var CommunityService = ng.core.Injectable().Class({
   get: function(id) {
     return new Community({_id: id});
   },
+  selectCommunity: function(id) {
+    
+  },
   getMemberships: function(community) {
     var self = this;
     return this.http.get(

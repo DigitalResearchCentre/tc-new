@@ -2,6 +2,7 @@
   "apps": [{
     "name": "tc",
     "script": "bin/www",
+    "node_args":  "--use_strict",
     "watch": true,
     "ignore_watch" : [
       ".git", ".DS_Store",
