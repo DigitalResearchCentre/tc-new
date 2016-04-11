@@ -82,7 +82,6 @@ var config = {
         jQuery: "jquery",
         "window.jQuery": "jquery"
     }),
-    new require('jasmine-webpack-plugin')(),
     // prevent webpack accident include server security information
     new IgnorePlugin(new RegExp('config\/prod.*')),
     new webpack.optimize.CommonsChunkPlugin({

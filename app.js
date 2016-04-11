@@ -15,8 +15,6 @@ var express = require('express')
   , passport = require('./passport')
 ;
 
-let a = 1;
-
 mongoose.connect(config.database.uri);
 
 app.use(logger('dev'));
@@ -98,7 +96,6 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
 
 module.exports = app;
 

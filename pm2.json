@@ -31,5 +31,14 @@
     "env_production" : {
        "NODE_ENV": "production"
     }
+  }, {
+    "name": "tc-test",
+    "script": "spec/support/jasmine.js",
+    "args": "--no-autorestart",
+    "node_args":  "--use_strict",
+    "watch": ["spec", "spec/node.spec.js"],
+    "env": {
+      "NODE_ENV": "test"
+    }
   }]
 }

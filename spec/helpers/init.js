@@ -4,7 +4,6 @@ if (!process.env.NODE_ENV) {
 
 require('../../common/mixin');
 
-console.log(process.env.NODE_ENV);
 var mongoose = require('mongoose')
   , config = require('../../config')
 ;

@@ -5,6 +5,8 @@ require('script!rxjs/bundles/Rx.umd');
 require('script!angular2/bundles/angular2-all.umd');
 require('../../common/mixin');
 
+var bson = require('bson/browser_build/bson');
+window.bson = bson;
 var AppComponent = require('./app.component');
 
 document.addEventListener('DOMContentLoaded', function() {
