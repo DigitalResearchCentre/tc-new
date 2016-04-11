@@ -33,6 +33,7 @@
     "gridfs-stream": "^1.1.1",
     "immutable": "^3.7.6",
     "imports-loader": "^0.6.5",
+    "jasmine-webpack-plugin": "^0.1.1",
     "jquery": "^2.2.2",
     "less": "^2.6.0",
     "less-loader": "^2.2.2",
