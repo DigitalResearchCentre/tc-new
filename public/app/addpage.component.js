@@ -12,6 +12,7 @@ var $ = require('jquery')
 //require('jquery-ui/resizable');
 //require('jquery-ui/dialog');
 
+
 var AddPageComponent = ng.core.Component({
   selector: 'tc-managemodal-addpage',
   templateUrl: '/app/addpage.html',
@@ -48,7 +49,7 @@ var AddPageComponent = ng.core.Component({
       , $dropzone = $('.dropzone', $el)
     ;
     $('#manageModal').width("530px");
-    $('#manageModal').height("355px");
+    $('#manageModal').height("375px");
     if (config.env !== 'production') {
       url += '?env=' + config.env;
     }
@@ -56,7 +57,7 @@ var AddPageComponent = ng.core.Component({
       url: url,
       autoProcessQueue: true,
       uploadMultiple: false,
-      dictDefaultMessage: "Drop files here to upload, or click to upload a file",
+      dictDefaultMessage: "Drop image file or files here to upload, or click to upload a file",
     });
     this.dropzone = $dropzone[0].dropzone;
     this.dropzone.on('success', this.onImageUploaded.bind(this));
@@ -66,34 +67,11 @@ var AddPageComponent = ng.core.Component({
     console.log(this.parent);
     console.log(this.after);
   },
-  filechange: function(filecontent) {
-    this.filecontent = filecontent;
-  },
   showSingle: function() {
-/*    $("#MMADPsingle").show();
-    $("#MMADPmultiple").hide(); */
     this.oneormany="OnePage";
 },
   showMany: function(){
-/*    $("#MMADPsingle").hide();
-    $("#MMADPmultiple").show(); */
     this.oneormany="ManyPages";
-  },
-  fromFile: function() {
-    $("#MMAPPSingleFile").show();
-    $("#MMAPPSingleWeb").hide();
-  },
-  fromWeb: function(){
-    $("#MMAPPSingleWeb").show();
-    $("#MMAPPSingleFile").hide();
-  },
-  fromZip: function() {
-    $("#MMAPPMFF").show();
-    $("#MMAPPMFDD").hide();
-  },
-  fromDD: function(){
-    $("#MMAPPMFDD").show();
-    $("#MMAPPMFF").hide();
   },
   onImageUploaded: function(file, res) {
     this.images = this.images.concat(res);
@@ -117,13 +95,12 @@ var AddPageComponent = ng.core.Component({
     this._docService.addPage(options).subscribe(function(page) {
       self.page = page;
       uiService.selectPage(page);
-
       router.navigate(['Community', {
         id: uiService.community.getId(), route: 'view'
       }]);
-
-      console.log("added "+self.pageName);
-      self.success="Page "+self.pageName+" added";
+        self.success="Page "+self.pageName+" added";
+        $("#MMADBAdd").html('Add Another');
+        self.pageName="";
     });
   },
   submit: function() {
@@ -138,6 +115,11 @@ var AddPageComponent = ng.core.Component({
         return;
       } else {
         this.message="";
+        var matchedpage=uiService.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
+        if (matchedpage) {
+          this.message="There is already a page "+this.pageName;
+          return;
+        }
         this.addPage();
       }
     }
@@ -149,5 +131,7 @@ var AddPageComponent = ng.core.Component({
      $('#manageModal').modal('hide');
    }
 });
+
+
 
 module.exports = AddPageComponent;

@@ -3,23 +3,21 @@ teiHeader {
     display: none;
 }
 
-head {
-    font-weight:bold;
-}
+h3 {display: inline-block;}
 
-p, lb, div {
-    display: block;
-}
 
 div {
-    margin-top: 12px;
+  margin: 2px;
+	display: block;
 }
 
 p {
-    margin: 1em 0;
+	margin: 2px;
+  display: inline-block;
 }
 
-hi[rend="il"] {
+
+.il {
     position: relative;
     display: inline-block;
     width: 0;
@@ -29,30 +27,55 @@ hi[rend="il"] {
     top: -14px;
 }
 
-hi[rend="b"] {
+.b {
+    font-weight:bold;
+}
+
+.bold {
     font-weight:bold;
 }
 
 
-hi[rend="strike"] {
+.strike {
     text-decoration: line-through;
 }
 
-hi[rend="sup"] {
-    font-size: 50%;
- 	vertical-align: top;
-}
 
-hi[rend="ul"] {
+.ul {
     text-decoration: underline;
 }
 
-hi[rend="ital"] {
+.ital {
    font-style: italic;
 }
 
 
-hi[rend="ud"] {
+td.circsmall {
+	border: 1px solid black;
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	text-align: center
+}
+
+td.squareborder {
+	border: 1px solid black;
+}
+
+td.circlarge {
+	border: 1px solid black;
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	text-align: center
+}
+
+.italic {
+   font-style: italic;
+}
+
+
+.ud {
     border-bottom: dotted;
 }
 
@@ -63,4 +86,21 @@ gap {
 
 unclear {
     background: #CCC;
+}
+
+ex {
+ font-style: italic;
+}
+
+.sup  {
+    font-size: 50%;
+ 	vertical-align: top;
+}
+
+q::before {
+	content:"";
+}
+
+q::after {
+	content:""';
 }
