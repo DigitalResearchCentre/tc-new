@@ -60,7 +60,6 @@ function doTables() {
 
 function doBreaks() {
   $('#previewdiv').contents().find('lb').each (function (i){
-    console.log("processing lbs "+i);
     if ($(this).is("[break]"))
 			var wbreak=$(this).attr("break");
 		else var wbreak="yes";
@@ -131,12 +130,13 @@ function makeAppReadingsMenu(){
 
  function adjustDivs() {
  	//get actual body width...
-  	var rightonly=0;
+  var rightonly=0;
  	var leftonly=0;
  	var leftandright=0;
  	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) rightonly=1;
  	else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) leftonly=1;
-    else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) leftandright=1;
+  else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) leftandright=1;
+  console.log("rightonly "+rightonly+" leftonly "+leftonly+" rightandleft "+leftandright)
     var origwidth=$('#previewdiv').contents().find('body').width();
     $('#previewdiv').contents().find('body').css({"width":"3000px"});
     $('#previewdiv').contents().find('#TCPContainer').css({"float":"left"});
@@ -170,7 +170,7 @@ function makeAppReadingsMenu(){
  	if ($('#previewdiv').contents().find('#TCrm').length==0 && $('#previewdiv').contents().find('#TClm').length==0) {
  		$('#previewdiv').contents().find('#TCPContainer').css({"margin-left": "15px", "margin-right": "15px"});
  	}
- 	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) { //right only
+/* 	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) { //right only
  		//set up for float..
  		$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"79%", "margin-left": "5px", "margin-right": "5px"});
  		$('#previewdiv').contents().find('#TCrm').css({"margin-left":"5", "margin-right":"5", "width": "18%", "float": "left"});
@@ -181,40 +181,51 @@ function makeAppReadingsMenu(){
  			$("[data-id='" + did + "']").hide();
  			$(this).css({"top": dideltop});
  		});
-	}
- 	if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) {//left only
+	} */
+/* 	if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) {//left only
  		//set up for float..
-  		$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"79%", "margin-left": "5px", "margin-right": "5px"});
+  	$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"75%", "margin-left": "5px", "margin-right": "5px"});
 		$('#previewdiv').contents().find('#TClm').css({"margin-left":"5", "margin-right":"5", "width": "18%", "float": "left"});
   		$('#previewdiv').contents().find('#TClm').children('note').each(function (i) {
- 			var did=$(this).attr('id');
- 			$("[data-id='" + did + "']").show();
- 			var dideltop=$("[data-id='" + did + "']").position().top;
- 			$("[data-id='" + did + "']").hide();
- 			$(this).css({"top": dideltop});
+          var did=$(this).attr('id');
+ 			    $('#previewdiv').contents().find("[data-id='" + did + "']").show();
+ 			    var dideltop=$('#previewdiv').contents().find("[data-id='" + did + "']").position().top;
+ 			    $('#previewdiv').contents().find("[data-id='" + did + "']").hide();
+ 			    $(this).css({"top": dideltop});
  		});
  		//adjust top of elements in the div, according
- 	}
- 	 if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) {//left and right
+ 	} */
+ /*	 if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) {//left and right
  		//set up for float..
  		$('#previewdiv').contents().find('#TClm').css({"margin-left":"2", "margin-right":"2", "width": "12%", "float": "left"});
 	 	$('#previewdiv').contents().find('#TCPContainer').css({"float":"left", "width":"73%", "margin-left": "2px", "margin-right": "2px"});
 		$('#previewdiv').contents().find('#TCrm').css({"margin-left":"2", "margin-right":"2", "width": "12%", "float": "left"});
- 		 $v('#TCrm').children('note').each(function (i) {
+ 		 $('#previewdiv').contents().find('#TCrm').children('note').each(function (i) {
  			var did=$(this).attr('id');
  			$("[data-id='" + did + "']").show();
- 			var dideltop=$("[data-id='" + did + "']").position().top;
- 			$("[data-id='" + did + "']").hide();
+ 			var dideltop=$('#previewdiv').contents().find("[data-id='" + did + "']").position().top;
+ 			$('#previewdiv').contents().find("[data-id='" + did + "']").hide();
  			$(this).css({"top": dideltop});
  		});
  		 $('#previewdiv').contents().find('#TClm').children('note').each(function (i) {
  			var did=$(this).attr('id');
  			$("[data-id='" + did + "']").show();
- 			var dideltop=$("[data-id='" + did + "']").position().top;
- 			$("[data-id='" + did + "']").hide();
+ 			var dideltop=$('#previewdiv').contents().find("[data-id='" + did + "']").position().top;
+ 			$('#previewdiv').contents().find("[data-id='" + did + "']").hide();
  			$(this).css({"top": dideltop});
  		});
- 	}
+ 	} */
+  if (leftandright==1) {
+    $('#previewdiv').contents().find('#TClm').css({"width": "20%", "float":"left"});
+    $('#previewdiv').contents().find('#TCPContainer').css({"width": "50%", "float":"left"});
+    $('#previewdiv').contents().find('#TCrm').css({"width": "20%", "float":"left"});
+  } else if (rightonly) {
+    $('#previewdiv').contents().find('#TCrm').css({"width": "20%", "float":"left"});
+    $('#previewdiv').contents().find('#TCPContainer').css({"width": "75%", "float":"left"});
+  } else if (leftonly) {
+    $('#previewdiv').contents().find('#TClm').css({"width": "20%", "float":"left"});
+    $('#previewdiv').contents().find('#TCPContainer').css({"width": "75%", "float":"left"});
+  }
  }
 
 
@@ -228,10 +239,12 @@ function makeAppReadingsMenu(){
  	var notenum=0;
  	//in older tei: we used rend.  Now, we use place
   	$('#previewdiv').contents().find('note').each (function (i) {
+      console.log(this);
   	// here is the logic.  simple rend=marg or marg-right: put it in the right margin, aligned at same height as original
   		if ($(this).attr('place')=='margin' || $(this).attr('place')=='margin-right' ) {
   			var top=$(this).position().top;
-  			if ($('#previewdiv').contents().find('#TCrm').length==0) {
+        console.log("top1 "+top);
+        if ($('#previewdiv').contents().find('#TCrm').length==0) {
   				rmdiv=document.createElement('div');
   				rmdiv.id="TCrm";
   				rmdiv.style.marginRight="15px";
@@ -242,9 +255,12 @@ function makeAppReadingsMenu(){
 			newnote.style.position='absolute';
 			newnote.id='TCnote'+i;
 			$(this).attr('data-id','TCnote'+i);
-			newnote.style.top=top+'px';
+      console.log("top2 "+top);
+			newnote.style.top=""+top+'px';
+      console.log(newnote);
 			$('#previewdiv').contents().find('#TCrm').append(newnote);
 			$(this).hide();
+
   		} else if ($(this).attr('place')=='margin-left') {
   			var top=$(this).position().top;
   			if ($('#previewdiv').contents().find('#TClm').length==0) {

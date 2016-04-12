@@ -27,6 +27,7 @@ var LoginModalComponent = ng.core.Component({
       , src
     ;
     window.closeIFrame = function() {
+      console.log("here I am. Close me down")
       self.closeModal();
     }
 
@@ -88,7 +89,7 @@ var LoginModalComponent = ng.core.Component({
   closeModal: function() {
     this.loginFrame = '/auth?url=/index.html#/home';
     this.loginFrameHeight = 233;
-    // ask the database -- if the current user has a FB ac but no local, 
+    // ask the database -- if the current user has a FB ac but no local,
     // then eliminate the stray fb ac
     // $('#myModal').modal('hide');  close in call to server
     //window.location="/auth/removeSurplusSM";
