@@ -144,6 +144,7 @@ var BaseNodeSchema = function(modelName) {
         var cls = this
           , queue = []
           , nodes = [tree]
+          , cur
         ;
         tree = _prepareNode(tree);
         tree.children = _loadChildren(tree, queue);
@@ -589,11 +590,6 @@ var BaseNodeSchema = function(modelName) {
     }
   };
 };
-
-var baseNode = BaseNodeSchema('Node');
-
-var NodeSchema = new Schema(baseNode.schema);
-_.assign(NodeSchema.methods, baseNode.methods);
 
 var baseDoc = BaseNodeSchema('Doc');
 var DocSchema = new Schema(_.assign(baseDoc.schema, {
@@ -1214,6 +1210,7 @@ _.assign(DocSchema.methods, baseDoc.methods, {
         , updateEntities = []
         , fakeEntity
         , result
+        , entityRoot
       ;
       if (err) {
         return callback(err);
@@ -1413,4 +1410,5 @@ module.exports = {
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
   Action: mongoose.model('Action', ActionSchema),
+  BaseNodeSchema: BaseNodeSchema,
 };

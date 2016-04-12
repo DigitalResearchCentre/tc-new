@@ -26,9 +26,8 @@ var LoginModalComponent = ng.core.Component({
       , base = '/auth/'
       , src
     ;
-    window.closeIFrame = function() {
-      console.log("here I am. Close me down")
-      self.closeModal();
+    window.closeIFrame = function(url) {
+      self.closeModal(url);
     }
 
     this._uiService.loginModel$.subscribe(function(event) {
@@ -86,13 +85,11 @@ var LoginModalComponent = ng.core.Component({
   showModal: function() {
     $('#myModal').modal('show');
   },
-  closeModal: function() {
-    this.loginFrame = '/auth?url=/index.html#/home';
+  closeModal: function(url) {
+    this.loginFrame = '/auth?url=';
     this.loginFrameHeight = 233;
-    // ask the database -- if the current user has a FB ac but no local,
-    // then eliminate the stray fb ac
-    // $('#myModal').modal('hide');  close in call to server
-    //window.location="/auth/removeSurplusSM";
+    $('#myModal').modal('hide');
+    if (url) window.location=url;
   },
   showLogProf: function showLogProf (){
     this.loginFrame = '/auth/profile';

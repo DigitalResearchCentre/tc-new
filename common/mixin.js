@@ -17,14 +17,25 @@ _.mixin({
    * @return queue - queue of unchecked nodes
    * dfs may exit iteration early by explicitly returning false
    */
-  dfs: function (queue, fn) {
-    var cur;
-    while(queue.length > 0) {
-      cur = queue.shift();
-      fn(cur);
-      _.forEachRight(cur.children, _.bind(queue.unshift, queue));
+  dfs: function (_queue, fn, getChildren) {
+    const queue = []
+      , push =  _.unary(_.bind(queue.push, queue))
+    ;
+    let loop = true
+      , cur
+    ;
+    if (!getChildren) {
+      getChildren = function(node) {
+        return node.children;
+      }
     }
-    return queue;
+    _.forEachRight(_queue, push);
+    while(queue.length > 0 && loop !== false) {
+      cur = queue.pop();
+      loop = fn(cur);
+      _.forEachRight(getChildren(cur), push);
+    }
+    return _.reverse(queue);
   },
 });
 

@@ -1,21 +1,14 @@
-console.log(process.env.NODE_ENV);
-process.env.NODE_ENV = 'test';
-
-var bson = require('bson');
-console.log(bson.ObjectId);
-let a = 'a';
-
-return ;
-var _ = require('lodash')
+const _ = require('lodash')
   , async = require('async')
+  , bson = require('bson')
+  , ObjectId = bson.ObjectId
   , models = require('../models')
-  , ObjectId = {}.Types.ObjectId
   , TEI = models.TEI
   , Doc = models.Doc
   , Community = models.Community
 ;
 
-TEST_TEI = {
+const TEST_TEI = {
   name: 'text',
   attrs: {
     testId: 'test-1',
@@ -162,6 +155,7 @@ describe('models test', function() {
         , docIds = [doc1._id, new ObjectId(), new ObjectId(), new ObjectId()]
         , i = 0
         , docId = docIds[i]
+        , cur
       ;
       while (queue.length > 0) {
         cur = queue.shift();
@@ -372,50 +366,4 @@ describe('models test', function() {
 
     });
   });
-
-
-  /*
-  text
-    body
-      div
-        lb
-        l
-        l
-      div
-        l
-
-  var doc = new Doc()
-    , pb1r = new Doc()
-    , lb1 = new Doc()
-  ;
-  pb1r.ancestors = [doc._id];
-  doc.children.push(pb1r._id);
-  lb1.ancestors = pb1r.ancestors.concat(pr1r._id);
-  pb1r.children.push(lb1._id);
-
-  pb1r.commit({
-    tei: {
-      name: 'text',
-      attrs: {},
-      children: [{
-        name: 'body',
-        children: [{
-          name: 'div',
-          attrs: {type: 'G', n: 'GP'},
-          children: [{
-            name: 'lb',
-            children: [],
-          }, {
-            name: 'l',
-            children: [],
-          },],
-        },],
-      },],
-    },
-    doc: {
-      children: [],
-      label: 'text',
-    }
-  }, console.log.bind(console));
-  */
 });

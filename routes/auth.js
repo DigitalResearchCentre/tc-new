@@ -56,8 +56,7 @@ router.post('/login', function(req, res, next) {
      // all is well, log me in, return successful user
      req.logIn(user, function (err) {
        if (url=="") url="/app/home"
-       console.log("logging in happily err "+err+" url "+url)
-       if (!err) {res.render('closemodal.ejs', {url: "app"} );} else {}
+       if (!err) {res.render('closemodal.ejs', {url: url} );} else {}
      });
    });
 });
