@@ -5,12 +5,12 @@ const _ = require('lodash')
 //  , extendNodeSchema = require('../models/extend-node-schema')
 ;
 
+
 describe('base node schema test', function() {
   const ModelName = 'TestNode'
 //    , TestNodeSchema = extendNodeSchema(ModelName)
 //    , TestNode = mongoose.model(ModelName, TestNodeSchema)
   ;
-
 
   it('import', function() {
     expect(true).toBe(false);
@@ -19,7 +19,6 @@ describe('base node schema test', function() {
   it('import', function() {
     expect(true).toBe(true);
   });
-
 
   it('getTreeFromLeaves', function() {
     // {_id: {$in: ancestors}}

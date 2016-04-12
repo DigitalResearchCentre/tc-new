@@ -35,3 +35,6 @@ tmp
 
 # Debug log from npm
 npm-debug.log
+
+# ignore production config to avoid accident commit 
+config/production.js

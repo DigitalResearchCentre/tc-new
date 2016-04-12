@@ -43,8 +43,6 @@ function _loadChildren(cur, queue) {
   return ids;
 }
 
-
-
 const _methods = {
   getText: function() {
   },
@@ -78,6 +76,12 @@ const _statics = {
         nodes.push(cur);
       }
       return cls.collection.insert(nodes, callback);
+    },
+    clean: function(nodeData) {
+      nodeData = _.defaults({}, nodeData, {
+        ancestors: [],
+        children: [],
+      });
     },
     getTreeFromLeaves: function(nodes, cb) {
       var cls = this
