@@ -61,6 +61,7 @@ const _statics = {
      */
     import: function(tree, callback) {
       var cls = this
+        , clean = _.unary(cls.clean)
         , queue = []
         , nodes = [tree]
         , cur
@@ -75,13 +76,35 @@ const _statics = {
         }
         nodes.push(cur);
       }
+      _.dfs([tree], function(nodeData) {
+        cls.clean(nodeData);
+
+        
+      }, function(nodeData) {
+
+_.unary(_.bind(queue.push, queue))
+
+        return _.map(nodeData.children, function(childData) {
+          _.map(childData.children, cls.clean);
+        });
+      });
       return cls.collection.insert(nodes, callback);
+
+      function cleanChildren(nodeData) {
+        _.map(nodeData.children, );
+      }
     },
-    clean: function(nodeData) {
-      nodeData = _.defaults({}, nodeData, {
+    clean: function(data) {
+      const nodeData = _.defaults({}, data, {
         ancestors: [],
         children: [],
       });
+      if (!ObjectId.isValid(nodeData._id)) {
+        nodeData._id = new ObjectId();
+      } else {
+        nodeData._id = new ObjectId(nodeData._id);
+      }
+      return nodeData;
     },
     getTreeFromLeaves: function(nodes, cb) {
       var cls = this
