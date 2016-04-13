@@ -5,6 +5,8 @@ const mongoose = require('mongoose')
   , _ = require('lodash')
 ;
 
+const TreeStructureError = _.inherit(Error);
+
 const _methods = {
   getText: function() {
   },
@@ -17,6 +19,24 @@ const _methods = {
 };
 
 const _statics = {
+  getParent: function(id, callback) {
+    return this.findOne({children: id}, callback);
+  },
+  getAncestors: function(id, callback) {
+    var cls = this;
+    async.waterfall([
+      function(cb) {
+        cls.findOne({_id: id}, cb);
+      },
+      function(node) { // get ancestors
+        const cb = _.last(arguments);
+        if (!node) {
+          return cb(null, []);
+        }
+        cls.find({_id: {$in: node.ancestors}}, cb);
+      },
+    ], callback);
+  },
   /*
     * @param tree - nested tree style data,
     *              ex. {name: foo, children: [{name: child1, children: []}]}
@@ -79,27 +99,45 @@ const _statics = {
     });
     return cls.find({_id: {$in: _.keys(ancestors)}}, callback);
   },
-  getParent: function(id, callback) {
-    return this.findOne({children: id}, callback);
-  },
   getPrev: function(id, callback) {
     var cls = this;
     async.waterfall([
-      _.partial(cls.getParent, id),
-      function(parent) {
+      _.partial(cls.getParent.bind(cls), id),
+      function(parent) { // get prev node
         const cb = _.last(arguments);
         if (parent) {
           var index = _.findIndex(parent.children, function(childId) {
             return childId.equals(id);
           });
           if (index > 0) {
-            return cls.findOne({_id: parent.children[index - 1]}).exec(cb);
+            return cls.findOne({_id: parent.children[index - 1]}, cb);
           } else if (index < 0) {
-            cb(new TreeStructureError(
-              `can not find {id} in {parent._id} children`
+            return cb(new TreeStructureError(
+              `can not find ${id} in ${parent._id} children`
             ));
           }
-          console.log(`{id} {parent._id}`);
+        }
+        return cb(null, null);
+      },
+    ], callback);
+  },
+  getNext: function(id, callback) {
+    var cls = this;
+    async.waterfall([
+      _.partial(cls.getParent.bind(cls), id),
+      function(parent) { // get next node
+        const cb = _.last(arguments);
+        if (parent) {
+          var index = _.findIndex(parent.children, function(childId) {
+            return childId.equals(id);
+          });
+          if (index < 0) {
+            return cb(new TreeStructureError(
+              `can not find ${id} in ${parent._id} children`
+            ));
+          } else if (index < parent.children.length - 1) {
+            return cls.findOne({_id: parent.children[index + 1]}, cb);
+          }
         }
         return cb(null, null);
       },
@@ -109,11 +147,12 @@ const _statics = {
     var cls = this;
     async.waterfall([
       function(cb) {
-        cls.findOne({_id: id}).exec(cb);
+        cls.findOne({_id: id}, cb);
       },
-      function(obj, cb) {
-        if (!obj) {
-          return cb(null, obj);
+      function(node) { // get ancestors
+        const cb = _.last(arguments);
+        if (!node) {
+          return cb(null, node);
         }
         cls.find({_id: {$in: obj.ancestors}}).exec(cb);
       },
@@ -162,7 +201,6 @@ const _statics = {
 
       }
     ], callback);
-
   },
   getDFSPrev: function(id, callback) {
     var cls = this;
