@@ -11,42 +11,54 @@ describe('base node schema test', function() {
       name: String,
     })
     , TestNode = mongoose.model(ModelName, TestNodeSchema)
+    , nodesMap = {}
   ;
 
-  it('import', function(done) {
-    let nodesData = TestNode.import({
-      name: 'root',
-      children: [{
-        name: 'c1', 
-        children: [{name: 'c11', children: []}]
-      }, {
-        name: 'c2', 
-        children: []
-      }]
-    }, function(err, result) {
-      expect(err).toBe(null);
-      expect(result.result).toEqual({ok: 1, n: 4});
-
-      TestNode.find({_id: {$in: result.insertedIds}}, function(err, nodes) {
-        let nodesMap = _.fromPairs(_.map(nodes, function(node) {
-          return [node.name, node];
-        }));
-        let root = nodesMap.root
-          , c1 = nodesMap.c1
-          , c11 = nodesMap.c11
-          , c2 = nodesMap.c2
-        ;
-
-
-        expect(root.ancestors).toEqual([]);
-        expect(root.children).toEqual([c1._id, c2._id]);
-        expect(c1.ancestors).toEqual([root._id]);
-        expect(c1.children).toEqual([c11._id]);
-        expect(c11.ancestors).toEqual([root._id, c1._id]);
-        expect(c2.ancestors).toEqual([root._id]);
-        done();
-      });
+  beforeAll(function(done) {
+    async.waterfall([
+      function(cb) {
+        TestNode.import({
+          name: 'root',
+          children: [{
+            name: 'c1', 
+            children: [{name: 'c11', children: []}]
+          }, {
+            name: 'c2', 
+            children: []
+          }]
+        }, cb);       
+      },
+      function(result) {
+        let cb = _.last(arguments);
+        TestNode.find({_id: {$in: result.insertedIds}}, cb);
+      },
+      function(nodes) {
+        let cb = _.last(arguments);
+        _.each(nodes, function(node) {
+          nodesMap[node.name] = node;
+        });
+        cb(null, nodes);
+      }
+    ], function(err) {
+      if (err) {
+        console.log(err);
+      }
+      done();
     });
+  });
+
+  it('import', function() {
+    let root = nodesMap.root
+      , c1 = nodesMap.c1
+      , c11 = nodesMap.c11
+      , c2 = nodesMap.c2
+    ;
+    expect(root.ancestors).toEqual([]);
+    expect(root.children).toEqual([c1._id, c2._id]);
+    expect(c1.ancestors).toEqual([root._id]);
+    expect(c1.children).toEqual([c11._id]);
+    expect(c11.ancestors).toEqual([root._id, c1._id]);
+    expect(c2.ancestors).toEqual([root._id]);
   });
 
   it('import edge case', function(done) {
@@ -55,6 +67,18 @@ describe('base node schema test', function() {
       done();
     });
   });
+
+  it('getPrev', function(done) {
+    let root = nodesMap.root
+      , c1 = nodesMap.c1
+      , c11 = nodesMap.c11
+      , c2 = nodesMap.c2
+    ;
+    TestNode.getPrev(root._id, function(err, node) {
+      expect(node).toBe(null);
+    });
+  });
+
 
   it('getTreeFromLeaves', function() {
     // {_id: {$in: ancestors}}
@@ -65,9 +89,6 @@ describe('base node schema test', function() {
     expect(true).toBe(true);
   });
   it('getNodesBetween', function() {
-    expect(true).toBe(true);
-  });
-  it('getPrev', function() {
     expect(true).toBe(true);
   });
   it('getOutterBound', function() {

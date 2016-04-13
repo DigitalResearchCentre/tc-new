@@ -95,7 +95,11 @@ const _statics = {
           if (index > 0) {
             return cls.findOne({_id: parent.children[index - 1]}).exec(cb);
           } else if (index < 0) {
+            cb(new TreeStructureError(
+              `can not find {id} in {parent._id} children`
+            ));
           }
+          console.log(`{id} {parent._id}`);
         }
         return cb(null, null);
       },
