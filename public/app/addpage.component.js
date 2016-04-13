@@ -17,7 +17,6 @@ var AddPageComponent = ng.core.Component({
   selector: 'tc-managemodal-addpage',
   templateUrl: '/app/addpage.html',
   directives: [
-    require('./directives/filereader'),
     require('./directives/modaldraggable'),
   ],
   inputs: [
@@ -99,7 +98,7 @@ var AddPageComponent = ng.core.Component({
         id: uiService.community.getId(), route: 'view'
       }]);
         self.success="Page "+self.pageName+" added";
-        $("#MMADBAdd").html('Add Another');
+        $("#MMADBAdd").html('Cancel');
         self.pageName="";
     });
   },
