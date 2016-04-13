@@ -17,7 +17,26 @@ var express = require('express')
 
 mongoose.connect(config.database.uri);
 
-app.use(logger('dev'));
+app.use(express.static(path.join(__dirname, 'public')));
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+
+app.use(logger(config.logFormat));
+
+app.use(cookieParser());
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+// required for passport
+app.use(session({
+  key: 'session',
+  secret: 'ilovescotchscotchyscotchscotch',
+  store: new MongoStore({mongooseConnection: mongoose.connection}),
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use(bodyParser.json({
   limit: '20mb',
@@ -33,30 +52,6 @@ app.use(bodyParser.urlencoded({
   limit: '20mb',
 }));
 
-
-app.use(cookieParser());
-//app.use(require('less-middleware')(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'public')));
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-
-// required for passport
-app.use(session({
-  key: 'session',
-  secret: 'ilovescotchscotchyscotchscotch',
-  store: new MongoStore({mongooseConnection: mongoose.connection}),
-  resave: false,
-  saveUninitialized: false,
-}));
-app.use(passport.initialize());
-app.use(passport.session()); // persistent login sessions
-app.use(flash()); // use connect-flash for flash messages stored in session
-
 app.use('/api', require('./routes/api'));
 app.use('/auth', require('./routes/auth'));
 app.all('/app/*', function(req, res) {
@@ -67,8 +62,11 @@ app.all('/app/*', function(req, res) {
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
+  res.status(404).send('Page not found');
+});
+
+app.use(function logErrors(err, req, res, next) {
+  console.log(err);
   next(err);
 });
 
@@ -76,26 +74,41 @@ app.use(function(req, res, next) {
 
 // development error handler.
 // will print stacktrace
-if (app.get('env') === 'development') {
+if (config.DEBUG) {
   Error.stackTraceLimit = 100;
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-      message: err.message,
-      error: err
-    });
-  });
 }
 
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
+const ErrorLog = mongoose.model('ErrorLog', {
+  name: String,
+  message: String,
+  stack: String,
+  created: Date,
 });
+
+app.use(function(err, req, res, next) {
+  const error = {
+    name: err.name,
+    message: err.message,
+    error: err,
+    stack: err.stack,
+  };
+  try {
+    let errorLog = new ErrorLog(_.assign({ 
+      created: new Date(),
+    }, _.omit(error, 'error')));
+    errorLog.save();
+  } catch (e) {
+    console.log(e);
+  }
+
+  res.status(err.status || 500);
+  if (config.DEBUG) {
+    res.render('error', error);
+  } else {
+    res.render('error', _.pick(error, ['name', 'message',]));
+  }
+});
+
 
 module.exports = app;
 
