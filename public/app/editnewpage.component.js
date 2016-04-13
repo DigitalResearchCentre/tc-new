@@ -11,6 +11,9 @@ var EditNewPageComponent = ng.core.Component({
     require('./directives/newpageprose.component'),
     require('./directives/newpagepoetry.component'),
     require('./directives/newpageplay.component'),
+    require('./directives/newpageletter.component'),
+    require('./directives/newpageplain.component'),
+    require('./directives/newpageempty.component'),
   ],
   inputs: [
     'page',
@@ -49,6 +52,15 @@ var EditNewPageComponent = ng.core.Component({
           break;
       case "Play":
           this.entity = {name:"Hamlet", sample:'"Hamlet", "The Doll House"'};
+          break;
+      case "Letter":
+          this.entity = {name:"Letters", sample:'"His Letters", "Her Letters"'};
+          break;
+      case "Plain":
+          this.entity = {name:"Plain text", sample:'""'};
+          break;
+      case "Empty":
+          this.entity = {name:"Empty page", sample:'""'};
           break;
     }
     this.choice=choice;

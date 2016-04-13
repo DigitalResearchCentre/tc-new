@@ -4,6 +4,7 @@ var URI = require('urijs')
   , CommunityService = require('./services/community')
   , AuthService = require('./services/auth')
   , DocService = require('./services/doc')
+  , config = require('./config')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
@@ -56,23 +57,39 @@ var AddDocumentXMLComponent = ng.core.Component({
       return;
     }
     this.doc.label = 'text';
-    this._communityService.addDocument(this.uiService.community, this.doc)
-      .flatMap(function(doc) {
-        return docService.commit({
-          doc: doc,
-          text: text,
-          links: {
-            prev: [],
-            next: [],
-          },
-        });
-      })
-      .subscribe(function(res) {
-        self.success="XML document "+self.doc.name+" loaded successfully"
-  //        self.closeModalADX();
-      }, function(err) {
-        self.message = err.message;
-      });
+    //parse first...
+    $.post(config.BACKEND_URL+'validate', {
+      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+text+"</TEI>",
+    }, function(res) {
+      if (res.error.length>0) {
+        self.uiService.manageModal$.emit({
+            type: 'parse-xmlload',
+            error: res.error,
+            docname: self.doc.name,
+            lines: text.split("\n")
+          });
+        return;
+      } else {
+        self.success="XML document "+self.doc.name+" parsed successfully. Now loading.";
+        self._communityService.addDocument(self.uiService.community, self.doc)
+          .flatMap(function(doc) {
+            return docService.commit({
+              doc: doc,
+              text: text,
+              links: {
+                prev: [],
+                next: [],
+              },
+            });
+          })
+          .subscribe(function(res) {
+            self.success="XML document "+self.doc.name+" loaded successfully";
+      //        self.closeModalADX();
+          }, function(err) {
+            self.message = err.message;
+          });
+      }
+    })
   },
   closeModalADX: function() {
     this.message=this.success=this.doc.name="";

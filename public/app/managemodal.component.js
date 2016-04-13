@@ -19,7 +19,8 @@ var ManageModalComponent = ng.core.Component({
     require('./extractxmldoc.component'),
     require('./joincommunity.component'),
     require('./viewmembers.component'),
-    require('./previewpage.component')
+    require('./previewpage.component'),
+    require('./parsexmlload.component')
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -47,11 +48,16 @@ var ManageModalComponent = ng.core.Component({
           self.content = event.content;
           self.lines = event.lines;
       }  else if (event.type === 'join-community') {
-            self.community = event.community;
-            self.choice = event.type;
-            if (event.status=="alldolead") self.communityleader=null;
-            else self.communityleader=event.communityleader;
-            self.status=event.status;
+          self.community = event.community;
+          self.choice = event.type;
+          if (event.status=="alldolead") self.communityleader=null;
+          else self.communityleader=event.communityleader;
+          self.status=event.status;
+      } else if (event.type === 'parse-xmlload') {
+          self.choice = event.type;
+          self.error = event.error;
+          self.lines = event.lines;
+          self.docname = event.docname;
       }
       $('#manageModal').modal('show');
     });

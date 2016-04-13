@@ -17,5 +17,7 @@
     </tc-managemodal-join-community>
     <tc-managemodal-view-members *ngSwitchWhen="'view-members'">
     </tc-managemodal-view-members>
+    <tc-managemodal-parse-xmlload *ngSwitchWhen="'parse-xmlload'" [error]="error" [lines]="lines" [docname]="docname">
+    </tc-managemodal-parse-xmlload>
   </div>
 </div>
