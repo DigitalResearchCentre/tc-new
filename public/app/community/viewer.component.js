@@ -159,7 +159,7 @@ var ViewerComponent = ng.core.Component({
     $.post(config.BACKEND_URL+'validate', {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+this.page.contentText+"</TEI>",
     }, function(res) {
-      console.log(res);
+//      console.log(res);
       self._uiService.manageModal$.emit({
           type: 'preview-page',
           page: self.page,
