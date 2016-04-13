@@ -1,6 +1,10 @@
-var _ = require('lodash');
+const _ = require('lodash')
+  , env = process.env.NODE_ENV
+;
 
 module.exports = _.assign({
+  env: env,
+  logFormat: 'combined',
   auth: {
     'facebookAuth' : {
         'clientID'      : '483987101763451', // your App ID
@@ -20,4 +24,4 @@ module.exports = _.assign({
         'callbackURL'   : 'http://localhost:3000/auth/google/callback'
     }
   }
-}, require('./' + process.env.NODE_ENV));
+}, require('./' + env));
