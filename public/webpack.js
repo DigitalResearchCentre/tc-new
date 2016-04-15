@@ -9,18 +9,8 @@ var _ = require('lodash')
   , bowerRoot = path.resolve(clientRoot, '..', 'bower_components')
   , nodeRoot = path.resolve(clientRoot, '..', 'node_modules')
   , devtool = '#eval-cheap-module-source-map'
-  , externals = {}
   , debug = true
 ;
-
-_.assign(externals, {
-  jquery: 'jQuery',
-  rxjs: 'Rx',
-  lodash: '_',
-  bson: 'bson',
-  'codemirror/lib/codemirror': 'CodeMirror',
-  'codemirror/mode/xml/xml': false,
-});
 
 switch (process.env.NODE_ENV) {
   case 'production':
@@ -41,7 +31,14 @@ var config = {
     path: path.join(clientRoot, 'dist'),
     filename: '[name].bundle.js',
   },
-  externals: externals,
+  externals: {
+    jquery: 'jQuery',
+    rxjs: 'Rx',
+    lodash: '_',
+    bson: 'bson',
+    'codemirror/lib/codemirror': 'CodeMirror',
+    'codemirror/mode/xml/xml': false,
+  },
   module: {
     loaders: [
       {
