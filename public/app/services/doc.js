@@ -5,13 +5,9 @@ var Observable = Rx.Observable
   , RESTService = require('./rest')
   , AuthService = require('./auth')
   , Doc = require('../models/doc')
-  , bson = require('bson')
+  , bson = require('bson')()
   , ObjectID = bson.ObjectID
 ;
-
-if (!ObjectID) {
-  ObjectID = bson().ObjectID;
-}
 
 function handleError(err, callback) {
   if (_.isFunction(callback)) {
