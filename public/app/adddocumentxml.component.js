@@ -52,6 +52,11 @@ var AddDocumentXMLComponent = ng.core.Component({
       $('#MMADbutton').css("margin-top", "10px");
       return;
     }
+    //do we already have a document with this name...?
+    if (self.alreadyDoc(self.uiService.community, self.doc.name.trim())){
+        self.message='Document "'+self.doc.name+' "already exists';
+        return;
+    }
     if (!text) {
       this.message = 'Either paste text into the text box or choose a file';
       return;
