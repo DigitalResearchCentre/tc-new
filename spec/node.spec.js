@@ -71,11 +71,58 @@ describe('base node schema test', function() {
   it('getPrev', function(done) {
     let root = nodesMap.root
       , c1 = nodesMap.c1
-      , c11 = nodesMap.c11
       , c2 = nodesMap.c2
     ;
-    TestNode.getPrev(root._id, function(err, node) {
-      expect(node).toBe(null);
+    async.parallel([
+      function(cb) {
+        TestNode.getPrev(root._id, function(err, node) {
+          expect(node).toBe(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getPrev(c1._id, function(err, node) {
+          expect(node).toBe(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getPrev(c2._id, function(err, node) {
+          expect(node._id).toEqual(c1._id);
+          cb(null);
+        });
+      },
+    ], function() {
+      done();
+    });
+  });
+
+  it('getNext', function(done) {
+    let root = nodesMap.root
+      , c1 = nodesMap.c1
+      , c2 = nodesMap.c2
+    ;
+    async.parallel([
+      function(cb) {
+        TestNode.getNext(root._id, function(err, node) {
+          expect(node).toBe(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getNext(c1._id, function(err, node) {
+          expect(node._id).toEqual(c2._id);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getNext(c2._id, function(err, node) {
+          expect(node).toEqual(null);
+          cb(null);
+        });
+      },
+    ], function() {
+      done();
     });
   });
 

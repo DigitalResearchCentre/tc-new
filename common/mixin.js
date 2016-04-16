@@ -2,6 +2,11 @@ var _ = require('lodash');
 
 _.mixin({
   inherit: function(base, child, props, statics) {
+    if (!_.isFunction(child)) {
+      statics = props;
+      props = child;
+      child = function() {};
+    }
     child.prototype = _.create(base.prototype, _.assign({
       _super: base.prototype,
       'constructor': child,
@@ -40,5 +45,4 @@ _.mixin({
 });
 
 module.exports = _;
-
 
