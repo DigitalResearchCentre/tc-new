@@ -97,11 +97,16 @@
 </div>
 <div *ngIf="authUser" class="wizard">
   <p *ngIf="showCreateOrJoin()" class="wizardp">
-    <a [routerLink]="['CreateCommunity']">
+    <a *ngIf="createNotChosenF()" [routerLink]="['CreateCommunity']">
       <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
         onmouseout="this.style.color='white';"
         style="width: 180px;">Create Community</button></a>
+      <a *ngIf="createChosenF()" (click)="saveCommunity()">
+          <button class="btn btn-lg wizardbutton"
+            onmouseover="this.style.color='#ffe2be';"
+            onmouseout="this.style.color='white';"
+            style="width: 180px;">Create Community</button></a>
     &nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;
     <a [routerLink]="['MemberProfile']">
       <button class="btn btn-lg wizardbutton"

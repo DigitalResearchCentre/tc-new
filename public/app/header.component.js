@@ -35,8 +35,9 @@ var HeaderComponent = ng.core.Component({
     ;
     this._authService.authUser$.subscribe(function(authUser) {
       self.authUser = authUser;
-//      console.log(authUser);
     });
+    this.createNotChosen=true;
+    this.createChosen=false;
     communityService.publicCommunities$.subscribe(function(communities) {
       self.publicCommunities = communities;
     });
@@ -47,6 +48,22 @@ var HeaderComponent = ng.core.Component({
   },
   showCreateOrJoin: function() {
     return this.authUser && this.authUser.attrs.local && this.authUser.attrs.local.authenticated=="1" && _.isEmpty(this.authUser.attrs.memberships);
+  },
+  createNotChosenF: function() {
+    return this.createNotChosen;
+  },
+  createChosenF: function() {
+    var self=this;
+    this.uiService.sendCommand$.subscribe(function(chosen) {
+      if (chosen="createChosen") {
+          self.createChosen=true;
+          self.createNotChosen=false;
+      }
+    });
+    return self.createChosen;
+  },
+  saveCommunity: function() {
+    this.uiService.sendCommand$.emit("createCommunity");
   },
   showAddDocument: function() {
     var community = this.uiService.community;

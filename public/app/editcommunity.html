@@ -1,4 +1,10 @@
 <div style="text-align: center">
+  <div *ngIf="success" class="alert alert-success">
+      {{success}}
+  </div>
+  <div *ngIf="message" class="alert alert-danger">
+      {{message}}
+  </div>
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
     <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
     [(ngModel)]="edit.name">
@@ -64,12 +70,6 @@
     </form>
   </div>
   <hr style="border: 1px solid #8c8b8b;">
-  <div *ngIf="success" class="alert alert-success">
-      {{success}}
-  </div>
-  <div *ngIf="message" class="alert alert-danger">
-      {{message}}
-  </div>
   <div  style="text-align: center">
     <button type="button" class="btn btn-primary btn-md" (click)="submit()"
       >{{community ? 'Update': 'Create'}}</button>

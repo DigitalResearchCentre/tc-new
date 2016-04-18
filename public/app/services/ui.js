@@ -12,6 +12,7 @@ var UIService = ng.core.Class({
     this.loginModel$ = new EventEmitter();
     this.manageModal$ = new EventEmitter();
     this.newPage$ = new EventEmitter();
+    this.sendCommand$ = new EventEmitter();
     this.sendXMLData$ = new EventEmitter();
     this._communitySubject = new EventEmitter();
     this._communityService = communityService;

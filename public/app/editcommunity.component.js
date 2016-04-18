@@ -2,6 +2,7 @@ var CommunityService = require('./services/community')
   , UIService = require('./services/ui')
 ;
 
+
 var EditCommunityComponent = ng.core.Component({
   selector: 'tc-edit-community',
   templateUrl: '/app/editcommunity.html',
@@ -21,10 +22,15 @@ var EditCommunityComponent = ng.core.Component({
     });
   }],
   ngOnInit: function() {
+    var self=this;
     this.initEdit(this.community);
     this.message = '';
+    this._uiService.sendCommand$.subscribe(function(chosen) {
+      if (chosen="createCommunity") self.submit();
+    });
   },
   initEdit: function(community) {
+    this._uiService.sendCommand$.emit("createChosen");
     if (community) {
       this.edit = _.clone(community.toJSON());
       this.community = community;
@@ -122,7 +128,6 @@ submit: function() {
         var matchedcom=self._allCommunities.filter(function (obj){return obj.attrs.abbr === self.edit.abbr;})[0];
         if (matchedcom) {
           self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
-          $('#tc-edit-community').animate({ scrollTop: $("tc-edit-community").offset().top  }, 500);
           return;
         }
       }
@@ -130,7 +135,6 @@ submit: function() {
       if (!this.community) {
         if (matchedname) {
           self.message='There is already a community with the name "'+self.edit.name+'"';
-          $('#tc-edit-community').animate({ scrollTop: $("tc-edit-community").offset().top  }, 500);
           return;
         }
       } else {
@@ -138,7 +142,6 @@ submit: function() {
         if (matchedname) {
           if (self.edit.name!=self.origname) {
             self.message='There is already a community with the name "'+self.edit.name+'"';
-            $('#tc-edit-community').animate({ scrollTop: $("tc-edit-community").offset().top  }, 500);
             return;
           }
         }
@@ -146,10 +149,9 @@ submit: function() {
     }
     this._communityService.save(this.edit).subscribe(function(community) {
       self.success='Community "'+self.edit.name+'" saved';
-        if ($('#PreviewImg')) $('#PreviewImg').remove();
+      if ($('#PreviewImg')) $('#PreviewImg').remove();
       self.initEdit(community);
       self._uiService.setCommunity(community);
-      $('#tc-edit-community').animate({ scrollTop: $("#tc-edit-community").offset().top  }, 500);
     }, function(err) {
       self.message = err.message;
     });
