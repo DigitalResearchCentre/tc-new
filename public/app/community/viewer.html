@@ -4,20 +4,6 @@
   </tc-pane>
   <tc-pane class="text-viewer">
     <div class="transcript-header">
-      <label>Prev: </label>
-      <select (change)="prevLinkChange($event)">
-        <option *ngFor="#el of links.prev; #i = index" [value]="i"
-          [selected]="el===prevLink">
-          {{json2xml(el)}}
-        </option>
-      </select>
-      <label>Next: </label>
-      <select (change)="nextLinkChange($event)">
-        <option *ngFor="#el of links.next; #i = index" [value]="i"
-          [selected]="el===nextLink">
-          {{json2xml(el)}}
-        </option>
-      </select>
       <select (change)="revisionChange($event)">
         <option [value]="0">database revision</option>
         <option *ngFor="#revision of page.attrs.revisions; #i = index"
@@ -36,7 +22,7 @@
     </div>
     <tc-codemirror class="transcript" [(content)]="page.contentText">
     </tc-codemirror>
-    <div class="buttons" ng-if="page">
+    <div class="buttons" *ngIf="page">
       <button type="button" class="btn btn-default btn-xs"
         (click)="save()">Save</button>
       <button type="button" class="btn btn-default btn-xs"
