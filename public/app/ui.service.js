@@ -34,7 +34,7 @@ var UIService = ng.core.Class({
       this._communityService.fetch(community.getId(), {
         populate: JSON.stringify('documents entities')
       }).subscribe();
-      if (community && community.attrs.documents) {
+      if (community && community.attrs.documents.length>0) {
         this.setDocument(community.attrs.documents[0]);
       }
     }

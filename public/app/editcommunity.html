@@ -1,7 +1,4 @@
-<div *ngIf="message" class="alert alert-danger">
-    {{message}}
-  </div>
-  <div style="text-align: center">
+<div style="text-align: center">
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
     <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
     [(ngModel)]="edit.name">
@@ -28,9 +25,9 @@
     <textarea class="form-control" rows="8" cols="50" placeholder="Description (you can include HTML)"
       [(ngModel)]="edit.description"></textarea>
   </div>
-  <div class="form-group" style="margin-right:10px; margin-left: 5px">
+  <div class="form-group" style="margin-right:15px; margin-left: 15px">
     <label>Accessible to others</label> <br/>
-    <input type="checkbox" [(ngModel)]="edit.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="checkbox" style="margin-left: 10px" [(ngModel)]="edit.public">&nbsp;&nbsp;Everyone can see it&nbsp;&nbsp;&nbsp;&nbsp;
     <span *ngIf="edit.public">
       <input type="checkbox" [(ngModel)]="edit.accept" ng-disabled="edit.public==false">Anyone can ask to join
     </span>
@@ -45,33 +42,34 @@
     </span>
 
     </div>
-  <!-->
-  <div class="form-group"  ng-controller="UpLoadCtrl">
-    <form ng-show="!community.image" name="communityForm" >
-      <label>Choose community image (max. 300x50)</label> <br/>
-      <div  style="width: 200px; margin-left:auto; margin-right:auto">
-        <input type="file" ngf-select ng-model="picFile" name="file"
-        accept="image/*" ngf-max-size="100KB" ngf-max-height="34" ngf-max-width="300" required>
-        <span ng-show="communityForm.file.$error.maxSize">File too large
-          ({{picFile.size / 1000|number:1}} KB): max {{picFile.$errorParam}}</span>
-        <span ng-show="communityForm.file.$error.maxHeight">Image too high
-          ({{picFile.$ngfHeight}} pixels): max {{picFile.$errorParam}}</span>
-        <span ng-show="communityForm.file.$error.maxWidth">Image too wide
-          ({{picFile.$ngfWidth}} pixels): max {{picFile.$errorParam}}</span>
-        <img ng-show="communityForm.file.$valid" ngf-thumbnail="!picFile.$error && picFile" style="width: 300px; height: 35px; margin-top: 5px; margin-left:10px">
-        &nbsp;&nbsp;<button type="button" ng-click="picFile = null;" ng-show="picFile">Remove</button>&nbsp;&nbsp;
-        <button type="button" ng-click="upload(picFile)" ng-show="picFile">Confirm</button>
+
+  <div class="form-group" style="width:100%; margin-right:15px; margin-left: 15px">
+    <form name="communityForm" >
+      <label>Choose community image (max. {{picFile.maxWidth}}x{{picFile.maxHeight}})</label> <br/>
+      <div style="width: 600px; margin-left:auto; margin-right:auto;  text-align:center">
+        <input type="file"  name="file" id="EDIB"
+        accept="image/*" (change)="selectImage($event)" required style="display: block; margin : auto;"><br/>
+        <div *ngIf="fileTooBig()" class="alert alert-danger" style="margin:2px">File too large
+          ({{picFile.size / 1024}} KB): max {{picFile.maxSize / 1024}} px</div>
+        <div *ngIf="fileTooHigh()" class="alert alert-danger" style="margin:2px">Image too high
+          ({{picFile.height}} pixels): max {{picFile.maxHeight}} px</div>
+        <div *ngIf="fileTooWide()" class="alert alert-danger" style="margin:2px">Image too wide
+          ({{picFile.width}} pixels): max {{picFile.maxWidth}} px<br/></div>
+        <div id="ECImage">
+          <span *ngIf="isImageOK()">
+            <button type="button" (click)="nullImage(picFile.file)">Remove</button>
+          </span>
+        </div>
       </div>
     </form>
-    <div ng-show="community.haspicture">
-      <label>Change community image (max. 300x35)</label>
-      <div  style="width: 500px; margin-left:auto; margin-right:auto">
-        <img src="{{community.image}}"/>&nbsp;&nbsp;<button type="button" ng-click="picFile = null;community.image='';community.haspicture=false; nullImage()">Remove</button>
-      </div>
-    </div>
   </div>
-  </-->
   <hr style="border: 1px solid #8c8b8b;">
+  <div *ngIf="success" class="alert alert-success">
+      {{success}}
+  </div>
+  <div *ngIf="message" class="alert alert-danger">
+      {{message}}
+  </div>
   <div  style="text-align: center">
     <button type="button" class="btn btn-primary btn-md" (click)="submit()"
       >{{community ? 'Update': 'Create'}}</button>

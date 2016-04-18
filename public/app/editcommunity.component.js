@@ -15,6 +15,7 @@ var EditCommunityComponent = ng.core.Component({
     var self=this;
     this._communityService = communityService;
     this._uiService = uiService;
+    this.picFile={chosen:false, maxSize:100*1024, maxHeight:35, maxWidth:300, valid:false, file:""};
     this._communityService.allCommunities$.subscribe(function(communities) {
       self._allCommunities = communities;
     });
@@ -27,6 +28,15 @@ var EditCommunityComponent = ng.core.Component({
     if (community) {
       this.edit = _.clone(community.toJSON());
       this.community = community;
+      this.origname=community.attrs.name;
+      if (community.attrs.haspicture) {
+        this.picFile.valid=true;
+        var image  = document.createElement("IMG");
+        image.setAttribute("id", "PreviewImg");
+        image.setAttribute("src", community.attrs.image);
+        var elPreview = document.getElementById("ECImage");
+        elPreview.appendChild(image);
+      }
     } else {
       this.edit = {
         public: false,
@@ -39,33 +49,126 @@ var EditCommunityComponent = ng.core.Component({
         alldolead: false,
         alltranscribeall: false,
         haspicture: false,
-        image: false,
+        image: "",
       };
     }
   },
-  submit: function() {
+  fileTooBig: function(){
+    if (this.picFile.chosen) {
+      if (this.picFile.size>this.picFile.maxSize) return true;
+      else return false;
+    }
+    else return false;
+  },
+  fileTooHigh: function(){
+    if (this.picFile.chosen) {
+      if (this.picFile.height>this.picFile.maxHeight) return true;
+      else return false;
+    }
+    else return false;
+  },
+  fileTooWide: function(){
+    if (this.picFile.chosen) {
+      if (this.picFile.width>this.picFile.maxWidth) return true;
+      else return false;
+    }
+    else return false;
+  },
+  isImageOK: function(){
+    //ok.. if we don't have a community
+    if (this.community) {if (this.picFile.valid) return true;}
+    else if (this.picFile.chosen && this.picFile.valid) return true;
+    else return false;
+  },
+  selectImage: function(event) {
+    var self=this;
+    var file=event.target.files[0]
+    self.picFile.file=file;
+    window.URL    = window.URL || window.webkitURL;
+    var  useBlob   = false && window.URL;
+    var reader = new FileReader();
+    reader.addEventListener("load", function () {
+    if ($('#PreviewImg')) $('#PreviewImg').remove();
+    var image  = new Image();
+    image.id="PreviewImg";
+    image.addEventListener("load", function (evt) {
+      self.picFile.chosen=true;
+      self.picFile.size=file.size;
+      self.picFile.height=image.height;
+      self.picFile.width=image.width;
+      self.picFile.name=file.name;
+      if (self.picFile.size<=self.picFile.maxSize && self.picFile.height<=self.picFile.maxHeight && self.picFile.width<=self.picFile.maxWidth ) {
+        self.picFile.valid=true;
+        var elPreview = document.getElementById("ECImage");
+        elPreview.appendChild(this);
+        self.upload(file);
+      } else {
+        self.picFile.valid=false;
+      }
+    });
+    image.src = useBlob ? window.URL.createObjectURL(file) : reader.result;
+    if (useBlob) {
+      window.URL.revokeObjectURL(file);
+    }
+  });
+  reader.readAsDataURL(file);
+  },
+submit: function() {
     //is there a community with this name?
+    this.message=this.success="";
     var self=this;
     if (self._allCommunities.length>0) {
-      var matchedcom=self._allCommunities.filter(function (obj){return obj.attrs.abbr === self.edit.abbr;})[0];
-      if (matchedcom) {
-        self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
-        return;
+      if (!this.community) {
+        var matchedcom=self._allCommunities.filter(function (obj){return obj.attrs.abbr === self.edit.abbr;})[0];
+        if (matchedcom) {
+          self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
+          $('#tc-edit-community').animate({ scrollTop: $("tc-edit-community").offset().top  }, 500);
+          return;
+        }
       }
       var matchedname=self._allCommunities.filter(function (obj){return obj.attrs.name === self.edit.name;})[0];
-      if (matchedname) {
-        self.message='There is already a community with the name "'+self.edit.name+'"';
-        return;
+      if (!this.community) {
+        if (matchedname) {
+          self.message='There is already a community with the name "'+self.edit.name+'"';
+          $('#tc-edit-community').animate({ scrollTop: $("tc-edit-community").offset().top  }, 500);
+          return;
+        }
+      } else {
+        //if name has not changed, ignore...
+        if (matchedname) {
+          if (self.edit.name!=self.origname) {
+            self.message='There is already a community with the name "'+self.edit.name+'"';
+            $('#tc-edit-community').animate({ scrollTop: $("tc-edit-community").offset().top  }, 500);
+            return;
+          }
+        }
       }
     }
-    this.message=this.success="";
     this._communityService.save(this.edit).subscribe(function(community) {
-      self.success='Community "'+self.edit.name+'" saved'
+      self.success='Community "'+self.edit.name+'" saved';
+        if ($('#PreviewImg')) $('#PreviewImg').remove();
       self.initEdit(community);
       self._uiService.setCommunity(community);
+      $('#tc-edit-community').animate({ scrollTop: $("#tc-edit-community").offset().top  }, 500);
     }, function(err) {
       self.message = err.message;
     });
+  },
+  upload: function (file) {
+     var self=this;
+     var fileReader = new FileReader();
+     fileReader.onload = function(evt) {
+      self.edit.image = evt.target.result;
+      self.edit.haspicture=true;
+    };
+    fileReader.readAsDataURL(file);
+  },
+  nullImage: function () {
+    this.edit.image ="";
+    this.edit.haspicture=false;
+    this.picFile={chosen:false, maxSize:100*1024, maxHeight:35, maxWidth:300, valid:false, file:""};
+    if ($('#PreviewImg')) $('#PreviewImg').remove();
+    document.getElementById('EDIB').value = ""
   },
 });
 
