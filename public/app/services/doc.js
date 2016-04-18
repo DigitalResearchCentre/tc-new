@@ -251,6 +251,7 @@ var DocService = ng.core.Injectable().Class({
       , docId
     ;
     page._id = pageId;
+    page.label = 'pb';
     if (page.parent) {
       docId = page.parent.getId();
       if (_.isEmpty(page.parent.attrs.children)) {
@@ -316,10 +317,9 @@ var DocService = ng.core.Injectable().Class({
      var text = data.text
       , docModel = data.doc
       , docElement = data.docElement
-      , links = data.links || {}
       , xmlDoc = parseTEI(text)
       , teiRoot = xmlDoc2json(xmlDoc)
-      , docTags = ['text', 'pb', 'cb', 'lb']
+      , docTags = ['pb', 'cb', 'lb']
       , docRoot = {
         _id: docModel.getId(), label: docModel.attrs.label, children: []
       }
@@ -327,10 +327,10 @@ var DocService = ng.core.Injectable().Class({
       , docQueue = []
       , cur, prevDoc, curDoc, index, label, missingLink
     ;
-    var err = checkLinks(teiRoot, links);
-    if (err) {
-      return handleError(err, callback);
-    }
+/*     var err = checkLinks(teiRoot); */
+    // if (err) {
+      // return handleError(err, callback);
+    // }
 
     // dfs on TEI tree, find out all document
     /*
@@ -349,6 +349,8 @@ var DocService = ng.core.Injectable().Class({
             if (!prevDoc) {
               curDoc = docRoot;
               docQueue.push(curDoc);
+              console.log('push');
+              console.log(curDoc);
             } else {
               return handleError({
                 message: 'duplicate ' + cur.name  + ' element',
@@ -366,6 +368,8 @@ var DocService = ng.core.Injectable().Class({
             }
             if (docTags.indexOf(prevDoc.label) < index) {
               docQueue.push(prevDoc);
+              console.log('push');
+              console.log(prevDoc);
             }
             while (docQueue.length > 0) {
               label = _.last(docQueue).label;
@@ -373,9 +377,16 @@ var DocService = ng.core.Injectable().Class({
                 break;
               }
               docQueue.pop();
+              console.log('pop');
+              console.log(prevDoc);
+
             }
             if (docQueue.length > 0) {
               _.last(docQueue).children.push(curDoc);
+              console.log('add children');
+              console.log(_.last(docQueue));
+              console.log(curDoc);
+
             }
           }
           prevDoc = curDoc;
@@ -388,7 +399,6 @@ var DocService = ng.core.Injectable().Class({
 
 
       _.forEachRight(cur.children, function(child) {
-    //    console.log(child);
         queue.unshift(child);
       });
     }

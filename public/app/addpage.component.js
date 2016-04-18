@@ -97,9 +97,10 @@ var AddPageComponent = ng.core.Component({
       router.navigate(['Community', {
         id: uiService.community.getId(), route: 'view'
       }]);
-        self.success="Page "+self.pageName+" added";
-        $("#MMADBAdd").html('Cancel');
-        self.pageName="";
+      self.success="Page "+self.pageName+" added";
+      $("#MMADBAdd").html('Cancel');
+      self.pageName="";
+      uiService.setDocument(uiService.document);
     });
   },
   submit: function() {

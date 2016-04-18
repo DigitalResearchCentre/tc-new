@@ -50,9 +50,6 @@ var ViewerComponent = ng.core.Component({
     this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
-    this.links = {prev: [], next: []};
-    this.prevLink = null;
-    this.nextLink = null;
   },
   onPageChange: function() {
     var viewer = this.viewer;
@@ -83,25 +80,6 @@ var ViewerComponent = ng.core.Component({
         this.onPageChange();
       }
       docService.page=page;
-      docService.getLinks(this.page).subscribe(function(data) {
-        _.forEachRight(data.prev, function(el) {
-          if (el.name === '#text' || el.name === 'pb') {
-            data.prev.pop();
-          } else {
-            return false;
-          }
-        });
-        _.forEachRight(data.next, function(el) {
-          if (el.name === '#text' || el.name === 'pb') {
-            data.next.pop();
-          } else {
-            return false;
-          }
-        });
-        self.links = data;
-        self.prevLink = _.last(data.prev);
-        self.nextLink = _.last(data.next);
-      });
       docService.getTrees(this.page).subscribe(function(teiRoot) {
         self.dbText = docService.json2xml(teiRoot);
         self.setContentText(self.dbText);
@@ -120,12 +98,6 @@ var ViewerComponent = ng.core.Component({
   },
   json2xml: function(data) {
     return this._docService.json2xml(data);
-  },
-  prevLinkChange: function($event) {
-    this.prevLink = this.links.prev[$event.target.value];
-  },
-  nextLinkChange: function($event) {
-    this.nextLink = this.links.next[$event.target.value];
   },
   revisionChange: function($event) {
     var index = $event.target.value
@@ -170,16 +142,11 @@ var ViewerComponent = ng.core.Component({
     });
   },
   commit: function() {
-    var links = this.links;
     var page = this.page;
     var docService = this._docService;
     docService.commit({
       doc: page,
       text: this.page.contentText,
-      links: {
-        prev: links.prev.slice(0, _.findIndex(links.prev, this.prevLink) + 1),
-        next: links.next.slice(0, _.findIndex(links.next, this.nextLink) + 1),
-      },
     }).subscribe(function(res) {
       docService.fetch(page.getId(), {
         populate: JSON.stringify('revisions'),

@@ -53,6 +53,10 @@ var UIService = ng.core.Class({
           self.selectPage(first);
         }
       });
+    } else {
+      this._docService.fetch(doc.getId(), {
+        populate: JSON.stringify('children')
+      }).subscribe();
     }
     return doc;
   },

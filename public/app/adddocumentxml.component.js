@@ -81,10 +81,6 @@ var AddDocumentXMLComponent = ng.core.Component({
             return docService.commit({
               doc: doc,
               text: text,
-              links: {
-                prev: [],
-                next: [],
-              },
             });
           })
           .subscribe(function(res) {
