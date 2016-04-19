@@ -11,16 +11,20 @@ var mongoose = require('mongoose')
 
 const CheckLinkError = Error.extend('CheckLinkError');
 
-function _elEqual(el1, el2) {
-  const fields = ['name', 'label'];
-  return _.isEqual(
-    _.pick(el1, fields),
-    _.pick(el2, fields)
-  );
+function _isContinueEl(el1, el2) {
+  const attrs1 = _.get(el1, 'attrs', {})
+    , attrs2 = _.get(el2, 'attrs', {})
+  ;
+  return el1.name === el2.name && attrs1.n === attrs2.n;
 }
 
 function _elAssign(el, node) {
   el._id = node._id;
+}
+
+function _idEqual(id1, id2) {
+  return ObjectId.isValid(_id) && ObjectId.isValid(_id) && 
+    (new ObjectId(id1)).equals(id2);
 }
 
 function _checkLinks(docEl, prevs, nexts, teiRoot) {
@@ -28,26 +32,44 @@ function _checkLinks(docEl, prevs, nexts, teiRoot) {
     , continueTeis = {}
   ;
   _.dfs([teiRoot], function(el) {
-    if (_elEqual(docEl, el)) {
+    if (_isContinueEl(docEl, el)) {
       return false;
     }
-    let bound = prevs.shift();
-    if (bound && _elEqual(bound, el)) {
+    let bound = prevs.shift()
+      , continueChild, index
+    ;
+    if (bound && _isContinueEl(bound, el)) {
       _elAssign(el, bound);
+      continueChild = _.first(prevs);
+      if (continueChild) {
+        el.prevChild = _.findIndex(bound.children, function(id) {
+          return _idEqual(id, continueChild._id);
+        });
+      }
     } else {
-      throw new CheckLinkError('prevs element is not match: ' + el + bound);
+      bound = bound || {};
+      throw new CheckLinkError(
+        `prevs element is not match: ${el.name}, ${bound.label} ${bound.name}`);
     }
   });
 
   _.dfs([teiRoot], function(el) {
-    if (_elEqual(docEl, el)) {
+    let bound = nexts.shift();
+    if (!bound) {
       return false;
     }
-    let bound = nexts.shift();
-    if (_elEqual(bound, el)) {
+    if (_isContinueEl(bound, el) && bound.name !== docEl.label) {
       _elAssign(el, bound);
+      continueChild = _.first(nexts);
+      if (continueChild) {
+        el.nextChild = _.findIndex(bound.children, function(id) {
+          return _idEqual(id, continueChild._id);
+        });
+      }
     } else {
-      throw new CheckLinkError('nexts element is not match: ' + el + bound);
+      bound = bound || {};
+      throw new CheckLinkError(
+        `nexts element is not match: ${el.name}, ${bound.label} ${bound.name}`);
     }
   }, function(el) {
     let children = [];
@@ -59,6 +81,7 @@ function _checkLinks(docEl, prevs, nexts, teiRoot) {
 }
 
 var DocSchema = extendNodeSchema('Doc', {
+  name: String,
   label: String,
   image: Schema.Types.ObjectId,
   revisions: [{type: Schema.Types.ObjectId, ref: 'Revision'}],
@@ -67,9 +90,8 @@ var DocSchema = extendNodeSchema('Doc', {
     commit: function(data, callback) {
       var self = this
         , teiRoot = data.tei || {}
-        , docRoot = _.defaults(self.toObject(), data.doc) 
+        , docRoot = _.defaults(data.doc, self.toObject()) 
       ;
-      console.log('commit');
       async.parallel([
         function(cb) {
           Doc.getOutterTextBounds(self._id, cb);
@@ -82,9 +104,10 @@ var DocSchema = extendNodeSchema('Doc', {
           Community.findOne({documents: rootDocId}).exec(cb);
         },
       ], function(err, results) {
-        var leftBounds = results[0][0]
+        let leftBounds = results[0][0]
           , rightBounds = results[0][1]
           , community = results[1]
+          , docsMap = {}
           , updateTeis = []
           , insertTeis = []
           , deleteTeis = []
@@ -96,37 +119,54 @@ var DocSchema = extendNodeSchema('Doc', {
 /*         if (!community) { */
           // return callback(err);
         /* } */
-        try {
-          _checkLinks(docRoot, leftBounds, rightBounds, teiRoot);
-        } catch (e) {
-          console.log('jjjjjjjjjjj');
-          console.log(e.name);
-          console.log(e.message);
-        }
+        _checkLinks({
+          name: self.label, attrs: {n: self.name}
+        }, leftBounds, rightBounds, teiRoot);
 
         // load docs
         docs = Doc._loadNodesFromTree(docRoot);
+        _.each(docs, function(d) {
+          docsMap[d._id.toString()] = d;
+        });
+        docRoot = docs.shift();
         // load entities
         // load teis
 
-        _.dfs(teiRoot, function(el) {
-          let cur = cls.clean(el);
+        _.dfs([teiRoot], function(el) {
+          let cur = TEI.clean(el)
+            , deleteChildren = el.children
+            , prevChildren = []
+            , nextChildren
+          ;
+          if (!el.children) {
+            el.children = [];
+          }
           if (el.doc) {
             cur.docs = docsMap[el.doc].ancestors.concat(el.doc);
           }
           if (el.entity) {
             cur.entities = docsMap[el.entity].ancestors.concat(el.entity);
           }
-          cur.children = cls._loadChildren(cur);
-          if (el._id) {
-            cur.children = el.prevChildren.concat(cur.children, el.nextChildren);
+          cur.children = TEI._loadChildren(cur);
+          if (el.prevChild || el.nextChild) {
+            if (el.prevChild) {
+              prevChildren = el.children.slice(0, el.prevChild + 1);
+              deleteChildren = deleteChildren.slice(el.prevChild + 1);
+            }
+            if (el.nextChild) {
+              nextChildren = el.children.slice(el.nextChild);
+              deleteChildren = deleteChildren.slice(
+                0, el.prevChild - prevChildren.length);
+            }
+            cur.children = prevChildren.concat(cur.children, nextChildren);
             updateTeis.push(cur);
-            deleteTeis = deleteTeis.concat(el.deleteChildren);
+            deleteTeis = deleteTeis.concat(deleteChildren);
           } else {
             insertTeis.push(cur);
           }
         });
         console.log('--------docs--------');
+        console.log(docRoot);
         console.log(docs);
         console.log('--------deleteTeis--------');
         console.log(deleteTeis);
@@ -134,33 +174,51 @@ var DocSchema = extendNodeSchema('Doc', {
         console.log(updateTeis);
         console.log('--------insertTeis--------');
         console.log(insertTeis);
-        return callback(null);
 
         async.parallel([
           function(cb1) {
-            Doc.collection.insert(docs, cb)
+            self.children = docRoot.children;
+            self.save(cb1);
+          },
+          function(cb1) {
+            if (docs.length > 0) {
+              Doc.collection.insert(docs, cb1)
+            } else {
+              cb1(null, []);
+            }
           },
           function(cb1) {
             // save entities;
-            cb(null, []);
+            cb1(null, []);
           },
           function(cb1) {
-            TEI.collection.remove({
-              $or: [
-                {ancestors: {$in: deleteTeis}},
-                {_id: {$in: deleteTeis}},
-              ]
-            }, cb1);
+            if (deleteTeis.length > 0) {
+              TEI.collection.remove({
+                $or: [
+                  {ancestors: {$in: deleteTeis}},
+                  {_id: {$in: deleteTeis}},
+                ]
+              }, cb1);
+            } else {
+              cb1(null, []);
+            }
           },
           function(cb1) {
-            TEI.collection.update(updateTeis, cb1)
+            if (updateTeis.length > 0) {
+              TEI.collection.update(updateTeis, cb1)
+            } else {
+              cb1(null, []);
+            }
           },
           function(cb1) {
-            TEI.collection.insert(insertTeis, cb1)
-            // update teis;
-            // insert teis;
+            if (insertTeis.length > 0) {
+              TEI.collection.insert(insertTeis, cb1)
+            } else {
+              cb1(null, []);
+            }
           },
-        ], function(err) {
+        ], function(err, results) {
+          console.log(results);
           callback(err);
         });
       });
