@@ -53,10 +53,6 @@ var AddDocumentXMLComponent = ng.core.Component({
       return;
     }
     //do we already have a document with this name...?
-    if (self.alreadyDoc(self.uiService.community, self.doc.name.trim())){
-        self.message='Document "'+self.doc.name+' "already exists';
-        return;
-    }
     if (!text) {
       this.message = 'Either paste text into the text box or choose a file';
       return;
@@ -76,19 +72,17 @@ var AddDocumentXMLComponent = ng.core.Component({
         return;
       } else {
         self.success="XML document "+self.doc.name+" parsed successfully. Now loading.";
-        self._communityService.addDocument(self.uiService.community, self.doc)
-          .flatMap(function(doc) {
-            return docService.commit({
-              doc: doc,
-              text: text,
-            });
-          })
-          .subscribe(function(res) {
-            self.success="XML document "+self.doc.name+" loaded successfully";
-      //        self.closeModalADX();
-          }, function(err) {
-            self.message = err.message;
-          });
+        docService.commit({
+          doc: self.doc,
+          text: text,
+        }, {
+          community: self.uiService.community.getId(),
+        }).subscribe(function(res) {
+          self.success="XML document "+self.doc.name+" loaded successfully";
+    //        self.closeModalADX();
+        }, function(err) {
+          self.message = err.message;
+        });
       }
     })
   },

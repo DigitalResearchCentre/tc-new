@@ -2,7 +2,7 @@ var $ = require('jquery');
 var URI = require('urijs')
   , Router = ng.router.Router
   , UIService = require('./services/ui')
-  , CommunityService = require('./services/community')
+  , DocService = require('./services/doc')
   , AuthService = require('./services/auth')
 ;
 //require('jquery-ui/draggable');
@@ -16,7 +16,9 @@ var AddDocumentComponent = ng.core.Component({
     require('./directives/modaldraggable')
   ],
 }).Class({
-  constructor: [Router, CommunityService, AuthService, UIService, function(router, communityService, authService, uiService) {
+  constructor: [Router, DocService, AuthService, UIService, function(
+    router, docService, authService, uiService
+  ) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
@@ -25,7 +27,7 @@ var AddDocumentComponent = ng.core.Component({
     this.message="";
     this.success="";
     this.uiService = uiService;
-    this._communityService = communityService;
+    this._docService = docService;
     this._router = router;
     /*this for scope variables */
   }],
@@ -41,8 +43,11 @@ var AddDocumentComponent = ng.core.Component({
         self.message='Document "'+self.doc.name+' "already exists';
         return;
     } else {
-        this._communityService.addDocument(uiService.community, this.doc)
-        .subscribe(function(doc) {
+        this._docService.commit({
+          doc: this.doc,
+        }, {
+          community: uiService.community.getId(),
+        }).subscribe(function(doc) {
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
           //tell the system we have this document as current

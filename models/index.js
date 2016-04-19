@@ -27,11 +27,20 @@ var RevisionSchema = new Schema({
   doc: {type: ObjectId, ref: 'Doc'},
   user: {type: ObjectId, ref: 'User'},
   created: {type: Date, default: Date.now},
-  committed: {type: Date, default: Date.now},
+  committed: {type: Date},
   status: String, // submitted committed previsous_db
   text: String,
   spentTime: Number,
 });
+_.assign(RevisionSchema.statics, {
+  status: {
+    IN_PROGRESS: 'IN_PROGRESS',
+    SUBMITTED: 'SUBMITTED',
+    COMMITTED: 'COMMITTED', // not necessary, could check committed time 
+  },
+})
+
+
 
 var InvitationSchema = new Schema({
 

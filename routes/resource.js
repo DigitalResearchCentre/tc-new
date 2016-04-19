@@ -26,13 +26,16 @@ _.assign(Resource.prototype, {
     var options = _.assign({
       id: 'id',
     }, this.options, opts);
+    if (name !== '') {
+      name = '/' + name;
+    }
 
-    router.route('/' + name)
+    router.route(name)
       .get(this.list())
       .post(options.auth.create, this.create())
     ;
 
-    router.route('/' + name + '/:' + options.id)
+    router.route(name + '/:' + options.id)
       .get(this.detail())
       .put(options.auth.update, this.update())
       .patch(options.auth.update, this.patch())
@@ -40,6 +43,8 @@ _.assign(Resource.prototype, {
     ;
   },
   isAuthenticated: function(req, res, next) {
+    console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@');
+    console.log(req.isAuthenticated());
     if (req.isAuthenticated()) {
       next();
     } else {

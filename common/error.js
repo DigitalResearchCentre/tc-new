@@ -2,7 +2,7 @@ const _ = require('./mixin');
 
 module.exports = _.inherit(Error, function() {
   const error = Error.apply(this, arguments);
-  this.name = error.name;
+  error.name = this.name || 'Error';
   this.message = error.message;
   Object.defineProperty(this, 'stack', {
     get: function () {
@@ -14,8 +14,8 @@ module.exports = _.inherit(Error, function() {
   extend: function(name) {
     const cls = this;
     return _.inherit(cls, function() {
-      cls.apply(this, arguments);
       this.name = name;
+      cls.apply(this, arguments);
     });
   }
 });

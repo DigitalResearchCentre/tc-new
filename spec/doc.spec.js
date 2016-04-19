@@ -173,6 +173,8 @@ describe('Doc test', function() {
         pb1r = results[0];
         pb1v = results[1];
         pb2r = results[2];
+        console.log('!!!!!!!!!!!');
+        console.log(results);
         done();
       })
     });
@@ -198,6 +200,10 @@ describe('Doc test', function() {
         cb(null);
       }
     ], function(err) {
+      expect(pb1r.ancestors).toEqual([d1._id]);
+      expect(pb1v.ancestors).toEqual([d1._id]);
+      expect(pb2r.ancestors).toEqual([d1._id]);
+      expect(d1.children).toEqual([pb1r._id, pb1v._id, pb2r._id]);
       expectNode('test-1', {
         name: 'text', attrs: {testId: 'test-1'},
         ancestors: [],
@@ -221,6 +227,26 @@ describe('Doc test', function() {
           return text._id;
         }),
       });
+      done();
+    });
+  });
+
+  it('should create a connected tei if tei is empty', function(done) {
+    async.waterfall([
+      function(cb) {
+        pb2r.commit({doc: {}}, cb);
+      },
+      function() {
+        const cb = _.last(arguments);
+        Doc.getTextsLeaves(pb2r._id, cb);
+      },
+      function(leaves) {
+        const cb = _.last(arguments);
+        expect(leaves.length).toBe(1);
+        expect(_.get(leaves[0], 'name')).toBe('pb');
+        cb(null);
+      }
+    ], function() {
       done();
     });
   });
@@ -305,9 +331,8 @@ describe('Doc test', function() {
         done();
       });
     });
+  });
 
-
-  })
 });
 
 

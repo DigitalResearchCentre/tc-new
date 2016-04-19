@@ -25,6 +25,12 @@ var CommunitySchema = new Schema({
 });
 
 _.assign(CommunitySchema.methods, {
+  addDocument: function(doc, callback) {
+    this.documents.push(doc._id);
+    this.save(function(err, community) {
+      callback(err, community);
+    });
+  },
   getstatus: function(callback) {
     var community = this;
     var documents = _.map(community.documents, function(doc) {

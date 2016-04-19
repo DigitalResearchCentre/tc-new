@@ -26,11 +26,6 @@ var PreviewPageComponent = ng.core.Component({
     $('#manageModal').height("600px");
     this.message=this.success="";
   }],
-  ngOnInit: function() {
-    this.docService.getLinks(this.page).subscribe(function(data) {
-      self.prev=data.prev;
-    });
-  },
   closeModalPP: function() {
     this.message=this.success="";
     $('#MMADdiv').css("margin-top", "30px");

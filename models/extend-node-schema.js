@@ -8,10 +8,9 @@ const mongoose = require('mongoose')
 
 const TreeStructureError = Error.extend('TreeStructureError');
 const MultipleRootError = Error.extend('MultipleRootError');
+const ParentNotFound = Error.extend('ParentNotFound');
 
 const _methods = {
-  getText: function() {
-  },
   getChildrenAfter: function(targetId) {
     if (targetId._id) {
       targetId = targetId._id;
@@ -36,6 +35,106 @@ const _statics = {
           return cb(null, []);
         }
         cls.find({_id: {$in: node.ancestors}}, cb);
+      },
+    ], callback);
+  },
+  getPrev: function(id, callback) {
+    var cls = this;
+    async.waterfall([
+      _.partial(cls.getParent.bind(cls), id),
+      function(parent) { // get prev node
+        const cb = _.last(arguments);
+        if (parent) {
+          var index = _.findIndex(parent.children, function(childId) {
+            return childId.equals(id);
+          });
+          if (index > 0) {
+            return cls.findOne({_id: parent.children[index - 1]}, cb);
+          } else if (index < 0) {
+            return cb(new TreeStructureError(
+              `can not find ${id} in ${parent._id} children`
+            ));
+          }
+        }
+        return cb(null, null);
+      },
+    ], callback);
+  },
+  getNext: function(id, callback) {
+    var cls = this;
+    cls._getParentAndIndex(id, function(err, parent, index) {
+      if (parent && (index < parent.children.length - 1)) {
+        return cls.findOne({_id: parent.children[index + 1]}, callback);
+      } else {
+        return callback(err, null);
+      }
+    });
+  },
+  insertFirst: function(parent, node, callback) {
+    if (parent) {
+      parent.children.unshift(node._id);
+      node.ancestors = parent.ancestors.concat(parent._id);
+      return async.parallel([
+        function(cb) {
+          parent.save(cb);
+        },
+        function(cb) {
+          node.save(cb);
+        },
+      ], function(err, results) {
+        callback(err, (results || [])[1]);
+      });
+    } else {
+      return callback(new ParentNotFound());
+    }
+  },
+  insertAfter: function(target, node, callback) {
+    const cls = this;
+    async.waterfall([
+      function(cb) {
+        cls._getParentAndIndex(target._id, cb);
+      },
+      function(parent, index) {
+        const cb = _.last(arguments);
+        if (parent) {
+          parent.children.splice(index + 1, 0, node._id);
+          node.ancestors = parent.ancestors.concat(parent._id);
+          async.parallel([
+            function(cb) {
+              parent.save(cb);
+            },
+            function(cb) {
+              node.save(cb);
+            },
+          ], cb);
+        } else {
+          cb(new ParentNotFound());
+        }
+      },
+    ], function(err, results) {
+      callback(err, (results || [])[1]);
+    });
+  },
+  _getParentAndIndex: function(id, callback) {
+    var cls = this;
+    async.waterfall([
+      function(cb) {
+        cls.getParent(id, cb);
+      },
+      function(parent) {
+        const cb = _.last(arguments);
+        if (parent) {
+          var index = _.findIndex(parent.children, function(childId) {
+            return childId.equals(id);
+          });
+          if (index < 0) {
+            return cb(new TreeStructureError(
+              `can not find ${id} in ${parent._id} children`
+            ));
+          }
+          cb(null, parent, index);
+        }
+        return cb(null, null, null);
       },
     ], callback);
   },
@@ -104,50 +203,6 @@ const _statics = {
       });
     });
     return cls.find({_id: {$in: _.keys(ancestors)}}, callback);
-  },
-  getPrev: function(id, callback) {
-    var cls = this;
-    async.waterfall([
-      _.partial(cls.getParent.bind(cls), id),
-      function(parent) { // get prev node
-        const cb = _.last(arguments);
-        if (parent) {
-          var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(id);
-          });
-          if (index > 0) {
-            return cls.findOne({_id: parent.children[index - 1]}, cb);
-          } else if (index < 0) {
-            return cb(new TreeStructureError(
-              `can not find ${id} in ${parent._id} children`
-            ));
-          }
-        }
-        return cb(null, null);
-      },
-    ], callback);
-  },
-  getNext: function(id, callback) {
-    var cls = this;
-    async.waterfall([
-      _.partial(cls.getParent.bind(cls), id),
-      function(parent) { // get next node
-        const cb = _.last(arguments);
-        if (parent) {
-          var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(id);
-          });
-          if (index < 0) {
-            return cb(new TreeStructureError(
-              `can not find ${id} in ${parent._id} children`
-            ));
-          } else if (index < parent.children.length - 1) {
-            return cls.findOne({_id: parent.children[index + 1]}, cb);
-          }
-        }
-        return cb(null, null);
-      },
-    ], callback);
   },
   getNextDFS: function(id, callback) {
     const cls = this;
