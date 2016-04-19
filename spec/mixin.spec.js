@@ -25,7 +25,6 @@ describe('lodash mixin test', function() {
     expect(result).toBe('aa1a11a2a3a31a32');
   });
 
-
   it('dfs should stop when fn return false', function() {
     let result = ''
     function concat(s) {
@@ -38,5 +37,16 @@ describe('lodash mixin test', function() {
     _.dfs(['a', 'b', '!', 'c'], concat);
     expect(result).toBe('ab');
   });
+
+  it('dfs should skip null/undefined/false node', function() {
+    let result = ''
+    function concat(s) {
+      result += s || '';
+    }
+
+    _.dfs([null, 'a', 'b'], concat);
+    expect(result).toBe('ab');
+  });
+
 });
 

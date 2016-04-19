@@ -4,6 +4,7 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema
   , ObjectId = Schema.Types.ObjectId
   , OId = mongoose.Types.ObjectId
+  , extendNodeSchema = require('./extend-node-schema')
 ;
 
 var CommunitySchema = new Schema({
@@ -118,486 +119,6 @@ function _findCommonAncestors(ancestors1, ancestors2) {
   return [common, ancestors1, ancestors2];
 }
 
-var BaseNodeSchema = function(modelName) {
-  return {
-    schema: {
-      name: String,
-      ancestors: [{type: ObjectId, ref: modelName}],
-      children: [{type: ObjectId, ref: modelName}],
-    },
-    methods: {
-      getText: function() {
-      },
-      getChildrenAfter: function(targetId) {
-        if (targetId._id) {
-          targetId = targetId._id;
-        }
-        this.prototype.constructor.findOne({_id: targetId});
-      },
-    },
-    statics: {
-      /*
-       * @param tree - nested tree style data,
-       *              ex. {name: foo, children: [{name: child1, children: []}]}
-       */
-      import: function(tree, callback) {
-        var cls = this
-          , queue = []
-          , nodes = [tree]
-          , cur
-        ;
-        tree = _prepareNode(tree);
-        tree.children = _loadChildren(tree, queue);
-        while (queue.length > 0) {
-          cur = queue.shift();
-          cur.children = _loadChildren(cur, queue);
-          if (_.isString(cur._id)) {
-            cur._id = new OId(cur._id);
-          }
-          nodes.push(cur);
-        }
-        return cls.collection.insert(nodes, callback);
-      },
-      getTreeFromLeaves: function(nodes, cb) {
-        var cls = this
-          , ancestors = {}
-        ;
-        _.each(nodes, function(node) {
-          _.forEachRight(node.ancestors, function(id) {
-            if (!ancestors.hasOwnProperty(id)) {
-              ancestors[id] = true;
-            } else {
-              return false;
-            }
-          });
-        });
-        cls.find({_id: {$in: _.keys(ancestors)}}).exec(function(err, results) {
-          if (err) {
-            return cb(err);
-          }
-          var objs = {}
-            , root, parent, children
-          ;
-          nodes = results.concat(nodes);
-          _.each(nodes, function(node) {
-            objs[node._id] = node;
-          });
-          _.each(objs, function(node) {
-            if (node.ancestors.length === 0) {
-              root = node;
-            } else {
-              parent = objs[_.last(node.ancestors)];
-              children = parent.children;
-              var index = _.findIndex(children, function(id) {
-                return id.equals(node._id);
-              });
-              children[index] = node;
-            }
-          });
-          cb(err, root);
-        });
-      },
-      /*
-       * @param tree - nested tree style data,
-       *              ex. {name: foo, children: [{name: child1, children: []}]}
-       * @param prev - prev continue element
-       * @param after - left bound to insert after, null means insert at
-       *                beginning of prev's child
-       * @param next - next continue element
-       * @param before - right bound to insert before, null means insert at the
-       *                end fo next's child
-       */
-      replaceNodesBetween: function(
-        tree, prev, after, next, before, callback
-      ) {
-        var cls = this
-          , common = []
-          , prevAncestors = prev.ancestors.concat(prev._id)
-          , nextAncestors = next.ancestors.concat(next._id)
-        ;
-      },
-      getNodesBetween: function(
-        ancestors1, ancestors2, includeAncestors, callback) {
-        var nodes = []
-          , common = []
-          , ancestors = []
-          , cls = this
-        ;
-        if (_.isFunction(includeAncestors)) {
-          callback = includeAncestors;
-          includeAncestors = true;
-        }
-        var results = _findCommonAncestors(ancestors1, ancestors2);
-        common = results[0];
-        ancestors1 = results[1];
-        ancestors2 = results[2];
-
-        async.parallel([
-          function(cb) {
-            if (common.length > 0) {
-              cls.find({_id: {$in: common}}, cb);
-            } else {
-              cb(null, []);
-            }
-          },
-          function(cb) {
-            if (ancestors1.length > 0) {
-              cls.find({_id: {$in: ancestors1}}, cb);
-            } else {
-              cb(null, []);
-            }
-          },
-          function(cb) {
-            if (ancestors2.length > 0) {
-              cls.find({_id: {$in: ancestors2}}, cb);
-            } else {
-              cb(null, []);
-            }
-          },
-        ], function(err, results) {
-          if (err) {
-            return callback(err);
-          }
-
-          var children = [];
-          common = results[0];
-          ancestors1 = results[1];
-          ancestors2 = results[2];
-
-          if (common.length > 0) {
-            children = _.last(common).children;
-          }
-
-          if (ancestors1.length > 0) {
-            var found = null;
-            // find siblings between an1 and an2
-            _.each(children, function(id) {
-              if (id.equals(ancestors2[0]._id)) {
-                return false;
-              }
-              if (found) {
-                ancestors.push(id);
-              }
-              if (id.equals(ancestors1[0]._id)) {
-                found = true;
-              }
-            });
-          }
-
-          _.each(ancestors1.slice(1), function(obj, i) {
-            var children = ancestors1[i].children;
-            var index = _.findIndex(children, function(id) {
-              return id.equals(obj._id);
-            });
-            ancestors = ancestors.concat(children.slice(index + 1));
-          });
-
-          _.each(ancestors2.slice(1), function(obj, i) {
-            var children = ancestors2[i].children;
-            _.each(children, function(id) {
-              if (!id.equals(obj._id)) {
-                ancestors.push(id);
-              } else {
-                return false;
-              }
-            });
-          });
-
-          cls.find({
-            $or: [
-              {ancestors: {$in: ancestors}},
-              {_id: {$in: ancestors}}
-            ],
-          }, function(err, objs) {
-            if (!includeAncestors) {
-              callback(err, objs);
-            } else {
-              callback(err, common.concat(ancestors1, ancestors2, objs));
-            }
-          });
-        });
-      },
-      getPrev: function(id, callback) {
-        var cls = this;
-        async.waterfall([
-          function(cb) {
-            cls.findOne({children: id}).exec(cb);
-          },
-          function(parent, cb) {
-            if (parent) {
-              var index = _.findIndex(parent.children, function(childId) {
-                return childId.equals(id);
-              });
-              if (index > 0) {
-                return cls.findOne({_id: parent.children[index - 1]}).exec(cb);
-              }
-            }
-            return cb(null, null);
-          },
-        ], callback);
-      },
-      getOutterBound: function(leaves, callback) {
-        var cls = this;
-
-        async.waterfall([
-          function(cb) {
-            cls.getTreeFromLeaves(leaves, cb);
-          },
-          function(root, cb) {
-            var cur = root
-              , prevId, nextId
-              , found
-            ;
-            while (cur && !_.isEmpty(cur.children)) {
-              found = _.findIndex(cur.children, function(child) {
-                return !(_.isString(child) || child instanceof OId);
-              });
-              if (found > -1) {
-                cur = cur.children[found];
-              } else {
-                break;
-              }
-            }
-            if (cur) {
-              prevId = cur._id;
-            }
-            cur = root;
-            while (cur && !_.isEmpty(cur.children)) {
-              found = _.findLastIndex(cur.children, function(child) {
-                return !(_.isString(child) || child instanceof OId);
-              });
-              if (found > -1) {
-                cur = cur.children[found];
-              } else {
-                break;
-              }
-            }
-            if (cur) {
-              nextId = cur._id;
-            }
-
-            async.parallel([
-              function(cb1) {
-                if (prevId) {
-                  var stop = false
-                    , prev = null
-                  ;
-                  async.whilst(function() {
-                    return !stop;
-                  }, function(cb2) {
-                    cls.getDFSPrev(prevId, function(err, node) {
-                      if (!node) {
-                        stop = true;
-                      } else if (
-                        node.name === '#text' && node.text.trim() === ''
-                      ) {
-                        prevId = node._id;
-                      } else {
-                        prev = node;
-                        stop = true;
-                      }
-                      cb2(err);
-                    });
-                  }, function(err) {
-                    if (err) {
-                      return cb1(err);
-                    }
-                    if (prev) {
-                      cls.find({
-                        _id: {$in: prev.ancestors.concat(prev._id)}
-                      }, cb1);
-                    } else {
-                      cb1(null, []);
-                    }
-                  });
-                } else {
-                  cb1(null, []);
-                }
-              },
-              function(cb1) {
-                if (nextId) {
-                  var stop = false
-                    , next = null
-                  ;
-                  async.whilst(function() {
-                    return !stop;
-                  }, function(cb2) {
-                    cls.getDFSNext(nextId, function(err, node) {
-                      if (!node) {
-                        stop = true;
-                      } else if (
-                        node.name === '#text' && node.text.trim() === ''
-                      ) {
-                        nextId = node._id;
-                      } else {
-                        next = node;
-                        stop = true;
-                      }
-                      cb2(err);
-                    });
-                  }, function(err) {
-                    if (err) {
-                      return cb1(err);
-                    }
-                    if (next) {
-                      cls.find({
-                        _id: {$in: next.ancestors.concat(next._id)}
-                      }, cb1);
-                    } else {
-                      cb1(null, []);
-                    }
-                  });
-                } else {
-                  cb1(null, []);
-                }
-              },
-            ], cb);
-          },
-        ], callback);
-      },
-      getDFSNext: function(id, callback) {
-        var cls = this;
-        async.waterfall([
-          function(cb) {
-            cls.findOne({_id: id}).exec(cb);
-          },
-          function(obj, cb) {
-            if (!obj) {
-              return cb(null, obj);
-            }
-            cls.find({_id: {$in: obj.ancestors}}).exec(cb);
-          },
-          function(ancestors, cb) {
-            var cur = id
-              , dfsNextId
-            ;
-            _.forEachRight(ancestors, function(parent) {
-              var index = _.findIndex(parent.children, function(childId) {
-                return childId.equals(cur);
-              });
-              if (index < parent.children.length - 1) {
-                dfsNextId = parent.children[index + 1];
-                return false;
-              } else {
-                cur = parent._id;
-              }
-            });
-            if (dfsNextId) {
-              cls.findOne({_id: dfsNextId}).exec(function(err, dfsNext) {
-                if (err) {
-                  cb(err);
-                } else {
-                  async.whilst(function() {
-                    return (dfsNext.children || []).length > 0;
-                  }, function(cb1) {
-                    cls.findOne({_id: _.first(dfsNext.children)}).exec(
-                      function(err, obj) {
-                        dfsNext = obj;
-                        cb1(err, obj);
-                      }
-                    );
-                  }, function(err) {
-                    if (err) {
-                      return cb(err);
-                    }
-                    if (dfsNext) {
-                      cb(null, dfsNext);
-                    }
-                  });
-                }
-              });
-            } else {
-              cb(null, null);
-            }
-
-          }
-        ], callback);
-
-      },
-      getDFSPrev: function(id, callback) {
-        var cls = this;
-        async.waterfall([
-          function(cb) {
-            cls.findOne({_id: id}).exec(cb);
-          },
-          function(obj, cb) {
-            if (!obj) {
-              return cb(null, obj);
-            }
-            cls.find({_id: {$in: obj.ancestors}}).exec(cb);
-          },
-          function(ancestors, cb) {
-            var cur = id
-              , dfsPrevId
-            ;
-            _.forEachRight(ancestors, function(parent) {
-              var index = _.findIndex(parent.children, function(childId) {
-                return childId.equals(cur);
-              });
-              if (index > 0) {
-                dfsPrevId = parent.children[index - 1];
-                return false;
-              } else {
-                cur = parent._id;
-              }
-            });
-            if (dfsPrevId) {
-              cls.findOne({_id: dfsPrevId}).exec(function(err, dfsPrev) {
-                if (err) {
-                  cb(err);
-                } else {
-                  async.whilst(function() {
-                    return (dfsPrev.children || []).length > 0;
-                  }, function(cb1) {
-                    cls.findOne({_id: _.last(dfsPrev.children)}).exec(
-                      function(err, obj) {
-                        dfsPrev = obj;
-                        cb1(err, obj);
-                      }
-                    );
-                  }, function(err) {
-                    if (err) {
-                      return cb(err);
-                    }
-                    if (dfsPrev) {
-                      cb(null, dfsPrev);
-                    }
-                  });
-                }
-              });
-            } else {
-              cb(null, null);
-            }
-
-          }
-        ], callback);
-      },
-      getFirstLeaf: function(id, callback) {
-        var cls = this;
-        async.waterfall([
-          function(cb) {
-            cls.findOne({_id: id}).exec(cb);
-          },
-          function(obj, cb) {
-            if ((obj.children || []).length > 0) {
-              cls.getFirstLeaf(obj.children[0], cb);
-            } else {
-              cb(null, obj);
-            }
-          }
-        ], callback);
-      },
-    }
-  };
-};
-
-var baseDoc = BaseNodeSchema('Doc');
-var DocSchema = new Schema(_.assign(baseDoc.schema, {
-  label: String,
-  image: ObjectId,
-  revisions: [{type: ObjectId, ref: 'Revision'}],
-}));
-
 function _prepareNode(node) {
   if (!node.ancestors) {
     node.ancestors = [];
@@ -635,165 +156,312 @@ function _loadChildren(cur, queue) {
   return ids;
 }
 
-_.assign(DocSchema.statics, baseDoc.statics, {
-  getOutterBoundTexts: function(id, callback) {
-    TEI.find({
-      $and: [
-        {docs: id},
-        {$nor: [{name: '#text', text: /^\s+$/}]},
-      ]
-    }).exec(function(err, nodes) {
-      if (err) {
-        return callback(err);
-      }
-      TEI.getOutterBound(nodes, callback);
-    });
-  },
-  getEntityIds: function(docId, entityId, callback) {
-    if (_.isString(docId)) {
-      docId = new OId(docId);
-    }
-    if (_.isString(entityId)) {
-      entityId = new OId(entityId);
-    }
-    async.waterfall([
-      function(cb) {
-        if (entityId) {
-          Entity.findOne({_id: entityId}).exec(cb);
-        } else {
-          cb(null, null);
-        }
-      },
-      function(entity, cb) {
-        var key, query;
-        if (entity) {
-          key =  'entities.' + (entity.ancestors.length + 1);
-          query = {
-            $and: [{
-              docs: docId,
-              entities: entityId,
-            }]
-          };
-        } else {
-          key = 'entities.0';
-          query = {
-            docs: docId,
-          };
-        }
-        TEI.db.db.command({
-          distinct: 'teis',
-          key: key,
-          query: query,
-        }, cb);
-      }
-    ], callback);
-  },
-  getEntities: function(docId, entityId, callback) {
-    this.getEntityIds(docId, entityId, function(err, result) {
-      if (err) {
-        return callback(err);
-      }
-      if (result.ok !== 1) {
-        return callback(result);
-      }
-      Entity.find({_id: {$in: result.values}}).exec(callback);
-    });
-  },
-  getPrevTexts: function(id, callback) {
-    async.waterfall([
-      function(cb) {
-        Doc.getDFSPrev(id, cb);
-      },
-      function(doc, cb) {
-        if (!doc) {
-          return cb(null, null);
-        }
-        TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
-      },
-      function(teiLeaves, cb) {
-        if (teiLeaves) {
-          TEI.getTreeFromLeaves(teiLeaves, cb);
-        } else {
-          cb(null, null);
-        }
-      },
-    ], function(err, teiRoot) {
-      if (err || !teiRoot) {
-        return callback(err, []);
-      }
-      var cur = teiRoot
-        , prevs = [cur]
-        , index
+var DocSchema = extendNodeSchema('Doc', {
+  label: String,
+  image: ObjectId,
+  revisions: [{type: ObjectId, ref: 'Revision'}],
+}, {
+  methods: {
+    commit: function(data, callback) {
+      var self = this
+        , teiRoot = data.tei || {}
+        , docRoot = self.toObject()
+        , continueTeis
       ;
-      while ((cur.children || []).length > 0) {
-        index = _.findLastIndex(cur.children, function(child) {
-          return !(_.isString(child) || child instanceof OId) &&
-            !(child.name === '#text' && child.text.trim() === '');
-        });
-        if (index !== -1) {
-          cur = cur.children[index];
-          prevs.push(cur);
-        } else {
-          break;
-        }
-      }
-      callback(err, prevs);
-    });
-  },
-  getNextTexts: function(id, callback) {
-    async.waterfall([
-      function(cb) {
-        Doc.findOne({children: id}).exec(cb);
-      },
-      function(parent, cb) {
-        var index;
-        if (parent) {
-          index = _.findIndex(parent.children, function(child) {
-            return child.equals(id);
-          });
-          if (parent.children.length > index+1) {
-            return Doc.findOne(parent.children[index+1]).exec(cb);
+
+      console.log('commit');
+      docRoot.children = data.doc.children;
+
+      async.parallel([
+        function(cb) {
+          Doc.getOutterBoundTexts(self._id, cb);
+        },
+        function(cb) {
+          var rootDocId = self._id;
+          if (self.ancestors.length > 0) {
+            rootDocId = self.ancestors[0];
           }
-          // TODO no siblings
+          Community.findOne({documents: rootDocId}).exec(cb);
+        },
+      ], function(err, results) {
+        var bounds = results[0]
+          , community = results[1]
+          , entities = []
+          , updateEntities = []
+          , fakeEntity
+          , result
+          , entityRoot
+        ;
+        if (err) {
+          return callback(err);
         }
-        return cb(null, null);
-      },
-      function(doc, cb) {
-        if (!doc) {
-          return cb(null, null);
+        if (!community) {
+          return callback(err);
         }
-        TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
-      },
-      function(teiLeaves, cb) {
-        if (teiLeaves) {
-          TEI.getTreeFromLeaves(teiLeaves, cb);
-        } else {
-          cb(null, null);
+        continueTeis = _checkLinks(bounds[0], bounds[1], teiRoot);
+        if (continueTeis.error) {
+          return callback(continueTeis);
         }
-      },
-    ], function(err, teiRoot) {
-      if (err || !teiRoot) {
-        return callback(err, []);
-      }
-      var cur = teiRoot
-        , nexts = [cur]
-        , index
-      ;
-      while ((cur.children || []).length > 0) {
-        index = _.findIndex(cur.children, function(child) {
-          return !(_.isString(child) || child instanceof OId) &&
-            !(child.name === '#text' && child.text.trim() === '');
+        result = _parseTei(teiRoot, docRoot);
+        self.children = docRoot.children;
+        entityRoot = result.entityRoot;
+        fakeEntity = {
+          fake: true,
+          ancestors: [],
+          children: community.entities,
+        };
+
+        async.parallel([
+          function(cb) {
+            Doc.remove({ancestors: self._id}, function(err) {
+              if (err) {
+                cb(err);
+              }
+              async.parallel([
+                function(cb1) {
+                  self.save(function(err, doc) {
+                    cb1(err, doc);
+                  });
+                },
+                function(cb1) {
+                  console.log('--- save doc ---');
+                  if (result.docs.length > 0) {
+                    Doc.collection.insert(result.docs, function(err, objs) {
+                      console.log('--- save doc done ---');
+                      cb1(err, objs);
+                    });
+                  } else {
+                    cb1(err, []);
+                  }
+                },
+              ], cb);
+            });
+          },
+          function(cb) {
+            updateEntityTree(
+              fakeEntity, entityRoot, entities, updateEntities,
+              function(err) {
+                if (err) {
+                  return cb(err);
+                }
+                async.parallel([
+                  function(cb1) {
+                    _commitTEI(continueTeis, result.teis, cb1);
+                  },
+                  function(cb1) {
+                    if (entities.length > 0) {
+                      Entity.collection.insert(entities, cb1);
+                    } else {
+                      cb1(null, []);
+                    }
+                  },
+                  function(cb1) {
+                    async.each(updateEntities, function(entity, cb2) {
+                      if (entity.fake) {
+                        Community.collection.update({
+                          _id: community._id,
+                        }, {
+                          $addToSet: {
+                            entities: {$each: entity.children},
+                          },
+                        }, cb2);
+                      } else {
+                        Entity.collection.update({
+                          _id: entity._id,
+                        }, {
+                          $set: {children: entity.children},
+                        }, cb2);
+                      }
+                    }, cb1);
+                  },
+                ], function(err) {
+                  console.log(updateEntities);
+                  cb(err);
+
+                });
+              }
+            );
+          },
+        ], function(err) {
+          console.log('commit');
+          console.log(err);
+          callback(err);
         });
-        if (index !== -1) {
-          cur = cur.children[index];
-          nexts.push(cur);
-        } else {
-          break;
-        }
+      });
+
+      /*
+      this.save();
+      var teis = TEI.find({docs: this._id});
+      function findTree(teis) {
+        return [];
       }
-      callback(err, nexts);
-    });
+      var teitree = findTree(teis);
+      Doc.collection.insert(docs);
+      */
+      // TODO find out all tei need be deleted
+      // then delete them
+    }
   },
+  statics: {
+    getOutterBoundTexts: function(id, callback) {
+      TEI.find({
+        $and: [
+          {docs: id},
+          {$nor: [{name: '#text', text: /^\s+$/}]},
+        ]
+      }).exec(function(err, nodes) {
+        if (err) {
+          return callback(err);
+        }
+        TEI.getOutterBound(nodes, callback);
+      });
+    },
+    getEntityIds: function(docId, entityId, callback) {
+      if (_.isString(docId)) {
+        docId = new OId(docId);
+      }
+      if (_.isString(entityId)) {
+        entityId = new OId(entityId);
+      }
+      async.waterfall([
+        function(cb) {
+          if (entityId) {
+            Entity.findOne({_id: entityId}).exec(cb);
+          } else {
+            cb(null, null);
+          }
+        },
+        function(entity, cb) {
+          var key, query;
+          if (entity) {
+            key =  'entities.' + (entity.ancestors.length + 1);
+            query = {
+              $and: [{
+                docs: docId,
+                entities: entityId,
+              }]
+            };
+          } else {
+            key = 'entities.0';
+            query = {
+              docs: docId,
+            };
+          }
+          TEI.db.db.command({
+            distinct: 'teis',
+            key: key,
+            query: query,
+          }, cb);
+        }
+      ], callback);
+    },
+    getEntities: function(docId, entityId, callback) {
+      this.getEntityIds(docId, entityId, function(err, result) {
+        if (err) {
+          return callback(err);
+        }
+        if (result.ok !== 1) {
+          return callback(result);
+        }
+        Entity.find({_id: {$in: result.values}}).exec(callback);
+      });
+    },
+    getPrevTexts: function(id, callback) {
+      async.waterfall([
+        function(cb) {
+          Doc.getDFSPrev(id, cb);
+        },
+        function(doc, cb) {
+          if (!doc) {
+            return cb(null, null);
+          }
+          TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
+        },
+        function(teiLeaves, cb) {
+          if (teiLeaves) {
+            TEI.getTreeFromLeaves(teiLeaves, cb);
+          } else {
+            cb(null, null);
+          }
+        },
+      ], function(err, teiRoot) {
+        if (err || !teiRoot) {
+          return callback(err, []);
+        }
+        var cur = teiRoot
+          , prevs = [cur]
+          , index
+        ;
+        while ((cur.children || []).length > 0) {
+          index = _.findLastIndex(cur.children, function(child) {
+            return !(_.isString(child) || child instanceof OId) &&
+              !(child.name === '#text' && child.text.trim() === '');
+          });
+          if (index !== -1) {
+            cur = cur.children[index];
+            prevs.push(cur);
+          } else {
+            break;
+          }
+        }
+        callback(err, prevs);
+      });
+    },
+    getNextTexts: function(id, callback) {
+      async.waterfall([
+        function(cb) {
+          Doc.findOne({children: id}).exec(cb);
+        },
+        function(parent, cb) {
+          var index;
+          if (parent) {
+            index = _.findIndex(parent.children, function(child) {
+              return child.equals(id);
+            });
+            if (parent.children.length > index+1) {
+              return Doc.findOne(parent.children[index+1]).exec(cb);
+            }
+            // TODO no siblings
+          }
+          return cb(null, null);
+        },
+        function(doc, cb) {
+          if (!doc) {
+            return cb(null, null);
+          }
+          TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
+        },
+        function(teiLeaves, cb) {
+          if (teiLeaves) {
+            TEI.getTreeFromLeaves(teiLeaves, cb);
+          } else {
+            cb(null, null);
+          }
+        },
+      ], function(err, teiRoot) {
+        if (err || !teiRoot) {
+          return callback(err, []);
+        }
+        var cur = teiRoot
+          , nexts = [cur]
+          , index
+        ;
+        while ((cur.children || []).length > 0) {
+          index = _.findIndex(cur.children, function(child) {
+            return !(_.isString(child) || child instanceof OId) &&
+              !(child.name === '#text' && child.text.trim() === '');
+          });
+          if (index !== -1) {
+            cur = cur.children[index];
+            nexts.push(cur);
+          } else {
+            break;
+          }
+        }
+        callback(err, nexts);
+      });
+    },
+  }
 });
 
 function _checkLinks(prevs, nexts, teiRoot) {
@@ -1179,228 +847,78 @@ function _commitTEI(continueTeis, teis, callback) {
       }
     },
   ], callback);
-}
-
-_.assign(DocSchema.methods, baseDoc.methods, {
-  commit: function(data, callback) {
-    var self = this
-      , teiRoot = data.tei || {}
-      , docRoot = self.toObject()
-      , continueTeis
-    ;
-
-    console.log('commit');
-    docRoot.children = data.doc.children;
-
-    async.parallel([
-      function(cb) {
-        Doc.getOutterBoundTexts(self._id, cb);
-      },
-      function(cb) {
-        var rootDocId = self._id;
-        if (self.ancestors.length > 0) {
-          rootDocId = self.ancestors[0];
-        }
-        Community.findOne({documents: rootDocId}).exec(cb);
-      },
-    ], function(err, results) {
-      var bounds = results[0]
-        , community = results[1]
-        , entities = []
-        , updateEntities = []
-        , fakeEntity
-        , result
-        , entityRoot
-      ;
-      if (err) {
-        return callback(err);
-      }
-      if (!community) {
-        return callback(err);
-      }
-      continueTeis = _checkLinks(bounds[0], bounds[1], teiRoot);
-      if (continueTeis.error) {
-        return callback(continueTeis);
-      }
-      result = _parseTei(teiRoot, docRoot);
-      self.children = docRoot.children;
-      entityRoot = result.entityRoot;
-      fakeEntity = {
-        fake: true,
-        ancestors: [],
-        children: community.entities,
-      };
-
-      async.parallel([
-        function(cb) {
-          Doc.remove({ancestors: self._id}, function(err) {
-            if (err) {
-              cb(err);
-            }
-            async.parallel([
-              function(cb1) {
-                self.save(function(err, doc) {
-                  cb1(err, doc);
-                });
-              },
-              function(cb1) {
-                console.log('--- save doc ---');
-                if (result.docs.length > 0) {
-                  Doc.collection.insert(result.docs, function(err, objs) {
-                    console.log('--- save doc done ---');
-                    cb1(err, objs);
-                  });
-                } else {
-                  cb1(err, []);
-                }
-              },
-            ], cb);
-          });
-        },
-        function(cb) {
-          updateEntityTree(
-            fakeEntity, entityRoot, entities, updateEntities,
-            function(err) {
-              if (err) {
-                return cb(err);
-              }
-              async.parallel([
-                function(cb1) {
-                  _commitTEI(continueTeis, result.teis, cb1);
-                },
-                function(cb1) {
-                  if (entities.length > 0) {
-                    Entity.collection.insert(entities, cb1);
-                  } else {
-                    cb1(null, []);
-                  }
-                },
-                function(cb1) {
-                  async.each(updateEntities, function(entity, cb2) {
-                    if (entity.fake) {
-                      Community.collection.update({
-                        _id: community._id,
-                      }, {
-                        $addToSet: {
-                          entities: {$each: entity.children},
-                        },
-                      }, cb2);
-                    } else {
-                      Entity.collection.update({
-                        _id: entity._id,
-                      }, {
-                        $set: {children: entity.children},
-                      }, cb2);
-                    }
-                  }, cb1);
-                },
-              ], function(err) {
-                console.log(updateEntities);
-                cb(err);
-
-              });
-            }
-          );
-        },
-      ], function(err) {
-        console.log('commit');
-        console.log(err);
-        callback(err);
-      });
-    });
-
-    /*
-    this.save();
-    var teis = TEI.find({docs: this._id});
-    function findTree(teis) {
-      return [];
-    }
-    var teitree = findTree(teis);
-    Doc.collection.insert(docs);
-    */
-    // TODO find out all tei need be deleted
-    // then delete them
-  }
-});
+};
 
 var Doc = mongoose.model('Doc', DocSchema);
 
-var baseEntity = BaseNodeSchema('Entity');
-var EntitySchema = new Schema(_.assign(baseEntity.schema, {
-
-}));
-_.assign(EntitySchema.methods, baseEntity.methods);
-_.assign(EntitySchema.statics, baseEntity.statics, {
-  getDocIds: function(entityId, docId, callback) {
-    if (_.isString(entityId)) {
-      entityId = new OId(entityId);
-    }
-    if (_.isString(docId)) {
-      docId = new OId(docId);
-    }
-    async.waterfall([
-      function(cb) {
-        if (docId) {
-          Doc.findOne({_id: docId}).exec(cb);
-        } else {
-          cb(null, null);
-        }
-      },
-      function(doc, cb) {
-        var key, query;
-        if (doc) {
-          key =  'docs.' + (doc.ancestors.length + 1);
-          query = {
-            $and: [{
-              docs: docId,
+const EntitySchema = extendNodeSchema('Entity', {
+  name: String,
+}, {
+  statics: {
+    getDocIds: function(entityId, docId, callback) {
+      if (_.isString(entityId)) {
+        entityId = new OId(entityId);
+      }
+      if (_.isString(docId)) {
+        docId = new OId(docId);
+      }
+      async.waterfall([
+        function(cb) {
+          if (docId) {
+            Doc.findOne({_id: docId}).exec(cb);
+          } else {
+            cb(null, null);
+          }
+        },
+        function(doc, cb) {
+          var key, query;
+          if (doc) {
+            key =  'docs.' + (doc.ancestors.length + 1);
+            query = {
+              $and: [{
+                docs: docId,
+                entities: entityId,
+              }]
+            };
+          } else {
+            key = 'docs.0';
+            query = {
               entities: entityId,
-            }]
-          };
-        } else {
-          key = 'docs.0';
-          query = {
-            entities: entityId,
-          };
+            };
+          }
+          TEI.db.db.command({
+            distinct: 'teis',
+            key: key,
+            query: query,
+          }, cb);
         }
-        TEI.db.db.command({
-          distinct: 'teis',
-          key: key,
-          query: query,
-        }, cb);
-      }
-    ], callback);
-  },
-  getDocs: function(entityId, docId, callback) {
-    this.getDocIds(entityId, docId, function(err, result) {
-      if (err) {
-        return callback(err);
-      }
-      if (result.ok !== 1) {
-        return callback(result);
-      }
-      Doc.find({_id: {$in: result.values}}).exec(callback);
-    });
-  },
+      ], callback);
+    },
+    getDocs: function(entityId, docId, callback) {
+      this.getDocIds(entityId, docId, function(err, result) {
+        if (err) {
+          return callback(err);
+        }
+        if (result.ok !== 1) {
+          return callback(result);
+        }
+        Doc.find({_id: {$in: result.values}}).exec(callback);
+      });
+    },
+  }
 });
 var Entity = mongoose.model('Entity', EntitySchema);
 
 
-var baseTEI = BaseNodeSchema('TEI');
-var TEISchema = new Schema(_.assign(baseTEI.schema, {
+// TODO: TEI should not save empty text
+var TEISchema = extendNodeSchema('TEI', {
   text: String,
   docs: [{type: ObjectId, ref: 'Doc'}],
   entities: [{type: ObjectId, ref: 'Entity'}],
   attrs: {type: Schema.Types.Mixed},
-}));
-_.assign(TEISchema.methods, baseTEI.methods);
-_.assign(TEISchema.statics, baseTEI.statics);
+});
 
 var TEI = mongoose.model('TEI', TEISchema);
-
-
-var NodeSchemaSchema = new Schema({
-  name: String,
-});
 
 module.exports = {
   Community: Community,
@@ -1410,5 +928,4 @@ module.exports = {
   TEI: TEI,
   Revision: mongoose.model('Revision', RevisionSchema),
   Action: mongoose.model('Action', ActionSchema),
-  BaseNodeSchema: BaseNodeSchema,
 };

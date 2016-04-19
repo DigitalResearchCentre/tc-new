@@ -24,7 +24,7 @@ describe('base node schema test', function() {
             children: [{name: 'c11', children: []}]
           }, {
             name: 'c2', 
-            children: []
+            children: [{name: 'c21', children: []}]
           }]
         }, cb);       
       },
@@ -126,6 +126,115 @@ describe('base node schema test', function() {
     });
   });
 
+  it('getDFSNext', function(done) {
+    let root = nodesMap.root
+      , c1 = nodesMap.c1
+      , c11 = nodesMap.c11
+      , c2 = nodesMap.c2
+      , c21 = nodesMap.c21
+    ;
+    async.parallel([
+      function(cb) {
+        TestNode.getDFSNext(root._id, function(err, node) {
+          expect(node).toEqual(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getDFSNext(c1._id, function(err, node) {
+          expect(node._id).toEqual(c21._id);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getDFSNext(c2._id, function(err, node) {
+          expect(node).toEqual(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getDFSNext(c11._id, function(err, node) {
+          expect(node._id).toEqual(c21._id);
+          cb(null);
+        });
+      },
+    ], function() {
+      done();
+    });
+  });
+
+  it('getDFSPrev', function(done) {
+    let root = nodesMap.root
+      , c1 = nodesMap.c1
+      , c11 = nodesMap.c11
+      , c2 = nodesMap.c2
+      , c21 = nodesMap.c21
+    ;
+    async.parallel([
+      function(cb) {
+        TestNode.getDFSPrev(root._id, function(err, node) {
+          expect(node).toEqual(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getDFSPrev(c1._id, function(err, node) {
+          expect(node).toEqual(null);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getDFSPrev(c2._id, function(err, node) {
+          expect(node._id).toEqual(c11._id);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.getDFSPrev(c21._id, function(err, node) {
+          expect(node._id).toEqual(c11._id);
+          cb(null);
+        });
+      },
+    ], function() {
+      done();
+    });
+  });
+
+  it('orderLeaves', function(done) {
+    let root = nodesMap.root
+      , c1 = nodesMap.c1
+      , c11 = nodesMap.c11
+      , c2 = nodesMap.c2
+      , c21 = nodesMap.c21
+    ;
+    async.parallel([
+      function(cb) {
+        TestNode.orderLeaves([c21, c11], function(err, ordered) {
+          expect(ordered[0]._id).toEqual(c11._id);
+          expect(ordered[1]._id).toEqual(c21._id);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.orderLeaves([c11, c21], function(err, ordered) {
+          expect(ordered[0]._id).toEqual(c11._id);
+          expect(ordered[1]._id).toEqual(c21._id);
+          cb(null);
+        });
+      },
+      function(cb) {
+        TestNode.orderLeaves([c21, c21, c1, c11], function(err, ordered) {
+          expect(ordered[0]._id).toEqual(c11._id);
+          expect(ordered[1]._id).toEqual(c21._id);
+          expect(ordered.length).toEqual(2);
+          cb(null);
+        });
+      }
+    ], function(err) {
+      done();
+    });
+  });
+
 
   it('getTreeFromLeaves', function() {
     // {_id: {$in: ancestors}}
@@ -139,12 +248,6 @@ describe('base node schema test', function() {
     expect(true).toBe(true);
   });
   it('getOutterBound', function() {
-    expect(true).toBe(true);
-  });
-  it('getDFSNext', function() {
-    expect(true).toBe(true);
-  });
-  it('getDFSPrev', function() {
     expect(true).toBe(true);
   });
   it('getFirstLeaf', function() {
