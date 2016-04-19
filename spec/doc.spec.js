@@ -3,6 +3,7 @@ const _ = require('lodash')
   , async = require('async')
   , ObjectId = mongoose.Types.ObjectId
   , Doc = require('../models/doc')
+  , TEI = require('../models/tei')
 ;
 
 const TEST_TEI = {
@@ -164,11 +165,25 @@ describe('Doc test', function() {
       expect(textsMap[testId].attrs).toEqual(opts.attrs);
       expect(textsMap[testId].ancestors).toEqual(opts.ancestors);
     }
-    Doc.getTexts(d1._id, function(err, texts) {
-      _.each(texts, function(text) {
-        textsMap[text.attrs.testId] = text;
-      });
-      console.log(textsMap);
+    async.waterfall([
+      function(cb) {
+        Doc.getTexts(d1._id, cb);
+      },
+      function(texts) {
+        const cb = _.last(arguments);
+        _.each(texts, function(text) {
+          textsMap[text.attrs.testId] = text;
+        });
+        TEI.getAncestorsFromLeaves(texts, cb);
+      },
+      function(ancestors) {
+        const cb = _.last(arguments);
+         _.each(ancestors, function(text) {
+          textsMap[text.attrs.testId] = text;
+        });
+        cb(null);
+      }
+    ], function(err) {
       expectNode('test-1', {
         name: 'text', attrs: {testId: 'test-1', n: 'd1'},
         ancestors: [],
@@ -184,7 +199,7 @@ describe('Doc test', function() {
         }),
       });
       expectNode('test-3', {
-        name: 'body', attrs: {testId: 'test-3', type: 'G', n: 'GP',},
+        name: 'div', attrs: {testId: 'test-3', type: 'G', n: 'GP',},
         ancestors: textsMap['test-2'].ancestors.concat(textsMap['test-2']._id) ,
         children: _.map(_.pick(textsMap, [
           'test-4', 'test-5', 'test-6', 'test-8', 'test-10', 'test-11',
@@ -192,11 +207,9 @@ describe('Doc test', function() {
           return text._id;
         }),
       });
-
       done();
     });
   });
-
 });
 
 
