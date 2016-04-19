@@ -10,7 +10,6 @@ const TEST_TEI = {
   name: 'text',
   attrs: {
     testId: 'test-1',
-    n: 'd1',
   },
   children: [{
     name: 'body',
@@ -23,7 +22,7 @@ const TEST_TEI = {
       },
       children: [{
         name: 'pb',
-        attrs: {testId: 'test-4'},
+        attrs: {testId: 'test-4', n: '1r'},
         children: [],
       }, {
         name: 'lb',
@@ -56,7 +55,7 @@ const TEST_TEI = {
       }, {
         name: 'pb',
         attrs: {
-          testId: 'test-10',
+          testId: 'test-10', n: '1v',
         },
         children: [],
       }, {
@@ -93,7 +92,7 @@ const TEST_TEI = {
         }],
       }, {
         name: 'pb',
-        attrs: {testId: 'test-19'},
+        attrs: {testId: 'test-19', n: '2r'},
         children: [],
       }, {
         name: 'l',
@@ -109,28 +108,35 @@ const TEST_TEI = {
 }
 
 describe('Doc test', function() {
-  const nodesMap = {};
-  let d1;
+  const nodesMap = {}
+    , textsMap = {}
+    , d1 = new Doc({label: 'text', name: 'd1'})
+    , docIds = [d1._id, new ObjectId(), new ObjectId(), new ObjectId()]
+  ;
+  let pb1r, pb1v, pb2r;
+
+  function expectNode(testId, opts) {
+    expect(textsMap[testId].name).toBe(opts.name);
+    expect(textsMap[testId].attrs).toEqual(opts.attrs);
+    expect(textsMap[testId].ancestors).toEqual(opts.ancestors);
+  }
 
   beforeAll(function(done) {
     var tei = _.cloneDeep(TEST_TEI);
     async.waterfall([
       function(cb) {
-        d1 = new Doc({label: 'text', name: 'd1'});
         d1.save(cb);
       },
       function(doc) {
-        const cb = _.last(arguments)
-          , docIds = [doc._id, new ObjectId(), new ObjectId(), new ObjectId()]
-        ;
+        const cb = _.last(arguments);
         let i = 0;
 
         // simulate client behavior, preset doc id for pb elements
         _.dfs([tei], function(node) {
-          node.doc = docIds[i];
           if (node.name === 'pb') {
             i += 1;
           }
+          node.doc = docIds[i];
         });
 
         doc.commit({
@@ -138,36 +144,44 @@ describe('Doc test', function() {
           doc: {
             children: [{
               name: '1r',
+              label: 'pb',
               _id: docIds[1],
             }, {
               name: '1v',
+              label: 'pb',
               _id: docIds[2],
             }, {
               name: '2r',
+              label: 'pb',
               _id: docIds[3],
             }],
           },
         }, cb);
       },
     ], function(err) {
-      if (err) {
-        console.log(err);
-      }
-      done();
+      async.parallel([
+        function(cb) {
+          Doc.findOne({_id: docIds[1]}, cb);
+        },
+        function(cb) {
+          Doc.findOne({_id: docIds[2]}, cb);
+        },
+        function(cb) {
+          Doc.findOne({_id: docIds[3]}, cb);
+        },
+      ], function(err, results) {
+        pb1r = results[0];
+        pb1v = results[1];
+        pb2r = results[2];
+        done();
+      })
     });
   });
 
-  it('test', function(done) {
-    const textsMap = {};
-    function expectNode(testId, opts) {
-      console.log(testId);
-      expect(textsMap[testId].name).toBe(opts.name);
-      expect(textsMap[testId].attrs).toEqual(opts.attrs);
-      expect(textsMap[testId].ancestors).toEqual(opts.ancestors);
-    }
+  it('commit to a new root document', function(done) {
     async.waterfall([
       function(cb) {
-        Doc.getTexts(d1._id, cb);
+        Doc.getTextsLeaves(d1._id, cb);
       },
       function(texts) {
         const cb = _.last(arguments);
@@ -185,7 +199,7 @@ describe('Doc test', function() {
       }
     ], function(err) {
       expectNode('test-1', {
-        name: 'text', attrs: {testId: 'test-1', n: 'd1'},
+        name: 'text', attrs: {testId: 'test-1'},
         ancestors: [],
         children: _.map(_.pick(textsMap, ['test-2']), function(text) {
           return text._id;
@@ -210,6 +224,90 @@ describe('Doc test', function() {
       done();
     });
   });
+
+  it('commit to an existing page document', function(done) {
+    let lb1 = new Doc();
+    pb1v.commit({
+      tei: {
+        name: 'text',
+        children: [{
+          name: 'body',
+          children: [{
+            name: 'div',
+            attrs: {n: 'GP'},
+            children: [{
+              name: 'l',
+              attrs: {n: '2'},
+              children: [{
+                name: 'pb',
+                doc: pb1v._id,
+                attrs: {
+                  n: '1v',
+                  testId: 'test-10',
+                },
+                children: [],
+              }, {
+                name: '#text', 
+                doc: pb1v._id,
+                attrs: {testId: 'test-1-9'},
+                text: 'continue text'
+              }]
+            }, {
+              name: 'l',
+              doc: pb1v._id,
+              attrs: {n: '3', testId: 'test-11'},
+              children: [{
+                name: '#text',
+                doc: pb1v._id,
+                attrs: {testId: 'test-12'},
+                text: 'third line again',
+              }],
+            }],
+          }, {
+            name: 'div',
+            doc: pb1v._id,
+            attrs: {n: 'GP1', testId: 'test-13'},
+            children: [{
+              name: 'lb',
+              doc: lb1._id,
+              attrs: {testId: 'test-14'},
+              children: [],
+            }, {
+              name: 'l',
+              doc: lb1._id,
+              attrs: {n: '1', testId: 'test-15'},
+              children: [{
+                name: '#text',
+                attrs: {testId: 'test-16'},
+                doc: lb1._id,
+                text: 'hello world again',
+              }],
+            }, {
+              name: 'l',
+              doc: lb1._id,
+              attrs: {n: '2', testId: 'test-17'},
+              children: [{
+                name: '#text',
+                attrs: {testId: 'test-18'},
+                doc: lb1._id,
+                text: 'foo bar again',
+              }],
+            }]
+          }]
+        }]
+      },
+      doc: {
+        children: [{_id: lb1._id, name: '1', label: 'lb'}],
+      }
+    }, function(err) {
+      TEI.find({docs: pb1v._id}).exec(function(err, nodes) {
+        expect(nodes.length).toBe(9);
+        done();
+      });
+    });
+
+
+  })
 });
 
 

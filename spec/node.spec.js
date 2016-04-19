@@ -126,7 +126,7 @@ describe('base node schema test', function() {
     });
   });
 
-  it('getDFSNext', function(done) {
+  it('getNextDFSLeaf', function(done) {
     let root = nodesMap.root
       , c1 = nodesMap.c1
       , c11 = nodesMap.c11
@@ -135,25 +135,25 @@ describe('base node schema test', function() {
     ;
     async.parallel([
       function(cb) {
-        TestNode.getDFSNext(root._id, function(err, node) {
+        TestNode.getNextDFSLeaf(root._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getDFSNext(c1._id, function(err, node) {
+        TestNode.getNextDFSLeaf(c1._id, function(err, node) {
           expect(node._id).toEqual(c21._id);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getDFSNext(c2._id, function(err, node) {
+        TestNode.getNextDFSLeaf(c2._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getDFSNext(c11._id, function(err, node) {
+        TestNode.getNextDFSLeaf(c11._id, function(err, node) {
           expect(node._id).toEqual(c21._id);
           cb(null);
         });
@@ -163,7 +163,7 @@ describe('base node schema test', function() {
     });
   });
 
-  it('getDFSPrev', function(done) {
+  it('getPrevDFSLeaf', function(done) {
     let root = nodesMap.root
       , c1 = nodesMap.c1
       , c11 = nodesMap.c11
@@ -172,25 +172,25 @@ describe('base node schema test', function() {
     ;
     async.parallel([
       function(cb) {
-        TestNode.getDFSPrev(root._id, function(err, node) {
+        TestNode.getPrevDFSLeaf(root._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getDFSPrev(c1._id, function(err, node) {
+        TestNode.getPrevDFSLeaf(c1._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getDFSPrev(c2._id, function(err, node) {
+        TestNode.getPrevDFSLeaf(c2._id, function(err, node) {
           expect(node._id).toEqual(c11._id);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getDFSPrev(c21._id, function(err, node) {
+        TestNode.getPrevDFSLeaf(c21._id, function(err, node) {
           expect(node._id).toEqual(c11._id);
           cb(null);
         });

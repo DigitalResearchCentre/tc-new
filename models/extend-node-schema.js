@@ -149,8 +149,7 @@ const _statics = {
       },
     ], callback);
   },
-  // get the next leaf node on the tree
-  getDFSNext: function(id, callback) {
+  getNextDFS: function(id, callback) {
     const cls = this;
     async.waterfall([
       function(cb) {
@@ -173,31 +172,26 @@ const _statics = {
           }
         });
         if (dfsNextId) {
-          cls.getFirstLeaf(dfsNextId, cb);
+          cls.findOne({_id: dfsNextId}, cb);
         } else {
           cb(null, null);
         }
       },
     ], callback);
   },
-  getDFSBound: function(id, callback) {
-    var cls = this;
-    async.parallel([
-      function(cb) {
-        cls.getDFSPrev(id, cb);
-      },
-      function(cb) {
-        cls.getDFSNext(id, cb);
-      },
-    ], function(err, results) {
-      const dfsPrev = (results || [])[0]
-        , dfsNext = (results || [])[1]
-      ;
-      callback(err, [dfsPrev, dfsNext]);
+  // get the next leaf node on the tree
+  getNextDFSLeaf: function(id, callback) {
+    const cls = this;
+    cls.getNextDFS(id, function(err, nextDFS) {
+      if (nextDFS) {
+        cls.getFirstLeaf(nextDFS._id, callback);
+      } else {
+        callback(null, null);
+      }
     });
   },
   // get the prev leaf node on the tree
-  getDFSPrev: function(id, callback) {
+  getPrevDFSLeaf: function(id, callback) {
     var cls = this;
     async.waterfall([
       function(cb) {
