@@ -26,16 +26,17 @@
   <p style="font-size: 100%;  margin-top: 8px; margin-bottom: 8px;">File names will be used for page names (change later).</p>
   <div class="form-group" id="MMAPPMFDD" style="display:none">
     <label style="font-weight: normal;">Drop files in the dropzone below&nbsp;</label>
-    <textarea style="margin-bottom: 0px" rows="3" cols="45"></textarea>
+    <textarea style="margin-bottom: 0px" rows="5" cols="45"></textarea>
   </div>
 </div>
 <div class="form-group" style="margin-top: 10px; margin-right: 10px; margin-left: 10px; margin-bottom: 0px; text-align: center; ">
-  <form class="dropzone" style=""></form>
+  <form class="dropzone" style="height:200px"></form>
 </div>
 <hr style="border: 1px solid #8c8b8b; margin-bottom: 15px">
 <form action="" style="width:100%; height: 32px">
   <div class="form-group" style="text-align: center;">
-    <button id="MMADBAdd" type="button" class="btn btn-primary" (click)="submit()">Add</button>
+    <button *ngIf="isAdd" type="button" class="btn btn-primary" (click)="submit()">Add</button>
+    <button *ngIf="isCancel" type="button" class="btn btn-primary" (click)="closeModalAP()">Close</button>
   </div>
 </form>
 </div>

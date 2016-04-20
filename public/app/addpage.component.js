@@ -48,7 +48,9 @@ var AddPageComponent = ng.core.Component({
       , $dropzone = $('.dropzone', $el)
     ;
     $('#manageModal').width("530px");
-    $('#manageModal').height("375px");
+    $('#manageModal').height("415px");
+    this.isCancel=false;
+    this.isAdd=true;
     if (config.env !== 'production') {
       url += '?env=' + config.env;
     }
@@ -56,7 +58,7 @@ var AddPageComponent = ng.core.Component({
       url: url,
       autoProcessQueue: true,
       uploadMultiple: false,
-      dictDefaultMessage: "Drop image file or files here to upload, or click to upload a file",
+      dictDefaultMessage: "Click here to upload a file, or drop image file or files here",
     });
     this.dropzone = $dropzone[0].dropzone;
     this.dropzone.on('success', this.onImageUploaded.bind(this));
@@ -100,7 +102,8 @@ var AddPageComponent = ng.core.Component({
         id: uiService.community.getId(), route: 'view'
       }]);
       self.success="Page "+self.pageName+" added";
-      $("#MMADBAdd").html('Cancel');
+      self.isCancel=true;
+      self.isAdd=false;
       self.pageName="";
       uiService.setDocument(uiService.document);
     });
@@ -131,6 +134,9 @@ var AddPageComponent = ng.core.Component({
      this.oneormany="OnePage";
      $('MMADBS').prop('checked', true);
      $('#manageModal').modal('hide');
+     this.isCancel=false;
+     this.isAdd=true;
+     this.dropzone.removeAllFiles();
    }
 });
 
