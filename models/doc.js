@@ -89,10 +89,11 @@ var DocSchema = extendNodeSchema('Doc', {
           el.children = [];
         }
         if (el.doc) {
-          cur.docs = docsMap[el.doc].ancestors.concat(el.doc);
+          cur.docs = docsMap[el.doc].ancestors.concat(new ObjectId(el.doc));
         }
         if (el.entity) {
-          cur.entities = docsMap[el.entity].ancestors.concat(el.entity);
+          cur.entities = docsMap[el.entity].ancestors.concat(
+            new ObjectId(el.entity));
         }
         cur.children = TEI._loadChildren(cur);
         console.log('@@@@@@@@@@@@');
@@ -252,11 +253,14 @@ var DocSchema = extendNodeSchema('Doc', {
     getTextsLeaves: function(id, callback) {
       async.waterfall([
         function(cb) {
+          console.log('--------------');
+          console.log(id);
           TEI.find({docs: id}, cb);
         },
-        function(tests) {
+        function(texts) {
+          console.log(texts);
           const cb = _.last(arguments);
-          TEI.orderLeaves(tests, cb);
+          TEI.orderLeaves(texts, cb);
         }
       ], callback);
     },
@@ -283,6 +287,8 @@ var DocSchema = extendNodeSchema('Doc', {
       ], function(err, results) {
         console.log('left bounds');
         console.log(results[0]);
+        console.log('right bounds');
+        console.log(results[1]);
         callback(err, results[0], results[1]);
       });
     },
@@ -351,7 +357,10 @@ var DocSchema = extendNodeSchema('Doc', {
           if (_.isEmpty(orderedLeaves)) {
             return cb('ok', []);
           }
-          TEI.getAncestors(_.first(orderedLeaves)._id, cb);
+          let node = _.first(orderedLeaves);
+          TEI.getAncestors(node._id, function(err, ancestors) {
+            cb(err, ancestors.concat(node));
+          });
         },
       ], function(err, bound) {
         if (err === 'ok') {
@@ -380,12 +389,15 @@ var DocSchema = extendNodeSchema('Doc', {
     },
     getLastTextPath: function(id, callback) {
       const cls = this;
+      console.log('getLastTextPath');
       async.waterfall([
         function(cb) {
           cls.getLastText(id, cb);
         },
         function(node) {
           const cb = _.last(arguments);
+          console.log('last text');
+          console.log(node);
           if (node) {
             TEI.getAncestors(node._id, function(err, ancestors) {
               cb(err, (ancestors || []).concat(node));
@@ -616,7 +628,7 @@ function _checkLinks(docEl, prevs, nexts, teiRoot) {
     let bound = nexts.shift()
       , continueChild
     ;
-    if (!bound) {
+    if (!bound || nexts.length === 0) {
       return false;
     }
     if (_isContinueEl(bound, el) && bound.name !== docEl.label) {
