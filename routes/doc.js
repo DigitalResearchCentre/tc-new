@@ -107,26 +107,36 @@ var DocResource = _.inherit(Resource, function(opts) {
               },
               function(cb1) {
                 obj.save(function(err, doc) {
+                  console.log('2222222222222');
+                  console.log(doc);
                   cb1(err, doc);
                 });
               },
             ], function(err, results) {
+                  console.log('333333333333333');
+              console.log(results);
               cb(err, _.get(results, 1));
             });
           }
         },
       ], function(err, doc) {
+                  console.log('4444444444444444');
+                  console.log(err);
+        console.log(doc);
         callback(err, doc);
       });
     };
   },
   execSave: function(req, res, next) {
     return function(obj, callback) {
+      console.log('11111111');
       console.log(obj);
       obj.commit({
         tei: req.body.tei,
         doc: _.assign(req.body.doc, {_id: obj._id}),
-      }, callback);
+      }, function(err) {
+       callback(err, obj); 
+      });
     };
   },
 });

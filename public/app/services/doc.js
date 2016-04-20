@@ -274,10 +274,14 @@ var DocService = ng.core.Injectable().Class({
             root = node;
           } else {
             children = nodesMap[_.last(node.ancestors)].children;
-            children.splice(children.indexOf(node._id), 1, node);
+            let index = children.indexOf(node._id);
+            if (index > -1) {
+              children.splice(index, 1, node);
+            }
           }
         });
         _.each(nodesMap, function(node) {
+          console.log(node.children);
           node.children = _.filter(node.children, function(child) {
             return !!child._id;
           });
@@ -306,6 +310,8 @@ var DocService = ng.core.Injectable().Class({
       , text = data.text
       , teiRoot = {}
     ;
+    console.log(data.doc);
+    console.log(docRoot);
     if (text) {
       let xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
@@ -320,7 +326,7 @@ var DocService = ng.core.Injectable().Class({
         if (!_.startsWith(cur.name, '#')) {
           index = docTags.indexOf(cur.name);
           // if node is doc 
-          if (index > -1 || cur.name === prevDoc.label) {
+          if (index > -1 || (prevDoc && cur.name === prevDoc.label)) {
             if (cur.name === docRoot.label) {
               if (!prevDoc) {
                 curDoc = docRoot;

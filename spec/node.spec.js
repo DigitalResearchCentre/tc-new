@@ -126,7 +126,7 @@ describe('base node schema test', function() {
     });
   });
 
-  it('getNextDFSLeaf', function(done) {
+  it('getDeepNextLeaf', function(done) {
     let root = nodesMap.root
       , c1 = nodesMap.c1
       , c11 = nodesMap.c11
@@ -135,25 +135,25 @@ describe('base node schema test', function() {
     ;
     async.parallel([
       function(cb) {
-        TestNode.getNextDFSLeaf(root._id, function(err, node) {
+        TestNode.getDeepNextLeaf(root._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getNextDFSLeaf(c1._id, function(err, node) {
+        TestNode.getDeepNextLeaf(c1._id, function(err, node) {
           expect(node._id).toEqual(c21._id);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getNextDFSLeaf(c2._id, function(err, node) {
+        TestNode.getDeepNextLeaf(c2._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getNextDFSLeaf(c11._id, function(err, node) {
+        TestNode.getDeepNextLeaf(c11._id, function(err, node) {
           expect(node._id).toEqual(c21._id);
           cb(null);
         });
@@ -163,7 +163,7 @@ describe('base node schema test', function() {
     });
   });
 
-  it('getPrevDFSLeaf', function(done) {
+  it('getDeepPrevLeaf', function(done) {
     let root = nodesMap.root
       , c1 = nodesMap.c1
       , c11 = nodesMap.c11
@@ -172,25 +172,25 @@ describe('base node schema test', function() {
     ;
     async.parallel([
       function(cb) {
-        TestNode.getPrevDFSLeaf(root._id, function(err, node) {
+        TestNode.getDeepPrevLeaf(root._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getPrevDFSLeaf(c1._id, function(err, node) {
+        TestNode.getDeepPrevLeaf(c1._id, function(err, node) {
           expect(node).toEqual(null);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getPrevDFSLeaf(c2._id, function(err, node) {
+        TestNode.getDeepPrevLeaf(c2._id, function(err, node) {
           expect(node._id).toEqual(c11._id);
           cb(null);
         });
       },
       function(cb) {
-        TestNode.getPrevDFSLeaf(c21._id, function(err, node) {
+        TestNode.getDeepPrevLeaf(c21._id, function(err, node) {
           expect(node._id).toEqual(c11._id);
           cb(null);
         });

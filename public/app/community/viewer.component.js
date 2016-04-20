@@ -148,7 +148,11 @@ var ViewerComponent = ng.core.Component({
     var page = this.page;
     var docService = this._docService;
     docService.commit({
-      doc: page,
+      doc: {
+        _id: page.getId(),
+        label: page.attrs.label,
+        name: page.attrs.name,
+      },
       text: this.page.contentText,
     }).subscribe(function(res) {
       docService.fetch(page.getId(), {

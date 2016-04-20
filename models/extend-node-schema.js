@@ -10,6 +10,11 @@ const TreeStructureError = Error.extend('TreeStructureError');
 const MultipleRootError = Error.extend('MultipleRootError');
 const ParentNotFound = Error.extend('ParentNotFound');
 
+function _idEqual(id1, id2) {
+  return ObjectId.isValid(id1) && ObjectId.isValid(id2) && 
+    (new ObjectId(id1)).equals(id2);
+}
+
 const _methods = {
   getChildrenAfter: function(targetId) {
     if (targetId._id) {
@@ -46,7 +51,7 @@ const _statics = {
         const cb = _.last(arguments);
         if (parent) {
           var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(id);
+            return _idEqual(childId, id);
           });
           if (index > 0) {
             return cls.findOne({_id: parent.children[index - 1]}, cb);
@@ -79,10 +84,12 @@ const _statics = {
           parent.save(cb);
         },
         function(cb) {
-          node.save(cb);
+          node.save(function(err, node) {
+            cb(err, node);
+          });
         },
       ], function(err, results) {
-        callback(err, (results || [])[1]);
+        callback(err, _.get(results, 1));
       });
     } else {
       return callback(new ParentNotFound());
@@ -100,20 +107,22 @@ const _statics = {
           parent.children.splice(index + 1, 0, node._id);
           node.ancestors = parent.ancestors.concat(parent._id);
           async.parallel([
-            function(cb) {
-              parent.save(cb);
+            function(cb1) {
+              parent.save(cb1);
             },
-            function(cb) {
-              node.save(cb);
+            function(cb1) {
+              node.save(function(err, node) {
+                cb1(err, node);
+              });
             },
-          ], cb);
+          ], function(err, results) {
+            return cb(err, _.get(results, 1))
+          });
         } else {
           cb(new ParentNotFound());
         }
       },
-    ], function(err, results) {
-      callback(err, (results || [])[1]);
-    });
+    ], callback);
   },
   _getParentAndIndex: function(id, callback) {
     var cls = this;
@@ -125,7 +134,7 @@ const _statics = {
         const cb = _.last(arguments);
         if (parent) {
           var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(id);
+            return _idEqual(childId, id);
           });
           if (index < 0) {
             return cb(new TreeStructureError(
@@ -204,7 +213,7 @@ const _statics = {
     });
     return cls.find({_id: {$in: _.keys(ancestors)}}, callback);
   },
-  getNextDFS: function(id, callback) {
+  getDeepNext: function(id, callback) {
     const cls = this;
     async.waterfall([
       function(cb) {
@@ -217,7 +226,7 @@ const _statics = {
         ;
         _.forEachRight(ancestors, function(parent) {
           const index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(cur);
+            return _idEqual(childId, cur);
           });
           if (index < parent.children.length - 1) {
             dfsNextId = parent.children[index + 1];
@@ -234,10 +243,11 @@ const _statics = {
       },
     ], callback);
   },
-  // get the next leaf node on the tree
-  getNextDFSLeaf: function(id, callback) {
+  // get the deep next leaf node on the tree
+  // (doesn't have to belong same parent)
+  getDeepNextLeaf: function(id, callback) {
     const cls = this;
-    cls.getNextDFS(id, function(err, nextDFS) {
+    cls.getDeepNext(id, function(err, nextDFS) {
       if (nextDFS) {
         cls.getFirstLeaf(nextDFS._id, callback);
       } else {
@@ -245,8 +255,9 @@ const _statics = {
       }
     });
   },
-  // get the prev leaf node on the tree
-  getPrevDFSLeaf: function(id, callback) {
+  // get the deep prev leaf node on the tree
+  // (doesn't have to belong same parent)
+  getDeepPrevLeaf: function(id, callback) {
     var cls = this;
     async.waterfall([
       function(cb) {
@@ -259,7 +270,7 @@ const _statics = {
         ;
         _.forEachRight(ancestors, function(parent) {
           var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(cur);
+            return _idEqual(childId, cur);
           });
           if (index > 0) {
             dfsPrevId = parent.children[index - 1];
@@ -350,7 +361,7 @@ const _statics = {
         } else {
           parent = nodesMap[_.last(obj.ancestors)];
           var index = _.findIndex(parent.obj.children, function(id) {
-            return id.equals(obj._id);
+            return _idEqual(id, obj._id);
           });
           parent.children[index] = node;
         }

@@ -98,7 +98,8 @@ _.assign(Resource.prototype, {
     };
   },
   afterCreate: function(req, res, next) {
-    return function(obj, cb) {
+    return function(obj) {
+      const cb = _.last(arguments);
       cb(null, obj);
     };
   },

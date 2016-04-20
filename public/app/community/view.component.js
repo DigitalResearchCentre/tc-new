@@ -77,6 +77,7 @@ var ViewComponent = ng.core.Component({
     var docService = this._docService;
     self._uiService.manageModal$.emit("extract-xml-doc");
     docService.getTextTree(doc).subscribe(function(teiRoot) {
+      console.log(teiRoot);
       self._uiService.sendXMLData$.emit(docService.json2xml(teiRoot));
     });
   }
