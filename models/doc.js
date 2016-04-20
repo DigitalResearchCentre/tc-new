@@ -68,6 +68,22 @@ var DocSchema = extendNodeSchema('Doc', {
       }
 
       _checkLinks(docEl, leftBound, rightBound, teiRoot);
+      _.each(leftBound, function(bound, i) {
+        let child = leftBound[i+1];
+        if (child) {
+          let index = _.findIndex(bound.children, function(id) {
+            return _idEqual(id, child._id);
+          });
+          let deleteChildren = bound.children.slice(index + 1);
+          if (deleteChildren.length > 0) {
+            deleteTeis = deleteTeis.concat(deleteChildren);
+            updateTeis.push({
+              _id: bound._id,
+              children: bound.children.slice(0, index + 1),
+            });
+          }
+        }
+      });
 
       // load docs
       docs = Doc._loadNodesFromTree(docRoot);
@@ -258,7 +274,6 @@ var DocSchema = extendNodeSchema('Doc', {
           TEI.find({docs: id}, cb);
         },
         function(texts) {
-          console.log(texts);
           const cb = _.last(arguments);
           TEI.orderLeaves(texts, cb);
         }
@@ -400,6 +415,8 @@ var DocSchema = extendNodeSchema('Doc', {
           console.log(node);
           if (node) {
             TEI.getAncestors(node._id, function(err, ancestors) {
+              console.log(ancestors);
+              console.log(node);
               cb(err, (ancestors || []).concat(node));
             });
           } else {
