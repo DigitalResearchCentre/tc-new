@@ -129,11 +129,8 @@ var DocSchema = extendNodeSchema('Doc', {
                 children: _children,
               });
             }
-            deleteTeis = deleteTeis.concat(
-              _.map(deleteChildren, function(child) {
-                return child._id;
-              })
-            );
+            console.log(deleteChildren);
+            deleteTeis = deleteTeis.concat(deleteChildren);
           }
         } else {
           insertTeis.push(cur);

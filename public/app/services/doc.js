@@ -281,7 +281,6 @@ var DocService = ng.core.Injectable().Class({
           }
         });
         _.each(nodesMap, function(node) {
-          console.log(node.children);
           node.children = _.filter(node.children, function(child) {
             return !!child._id;
           });
