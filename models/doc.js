@@ -645,10 +645,8 @@ function _checkLinks(docEl, prevs, nexts, teiRoot) {
     let bound = nexts.shift()
       , continueChild
     ;
-    if (!bound || nexts.length === 0) {
-      return false;
-    }
-    if (_isContinueEl(bound, el) && bound.name !== docEl.label) {
+    if (bound && nexts.length > 0 && 
+        _isContinueEl(bound, el) && bound.name !== docEl.label) {
       _elAssign(el, bound);
       continueChild = _.first(nexts);
       if (continueChild) {
@@ -657,9 +655,10 @@ function _checkLinks(docEl, prevs, nexts, teiRoot) {
         });
       }
     } else {
-      bound = bound || {};
-      throw new CheckLinkError(
-        `nexts element is not match: ${el.name}, ${bound.name}`);
+      if (bound) {
+        nexts.unshift(bound);
+      }
+      return false;
     }
   }, function(el) {
     let children = [];
