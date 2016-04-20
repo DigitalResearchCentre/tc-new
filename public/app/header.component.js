@@ -17,9 +17,7 @@ var HeaderComponent = ng.core.Component({
   constructor: [CommunityService, AuthService, UIService, DocService, function(
     communityService, authService, uiService, docService
   ) {
-    console.log('Header');
     this._authService = authService;
-    console.log(authService);
     this._communityService = communityService;
     this._docService = docService;
     this.uiService = uiService;
@@ -55,7 +53,7 @@ var HeaderComponent = ng.core.Component({
   createChosenF: function() {
     var self=this;
     this.uiService.sendCommand$.subscribe(function(chosen) {
-      if (chosen="createChosen") {
+      if (chosen==="createChosen") {
           self.createChosen=true;
           self.createNotChosen=false;
       }

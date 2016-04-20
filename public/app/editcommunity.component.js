@@ -26,7 +26,7 @@ var EditCommunityComponent = ng.core.Component({
     this.initEdit(this.community);
     this.message = '';
     this._uiService.sendCommand$.subscribe(function(chosen) {
-      if (chosen="createCommunity") self.submit();
+      if (chosen==="createCommunity") self.submit();
     });
   },
   initEdit: function(community) {
@@ -128,6 +128,7 @@ submit: function() {
         var matchedcom=self._allCommunities.filter(function (obj){return obj.attrs.abbr === self.edit.abbr;})[0];
         if (matchedcom) {
           self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
+          document.getElementById("ECMessage").scrollIntoView(true);
           return;
         }
       }
@@ -135,6 +136,7 @@ submit: function() {
       if (!this.community) {
         if (matchedname) {
           self.message='There is already a community with the name "'+self.edit.name+'"';
+          document.getElementById("ECMessage").scrollIntoView(true);
           return;
         }
       } else {
@@ -142,6 +144,7 @@ submit: function() {
         if (matchedname) {
           if (self.edit.name!=self.origname) {
             self.message='There is already a community with the name "'+self.edit.name+'"';
+            document.getElementById("ECMessage").scrollIntoView(true);
             return;
           }
         }
@@ -152,6 +155,7 @@ submit: function() {
       if ($('#PreviewImg')) $('#PreviewImg').remove();
       self.initEdit(community);
       self._uiService.setCommunity(community);
+      document.getElementById("ECSuccess").scrollIntoView(true);
     }, function(err) {
       self.message = err.message;
     });
@@ -170,7 +174,7 @@ submit: function() {
     this.edit.haspicture=false;
     this.picFile={chosen:false, maxSize:100*1024, maxHeight:35, maxWidth:300, valid:false, file:""};
     if ($('#PreviewImg')) $('#PreviewImg').remove();
-    document.getElementById('EDIB').value = ""
+    document.getElementById('EDIB').value = "";
   },
 });
 

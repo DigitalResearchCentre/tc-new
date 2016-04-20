@@ -1,0 +1,15 @@
+<div style="height:90%">
+  <div modal-draggable class="modalHeader">Log in needed for community "{{community.attrs.name}}"
+    <button type="button" (click)="closeModalMLI()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div style="text-align:center">
+    <p style="margin: 15px; text-align: left">You must have an account and be logged in to join this community</p>
+    <p style="margin: 15px; text-align: left">Click on start to get an account</p>
+    <a data-toggle="modal" data-target="#myModal">
+    <button (click)=doLoginModal() class="btn btn-lg wizardbutton"
+      onmouseover="this.style.color='#ffe2be';"
+      onmouseout="this.style.color='white';"
+      style="width: 100px;">Start</button>
+    </a>
+</div>
+</div>

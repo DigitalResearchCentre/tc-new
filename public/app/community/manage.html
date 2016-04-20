@@ -1,5 +1,5 @@
-<div x-auto-height class="manage" ng-controller="ManageCtrl" style="position:relative; top:-5px" >
-  <div class="headerManage" ng-show="isLeader===true || isCreator===true" ng-controller="MemberCtrl">
+<div x-auto-height class="manage" style="position:relative; top:-5px" >
+  <div class="headerManage" *ngIf="isLeader()===true || isCreator()===true">
     <nav class="navbar navbar-default">
       <ul class="nav navbar-nav navbar-left">
         <li><span class="hmbrand">Manage ></span></li>

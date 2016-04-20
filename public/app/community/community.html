@@ -24,7 +24,7 @@
     </ul>
   </div>
 </nav>
-<tc-manage-community *ngIf="community"></tc-manage-community>
+<tc-manage-community *ngIf="community" [community]="community"></tc-manage-community>
 <div [ngSwitch]="route">
   <tc-community-home *ngSwitchWhen="'home'"
     [community]="community"></tc-community-home>

@@ -29,7 +29,8 @@ var CommunityComponent = ng.core.Component({
     this._location = location;
     this._communityService = communityService;
     this._uiService = uiService;
-    this.memberships= authService._authUser.attrs.memberships;
+    if (authService._authUser) this.memberships = authService._authUser.attrs.memberships;
+    else this.memberships-null;
     var self = this
       , id = this._routeParams.get('id')
       , route = this._routeParams.get('route')
@@ -53,6 +54,7 @@ var CommunityComponent = ng.core.Component({
     this.route = route;
   },
   isLeader: function() {
+      if (!this.memberships) return false;
       var memberships=this.memberships;
       var community=this.community;
       var leaderfound=memberships.filter(function (obj){return obj.community.attrs._id === community.attrs._id && (obj.role === "CREATOR" || obj.role === "LEADER");})[0];
