@@ -300,7 +300,26 @@ var DocSchema = extendNodeSchema('Doc', {
           if (!parent) {
             cb(null, []);
           } else if (index === 0) {
-            cls.getFirstTextPath(parent._id, cb);
+            async.waterfall([
+              function(cb1) {
+                TEI.find({docs: parent.ancestors.concat(parent._id)}, cb1);
+              },
+              function(texts) {
+                const cb1 = _.last(arguments);
+                TEI.orderLeaves(texts, cb1);
+              },
+              function(orderedLeaves) {
+                const cb1 = _.last(arguments);
+                const node = _.last(orderedLeaves);
+                if (node) {
+                  TEI.getAncestors(node._id, function(err, ancestors) {
+                    cb1(err, (ancestors || []).concat(node));
+                  });
+                } else {
+                  cb1(null, []);
+                }
+              }
+            ], cb);
           } else {
             cls.getLastTextPath(parent.children[index - 1], cb);
           }
