@@ -107,7 +107,7 @@ var DocSchema = extendNodeSchema('Doc', {
             if (_.isNumber(el.nextChild)) {
               nextChildren = el._children.slice(el.nextChild);
               deleteChildren = deleteChildren.slice(
-                0, el.prevChild - prevChildren.length);
+                0, deleteChildren.length - nextChildren.length);
             }
             _children = _.map(cur.children, function(child) {
               return child;
