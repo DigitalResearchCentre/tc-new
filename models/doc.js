@@ -99,11 +99,11 @@ var DocSchema = extendNodeSchema('Doc', {
         console.log(el);
         if (_.isNumber(el.prevChild) || _.isNumber(el.nextChild)) {
           if (el.prevChild !== el.nextChild) {
-            if (el.prevChild) {
+            if (_.isNumber(el.prevChild)) {
               prevChildren = el._children.slice(0, el.prevChild + 1);
               deleteChildren = deleteChildren.slice(el.prevChild + 1);
             }
-            if (el.nextChild) {
+            if (_.isNumber(el.nextChild)) {
               nextChildren = el._children.slice(el.nextChild);
               deleteChildren = deleteChildren.slice(
                 0, el.prevChild - prevChildren.length);
