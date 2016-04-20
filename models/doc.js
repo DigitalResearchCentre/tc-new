@@ -231,8 +231,6 @@ var DocSchema = extendNodeSchema('Doc', {
               });
             });
           }
-          console.log(teiRoot);
-          console.log('#####$@@@@@@@@@@@@@');
           self._commit(teiRoot, docRoot, leftBound, rightBound, cb);
         },
       ], callback);
@@ -283,6 +281,8 @@ var DocSchema = extendNodeSchema('Doc', {
           cls.getRightTextBound(id, cb);
         },
       ], function(err, results) {
+        console.log('left bounds');
+        console.log(results[0]);
         callback(err, results[0], results[1]);
       });
     },
@@ -294,10 +294,13 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(parent, index) {
           const cb = _.last(arguments);
+          console.log('p and i');
+          console.log(parent);
+          console.log(index);
           if (!parent) {
             cb(null, []);
           } else if (index === 0) {
-            cls.getLastTextPath(parent._id, cb);
+            cls.getFirstTextPath(parent._id, cb);
           } else {
             cls.getLastTextPath(parent.children[index - 1], cb);
           }
@@ -569,6 +572,7 @@ function _checkLinks(docEl, prevs, nexts, teiRoot) {
       , continueChild, index
     ;
     console.log(bound);
+    console.log(_.first(prevs));
     if (bound && _isContinueEl(bound, el)) {
       _elAssign(el, bound);
       continueChild = _.first(prevs);
