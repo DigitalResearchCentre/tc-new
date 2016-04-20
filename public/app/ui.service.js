@@ -69,7 +69,7 @@ var UIService = ng.core.Class({
       populate: JSON.stringify('children revisions')
     }).subscribe();
 
-    docService.getTrees(page).map(function(teiRoot) {
+    docService.getTextTree(page).map(function(teiRoot) {
       console.log(docService.json2xml(teiRoot));
     }).subscribe();
   },

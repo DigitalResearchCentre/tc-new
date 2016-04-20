@@ -1,6 +1,6 @@
-/* require('script!angular2/bundles/angular2-polyfills.min'); */
+// require('script!angular2/bundles/angular2-polyfills.min');
 // require('script!rxjs/bundles/Rx.umd');
-/* require('script!angular2/bundles/angular2-all.umd'); */
+// require('script!angular2/bundles/angular2-all.umd');
 require('../../common/mixin');
 require('./app.less');
 

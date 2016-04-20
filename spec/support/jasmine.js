@@ -22,5 +22,7 @@ jasmine.onComplete(function(passed) {
 });
 
 jasmine.execute([
-  'spec/node.spec.js'
+  'spec/mixin.spec.js',
+  'spec/node.spec.js',
+  'spec/doc.spec.js',
 ]);

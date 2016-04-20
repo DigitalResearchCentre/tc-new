@@ -61,6 +61,7 @@ var HeaderComponent = ng.core.Component({
     return self.createChosen;
   },
   saveCommunity: function() {
+    console.log('saveCommunity click');
     this.uiService.sendCommand$.emit("createCommunity");
   },
   showAddDocument: function() {

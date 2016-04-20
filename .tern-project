@@ -1,0 +1,23 @@
+{
+    "libs": [
+        "browser",
+        "ecma6",
+        "underscore"
+    ],
+    "dontLoad": [
+        "node_modules",
+        "dist",
+        "bower_components"
+    ],
+    "exclude": [
+        "node_modules/**",
+        ".git/**",
+        "*.min.js",
+    ],
+    "plugins": {
+        "node": {},
+        "complete_strings": {},
+        "es_modules": {},
+        "webpack": true
+    }
+}

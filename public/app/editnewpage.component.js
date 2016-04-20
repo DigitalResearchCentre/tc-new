@@ -28,15 +28,7 @@ var EditNewPageComponent = ng.core.Component({
     $('#manageModal').height("600px");
     this.message=this.success="";
     this.choice="Prose";
-    this.prev={'length':0};
   }],
-  ngOnInit: function() {
-    var self=this;
-//    this.page=page;
-    this.docService.getLinks(this.page).subscribe(function(data) {
-      self.prev=data.prev;
-    });
-  },
   submit: function() {
     var newPage=$("#NewDoc").text();
     this.page.contentText = newPage;

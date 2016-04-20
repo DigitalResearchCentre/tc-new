@@ -5,7 +5,9 @@ _.mixin({
     if (!_.isFunction(child)) {
       statics = props;
       props = child;
-      child = function() {};
+      child = function() {
+        base.apply(this, arguments);
+      };
     }
     child.prototype = _.create(base.prototype, _.assign({
       _super: base.prototype,
@@ -31,7 +33,7 @@ _.mixin({
     ;
     if (!getChildren) {
       getChildren = function(node) {
-        return node.children;
+        return node ? node.children : [];
       }
     }
     _.forEachRight(_queue, push);

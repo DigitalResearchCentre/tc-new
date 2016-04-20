@@ -58,6 +58,9 @@ function createObjTree(node, queue) {
 
 function loadObjTree(xmlDoc, parentEl, obj, queue) {
   let childEl;
+  if (!obj) {
+    return
+  } 
   if (obj.name === '#text') {
     childEl = xmlDoc.createTextNode(obj.text);
   } else if (obj.name === '#comment') {
@@ -145,6 +148,7 @@ function teiElementEqual(el1, el2) {
     (el1.attrs || {}).n === (el2.attrs || {}).n;
 }
 
+/*
 function checkLinks(teiRoot, links) {
   var cur = {
     children: [teiRoot],
@@ -187,6 +191,7 @@ function checkLinks(teiRoot, links) {
     };
   }
 }
+*/
 
 function xpath(xmlDoc, expr) {
   var nsResolver = xmlDoc.createNSResolver(
@@ -244,171 +249,137 @@ var DocService = ng.core.Injectable().Class({
   initEventEmitters: function() {
     var self = this;
   },
-  addPage: function(page) {
-    var self = this
-      , pageId = new ObjectID()
-      , obs = Observable.empty()
-      , docId
-    ;
-    page._id = pageId;
-    page.label = 'pb';
-    if (page.parent) {
-      docId = page.parent.getId();
-      if (_.isEmpty(page.parent.attrs.children)) {
-        page.parent = docId;
-        obs = this.update(docId, {
-          commit: {
-            tei: {
-              name: 'text',
-              doc: docId,
-              children: [{
-                name: 'body',
-                doc: docId,
-                children: [{
-                  name: 'pb',
-                  doc: pageId,
-                  children: [],
-                }]
-              }]
-            },
-            doc: {
-              children: [
-                page,
-              ]
-            }
-          }
-        });
-      } else {
-        page.parent = docId;
-        obs = this.create(page);
-      }
-    } else if (page.after) {
-      page.after = page.after.getId();
-      obs = this.create(page);
-    }
-    return obs.map(function(page) {
-      return page;
-    });
-  },
-  getTrees: function(doc) {
+  getTextTree: function(doc) {
     var url = this.url({
       id: doc.getId(),
       func: 'texts',
     });
-
+    return this.http.get(url, this.prepareOptions({}))
+      .map(function(res) {
+        if (!res._body) {
+          return {};
+        }
+        let nodes = res.json()
+          , nodesMap = {}
+          , root
+        ;
+        _.each(nodes, function(node) {
+          nodesMap[node._id] = node;
+          node._children = _.map(node.children, function(childId) {
+            return childId;
+          });
+        });
+        _.each(nodesMap, function(node) {
+          if (_.isEmpty(node.ancestors)) {
+            root = node;
+          } else {
+            children = nodesMap[_.last(node.ancestors)].children;
+            let index = children.indexOf(node._id);
+            if (index > -1) {
+              children.splice(index, 1, node);
+            }
+          }
+        });
+        _.each(nodesMap, function(node) {
+          node.children = _.filter(node.children, function(child) {
+            return !!child._id;
+          });
+        });
+        return root;
+      })
+    ;
+  },
+  getRevisions: function(doc) {
+    var url = this.url({
+      id: doc.getId(),
+      func: 'revisions',
+    });
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
         if (!res._body) {
           return {};
         }
         return res.json();
-      });
-  },
-  getLinks: function(page) {
-    return this.http.get(
-      this.url({id: page.getId(), func: 'links'}),
-      this.prepareOptions({})
-    ).map(function(res) {
-      return res.json();
-    });
+      })
+    ;
   },
   json2xml: json2xml,
   commit: function(data, opts, callback) {
-     var text = data.text
-      , docModel = data.doc
-      , docElement = data.docElement
-      , xmlDoc = parseTEI(text)
-      , teiRoot = xmlDoc2json(xmlDoc)
-      , docTags = ['pb', 'cb', 'lb']
-      , docRoot = {
-        _id: docModel.getId(), label: docModel.attrs.label, children: []
-      }
-      , queue = [teiRoot]
-      , docQueue = []
-      , cur, prevDoc, curDoc, index, label, missingLink
+    let docRoot = _.defaults(data.doc, {children: []})
+      , text = data.text
+      , teiRoot = {}
     ;
-/*     var err = checkLinks(teiRoot); */
-    // if (err) {
-      // return handleError(err, callback);
-    // }
-
-    // dfs on TEI tree, find out all document
-    /*
-    _.dfs([teiRoot], function(node) {
-
-    });
-    */
-    while (queue.length > 0) {
-      cur = queue.shift();
-      console.log(cur);
-      if (!_.startsWith(cur.name, '#')) {
-        index = docTags.indexOf(cur.name);
-        // if node is doc 
-        if (index > -1) {
-          if (cur.name === docRoot.label) {
-            if (!prevDoc) {
-              curDoc = docRoot;
-              docQueue.push(curDoc);
-              console.log('push');
-              console.log(curDoc);
-            } else {
-              return handleError({
-                message: 'duplicate ' + cur.name  + ' element',
-                element: cur,
-              }, callback);
-            }
-          } else if (prevDoc){
-            curDoc = {
-              _id: ObjectID().toJSON(),
-              label: cur.name,
-              children: [],
-            };
-            if ((cur.attrs || {}).n) {
-              curDoc.name = (cur.attrs || {}).n;
-            }
-            if (docTags.indexOf(prevDoc.label) < index) {
-              docQueue.push(prevDoc);
-              console.log('push');
-              console.log(prevDoc);
-            }
-            while (docQueue.length > 0) {
-              label = _.last(docQueue).label;
-              if (!label || docTags.indexOf(label) < index) {
-                break;
+    console.log(data.doc);
+    console.log(docRoot);
+    if (text) {
+      let xmlDoc = parseTEI(text || '')
+        , docTags = ['pb', 'cb', 'lb']
+        , docQueue = []
+        , cur, prevDoc, curDoc, index, label
+      ;
+      teiRoot = xmlDoc2json(xmlDoc);
+      if (docRoot.label === 'text') {
+        prevDoc = docRoot;
+      }
+      _.dfs([teiRoot], function(cur) {
+        if (!_.startsWith(cur.name, '#')) {
+          index = docTags.indexOf(cur.name);
+          // if node is doc 
+          if (index > -1 || (prevDoc && cur.name === prevDoc.label)) {
+            if (cur.name === docRoot.label) {
+              if (!prevDoc) {
+                curDoc = docRoot;
+                docQueue.push(curDoc);
+              } else {
+                return handleError({
+                  message: 'duplicate ' + cur.name  + ' element',
+                  element: cur,
+                }, callback);
               }
-              docQueue.pop();
-              console.log('pop');
-              console.log(prevDoc);
-
+            } else if (prevDoc){
+              curDoc = {
+                _id: ObjectID().toJSON(),
+                label: cur.name,
+                children: [],
+              };
+              if ((cur.attrs || {}).n) {
+                curDoc.name = (cur.attrs || {}).n;
+              }
+              if (docTags.indexOf(prevDoc.label) < index) {
+                docQueue.push(prevDoc);
+              }
+              while (docQueue.length > 0) {
+                label = _.last(docQueue).label;
+                if (!label || docTags.indexOf(label) < index) {
+                  break;
+                }
+                docQueue.pop();
+              }
+              if (docQueue.length > 0) {
+                _.last(docQueue).children.push(curDoc);
+              }
             }
-            if (docQueue.length > 0) {
-              _.last(docQueue).children.push(curDoc);
-              console.log('add children');
-              console.log(_.last(docQueue));
-              console.log(curDoc);
-
-            }
+            prevDoc = curDoc;
           }
-          prevDoc = curDoc;
+          cur.text = '';
         }
-        cur.text = '';
-      }
-      if (prevDoc) {
-        cur.doc = prevDoc._id;
-      }
-
-
-      _.forEachRight(cur.children, function(child) {
-        queue.unshift(child);
+        if (prevDoc) {
+          cur.doc = prevDoc._id;
+        }
       });
     }
 
-    return this.update(docModel.getId(), {
-      commit: {
+    if (docRoot._id) {
+      return this.update(docRoot._id, {
         tei: teiRoot,
         doc: docRoot,
-      }
-    });
+      });
+    } else {
+      return this.create(_.assign(opts, {
+        tei: teiRoot,
+        doc: docRoot,
+      }));
+    }
   }
 });
 

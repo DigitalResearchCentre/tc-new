@@ -82,18 +82,20 @@ var AddPageComponent = ng.core.Component({
       , uiService = this.uiService
       , router = this._router
     ;
-    var options = {
-      name: this.pageName,
-      image: _.last(this.images),
-      text: '<text><body><pb n="'+this.pageName+'"/></body></text>',
-    };
+    var options = {};
     if (this.parent) {
       options.parent = this.parent;
     } else if (this.after) {
       options.after = this.after;
     }
-
-    this._docService.addPage(options).subscribe(function(page) {
+    this._docService.commit({
+      doc: {
+        name: this.pageName,
+        image: _.last(this.images),
+        label: 'pb',
+        children: [],
+      },
+    }, options).subscribe(function(page) {
       self.page = page;
       uiService.selectPage(page);
       router.navigate(['Community', {

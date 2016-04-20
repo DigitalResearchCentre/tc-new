@@ -25,18 +25,6 @@ var Doc = _.inherit(Model, function(data) {
       });
       return results;
     },
-    revisions: function(objs) {
-      var cls = Revision;
-      var results = _.map(objs, function(attrs) {
-        if (_.isString(attrs)) {
-          attrs = new cls({_id: attrs});
-        } else if (!(attrs instanceof cls)) {
-          attrs = new cls(attrs);
-        }
-        return attrs;
-      });
-      return results;
-    },
   },
 });
 

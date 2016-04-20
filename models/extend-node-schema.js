@@ -3,13 +3,19 @@ const mongoose = require('mongoose')
   , ObjectId = mongoose.Types.ObjectId
   , async = require('async')
   , _ = require('lodash')
+  , Error = require('../common/error')
 ;
 
-const TreeStructureError = _.inherit(Error);
+const TreeStructureError = Error.extend('TreeStructureError');
+const MultipleRootError = Error.extend('MultipleRootError');
+const ParentNotFound = Error.extend('ParentNotFound');
+
+function _idEqual(id1, id2) {
+  return ObjectId.isValid(id1) && ObjectId.isValid(id2) && 
+    (new ObjectId(id1)).equals(id2);
+}
 
 const _methods = {
-  getText: function() {
-  },
   getChildrenAfter: function(targetId) {
     if (targetId._id) {
       targetId = targetId._id;
@@ -37,11 +43,120 @@ const _statics = {
       },
     ], callback);
   },
+  getPrev: function(id, callback) {
+    var cls = this;
+    async.waterfall([
+      _.partial(cls.getParent.bind(cls), id),
+      function(parent) { // get prev node
+        const cb = _.last(arguments);
+        if (parent) {
+          var index = _.findIndex(parent.children, function(childId) {
+            return _idEqual(childId, id);
+          });
+          if (index > 0) {
+            return cls.findOne({_id: parent.children[index - 1]}, cb);
+          } else if (index < 0) {
+            return cb(new TreeStructureError(
+              `can not find ${id} in ${parent._id} children`
+            ));
+          }
+        }
+        return cb(null, null);
+      },
+    ], callback);
+  },
+  getNext: function(id, callback) {
+    var cls = this;
+    cls._getParentAndIndex(id, function(err, parent, index) {
+      if (parent && (index < parent.children.length - 1)) {
+        return cls.findOne({_id: parent.children[index + 1]}, callback);
+      } else {
+        return callback(err, null);
+      }
+    });
+  },
+  insertFirst: function(parent, node, callback) {
+    if (parent) {
+      parent.children.unshift(node._id);
+      node.ancestors = parent.ancestors.concat(parent._id);
+      return async.parallel([
+        function(cb) {
+          parent.save(cb);
+        },
+        function(cb) {
+          node.save(function(err, node) {
+            cb(err, node);
+          });
+        },
+      ], function(err, results) {
+        callback(err, _.get(results, 1));
+      });
+    } else {
+      return callback(new ParentNotFound());
+    }
+  },
+  insertAfter: function(target, node, callback) {
+    const cls = this;
+    async.waterfall([
+      function(cb) {
+        cls._getParentAndIndex(target._id, cb);
+      },
+      function(parent, index) {
+        const cb = _.last(arguments);
+        if (parent) {
+          parent.children.splice(index + 1, 0, node._id);
+          node.ancestors = parent.ancestors.concat(parent._id);
+          async.parallel([
+            function(cb1) {
+              parent.save(cb1);
+            },
+            function(cb1) {
+              node.save(function(err, node) {
+                cb1(err, node);
+              });
+            },
+          ], function(err, results) {
+            return cb(err, _.get(results, 1))
+          });
+        } else {
+          cb(new ParentNotFound());
+        }
+      },
+    ], callback);
+  },
+  _getParentAndIndex: function(id, callback) {
+    var cls = this;
+    async.waterfall([
+      function(cb) {
+        cls.getParent(id, cb);
+      },
+      function(parent) {
+        const cb = _.last(arguments);
+        if (parent) {
+          var index = _.findIndex(parent.children, function(childId) {
+            return _idEqual(childId, id);
+          });
+          if (index < 0) {
+            return cb(new TreeStructureError(
+              `can not find ${id} in ${parent._id} children`
+            ));
+          }
+          cb(null, parent, index);
+        }
+        return cb(null, null, null);
+      },
+    ], callback);
+  },
   /*
     * @param tree - nested tree style data,
     *              ex. {name: foo, children: [{name: child1, children: []}]}
     */
   import: function(tree, callback) {
+    const nodes = this._loadNodesFromTree(tree);
+    this.collection.insert(nodes, callback);
+    return nodes;
+  },
+  _loadNodesFromTree: function(tree) {
     var cls = this
       , nodes = []
       , cur
@@ -52,7 +167,6 @@ const _statics = {
       cur.children = cls._loadChildren(cur);
       nodes.push(cur);
     });
-    cls.collection.insert(nodes, callback);
     return nodes;
   },
   _loadChildren(nodeData) {
@@ -99,181 +213,167 @@ const _statics = {
     });
     return cls.find({_id: {$in: _.keys(ancestors)}}, callback);
   },
-  getPrev: function(id, callback) {
+  getDeepNext: function(id, callback) {
+    const cls = this;
+    async.waterfall([
+      function(cb) {
+        cls.getAncestors(id, cb);
+      },
+      function(ancestors) {
+        const cb = _.last(arguments);
+        let cur = id
+          , dfsNextId
+        ;
+        _.forEachRight(ancestors, function(parent) {
+          const index = _.findIndex(parent.children, function(childId) {
+            return _idEqual(childId, cur);
+          });
+          if (index < parent.children.length - 1) {
+            dfsNextId = parent.children[index + 1];
+            return false;
+          } else { // if curNode is the last child
+            cur = parent._id;
+          }
+        });
+        if (dfsNextId) {
+          cls.findOne({_id: dfsNextId}, cb);
+        } else {
+          cb(null, null);
+        }
+      },
+    ], callback);
+  },
+  // get the deep next leaf node on the tree
+  // (doesn't have to belong same parent)
+  getDeepNextLeaf: function(id, callback) {
+    const cls = this;
+    cls.getDeepNext(id, function(err, nextDFS) {
+      if (nextDFS) {
+        cls.getFirstLeaf(nextDFS._id, callback);
+      } else {
+        callback(null, null);
+      }
+    });
+  },
+  // get the deep prev leaf node on the tree
+  // (doesn't have to belong same parent)
+  getDeepPrevLeaf: function(id, callback) {
     var cls = this;
     async.waterfall([
-      _.partial(cls.getParent.bind(cls), id),
-      function(parent) { // get prev node
+      function(cb) {
+        cls.getAncestors(id, cb);
+      },
+      function(ancestors) {
         const cb = _.last(arguments);
-        if (parent) {
+        let cur = id
+          , dfsPrevId
+        ;
+        _.forEachRight(ancestors, function(parent) {
           var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(id);
+            return _idEqual(childId, cur);
           });
           if (index > 0) {
-            return cls.findOne({_id: parent.children[index - 1]}, cb);
-          } else if (index < 0) {
-            return cb(new TreeStructureError(
-              `can not find ${id} in ${parent._id} children`
-            ));
+            dfsPrevId = parent.children[index - 1];
+            return false;
+          } else { // if curNode is the first child
+            cur = parent._id;
           }
+        });
+        if (dfsPrevId) {
+          cls.getLastLeaf(dfsPrevId, cb);
+        } else {
+          cb(null, null);
         }
-        return cb(null, null);
       },
     ], callback);
   },
-  getNext: function(id, callback) {
-    var cls = this;
-    async.waterfall([
-      _.partial(cls.getParent.bind(cls), id),
-      function(parent) { // get next node
-        const cb = _.last(arguments);
-        if (parent) {
-          var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(id);
-          });
-          if (index < 0) {
-            return cb(new TreeStructureError(
-              `can not find ${id} in ${parent._id} children`
-            ));
-          } else if (index < parent.children.length - 1) {
-            return cls.findOne({_id: parent.children[index + 1]}, cb);
-          }
-        }
-        return cb(null, null);
-      },
-    ], callback);
+  getFirstLeaf: function(id, callback) {
+    this._getLeaf(id, _.first, callback);
   },
-  getDFSNext: function(id, callback) {
+  getLastLeaf: function(id, callback) {
+    this._getLeaf(id, _.last, callback);
+  },
+  _getLeaf: function(id, getChildFunc, callback) {
     var cls = this;
     async.waterfall([
       function(cb) {
         cls.findOne({_id: id}, cb);
       },
-      function(node) { // get ancestors
+      function(cur) {
         const cb = _.last(arguments);
-        if (!node) {
-          return cb(null, node);
+        if (!cur) {
+          return cb(null, null);
         }
-        cls.find({_id: {$in: obj.ancestors}}).exec(cb);
-      },
-      function(ancestors, cb) {
-        var cur = id
-          , dfsNextId
-        ;
-        _.forEachRight(ancestors, function(parent) {
-          var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(cur);
+        async.whilst(function() {
+          return (cur.children || []).length > 0;
+        }, function(cb1) {
+          cls.findOne({_id: getChildFunc(cur.children)}, function(err, obj) {
+            cur = obj;
+            cb1(err);
           });
-          if (index < parent.children.length - 1) {
-            dfsNextId = parent.children[index + 1];
-            return false;
-          } else {
-            cur = parent._id;
-          }
+        }, function(err) {
+          cb(err, cur);
         });
-        if (dfsNextId) {
-          cls.findOne({_id: dfsNextId}).exec(function(err, dfsNext) {
-            if (err) {
-              cb(err);
-            } else {
-              async.whilst(function() {
-                return (dfsNext.children || []).length > 0;
-              }, function(cb1) {
-                cls.findOne({_id: _.first(dfsNext.children)}).exec(
-                  function(err, obj) {
-                    dfsNext = obj;
-                    cb1(err, obj);
-                  }
-                );
-              }, function(err) {
-                if (err) {
-                  return cb(err);
-                }
-                if (dfsNext) {
-                  cb(null, dfsNext);
-                }
-              });
-            }
-          });
-        } else {
-          cb(null, null);
-        }
-
       }
     ], callback);
   },
-  getDFSPrev: function(id, callback) {
-    var cls = this;
-    async.waterfall([
-      function(cb) {
-        cls.findOne({_id: id}).exec(cb);
-      },
-      function(obj, cb) {
-        if (!obj) {
-          return cb(null, obj);
+  // TODO: currently only work for leaves in single tree
+  orderLeaves: function(leaves, cb) {
+    const cls = this;
+    let ancestors = {};
+    _.each(leaves, function(node) {
+      // collect all ancestors of given leaves
+      _.forEachRight(node.ancestors, function(id) {
+        if (!ancestors.hasOwnProperty(id)) {
+          ancestors[id] = true;
+        } else {
+          return false;
         }
-        cls.find({_id: {$in: obj.ancestors}}).exec(cb);
-      },
-      function(ancestors, cb) {
-        var cur = id
-          , dfsPrevId
-        ;
-        _.forEachRight(ancestors, function(parent) {
-          var index = _.findIndex(parent.children, function(childId) {
-            return childId.equals(cur);
-          });
-          if (index > 0) {
-            dfsPrevId = parent.children[index - 1];
-            return false;
-          } else {
-            cur = parent._id;
+      });
+    });
+    cls.find({_id: {$in: _.keys(ancestors)}}, function(err, results) {
+      if (err) {
+        return cb(err);
+      }
+      const nodesMap = {}
+        , objs = results.concat(leaves)
+      ;
+      let root = null
+        , orderedLeaves = []
+        , parent, children
+      ;
+      _.each(objs, function(obj) {
+        nodesMap[obj._id] = {
+          children: [],
+          obj: obj,
+        };
+      });
+      _.each(nodesMap, function(node) {
+        let obj = node.obj;
+        if (obj.ancestors.length === 0) {
+          // only support single root for now
+          if (root !== null) {
+            throw new MultipleRootError(
+              `found multiple root in given leaves: ${root._id} ${node._id}`
+            );
           }
-        });
-        if (dfsPrevId) {
-          cls.findOne({_id: dfsPrevId}).exec(function(err, dfsPrev) {
-            if (err) {
-              cb(err);
-            } else {
-              async.whilst(function() {
-                return (dfsPrev.children || []).length > 0;
-              }, function(cb1) {
-                cls.findOne({_id: _.last(dfsPrev.children)}).exec(
-                  function(err, obj) {
-                    dfsPrev = obj;
-                    cb1(err, obj);
-                  }
-                );
-              }, function(err) {
-                if (err) {
-                  return cb(err);
-                }
-                if (dfsPrev) {
-                  cb(null, dfsPrev);
-                }
-              });
-            }
+          root = node;
+        } else {
+          parent = nodesMap[_.last(obj.ancestors)];
+          var index = _.findIndex(parent.obj.children, function(id) {
+            return _idEqual(id, obj._id);
           });
-        } else {
-          cb(null, null);
+          parent.children[index] = node;
         }
+      });
+      _.dfs([root], function(node) {
+        if (node && _.isEmpty(node.children)) {
+          orderedLeaves.push(node.obj);
+        }
+      });
 
-      }
-    ], callback);
-  },
-  getFirstLeaf: function(id, callback) {
-    var cls = this;
-    async.waterfall([
-      function(cb) {
-        cls.findOne({_id: id}).exec(cb);
-      },
-      function(obj, cb) {
-        if ((obj.children || []).length > 0) {
-          cls.getFirstLeaf(obj.children[0], cb);
-        } else {
-          cb(null, obj);
-        }
-      }
-    ], callback);
+      cb(err, orderedLeaves);
+    });
   },
 };
 
@@ -291,275 +391,4 @@ function extendNodeSchema(modelName, schema, options) {
 };
 
 module.exports = extendNodeSchema;
-
-
- // getTreeFromLeaves: function() {
- // function(err, results) {
-      // if (err) {
-        // return cb(err);
-      // }
-      // const nodesMap = {}
-        // , parent, children
-      // ;
-      // nodes = results.concat(nodes);
-      // _.each(nodes, function(node) {
-        // nodesMap[node._id] = node;
-      // });
-      // _.each(nodesMap, function(node) {
-        // if (_.isEmpty(node.ancestors)) {
-          // roots.push(node);
-        // } else {
-          // parent = nodesMap[_.last(node.ancestors)];
-          // children = parent.children;
-          // var index = _.findIndex(children, function(id) {
-            // return id.equals(node._id);
-          // });
-          // children[index] = node;
-        // }
-      // });
-      // cb(err, root);
-    // }
-   
- // }
-    // getOutterBound: function(leaves, callback) {
-      // var cls = this;
-
-      // async.waterfall([
-        // function(cb) {
-          // cls.getTreeFromLeaves(leaves, cb);
-        // },
-        // function(root, cb) {
-          // var cur = root
-            // , prevId, nextId
-            // , found
-          // ;
-          // while (cur && !_.isEmpty(cur.children)) {
-            // found = _.findIndex(cur.children, function(child) {
-              // return !(_.isString(child) || child instanceof ObjectId);
-            // });
-            // if (found > -1) {
-              // cur = cur.children[found];
-            // } else {
-              // break;
-            // }
-          // }
-          // if (cur) {
-            // prevId = cur._id;
-          // }
-          // cur = root;
-          // while (cur && !_.isEmpty(cur.children)) {
-            // found = _.findLastIndex(cur.children, function(child) {
-              // return !(_.isString(child) || child instanceof ObjectId);
-            // });
-            // if (found > -1) {
-              // cur = cur.children[found];
-            // } else {
-              // break;
-            // }
-          // }
-          // if (cur) {
-            // nextId = cur._id;
-          // }
-
-          // async.parallel([
-            // function(cb1) {
-              // if (prevId) {
-                // var stop = false
-                  // , prev = null
-                // ;
-                // async.whilst(function() {
-                  // return !stop;
-                // }, function(cb2) {
-                  // cls.getDFSPrev(prevId, function(err, node) {
-                    // if (!node) {
-                      // stop = true;
-                    // } else if (
-                      // node.name === '#text' && node.text.trim() === ''
-                    // ) {
-                      // prevId = node._id;
-                    // } else {
-                      // prev = node;
-                      // stop = true;
-                    // }
-                    // cb2(err);
-                  // });
-                // }, function(err) {
-                  // if (err) {
-                    // return cb1(err);
-                  // }
-                  // if (prev) {
-                    // cls.find({
-                      // _id: {$in: prev.ancestors.concat(prev._id)}
-                    // }, cb1);
-                  // } else {
-                    // cb1(null, []);
-                  // }
-                // });
-              // } else {
-                // cb1(null, []);
-              // }
-            // },
-            // function(cb1) {
-              // if (nextId) {
-                // var stop = false
-                  // , next = null
-                // ;
-                // async.whilst(function() {
-                  // return !stop;
-                // }, function(cb2) {
-                  // cls.getDFSNext(nextId, function(err, node) {
-                    // if (!node) {
-                      // stop = true;
-                    // } else if (
-                      // node.name === '#text' && node.text.trim() === ''
-                    // ) {
-                      // nextId = node._id;
-                    // } else {
-                      // next = node;
-                      // stop = true;
-                    // }
-                    // cb2(err);
-                  // });
-                // }, function(err) {
-                  // if (err) {
-                    // return cb1(err);
-                  // }
-                  // if (next) {
-                    // cls.find({
-                      // _id: {$in: next.ancestors.concat(next._id)}
-                    // }, cb1);
-                  // } else {
-                    // cb1(null, []);
-                  // }
-                // });
-              // } else {
-                // cb1(null, []);
-              // }
-            // },
-          // ], cb);
-        // },
-      // ], callback);
-    // },
-  /*
-    * @param tree - nested tree style data,
-    *              ex. {name: foo, children: [{name: child1, children: []}]}
-    * @param prev - prev continue element
-    * @param after - left bound to insert after, null means insert at
-    *                beginning of prev's child
-    * @param next - next continue element
-    * @param before - right bound to insert before, null means insert at the
-    *                end fo next's child
-    */
-  // replaceNodesBetween: function(
-    // tree, prev, after, next, before, callback
-  // ) {
-    // var cls = this
-      // , common = []
-      // , prevAncestors = prev.ancestors.concat(prev._id)
-      // , nextAncestors = next.ancestors.concat(next._id)
-    // ;
-  // },
-  // getNodesBetween: function(
-    // ancestors1, ancestors2, includeAncestors, callback
-  // ) {
-      // var nodes = []
-        // , common = []
-        // , ancestors = []
-        // , cls = this
-      // ;
-      // if (_.isFunction(includeAncestors)) {
-        // callback = includeAncestors;
-        // includeAncestors = true;
-      // }
-      // var results = _findCommonAncestors(ancestors1, ancestors2);
-      // common = results[0];
-      // ancestors1 = results[1];
-      // ancestors2 = results[2];
-
-      // async.parallel([
-        // function(cb) {
-          // if (common.length > 0) {
-            // cls.find({_id: {$in: common}}, cb);
-          // } else {
-            // cb(null, []);
-          // }
-        // },
-        // function(cb) {
-          // if (ancestors1.length > 0) {
-            // cls.find({_id: {$in: ancestors1}}, cb);
-          // } else {
-            // cb(null, []);
-          // }
-        // },
-        // function(cb) {
-          // if (ancestors2.length > 0) {
-            // cls.find({_id: {$in: ancestors2}}, cb);
-          // } else {
-            // cb(null, []);
-          // }
-        // },
-      // ], function(err, results) {
-        // if (err) {
-          // return callback(err);
-        // }
-
-        // var children = [];
-        // common = results[0];
-        // ancestors1 = results[1];
-        // ancestors2 = results[2];
-
-        // if (common.length > 0) {
-          // children = _.last(common).children;
-        // }
-
-        // if (ancestors1.length > 0) {
-          // var found = null;
-          // // find siblings between an1 and an2
-          // _.each(children, function(id) {
-            // if (id.equals(ancestors2[0]._id)) {
-              // return false;
-            // }
-            // if (found) {
-              // ancestors.push(id);
-            // }
-            // if (id.equals(ancestors1[0]._id)) {
-              // found = true;
-            // }
-          // });
-        // }
-
-        // _.each(ancestors1.slice(1), function(obj, i) {
-          // var children = ancestors1[i].children;
-          // var index = _.findIndex(children, function(id) {
-            // return id.equals(obj._id);
-          // });
-          // ancestors = ancestors.concat(children.slice(index + 1));
-        // });
-
-        // _.each(ancestors2.slice(1), function(obj, i) {
-          // var children = ancestors2[i].children;
-          // _.each(children, function(id) {
-            // if (!id.equals(obj._id)) {
-              // ancestors.push(id);
-            // } else {
-              // return false;
-            // }
-          // });
-        // });
-
-        // cls.find({
-          // $or: [
-            // {ancestors: {$in: ancestors}},
-            // {_id: {$in: ancestors}}
-          // ],
-        // }, function(err, objs) {
-          // if (!includeAncestors) {
-            // callback(err, objs);
-          // } else {
-            // callback(err, common.concat(ancestors1, ancestors2, objs));
-          // }
-        // });
-      // });
-  // },
-
 

@@ -54,10 +54,11 @@ var ViewerComponent = ng.core.Component({
   onPageChange: function() {
     var viewer = this.viewer;
     this.image = this.page.attrs.image;
-
-    $.get(config.IIIF_URL + this.image + '/info.json', function(source) {
-      if (viewer) viewer.open([source]);
-    });
+    if (this.image) {
+      $.get(config.IIIF_URL + this.image + '/info.json', function(source) {
+        if (viewer) viewer.open([source]);
+      });
+    }
   },
   onResize: function() {
     if (!this.viewer) return;
@@ -80,16 +81,18 @@ var ViewerComponent = ng.core.Component({
         this.onPageChange();
       }
       docService.page=page;
-      docService.getTrees(this.page).subscribe(function(teiRoot) {
+      docService.getTextTree(this.page).subscribe(function(teiRoot) {
         self.dbText = docService.json2xml(teiRoot);
         self.setContentText(self.dbText);
+      });
+      docService.getRevisions(this.page).subscribe(function(revisions) {
+        self.revisions = revisions;
       });
     }
   },
   setContentText: function(contentText) {
     this.page.contentText = contentText;
-    if (this.page.attrs.children.length === 0 &&
-        this.page.attrs.revisions.length === 0) {
+    if (this.page.attrs.children.length === 0 && this.revisions.length === 0) {
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
         page: this.page,
@@ -101,7 +104,7 @@ var ViewerComponent = ng.core.Component({
   },
   revisionChange: function($event) {
     var index = $event.target.value
-      , revisions = this.page.attrs.revisions
+      , revisions = this.revisions
     ;
     if (index === 0) {
       this.setContentText(this.dbText);
@@ -110,7 +113,7 @@ var ViewerComponent = ng.core.Component({
     }
   },
   revisionCompareChange: function($event) {
-    var revision = this.page.attrs.revisions[$event.target.value];
+    var revision = this.revisions[$event.target.value];
     //this.contentText = revision.attrs.text;
   },
   save: function() {
@@ -145,7 +148,11 @@ var ViewerComponent = ng.core.Component({
     var page = this.page;
     var docService = this._docService;
     docService.commit({
-      doc: page,
+      doc: {
+        _id: page.getId(),
+        label: page.attrs.label,
+        name: page.attrs.name,
+      },
       text: this.page.contentText,
     }).subscribe(function(res) {
       docService.fetch(page.getId(), {

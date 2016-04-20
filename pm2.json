@@ -34,6 +34,7 @@
   }, {
     "name": "tc-test",
     "script": "spec/support/jasmine.js",
+    "autorestart": false,
     "args": "--no-autorestart",
     "node_args":  "--use_strict",
     "watch": ["spec", "spec/node.spec.js"],
