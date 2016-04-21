@@ -232,6 +232,7 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(ancestors) {
           const cb = _.last(arguments);
+          console.log(ancestors.concat(results));
           cb(null, ancestors.concat(results));
         },
       ], callback);
@@ -668,7 +669,7 @@ function _parseBound(boundsMap) {
       deleteChildren = deleteChildren.slice(
         0, deleteChildren.length - nextChildren.length);
     }
-    if (prevChild !== nextChild) {
+    if (!_.isNumber(prevChild) || prevChild !== nextChild) {
       if (_idEqual(_.first(newChildren), _.last(prevChildren))) {
         _children = prevChildren.concat(newChildren.slice(1));
       } else {
