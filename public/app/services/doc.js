@@ -57,7 +57,7 @@ function createObjTree(node, queue) {
 }
 
 function loadObjTree(xmlDoc, parentEl, obj, queue) {
-  let childEl;
+  var childEl;
   if (!obj) {
     return
   } 
@@ -259,7 +259,7 @@ var DocService = ng.core.Injectable().Class({
         if (!res._body) {
           return {};
         }
-        let nodes = res.json()
+        var nodes = res.json()
           , nodesMap = {}
           , root
         ;
@@ -274,7 +274,7 @@ var DocService = ng.core.Injectable().Class({
             root = node;
           } else {
             children = nodesMap[_.last(node.ancestors)].children;
-            let index = children.indexOf(node._id);
+            var index = children.indexOf(node._id);
             if (index > -1) {
               children.splice(index, 1, node);
             }
@@ -305,14 +305,14 @@ var DocService = ng.core.Injectable().Class({
   },
   json2xml: json2xml,
   commit: function(data, opts, callback) {
-    let docRoot = _.defaults(data.doc, {children: []})
+    var docRoot = _.defaults(data.doc, {children: []})
       , text = data.text
       , teiRoot = {}
     ;
     console.log(data.doc);
     console.log(docRoot);
     if (text) {
-      let xmlDoc = parseTEI(text || '')
+      var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
         , docQueue = []
         , cur, prevDoc, curDoc, index, label

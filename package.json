@@ -54,6 +54,7 @@
     "zone.js": "0.6.10"
   },
   "devDependencies": {
+    "babel-plugin-angular2-annotations": "^5.0.0",
     "css-loader": "^0.17.0",
     "exports-loader": "^0.6.3",
     "extract-text-webpack-plugin": "^1.0.1",
