@@ -53,8 +53,6 @@ var DocSchema = extendNodeSchema('Doc', {
             });
             if (!_.isEmpty(leftBound)) {
               tei.attrs = {n: self.name};
-              console.log('777777777777777');
-              console.log(leftBound);
               if (leftBound.length === 1) {
                 TEI.insertFirst(_.last(leftBound), tei, callback);
               } else {
@@ -69,7 +67,6 @@ var DocSchema = extendNodeSchema('Doc', {
 
       let boundsMap = _boundsMap(leftBound, rightBound);
       let errors = _linkBounds(docEl, leftBound, rightBound, teiRoot);
-      console.log(boundsMap);
 
       // load docs
       docs = Doc._loadNodesFromTree(docRoot);
@@ -96,7 +93,7 @@ var DocSchema = extendNodeSchema('Doc', {
         if (el._bound) {
           let item = boundsMap[el._id.toString()];
           if (item.el) {
-            errors.push(`continue element _el2str(el) break on page`);
+            errors.push(`continue element ${_el2str(el)} break on page`);
           } else {
             item.el = el;
             item.newChildren = cur.children;
@@ -118,17 +115,6 @@ var DocSchema = extendNodeSchema('Doc', {
       if (errors.length > 0) {
         return callback(new CheckLinkError(errors.join('<br/>')));
       }
-
-      console.log('--------self--------');
-      console.log(self);
-      console.log('--------docs--------');
-      console.log(docs);
-      console.log('insertTeis');
-      console.log(insertTeis);
-      console.log('updateTeis');
-      console.log(updateTeis);
-      console.log('deleteTeis');
-      console.log(deleteTeis);
 
       async.parallel([
         function(cb1) {
@@ -233,11 +219,26 @@ var DocSchema = extendNodeSchema('Doc', {
       this._assignId(nodeData);
       return nodeData;
     },
+    getTexts: function(id, callback) {
+      let results = [];
+      async.waterfall([
+        function(cb) {
+          Doc.getTextsLeaves(id, cb);
+        },
+        function(leaves) {
+          const cb = _.last(arguments);
+          results = results.concat(leaves);
+          TEI.getAncestorsFromLeaves(leaves, cb);
+        },
+        function(ancestors) {
+          const cb = _.last(arguments);
+          cb(null, ancestors.concat(results));
+        },
+      ], callback);
+    },
     getTextsLeaves: function(id, callback) {
       async.waterfall([
         function(cb) {
-          console.log('--------------');
-          console.log(id);
           TEI.find({docs: id}, cb);
         },
         function(texts) {
@@ -246,18 +247,18 @@ var DocSchema = extendNodeSchema('Doc', {
         }
       ], callback);
     },
+    /*
+    * example: <div1>
+    *            <div2>
+    *              <pb n="1"/><ab1><t1/></ab1>
+    *              <pb n="2"/>
+    *            <div2>
+    *            <t2/>
+    *            <pb n="3"/>
+    *          </div1>
+    *  should return [div1, div2 ab1, t1], [div1, pb]
+    */
     getOutterTextBounds: function(id, callback) {
-      /*
-      * example: <div1>
-      *            <div2>
-      *              <pb n="1"/><ab1><t1/></ab1>
-      *              <pb n="2"/>
-      *            <div2>
-      *            <t2/>
-      *            <pb n="3"/>
-      *          </div1>
-      *  should return [div1, div2 ab1, t1], [div1]
-      */
       const cls = this;
       async.parallel([
         function(cb) {
@@ -267,10 +268,6 @@ var DocSchema = extendNodeSchema('Doc', {
           cls.getRightTextBound(id, cb);
         },
       ], function(err, results) {
-        console.log('left bounds');
-        console.log(results[0]);
-        console.log('right bounds');
-        console.log(results[1]);
         callback(err, results[0], results[1]);
       });
     },
@@ -282,9 +279,6 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(parent, index) {
           const cb = _.last(arguments);
-          console.log('p and i');
-          console.log(parent);
-          console.log(index);
           if (!parent) {
             cb(null, []);
           } else if (index === 0) {
@@ -371,19 +365,14 @@ var DocSchema = extendNodeSchema('Doc', {
     },
     getLastTextPath: function(id, callback) {
       const cls = this;
-      console.log('getLastTextPath');
       async.waterfall([
         function(cb) {
           cls.getLastText(id, cb);
         },
         function(node) {
           const cb = _.last(arguments);
-          console.log('last text');
-          console.log(node);
           if (node) {
             TEI.getAncestors(node._id, function(err, ancestors) {
-              console.log(ancestors);
-              console.log(node);
               cb(err, (ancestors || []).concat(node));
             });
           } else {
@@ -659,8 +648,6 @@ function _parseBound(boundsMap) {
       , nextChildren = []
       , _children = []
     ;
-    console.log('%%%%%%%%%%%%%%');
-    console.log(item);
     if (!el && _.isNumber(prevChild) && _.isNumber(nextChild)) {
       errors.push(`${_el2str(bound)} element missing`);
     }
