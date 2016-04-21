@@ -1,4 +1,4 @@
-let Tab = ng.core.Component({
+var Tab = ng.core.Component({
   selector: 'tc-tab',
   inputs: [
     'title', 'active',
@@ -32,9 +32,9 @@ var Tabs = ng.core.Component({
     this._activeTab = null;
   }],
   ngAfterContentChecked: function() {
-    var tabs = this.tabs.filter((tab) => tab.active);
+    var tabs = this.tabs.filter(function(tab) {return tab.active;});
     if (tabs.length > 0) {
-      tabs.forEach((tab) => { tab.active = false; });
+      tabs.forEach(function(tab) { tab.active = false; });
       this.active(tabs[0]);
     } else if (this.tabs.length > 0){
       this.active(this.tabs[0]);

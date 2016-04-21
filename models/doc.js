@@ -68,21 +68,82 @@ var DocSchema = extendNodeSchema('Doc', {
       }
 
       _checkLinks(docEl, leftBound, rightBound, teiRoot);
+      let outterBounds = {};
+      let extraUpdates = [];
       _.each(leftBound, function(bound, i) {
         let child = leftBound[i+1];
         if (child) {
           let index = _.findIndex(bound.children, function(id) {
             return _idEqual(id, child._id);
           });
-          let deleteChildren = bound.children.slice(index + 1);
-          if (deleteChildren.length > 0) {
-            deleteTeis = deleteTeis.concat(deleteChildren);
+          outterBounds[bound._id.toString()] = {
+            bound: bound,
+            prevChild: index,
+          };
+        }
+      });
+      _.each(rightBound, function(bound, i) {
+        let child = rightBound[i+1];
+        if (child) {
+          let index = _.findIndex(bound.children, function(id) {
+            return _idEqual(id, child._id);
+          });
+          if (!outterBounds[bound._id.toString()]) {
+            outterBounds[bound._id.toString()] = {
+              bound: bound,
+              nextChild: index,
+            };
+          } else {
+            outterBounds[bound._id.toString()].nextChild = index;
+          }
+        }
+      });
+      _.each(outterBounds, function(item) {
+        let bound = item.bound
+          , deleteChildren = bound.children
+        ;
+        if (_.isNumber(item.prevChild)) {
+          deleteChildren = deleteChildren.slice(item.prevChild + 1);
+          updateTeis.push({
+            _id: bound._id,
+            children: bound.children.slice(0, item.prevChild + 1),
+          });
+        }
+        if (_.isNumber(item.nextChild)) {
+          deleteChildren = deleteChildren.slice(
+            0, deleteChildren.length - bound.children.length + item.nextChild);
+          if (_.isNumber(item.prevChild)) {
+            // worse case!!!
+            // this means bound element need be split to two element
+            // ex:
+            //  <text><a><b><pb1/><pb2/><pb3/></b></a></text>
+            //  if pb2 commit with <text><pb2/></text>
+            //  then we need close <a> and <b> in pb1
+            //  and we also need open new <a> <b> in pb3
+            let obj = bound.toObject();
+            obj.children = bound.children.slice(item.nextChild);
+            obj._id = new ObjectId();
+            let $set = {};
+            $set[`ancestors.${obj.ancestors.length}`] = obj._id;
+            extraUpdates.push({
+              query: {
+                $or: [
+                  {ancestors: {$in: obj.children},},
+                  {_id: {$in: obj.children},},
+                ],
+              },
+              update: {
+                $set: $set
+              }
+            });
+          } else {
             updateTeis.push({
               _id: bound._id,
-              children: bound.children.slice(0, index + 1),
+              children: bound.children.slice(item.nextChild),
             });
           }
         }
+        deleteTeis = deleteTeis.concat(deleteChildren);
       });
 
       // load docs
@@ -225,6 +286,20 @@ var DocSchema = extendNodeSchema('Doc', {
             cb1(null, []);
           }
         },
+        function(cb1) {
+          if (extraUpdates.length > 0) {
+            console.log('--------update extra--------');
+            async.forEachOf(extraUpdates, function(up) {
+              const cb2 = _.last(arguments);
+              TEI.collection.update(up.query, up.update, cb2);
+            }, function(err) {
+              console.log('update extra done');
+              cb1(err);
+            });
+          } else {
+            cb1(null, []);
+          }
+        }
       ], callback);     
     },
     commit: function(data, callback) {
