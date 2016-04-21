@@ -14,7 +14,6 @@ var express = require('express')
   , config = require('./config')
   , passport = require('./passport')
 ;
-
 mongoose.connect(config.database.uri);
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -75,7 +74,7 @@ app.use(function logErrors(err, req, res, next) {
 // development error handler.
 // will print stacktrace
 if (config.DEBUG) {
-  Error.stackTraceLimit = 100;
+  Error.stackTraceLimit = 10000;
 }
 
 const ErrorLog = mongoose.model('ErrorLog', {
@@ -103,7 +102,11 @@ app.use(function(err, req, res, next) {
 
   res.status(err.status || 500);
   if (config.DEBUG) {
-    res.render('error', error);
+    res.render('error', {
+      name: err.name,
+      message: err.message,
+      error: err,
+    });
   } else {
     res.render('error', _.pick(error, ['name', 'message',]));
   }

@@ -1,5 +1,6 @@
 var mongoose = require('mongoose')
   , Schema = mongoose.Schema
+  , _ = require('lodash')
   , extendNodeSchema = require('./extend-node-schema')
 ;
 
@@ -11,8 +12,23 @@ var TEISchema = extendNodeSchema('TEI', {
   docs: [{type: Schema.Types.ObjectId, ref: 'Doc'}],
   entities: [{type: Schema.Types.ObjectId, ref: 'Entity'}],
   attrs: {type: Schema.Types.Mixed},
+}, {
+  statics: {
+    clean: function(data) {
+      const nodeData = _.defaults(
+        {}, _.pick(data, [
+          '_id', 'name', 'text', 'docs', 'entities', 'attrs',
+          'children', 'ancestors',
+        ]), {
+          ancestors: [],
+          children: [],
+        }
+      );
+      this._assignId(nodeData);
+      return nodeData;
+    }
+  }
 });
 
 module.exports = mongoose.model('TEI', TEISchema);
-
 
