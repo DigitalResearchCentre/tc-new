@@ -232,7 +232,6 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(ancestors) {
           const cb = _.last(arguments);
-          console.log(ancestors.concat(results));
           cb(null, ancestors.concat(results));
         },
       ], callback);
