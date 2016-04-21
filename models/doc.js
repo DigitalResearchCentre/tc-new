@@ -98,7 +98,7 @@ var DocSchema = extendNodeSchema('Doc', {
           if (item.el) {
             errors.push(`continue element _el2str(el) break on page`);
           } else {
-            item.el = cur;
+            item.el = el;
             item.newChildren = cur.children;
           }
         } else {
@@ -169,10 +169,10 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(cb1) {
           if (updateTeis.length > 0) {
-            async.forEachOf(updateTeis, function(tei) {
+            async.forEachOf(updateTeis, function(up) {
               const cb2 = _.last(arguments);
-              TEI.collection.update({_id: tei._id}, {
-                $set: {children: tei.children},
+              TEI.collection.update({_id: up._id}, {
+                $set: {children: up.children},
               }, cb2);
             }, function(err) {
               console.log('update teis done');
@@ -659,6 +659,8 @@ function _parseBound(boundsMap) {
       , nextChildren = []
       , _children = []
     ;
+    console.log('%%%%%%%%%%%%%%');
+    console.log(item);
     if (!el && _.isNumber(prevChild) && _.isNumber(nextChild)) {
       errors.push(`${_el2str(bound)} element missing`);
     }
@@ -679,22 +681,24 @@ function _parseBound(boundsMap) {
       deleteChildren = deleteChildren.slice(
         0, deleteChildren.length - nextChildren.length);
     }
-    if (_idEqual(_.first(newChildren), _.last(prevChildren))) {
-      _children = prevChildren.concat(newChildren.slice(1));
-    } else {
-      _children = prevChildren.concat(newChildren);
+    if (prevChild !== nextChild) {
+      if (_idEqual(_.first(newChildren), _.last(prevChildren))) {
+        _children = prevChildren.concat(newChildren.slice(1));
+      } else {
+        _children = prevChildren.concat(newChildren);
+      }
+      if (_idEqual(_.last(_children), _.first(nextChildren))) {
+        _children.pop();
+      }
+      _children = _children.concat(nextChildren);
+      if (!_.isEqual(_children, bound.children)) {
+        updateTeis.push({
+          _id: bound._id,
+          children: _children,
+        });
+      }
+      deleteTeis = deleteTeis.concat(deleteChildren);
     }
-    if (_idEqual(_.last(_children), _.first(nextChildren))) {
-      _children.pop();
-    }
-    _children = _children.concat(nextChildren);
-    if (!_.isEqual(_children, bound.children)) {
-      updateTeis.push({
-        _id: bound._id,
-        children: _children,
-      });
-    }
-    deleteTeis = deleteTeis.concat(deleteChildren);
   });
   return {
     errors: errors,
