@@ -141,7 +141,7 @@ router.get('/:id/texts', function(req, res, next) {
      if (err) {
       next(err);
     } else {
-      res.json(ancestors.concat(results));
+      res.json(texts);
     }
   });
 });
