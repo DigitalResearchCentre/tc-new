@@ -72,9 +72,9 @@ var Community = _.inherit(Model, function(data) {
     } else if (obj.abbr.length>4)  {
       message.push(
         "Community abbreviation "+obj.abbr+" must be less than 5 characters");
-    } 
+    }
     if (obj.longName && obj.longName.length>80) {
-      message.push( 
+      message.push(
         "Community long name "+obj.longName+" must be less than 80 characters");
     }
     if (message.length > 0) {
@@ -88,5 +88,3 @@ var Community = _.inherit(Model, function(data) {
 });
 
 module.exports = Community;
-
-

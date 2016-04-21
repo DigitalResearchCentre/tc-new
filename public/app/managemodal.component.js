@@ -21,7 +21,8 @@ var ManageModalComponent = ng.core.Component({
     require('./viewmembers.component'),
     require('./previewpage.component'),
     require('./parsexmlload.component'),
-    require('./messagelogin.component')
+    require('./messagelogin.component'),
+    require('./community/uploadfile.component'),
   ],
 }).Class({
   constructor: [CommunityService, AuthService, UIService, function(communityService, authService, uiService) {
@@ -45,6 +46,10 @@ var ManageModalComponent = ng.core.Component({
       } else if (event.type === 'message-login') {
         self.choice = event.type;
         self.community = event.community;
+      }  else if (event.type === 'uploadfile-community') {
+        self.choice = event.type;
+        self.community = event.community;
+        self.filetype = event.filetype;
       }  else if (event.type === 'preview-page') {
           self.choice = event.type;
           self.page = event.page;

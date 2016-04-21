@@ -20,7 +20,8 @@ var ManageCommunityComponent = ng.core.Component({
 
   }],
   loadModal: function(which) {
-    this._uiService.manageModal$.emit(which);
+    if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "css"});
+    else this._uiService.manageModal$.emit(which);
   },
   isLeader: function() {
      if (!this.memberships) return false;

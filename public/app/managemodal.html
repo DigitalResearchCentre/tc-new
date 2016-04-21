@@ -1,5 +1,5 @@
 <div  id="manageModal" class="modal fade resizable" role="dialog" style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px">
-  <div [ngSwitch]="choice" style="height:98%">
+   <div [ngSwitch]="choice" style="height:98%">
     <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
     </tc-managemodal-adddocument>
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'">
@@ -21,6 +21,8 @@
     </tc-managemodal-parse-xmlload>
     <tc-managemodal-message-login *ngSwitchWhen="'message-login'" [community]="community">
     </tc-managemodal-message-login>
+    <tc-uploadfile-community *ngSwitchWhen="'uploadfile-community'" [community]="community" [filetype]="filetype">
+    </tc-uploadfile-community>
 
   </div>
 </div>
