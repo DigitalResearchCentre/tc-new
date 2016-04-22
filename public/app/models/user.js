@@ -3,7 +3,7 @@ var _ = require('lodash')
   , Community = require('./community')
 ;
 
-var User = Model.extend({
+var User = _.inherit(Model, {
   getName: function() {
     var attrs = this.attrs;
     var local = attrs.local || attrs.facebook || attrs.google || attrs.twitter;

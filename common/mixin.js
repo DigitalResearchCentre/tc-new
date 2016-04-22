@@ -6,7 +6,8 @@ _.mixin({
       statics = props;
       props = child;
       child = function() {
-        base.apply(this, arguments);
+        var self = base.apply(this, arguments);
+        if (!_.isUndefined(self)) return self;
       };
     }
     child.prototype = _.create(base.prototype, _.assign({

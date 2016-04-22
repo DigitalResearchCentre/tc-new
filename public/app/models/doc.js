@@ -2,17 +2,15 @@ var _ = require('lodash')
   , Model = require('./model')
 ;
 
-var Revision = Model.extend();
+var Revision = _.inherit(Model);
 
-var Doc = Model.extend({
+var Doc = _.inherit(Model, {
   // props
 }, {
   // statics
-  fields: function() {
-    return {
-      _id: '',
-      children: Model.OneToManyField(Doc),
-    };
+  fields: {
+    _id: '',
+    children: Model.OneToManyField('self'),
   },
 });
 

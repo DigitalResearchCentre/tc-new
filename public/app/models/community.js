@@ -4,7 +4,7 @@ var _ = require('lodash')
   , Entity = require('./entity')
 ;
 
-var Community = Model.extend(Model, {
+var Community = _.inherit(Model, {
   // props
 }, {
   // statics

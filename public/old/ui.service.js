@@ -1,7 +1,7 @@
 var EventEmitter = ng.core.EventEmitter
-  , AuthService = require('./auth')
-  , CommunityService = require('./community')
-  , DocService = require('./doc')
+  , AuthService = require('./services/auth')
+  , CommunityService = require('./services/community')
+  , DocService = require('./services/doc')
 ;
 
 var UIService = ng.core.Class({
@@ -9,10 +9,9 @@ var UIService = ng.core.Class({
     function(authService, communityService, docService){
 
     var self = this;
-    this.state = {};
     this.loginModel$ = new EventEmitter();
     this.manageModal$ = new EventEmitter();
-    this.newPage$ = new EventEmitter();
+//    this.newPage$ = new EventEmitter();
     this.sendCommand$ = new EventEmitter();
     this.sendXMLData$ = new EventEmitter();
     this._communitySubject = new EventEmitter();
@@ -31,31 +30,16 @@ var UIService = ng.core.Class({
     this.community = null;
   }],
   setCommunity: function(community) {
-    var state = this.state;
-    if (state.community !== community) {
-      this.community = state.community = community;
-      this._communityService.fetch(
-        community.getId(), 
-        {
-          populate: JSON.stringify('documents entities')
-        }
-      ).subscribe();
-      if (community) {
-        if (!_.isEmpty(community.attrs.documents)) {
-          this.setDocument(_.get(community, 'attrs.documents.0'));
-        } else {
-          //set document to null
-          this.document=null;
-        }
+    if (community !== this.community) {
+      this.community = community;
+      this._communityService.fetch(community.getId(), {
+        populate: JSON.stringify('documents entities')
+      }).subscribe();
+      if (community && community.attrs.documents.length>0) {
+        this.setDocument(community.attrs.documents[0]);
       }
     }
     return community;
-  },
-  setState: function(key, value) {
-    return _.set(_state, key, value);
-  },
-  selectCommunity: function(community) {
-    this.community = community;
   },
   setDocument: function(doc) {
     var self =  this;
@@ -70,6 +54,10 @@ var UIService = ng.core.Class({
           self.selectPage(first);
         }
       });
+    } else {
+      this._docService.fetch(doc.getId(), {
+        populate: JSON.stringify('children')
+      }).subscribe();
     }
     return doc;
   },

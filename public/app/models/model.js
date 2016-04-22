@@ -9,6 +9,7 @@ var _ = require('lodash')
 var CACHE_STORE = {};
 var FieldDefError = Error.extend('FieldDefError');
 
+window.CACHE_STORE = CACHE_STORE;
 function _getCache(id) {
   if (_.isObject(id)) {
     id = id._id;
@@ -25,20 +26,19 @@ var Model = _.inherit(Object, function(attrs) {
   var self = this
     , id = attrs ? attrs._id : null
   ;
+  this._id = id;
   this.attrs = {};
   this.json = {};
   if (id) {
     self = _getCache(id);
     if (self === void 0) {
       self = _setCache(id, this);
+      // use undefined value trigger setter set default value
+      _.defaults(attrs, _.zipObject(_.keys(this.constructor.fields)));
     }
   }
 
-  self.set(_.assign(
-    // use undefined value trigger setter set default value
-    _.zipObject(_.keys(this.constructor.fields)),
-    attrs
-  ));
+  self.set(attrs);
   return self;
 }, {
   set: function(key, value) {
@@ -73,16 +73,9 @@ var Model = _.inherit(Object, function(attrs) {
     return this.attrs._id;
   },
   verify: function() {
-    return this.prototype.constructor.verify(this.toJSON());
+    return this.constructor.verify(this.toJSON());
   }
 }, {
-  extend: function(child, props, statics) {
-    var cls = _.inherit(this, child, props, statics);
-    if (_.isFunction(cls.fields)) {
-      cls.fields = cls.fields();
-    }
-    return cls;
-  },
   fields: {
     /*
     // setter and getter:  attrs.foo === 'foo' && json.foo === 'foo'
@@ -113,6 +106,9 @@ var Model = _.inherit(Object, function(attrs) {
   OneToManyField: function(cls) {
     return [
       function(objs) {
+        if (cls === 'self') {
+          cls = this.constructor;
+        }
         return _.map(objs, function(attrs) {
           if (_.isString(attrs)) {
             attrs = new cls({_id: attrs});
@@ -123,7 +119,9 @@ var Model = _.inherit(Object, function(attrs) {
         });
       },
       function(objs) {
-        cls = this.constructor;
+        if (cls === 'self') {
+          cls = this.constructor;
+        }
         return _.filter(_.map(objs, function(obj) {
           if (obj instanceof Model) {
             return obj.getId();

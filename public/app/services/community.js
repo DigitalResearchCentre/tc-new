@@ -43,7 +43,7 @@ var CommunityService = ng.core.Injectable().Class({
     });
   },
   get: function(id) {
-    return new Community({_id: id});
+    return  new Community({_id: id});
   },
   selectCommunity: function(id) {
     
