@@ -38,3 +38,6 @@ npm-debug.log
 
 # ignore production config to avoid accident commit 
 config/production.js
+
+# ignore user uploaded files
+upload

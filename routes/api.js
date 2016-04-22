@@ -76,45 +76,6 @@ router.get('/communities/:id/memberships/', function(req, res, next) {
   });
 });
 
-<<<<<<< HEAD
-router.get('/communities/:id/dtd/', function(req, res, next) {
-  Community.findOne({
-    _id:  req.params.id
-  }).exec(function(err, community) {
-    if (err) {
-      next(err);
-    } else {
-      res.set('Content-Type', 'application/xml');
-      res.send(community.dtd);
-    }
-  });
-});
-
-var EntityResource = _.inherit(Resource, function(opts) {
-  Resource.call(this, Entity, opts);
-});
-
-
-var entityResource = new EntityResource({id: 'entity'});
-entityResource.serve(router, 'entities');
-router.get('/entities/:id/docs/:docId', function(req, res, next) {
-  var docId = req.params.docId
-    , entityId = req.params.id
-  ;
-  Entity.getDocs(entityId, docId, function(err, docs) {
-    if (err) {
-      return next(err);
-    }
-    res.json(docs);
-  });
-});
-
-var userResource = new Resource(User, {id: 'user'});
-userResource.serve(router, 'users');
-
-new CommunityResource({id: 'community'}).serve(router, 'communities');
-=======
->>>>>>> 5f42bf017dbc6f4a4a191443a2ed75a929e2c182
 router.put('/communities/:id/add-member', function(req, res, next) {
   var communityId = req.params.id
     , userId = req.body.user
