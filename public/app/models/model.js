@@ -116,7 +116,7 @@ var Model = _.inherit(Object, function(attrs) {
         return _.map(objs, function(attrs) {
           if (_.isString(attrs)) {
             attrs = new cls({_id: attrs});
-          } else if (!attrs instanceof cls) {
+          } else if (!(attrs instanceof cls)) {
             attrs = new cls(attrs);
           }
           return attrs;

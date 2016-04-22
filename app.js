@@ -1,9 +1,6 @@
 var express = require('express')
-  , _ = require('./common/mixin')
   , mongoose = require('mongoose')
-  , Promise = mongoose.Promise
   , path = require('path')
-  , app = express()
   , favicon = require('serve-favicon')
   , logger = require('morgan')
   , cookieParser = require('cookie-parser')
@@ -11,8 +8,10 @@ var express = require('express')
   , flash = require('connect-flash')
   , session = require('express-session')
   , MongoStore = require('connect-mongo')(session)
+  , _ = require('./common/mixin')
   , config = require('./config')
   , passport = require('./passport')
+  , app = express()
 ;
 mongoose.connect(config.database.uri);
 
@@ -111,7 +110,6 @@ app.use(function(err, req, res, next) {
     res.render('error', _.pick(error, ['name', 'message',]));
   }
 });
-
 
 module.exports = app;
 
