@@ -19,6 +19,9 @@ var Community = _.inherit(Model, function(data) {
     alldolead: false,
     haspicture: false,
     image: false,
+    css: '',
+    js: '',
+    dtd: '',
     entities: function(objs) {
       var cls = Entity;
       var results = _.map(objs, function(attrs) {

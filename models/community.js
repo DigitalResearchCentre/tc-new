@@ -20,6 +20,9 @@ var CommunitySchema = new Schema({
   alltranscribeall: Boolean,
   haspicture: Boolean,
   image: String,
+  css: String,
+  js: String,
+  dtd: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
   entities: [{type: ObjectId, ref: 'Entity'}],
 });
@@ -77,4 +80,3 @@ _.assign(CommunitySchema.statics, {
 
 const Community = mongoose.model('Community', CommunitySchema);
 module.exports = Community;
-

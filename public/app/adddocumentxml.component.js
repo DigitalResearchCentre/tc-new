@@ -13,6 +13,7 @@ var URI = require('urijs')
 var AddDocumentXMLComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument-xml',
   templateUrl: '/app/adddocumentxml.html',
+  inputs: ['community',],
   directives: [
     require('./directives/modaldraggable'),
     require('./directives/filereader'),
@@ -59,7 +60,7 @@ var AddDocumentXMLComponent = ng.core.Component({
     }
     this.doc.label = 'text';
     //parse first...
-    $.post(config.BACKEND_URL+'validate', {
+    $.post(config.BACKEND_URL+'validate?'+'id='+this.community.attrs._id, {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+text+"</TEI>",
     }, function(res) {
       if (res.error.length>0) {

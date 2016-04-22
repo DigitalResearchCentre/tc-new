@@ -2,7 +2,7 @@
    <div [ngSwitch]="choice" style="height:98%">
     <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
     </tc-managemodal-adddocument>
-    <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'">
+    <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'" [community]="community">
     </tc-managemodal-adddocument-xml>
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'"
       [parent]="docParent" [after]="docAfter">
@@ -21,7 +21,7 @@
     </tc-managemodal-parse-xmlload>
     <tc-managemodal-message-login *ngSwitchWhen="'message-login'" [community]="community">
     </tc-managemodal-message-login>
-    <tc-uploadfile-community *ngSwitchWhen="'uploadfile-community'" [community]="community" [filetype]="filetype">
+    <tc-uploadfile-community *ngSwitchWhen="'uploadfile-community'" [community]="community" [filetype]="filetype" [text]="text">
     </tc-uploadfile-community>
 
   </div>

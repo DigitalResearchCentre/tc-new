@@ -72,11 +72,8 @@ var HeaderComponent = ng.core.Component({
         return (obj.community.attrs._id === community.attrs._id && (obj.role==="LEADER"||obj.role==="CREATOR"));}
       )[0];
       if (!isleader) return false;
-    }
-    //if I'm not the leader of the commmunity..
-    if (community) {
       return _.isEmpty(community.attrs.documents);
-    }
+    } else return false;
   },
   showAddPage: function() {
     var doc = this.uiService.document;

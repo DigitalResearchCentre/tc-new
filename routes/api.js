@@ -64,6 +64,19 @@ router.get('/communities/:id/memberships/', function(req, res, next) {
   });
 });
 
+router.get('/communities/:id/dtd/', function(req, res, next) {
+  Community.findOne({
+    _id:  req.params.id
+  }).exec(function(err, community) {
+    if (err) {
+      next(err);
+    } else {
+      res.set('Content-Type', 'text/xml')
+      res.send(community.dtd);
+    }
+  });
+});
+
 var EntityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Entity, opts);
 });
@@ -312,22 +325,34 @@ router.post('/sendmail', function(req, res, next) {
 
 router.post('/validate', function(req, res, next) {
   var xmlDoc, errors;
-  try {
-    xmlDoc = libxml.parseXml(req.body.xml);
-    xmlDoc.setDtd('TEI', 'TEI-TC', './data/TEI-transcr-TC.dtd');
-    xmlDoc = libxml.parseXml(xmlDoc.toString(), {
-      dtdvalid: true,
-    })
-    errors = xmlDoc.errors;
-  } catch (err) {
-    errors = [err];
-  }
-  res.json({
-    error:   _.map(errors, function(err) {
-      return _.assign({}, err, {
-        message: err.message,
-      });
-    }),
+  console.log('in validate2')
+  //if we have a
+  Community.findOne({_id: req.query.id}, function(err, community) {
+    try {
+      console.log('dtd is '+community.dtd)
+      xmlDoc = libxml.parseXml(req.body.xml);
+      if (community.dtd=='') {
+        console.log('parsing from default')
+        xmlDoc.setDtd('TEI', 'TEI-TC', './data/TEI-transcr-TC.dtd');
+      }
+      else {
+        console.log("parsing from the saved dtd")
+        xmlDoc.setDtd('TEI', 'TEI-TC', config.BACKEND_URL+'communities/'+req.query.id+'/dtd/');
+      }
+      xmlDoc = libxml.parseXml(xmlDoc.toString(), {
+        dtdvalid: true,
+      })
+      errors = xmlDoc.errors;
+    } catch (err) {
+      errors = [err];
+    }
+    res.json({
+      error:   _.map(errors, function(err) {
+        return _.assign({}, err, {
+          message: err.message,
+        });
+      }),
+    });
   });
 });
 
