@@ -22,6 +22,9 @@ var Community = Model.extend(Model, {
     image: false,
     entities: Model.OneToManyField(Entity),
     documents: Model.OneToManyField(Doc),
+    css: '',
+    js: '',
+    dtd: '',
   },
   verify: function(obj) {
     var message = [];
