@@ -14,8 +14,8 @@ _.mixin({
       'constructor': child,
     }, props));
 
-    child.statics = statics;
-    _.assign(child, base.statics, statics);
+    child.statics = _.assign({}, statics);
+    _.assign(child, base.statics, child.statics);
 
     return child;
   },

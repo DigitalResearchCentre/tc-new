@@ -1,4 +1,6 @@
-var mongoose = require('mongoose')
+const mongoose = require('mongoose')
+  , fs = require('fs')
+  , path = require('path')
   , _ = require('lodash')
   , async = require('async')
   , Schema = mongoose.Schema
@@ -22,12 +24,40 @@ var CommunitySchema = new Schema({
   image: String,
   css: String,
   js: String,
-  dtd: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
   entities: [{type: ObjectId, ref: 'Entity'}],
 });
 
 _.assign(CommunitySchema.methods, {
+  getDTDPath: function() {
+    if (!OId.isValid(this._id)) {
+      // make sure this._id is not hacked. ex: _id = '../../'
+      return null;
+    }
+    return path.join(
+      __dirname, '..', 'upload', this._id.toString(), 'community.dtd');
+  },
+  setDTD: function(dtd) {
+    let dtdPath = this.getDTDPath()
+      , dirpath = path.dirname(dtdPath)
+      , uploadDir = path.dirname(dirpath) 
+    ;
+    if (dtdPath) {
+      try {
+        fs.statSync(uploadDir);
+      } catch (e) {
+        fs.mkdirSync(uploadDir);
+      }
+      try {
+        fs.statSync(dirpath);
+      } catch (e) {
+        fs.mkdirSync(dirpath);
+      }
+      return fs.writeFile(dtdPath, dtd, {
+        flag: 'w',
+      });
+    }
+  },
   addDocument: function(doc, callback) {
     this.documents.push(doc._id);
     this.save(function(err, community) {
