@@ -3,20 +3,7 @@ var _ = require('lodash')
   , Community = require('./community')
 ;
 
-var User = _.inherit(Model, function(data) {
-  return this._super.constructor.call(this, data);
-}, {
-  fields: {
-    _id: {},
-    memberships: function(memberships) {
-      return _.map(memberships, function(membership) {
-        var community = new Community(membership.community);
-        return _.assign({}, membership, {
-          community: community,
-        });
-      });
-    },
-  },
+var User = Model.extend({
   getName: function() {
     var attrs = this.attrs;
     var local = attrs.local || attrs.facebook || attrs.google || attrs.twitter;
@@ -39,6 +26,28 @@ var User = _.inherit(Model, function(data) {
       memberships: memberships,
     });
   }
+}, {
+  fields: {
+    _id: '',
+    memberships: [
+      function(memberships) {
+        return _.map(memberships, function(membership) {
+          var community = new Community(membership.community);
+          return _.assign({}, membership, {
+            community: community,
+          });
+        });
+      },
+      function(memberships) {
+        return _.map(memberships, function(membership) {
+          return _.assign({}, membership, {
+            community: _.invoke(membership, 'community.getId'),
+          });
+        });
+      },
+    ],
+  },
+
 });
 
 module.exports = User;

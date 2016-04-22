@@ -2,11 +2,12 @@ var _ = require('lodash')
   , Model = require('./model')
 ;
 
-var Entity = _.inherit(Model, function(data) {
-  return this._super.constructor.call(this, data);
+var Entity = Model.extend({
+  // props
 }, {
+  // statics
   fields: {
-    _id: {},
+    _id: '',
   },
 });
 

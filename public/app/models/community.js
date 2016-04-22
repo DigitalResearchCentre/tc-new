@@ -4,61 +4,25 @@ var _ = require('lodash')
   , Entity = require('./entity')
 ;
 
-var Community = _.inherit(Model, function(data) {
-  return this._super.constructor.call(this, data);
+var Community = Model.extend(Model, {
+  // props
 }, {
+  // statics
   fields: {
-    _id: {},
+    _id: '',
     public: false,
-    name: "",
-    abbr: "",
-    longName: "",
-    description: "",
+    name: '',
+    abbr: '',
+    longName: '',
+    description: '',
     accept: false,
     autoaccept: false,
     alldolead: false,
     haspicture: false,
     image: false,
-    entities: function(objs) {
-      var cls = Entity;
-      var results = _.map(objs, function(attrs) {
-        if (_.isString(attrs)) {
-          attrs = new cls({_id: attrs});
-        } else if (!attrs instanceof cls) {
-          attrs = new cls(attrs);
-        }
-        return attrs;
-      });
-      return results;
-    },
-    documents: function(objs) {
-      var cls = Doc;
-      var results = _.map(objs, function(attrs) {
-        if (_.isString(attrs)) {
-          attrs = new cls({_id: attrs});
-        } else if (!(attrs instanceof cls)) {
-          attrs = new cls(attrs);
-        }
-        return attrs;
-      });
-      return results;
-    },
+    entities: Model.OneToManyField(Entity),
+    documents: Model.OneToManyField(Doc),
   },
-  toJSON: function() {
-    var json = this._super.toJSON.call(this)
-      , docs = []
-    ;
-    _.each(this.attrs.documents, function(obj) {
-      var id = obj.getId();
-      if (id) {
-        docs.push(id);
-      }
-    });
-    return _.assign(json, {
-      documents: docs,
-    });
-  }
-}, {
   verify: function(obj) {
     var message = [];
     if (!obj.name) {
