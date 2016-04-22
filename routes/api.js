@@ -71,7 +71,7 @@ router.get('/communities/:id/dtd/', function(req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.set('Content-Type', 'text/xml')
+      res.set('Content-Type', 'application/xml');
       res.send(community.dtd);
     }
   });
