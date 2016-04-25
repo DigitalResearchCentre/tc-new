@@ -2,6 +2,7 @@ var _ = require('lodash')
   , AuthService = require('./services/auth')
   , UIService = require('./services/ui')
   , DocService = require('./services/doc')
+  , CommunityService = require('./services/community')
 ;
 
 var HeaderComponent = ng.core.Component({
@@ -13,11 +14,12 @@ var HeaderComponent = ng.core.Component({
     require('./managemodal.component'),
   ],
 }).Class({
-  constructor: [AuthService, UIService, DocService, function(
-    authService, uiService, docService
+  constructor: [AuthService, UIService, DocService, CommunityService, function(
+    authService, uiService, docService, communityService
   ) {
     this._authService = authService;
     this._docService = docService;
+    this._communityService = communityService;
     this.uiService = uiService;
 
     this.loginFrame = '/auth?url=/index.html';

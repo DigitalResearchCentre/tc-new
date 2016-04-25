@@ -31,12 +31,13 @@ var CommunityService = ng.core.Injectable().Class({
   },
   refreshPublicCommunities: function() {
     var uiService = this._uiService;
-    this.list({
+    return this.list({
       search: {
         find: JSON.stringify({public: true}),
       },
-    }).subscribe(function(communities) {
+    }).map(function(communities) {
       uiService.setState('publicCommunities', communities);
+      return communities;
     });
   },
   selectCommunity: function(community) {
@@ -55,6 +56,12 @@ var CommunityService = ng.core.Injectable().Class({
       });
     }
     uiService.setState('community', community);
+  },
+  createCommunity: function(communityData) {
+    var uiService = this._uiService;
+    return this.save(communityData).map(function(community) {
+      uiService.createCommunity(community);
+    });
   },
   getMemberships: function(community) {
     var self = this;

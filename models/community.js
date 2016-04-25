@@ -10,7 +10,7 @@ const mongoose = require('mongoose')
 ;
 
 var CommunitySchema = new Schema({
-  name: String,
+  name: {type: String, unique: true},
   abbr: {type: String, unique: true},
   longName: String,
   description: String,
