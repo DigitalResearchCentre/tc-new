@@ -14,15 +14,15 @@ var _ = require('lodash')
   , config = require('../config')
   , gridfs = require('../utils/gridfs')
   , libxml = require('libxmljs')
-  , Action = models.Action
   , Community = models.Community
+  , Action = models.Action
   , User = models.User
   , Doc = models.Doc
   , Entity = models.Entity
   , Revision = models.Revision
   , TEI = models.TEI
+  , RESTError = require('./resterror')
 ;
-
 
 router.use(function(req, res, next) {
   res.set({
@@ -44,7 +44,7 @@ var CommunityResource = _.inherit(Resource, function(opts) {
         if (!err && req.body.dtd) {
           obj.setDTD(req.body.dtd);
         }
-        cb(err, obj);
+        return cb(err, obj);
       });
     };
   },
@@ -351,6 +351,22 @@ router.post('/validate', function(req, res, next) {
     });
   });
 });
+
+router.use(function(err, req, res, next) {
+  if (err) {
+    res.status(err.status || 500);
+    if (err && err.code === 11000) {
+      console.log('-------------');
+      console.log(err);
+      err = {
+        name: err.name,
+        field: err.message.split('.$')[1],
+        message: err.message,
+      };
+    }
+    res.json(err);
+  }
+})
 
 module.exports = router;
 /*

@@ -1,5 +1,4 @@
 var _ = require('lodash')
-  , CommunityService = require('./services/community')
   , AuthService = require('./services/auth')
   , UIService = require('./services/ui')
   , DocService = require('./services/doc')
@@ -14,38 +13,34 @@ var HeaderComponent = ng.core.Component({
     require('./managemodal.component'),
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, DocService, function(
-    communityService, authService, uiService, docService
+  constructor: [AuthService, UIService, DocService, function(
+    authService, uiService, docService
   ) {
     this._authService = authService;
-    this._communityService = communityService;
     this._docService = docService;
     this.uiService = uiService;
 
     this.loginFrame = '/auth?url=/index.html';
-    this.authUser = null;
 
     this.source="default";
+    this.state = uiService.state;
   }],
   ngOnInit: function() {
-    var self = this
-      , communityService = this._communityService
-    ;
-    this._authService.authUser$.subscribe(function(authUser) {
-      self.authUser = authUser;
-    });
+    var self = this;
+
     this.createNotChosen=true;
     this.createChosen=false;
-    communityService.publicCommunities$.subscribe(function(communities) {
-      self.publicCommunities = communities;
-    });
-    communityService.allCommunities$.subscribe(function(communities) {
-      self.allCommunities = communities;
-    });
-
+  },
+  isAuthenticated: function() {
+    return _.get(
+      this.state.authUser, 'attrs.local.authenticated', null
+    ) === "1";
+  },
+  getMemberships: function() {
+    return _.get(this.state.authUser, 'attrs.memberships', []);
   },
   showCreateOrJoin: function() {
-    return this.authUser && this.authUser.attrs.local && this.authUser.attrs.local.authenticated=="1" && _.isEmpty(this.authUser.attrs.memberships);
+    return this.isAuthenticated() && _.isEmpty(this.getMemberships());
   },
   createNotChosenF: function() {
     return this.createNotChosen;
@@ -65,19 +60,15 @@ var HeaderComponent = ng.core.Component({
     this.uiService.sendCommand$.emit("createCommunity");
   },
   showAddDocument: function() {
-    var community = this.uiService.community;
-    if (community) {
-        var isleader=null;
-      var isleader = this.authUser.attrs.memberships.filter(function (obj){
-        return (obj.community.attrs._id === community.attrs._id && (obj.role==="LEADER"||obj.role==="CREATOR"));}
-      )[0];
-      if (!isleader) return false;
-      return _.isEmpty(community.attrs.documents);
-    } else return false;
+    var community = this.state.community
+      , authUser = this.state.authUser
+    ;
+    return this._communityService.canAddDocument(community, authUser) &&
+      _.isEmpty(_.get(community, 'attrs.documents', []));
   },
   showAddPage: function() {
-    var doc = this.uiService.document;
-    return doc && _.isEmpty(doc.attrs.children);
+    var doc = this.state.document;
+    return doc && _.isEmpty(_.get(doc, 'attrs.children'));
   },
   showLoginModal: function() {
     this.uiService.loginModel$.emit('show');
@@ -92,13 +83,13 @@ var HeaderComponent = ng.core.Component({
     if (which === 'add-document-page') {
       which = {
         type: which,
-        parent: this.uiService.document,
+        parent: this.state.document,
       };
     }
     this.uiService.manageModal$.emit(which);
   },
   showNoUser: function() {
-    return !this.authUser || !this.authUser.attrs.local || this.authUser.attrs.local.authenticated=='0';
+    return !this.isAuthenticated();
   }
 });
 

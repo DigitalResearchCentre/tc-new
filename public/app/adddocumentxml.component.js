@@ -2,7 +2,6 @@ var $ = require('jquery');
 var URI = require('urijs')
   , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
-  , AuthService = require('./services/auth')
   , DocService = require('./services/doc')
   , config = require('./config')
 ;
@@ -20,8 +19,8 @@ var AddDocumentXMLComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    CommunityService, AuthService, UIService, DocService, function(
-      communityService, authService, uiService, docService
+    CommunityService, UIService, DocService, function(
+      communityService, uiService, docService
     ) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();

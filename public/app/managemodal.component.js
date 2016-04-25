@@ -2,7 +2,6 @@ var $ = require('jquery');
 var URI = require('urijs')
   , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
-  , AuthService = require('./services/auth')
   , RESTService = require('./services/rest')
 ;
 //require('jquery-ui/draggable');
@@ -26,7 +25,7 @@ var ManageModalComponent = ng.core.Component({
     require('./community/uploadfile.component'),
   ],
 }).Class({
-  constructor: [CommunityService, AuthService, UIService, RESTService, function(communityService, authService, uiService, restService) {
+  constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
     this._uiService = uiService;
     this.restService=restService;
 /*

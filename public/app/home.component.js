@@ -1,27 +1,14 @@
-var AuthService = require('./services/auth')
-  , UIService = require('./services/ui')
-;
+var UIService = require('./services/ui');
 
 
 var HomeComponent = ng.core.Component({
   selector: 'tc-home',
   templateUrl: '/app/home.html',
 }).Class({
-  constructor: [AuthService, UIService, function(
-    authService, uiService
-  ) { 
+  constructor: [UIService, function( uiService) { 
     console.log('Home');
-    this._authService = authService;
     this._uiService = uiService;
-
-    this.authUser = null;
   }],
-  ngOnInit: function() {
-    var self = this;
-    this._authService.authUser$.subscribe(function(authUser) {
-      self.authUser = authUser;
-    });
-  },
   getUserStatus: function() {
     /*
     var authUser = this.authUser

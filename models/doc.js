@@ -13,6 +13,7 @@ const CheckLinkError = Error.extend('CheckLinkError');
 var DocSchema = extendNodeSchema('Doc', {
   name: String,
   label: String,
+  header: String,
   image: Schema.Types.ObjectId,
 }, {
   methods: {
