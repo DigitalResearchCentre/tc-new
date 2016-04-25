@@ -121,16 +121,21 @@ var EditCommunityComponent = ng.core.Component({
   },
   submit: function() {
     //is there a community with this name?
+    var communityService = this._communityService
+      , self=this
+    ;
     this.message=this.success="";
-    var self=this;
-    this._communityService.save(this.edit).subscribe(function(community) {
+    communityService.createCommunity(this.edit).subscribe(function() {
+      console.log('success');
       self.success='Community "'+self.edit.name+'" saved';
       if ($('#PreviewImg')) $('#PreviewImg').remove();
       self.initEdit(community);
-      self._uiService.setCommunity(community);
       document.getElementById("ECSuccess").scrollIntoView(true);
     }, function(err) {
-      self.message = err.message;
+      console.log('error');
+      console.log(err);
+      self.message = err.json().message;
+      document.getElementById("ECMessage").scrollIntoView(true);
     });
   },
   upload: function (file) {

@@ -4,7 +4,13 @@ var UIService = ng.core.Class({
   constructor: [function(){
 
     var self = this;
-    this.state = {};
+    this.state = {
+      authUser: null,
+      community: null,
+      document: null,
+      page: null,
+      publicCommunities: [],
+    };
     this.loginModel$ = new EventEmitter();
     this.manageModal$ = new EventEmitter();
     this.newPage$ = new EventEmitter();
@@ -13,6 +19,7 @@ var UIService = ng.core.Class({
     this._communitySubject = new EventEmitter();
 
     this.community = null;
+    window.state = this.state;
   }],
   setState: function(key, value) {
     return _.set(this.state, key, value);
@@ -21,7 +28,11 @@ var UIService = ng.core.Class({
     if (!this.state.authUser) {
       this.loginModel$.emit('show');
     }
-  }
+  },
+  createCommunity: function(community) {
+    this.setState('community', community);
+    this.publicCommunities.push(community);
+  },
 });
 
 module.exports = UIService;

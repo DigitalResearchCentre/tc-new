@@ -20,8 +20,8 @@ var AppComponent = ng.core.Component({
   constructor: [
     AuthService, CommunityService,
     function(authService, communityService) {
-    authService.refreshAuthUser();
-    communityService.refreshPublicCommunities();
+    authService.refreshAuthUser().subscribe();
+    communityService.refreshPublicCommunities().subscribe();
   }],
 });
 ng.router.RouteConfig([{

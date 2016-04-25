@@ -26,11 +26,11 @@ var AuthService = ng.core.Class({
     var uiService = this._uiService
       , communityService = this._communityService;
     ;
-    this.detail(null, {
+    return this.detail(null, {
       search: {
         populate: JSON.stringify('memberships.community'),
       },
-    }).subscribe(function(authUser) {
+    }).map(function(authUser) {
       if (uiService.state.authUser !== authUser) {
         if (authUser) {
           var memberships = _.get(authUser, 'attrs.memberships', []);
@@ -40,15 +40,16 @@ var AuthService = ng.core.Class({
         }
         uiService.setState('authUser', authUser);
       }
+      return authUser;
     });
   },
   refresh: function() {
     this._refresh.next(null);
   },
   logout: function() {
-    var refresh = this._refresh;
+    var self = this;
     this.http.get('/auth/logout/').subscribe(function() {
-      refresh.next(null);
+      self.refreshAuthUser().subscribe();
     });
   },
 });
