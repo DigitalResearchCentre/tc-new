@@ -16,10 +16,10 @@ var EditCommunityComponent = ng.core.Component({
     var self=this;
     this._communityService = communityService;
     this._uiService = uiService;
-    this.picFile={chosen:false, maxSize:100*1024, maxHeight:35, maxWidth:300, valid:false, file:""};
-    this._communityService.allCommunities$.subscribe(function(communities) {
-      self._allCommunities = communities;
-    });
+    this.picFile={
+      chosen:false, maxSize:100*1024,
+      maxHeight:35, maxWidth:300, valid:false, file:""
+    };
   }],
   ngOnInit: function() {
     var self=this;
@@ -119,37 +119,10 @@ var EditCommunityComponent = ng.core.Component({
   });
   reader.readAsDataURL(file);
   },
-submit: function() {
+  submit: function() {
     //is there a community with this name?
     this.message=this.success="";
     var self=this;
-    if (self._allCommunities.length>0) {
-      if (!this.community) {
-        var matchedcom=self._allCommunities.filter(function (obj){return obj.attrs.abbr === self.edit.abbr;})[0];
-        if (matchedcom) {
-          self.message='There is already a community with the abbreviation "'+self.edit.abbr+'"';
-          document.getElementById("ECMessage").scrollIntoView(true);
-          return;
-        }
-      }
-      var matchedname=self._allCommunities.filter(function (obj){return obj.attrs.name === self.edit.name;})[0];
-      if (!this.community) {
-        if (matchedname) {
-          self.message='There is already a community with the name "'+self.edit.name+'"';
-          document.getElementById("ECMessage").scrollIntoView(true);
-          return;
-        }
-      } else {
-        //if name has not changed, ignore...
-        if (matchedname) {
-          if (self.edit.name!=self.origname) {
-            self.message='There is already a community with the name "'+self.edit.name+'"';
-            document.getElementById("ECMessage").scrollIntoView(true);
-            return;
-          }
-        }
-      }
-    }
     this._communityService.save(this.edit).subscribe(function(community) {
       self.success='Community "'+self.edit.name+'" saved';
       if ($('#PreviewImg')) $('#PreviewImg').remove();

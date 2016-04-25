@@ -1,12 +1,12 @@
 <div style="margin-right:auto; margin-left:auto; width:700px" class="description">
   <div *ngIf="canJoin()" style="text-align: center">
-    <button type="button" class="btn btn-primary btn-sm" (click)="joinCommunity(community)">Join</button> this community.
+    <button type="button" class="btn btn-primary btn-sm" (click)="joinCommunity(state.community)">Join</button> this community.
   </div>
   <div *ngIf="!authUser" style="text-align: center">
     <button type="button" class="btn btn-primary btn-sm" (click)="logInIdiot()">Join</button> this community.
   </div>
-<h3 style="text-align: center">{{community?.longName}}</h3>
-<div [innerHTML]="community.attrs.description"></div>
+<h3 style="text-align: center">{{state.community.longName}}</h3>
+<div [innerHTML]="state.community.attrs.description"></div>
 <div *ngIf="!canJoin()">No! I can't join.  I am a TC member already of this community, or it is not accepting members</div>
 <div *ngIf="isCreator()">I am the creator of this community (and therefore, by definition, a leader)</div>
 <div *ngIf="isLeader()">I am a leader of this community</div>

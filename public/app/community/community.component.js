@@ -3,7 +3,6 @@ var _ = require('lodash')
   , Router = ng.router.Router
   , Location = ng.router.Location
   , CommunityService = require('../services/community')
-  , AuthService = require('../services/auth')
   , UIService = require('../services/ui')
 ;
 
@@ -20,21 +19,20 @@ var CommunityComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    RouteParams, Router, Location, CommunityService, UIService, AuthService,
+    RouteParams, Router, Location, CommunityService, UIService, 
   function(
-    routeParams, router, location, communityService, uiService, authService
+    routeParams, router, location, communityService, uiService 
   ) {
     this._routeParams = routeParams;
     this._router = router;
     this._location = location;
     this._communityService = communityService;
     this._uiService = uiService;
-    if (authService._authUser) this.memberships = authService._authUser.attrs.memberships;
-    else this.memberships-null;
     var self = this
       , id = this._routeParams.get('id')
       , route = this._routeParams.get('route')
     ;
+    this.state = uiService.state;
   }],
   ngOnInit: function() {
     var self = this
@@ -43,23 +41,25 @@ var CommunityComponent = ng.core.Component({
       , uiService = this._uiService
     ;
     this.route = route;
-    this.community = this._communityService.get(id);
-    uiService.setCommunity(this.community);
+    this._communityService.selectCommunity(id);
   },
   navigate: function(route) {
+    var community = this.state.community;
+    var id = community ? community.getId() : this._routeParams.get('id');
     var instruction = this._router.generate([
-      'Community', {id: this.community.getId(), route: route}
+      'Community', {id: id, route: route}
     ]);
     this._location.go(instruction.toRootUrl());
     this.route = route;
   },
   isLeader: function() {
-      if (!this.memberships) return false;
-      var memberships=this.memberships;
-      var community=this.community;
-      var leaderfound=memberships.filter(function (obj){return obj.community.attrs._id === community.attrs._id && (obj.role === "CREATOR" || obj.role === "LEADER");})[0];
-      if (leaderfound) return true;
-      else return false;
+    var memberships = _.get(this.state, 'authUser.memberships', []);
+    return _.find(memberships, function (obj){
+      return (
+        obj.community.attrs._id === community.attrs._id && 
+        (obj.role === "CREATOR" || obj.role === "LEADER")
+      );
+    });
   }
 });
 

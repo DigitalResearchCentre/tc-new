@@ -1,11 +1,11 @@
 <tc-splitter class="content" (resize)="onResize($event)">
   <tc-pane class="sidebar">
-    <tc-tabs *ngIf="community">
+    <tc-tabs *ngIf="state.community">
       <tc-tab [active]="true" title="Documents">
         <tc-tabs>
           <tc-tab [active]="true" title="By Page">
             <ul class="tree">
-              <li *ngFor="#doc of community.attrs.documents" 
+              <li *ngFor="#doc of state.community.attrs.documents" 
                 [class.collapse-node]="!doc.expand">
                 <div>
                   <span class="icon" aria-hidden="true"
@@ -34,7 +34,7 @@
           <tc-tab title="By Item">
             <div>world</div>
             <ul class="tree">
-              <li *ngFor="#entity of community.attrs.entities"
+              <li *ngFor="#entity of state.community.attrs.entities"
                 [class.collapse-node]="!entity.expand">
                 <div>
                   <span class="icon" aria-hidden="true"
@@ -59,7 +59,7 @@
     </tc-tabs>
   </tc-pane>
   <tc-pane class="viewer">
-    <tc-viewer *ngIf="page" [page]="page"></tc-viewer>
+    <tc-viewer *ngIf="state.page" [page]="state.page"></tc-viewer>
   </tc-pane>
 </tc-splitter>
 

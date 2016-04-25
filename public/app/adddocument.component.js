@@ -3,7 +3,6 @@ var URI = require('urijs')
   , Router = ng.router.Router
   , UIService = require('./services/ui')
   , DocService = require('./services/doc')
-  , AuthService = require('./services/auth')
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
@@ -16,8 +15,8 @@ var AddDocumentComponent = ng.core.Component({
     require('./directives/modaldraggable')
   ],
 }).Class({
-  constructor: [Router, DocService, AuthService, UIService, function(
-    router, docService, authService, uiService
+  constructor: [Router, DocService, UIService, function(
+    router, docService, uiService
   ) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();

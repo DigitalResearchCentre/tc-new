@@ -1,7 +1,6 @@
 var $ = require('jquery');
 var UIService = require('./services/ui')
   , CommunityService = require('./services/community')
-  , AuthService = require('./services/auth')
 /*  , TCMailer=require('./TCMailer')
   , TCAddresses=require('./TCMailer').addresses; */
 
@@ -18,8 +17,8 @@ var ViewMembersComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    CommunityService, AuthService, UIService, function(
-      communityService, authService, uiService
+    CommunityService, UIService, function(
+      communityService, uiService
     ) {
 //    var Doc = TCService.Doc, doc = new Doc();
     var self=this;
@@ -31,7 +30,6 @@ var ViewMembersComponent = ng.core.Component({
     this.community = uiService.community;
     this.communityService=communityService;
     this.uiService = uiService;
-    this.authUser = authService._authUser;
     this.communityService.getMemberships(this.community)
       .subscribe(function(members) {
         self.members=members;

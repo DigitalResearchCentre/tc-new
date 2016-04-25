@@ -11,7 +11,7 @@ const mongoose = require('mongoose')
 
 var CommunitySchema = new Schema({
   name: String,
-  abbr: String,
+  abbr: {type: String, unique: true},
   longName: String,
   description: String,
   fonts: [String],

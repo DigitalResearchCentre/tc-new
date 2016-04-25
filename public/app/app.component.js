@@ -4,6 +4,7 @@ var RouteParams = ng.router.RouteParams
   , HomeComponent = require('./home.component')
   , CommunityComponent = require('./community/community.component')
   , MemberProfileComponent = require('./memberprofile.component')
+  , CommunityService = require('./services/community')
 ;
 
 var AppComponent = ng.core.Component({
@@ -16,7 +17,11 @@ var AppComponent = ng.core.Component({
     require('./directives/filereader'),
   ],
 }).Class({
-  constructor: [function() {
+  constructor: [
+    AuthService, CommunityService,
+    function(authService, communityService) {
+    authService.refreshAuthUser();
+    communityService.refreshPublicCommunities();
   }],
 });
 ng.router.RouteConfig([{

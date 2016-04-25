@@ -3,7 +3,7 @@ var Observable = Rx.Observable
   , forwardRef = ng.core.forwardRef
   , EventEmitter = ng.core.EventEmitter
   , RESTService = require('./rest')
-  , AuthService = require('./auth')
+  , UIService = require('./ui')
   , Doc = require('../models/doc')
   , bson = require('bson')()
   , ObjectID = bson.ObjectID
@@ -234,20 +234,42 @@ function parseTEI(text) {
 
 var DocService = ng.core.Injectable().Class({
   extends: RESTService,
-  constructor: [Http, AuthService, function(http, authService){
+  constructor: [
+    Http, UIService,
+    function(http, uiService){
     var self = this;
     RESTService.call(this, http);
 
-    this._authService = authService;
+    this._uiService = uiService;
     this.resourceUrl = 'docs';
 
-    this.initEventEmitters();
   }],
   modelClass: function() {
     return Doc;
   },
-  initEventEmitters: function() {
-    var self = this;
+  selectDocument: function(doc) {
+    var uiService = this._uiService
+      , self = this
+    ;
+    if (doc && uiService.state.document !== doc) {
+      this.fetch(doc.getId(), {
+        populate: JSON.stringify('children'),
+      }).subscribe(function(doc) {
+        self.selectPage(_.get(doc, 'attrs.children.0', null));
+      });
+    }
+    uiService.setState('document', doc);
+  },
+  selectPage: function(page) {
+    var uiService = this._uiService
+      , self = this
+    ;
+    if (page && uiService.state.page !== page) {
+      this.getTextTree(page).subscribe(function(teiRoot) {
+        uiService.setState('tei', self.json2xml(teiRoot))
+      });
+    }
+    uiService.setState('page', page);
   },
   getTextTree: function(doc) {
     var url = this.url({
@@ -383,21 +405,5 @@ var DocService = ng.core.Injectable().Class({
   }
 });
 
-function _hidePb(teiRoot) {
-  var firstText = teiRoot
-    , parent, index
-  ;
-  while ((firstText.children || []).length > 0) {
-    index = _.findIndex(firstText.children, function(child) {
-      return !_.isString(child);
-    });
-    firstText.children = firstText.children.slice(index);
-    parent = firstText;
-    firstText = firstText.children[0];
-  }
-  if (parent) {
-    pb = parent.children.shift();
-  }
-  return teiRoot;
-}
+
 module.exports = DocService;

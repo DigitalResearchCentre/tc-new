@@ -1,10 +1,6 @@
 var $ = require('jquery');
 var UIService = require('./services/ui')
   , CommunityService = require('./services/community')
-  , AuthService = require('./services/auth')
-/*  , TCMailer=require('./TCMailer')
-  , TCAddresses=require('./TCMailer').addresses; */
-
 ;
 //require('jquery-ui/draggable');
 //require('jquery-ui/resizable');
@@ -19,8 +15,8 @@ var JoinCommunityComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    CommunityService, AuthService, UIService, function(
-      communityService, authService, uiService
+    CommunityService, UIService, function(
+      communityService, uiService
     ) {
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:""};
@@ -31,7 +27,6 @@ var JoinCommunityComponent = ng.core.Component({
     this.communityService=communityService;
     this.uiService = uiService;
     this.community = uiService.community;
-    this.authUser = authService._authUser;
     this.communityleader={email:"peter.robinson@usask.ca", name:"Peter Robinson"}
     }],
   ngOnInit: function() {

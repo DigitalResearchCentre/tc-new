@@ -4,7 +4,8 @@ var Observable = Rx.Observable
   , forwardRef = ng.core.forwardRef
   , EventEmitter = ng.core.EventEmitter
   , RESTService = require('./rest')
-  , AuthService = require('./auth')
+  , UIService = require('./ui')
+  , DocService = require('./doc')
   , Community = require('../models/community')
   , Doc = require('../models/doc')
   , User = require('../models/user')
@@ -13,40 +14,47 @@ var Observable = Rx.Observable
 var CommunityService = ng.core.Injectable().Class({
   extends: RESTService,
   constructor: [
-    Http, AuthService, function(http, authService){
-    var self = this;
+    Http, UIService, DocService,
+    function(http, uiService, docService){
     RESTService.call(this, http);
+    var self = this;
 
-    this._authService = authService;
     this.resourceUrl = 'communities';
-
-    this.initEventEmitters();
-    window.cscs = this;
+    this._uiService = uiService;
+    this._docService = docService;
   }],
   modelClass: function() {
     return Community;
   },
-  initEventEmitters: function() {
-    var self = this;
-    this.publicCommunities$ = this
-      .list({
-        search: {
-          find: JSON.stringify({public: true}),
-        },
-      })
-      .publishReplay(1).refCount();
-      this.allCommunities$ = this
-        .list({})
-        .publishReplay(1).refCount();
-      this._authService.authUser$.subscribe(function(authUser) {
-      self.authUser = authUser;
+  get: function(id) {
+    return new Community({_id: id});
+  },
+  refreshPublicCommunities: function() {
+    var uiService = this._uiService;
+    this.list({
+      search: {
+        find: JSON.stringify({public: true}),
+      },
+    }).subscribe(function(communities) {
+      uiService.setState('publicCommunities', communities);
     });
   },
-  get: function(id) {
-    return  new Community({_id: id});
-  },
-  selectCommunity: function(id) {
-    
+  selectCommunity: function(community) {
+    var uiService = this._uiService
+      , docService = this._docService
+    ;
+    if (_.isString(community)) {
+      community = this.get(community);
+    }
+    if (community && uiService.state.community !== community) {
+      this.fetch(community.getId(), {
+        populate: JSON.stringify('documents entities')
+      }).subscribe(function(community) {
+        uiService.setState('community', community);
+        docService.selectDocument(_.get(community, 'attrs.documents.0', null));
+      });
+    }
+    uiService.setState('community', community);
   },
   getMemberships: function(community) {
     var self = this;
@@ -58,6 +66,37 @@ var CommunityService = ng.core.Injectable().Class({
     ).map(function(res) {
       return res.json();
     });
+  },
+  _isRole: function(community, user, fn) {
+    var memberships = _.get(user, 'attrs.memberships');
+    return _.find(memberships, function (obj){
+      return obj.community === community && fn(obj);
+    });
+  },
+  isCreator: function(community, user) {
+    return this._isRole(community, user, function(obj) {
+      return obj.role === 'CREATOR';
+    });
+  },
+  isLeader: function(community, user) {
+    return this._isRole(community, user, function(obj) {
+      return obj.role === 'LEADER';
+    });
+  },
+  isMember: function(community, user) {
+    return this._isRole(community, user, function(obj) {
+      return obj.role === 'MEMBER';
+    });
+  },
+  canAddDocument: function(community, user) {
+    return this._isRole(community, user, function(obj) {
+      return ['LEADER', 'CREATOR'].indexOf(obj.role);
+    })
+  },
+  canJoin: function(community, user) {
+    return user && !this._isRole(community, user, function(obj) {
+      return true;
+    }) && _.get(community, 'attrs.accept', false);
   },
   addDocument: function(community, doc) {
     var self = this;
@@ -87,19 +126,6 @@ var CommunityService = ng.core.Injectable().Class({
     ).map(function(res) {
       return new User(res.json());
     });
-  },
-  create: function(data, options) {
-    var authUser = this.authUser
-      , authService = this._authService
-    ;
-    if (!authUser) {
-      return Rx.Observable.throw(new Error('login required'));
-    }
-    data.user = authUser.getId();
-    return RESTService.prototype.create.call(this, data, options)
-      .do(function() {
-        authService.refresh();
-      });
   },
 });
 

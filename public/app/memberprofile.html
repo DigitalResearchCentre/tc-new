@@ -42,7 +42,7 @@
           <th style="border-bottom-width:0px" class="col-md-1">&nbsp;</th></tr>
       </thead>
       <tbody>
-        <tr *ngFor="#community of joinableCommunities"
+        <tr *ngFor="#community of joinableCommunities()"
           class="commMembership">
           <td style="border-top-width:0px">{{community.attrs.name}}</td>
           <td  style="border-top-width:0px">{{community.attrs.longName}}</td>

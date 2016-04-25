@@ -18,6 +18,5 @@ module.exports = _.inherit(Error, function() {
       cls.apply(this, arguments);
       this.name = name;
     });
-    
   }
 });

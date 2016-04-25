@@ -8,9 +8,6 @@ var ViewComponent = ng.core.Component({
   selector: 'tc-community-view',
   templateUrl: '/app/community/view.html',
   styleUrls: ['/app/community/view.css'],
-  inputs: [
-    'community',
-  ],
   directives: [
     require('../directives/tabs').TAB_DIRECTIVES,
     require('../directives/splitter').SPLITTER_DIRECTIVES,
@@ -27,13 +24,8 @@ var ViewComponent = ng.core.Component({
     this._uiService = uiService;
     this._communityService = communityService;
     this._docService = docService;
+    this.state = uiService.state;
   }],
-  ngOnInit: function() {
-    var self = this
-      , community = this.community
-    ;
-    console.log(community);
-  },
   onResize: function($event) {
     if (this.viewer) {
       this.viewer.onResize();
@@ -48,11 +40,10 @@ var ViewComponent = ng.core.Component({
     console.log(doc);
   },
   selectDoc: function(doc) {
-    this._uiService.setDocument(doc);
+    this._docService.selectDoc(doc);
   },
   selectPage: function(page) {
-    this.page = page;
-    this._uiService.selectPage(page);
+    this._docService.selectPage(page);
   },
   addFirstPage: function(doc) {
     this._uiService.manageModal$.emit({

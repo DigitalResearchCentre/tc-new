@@ -3,7 +3,6 @@ var $ = require('jquery')
   , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
   , DocService = require('./services/doc')
-  , AuthService = require('./services/auth')
   , Dropzone = require('dropzone')
   , ElementRef = ng.core.ElementRef
   , config = require('./config')
@@ -24,9 +23,9 @@ var AddPageComponent = ng.core.Component({
   ]
 }).Class({
   constructor: [
-    Router, CommunityService, AuthService, UIService, DocService, ElementRef,
+    Router, CommunityService, UIService, DocService, ElementRef,
   function(
-    router, communityService, authService, uiService, docService, elementRef
+    router, communityService, uiService, docService, elementRef
   ) {
     this._docService = docService;
     this._router = router;
