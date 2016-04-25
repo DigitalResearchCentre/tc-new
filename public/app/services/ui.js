@@ -47,13 +47,14 @@ var UIService = ng.core.Class({
   createDocument: function(doc) {
     console.log(doc);
     var state = this.state;
-    state.document = doc;
     if (_.isEmpty(doc.attrs.ancestors)) {
+      state.document = doc;
       this.communityService$.emit({
         type: 'refreshCommunity',
         payload: state.community,
       });
     } else {
+      state.page = doc;
       this.docService$.emit({
         type: 'refreshDocument',
         payload: state.document,
