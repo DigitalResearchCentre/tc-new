@@ -42,6 +42,9 @@ var ManageModalComponent = ng.core.Component({
         self.choice = event.type;
         self.docParent = event.parent;
         self.docAfter = event.after;
+      } else if (event.type === 'edit-new-page') {
+        self.choice = event.type;
+        self.page = event.page;
       } else if (event.type === 'message-login') {
         self.choice = event.type;
         self.community = event.community;

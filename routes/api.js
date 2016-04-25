@@ -324,7 +324,6 @@ router.post('/sendmail', function(req, res, next) {
 
 router.post('/validate', function(req, res, next) {
   var xmlDoc, errors;
-  console.log('in validate2');
   Community.findOne({_id: req.query.id}, function(err, community) {
     if (err) return next(err);
     let dtdPath = community.getDTDPath();

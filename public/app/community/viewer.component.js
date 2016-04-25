@@ -131,7 +131,7 @@ var ViewerComponent = ng.core.Component({
   preview: function() {
     //parse first!
     var self=this;
-    $.post(config.BACKEND_URL+'validate', {
+    $.post(config.BACKEND_URL+'validate'+'id='+this.community.attrs._id, {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+this.page.contentText+"</TEI>",
     }, function(res) {
 //      console.log(res);
