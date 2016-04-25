@@ -18,6 +18,12 @@ var AuthService = ng.core.Class({
 
     this._uiService = uiService;
     this._communityService = communityService;
+
+    uiService.authService$.subscribe(function(event) {
+      if (event.type === 'refreshAuthUser') {
+        self.refreshAuthUser().subscribe();
+      }
+    })
   }],
   modelClass: function() {
     return User;

@@ -10,8 +10,8 @@ var UIService = ng.core.Class({
       document: null,
       page: null,
       publicCommunities: [],
-      myCommunities: [],
     };
+    this.authService$ = new EventEmitter();
     this.loginModel$ = new EventEmitter();
     this.manageModal$ = new EventEmitter();
     this.newPage$ = new EventEmitter();
@@ -36,7 +36,9 @@ var UIService = ng.core.Class({
     if (community.attrs.public) {
       state.publicCommunities.push(community);
     }
-    state.myCommunities.push(community);
+    this.authService$.emit({
+      type: 'refreshAuthUser',
+    });
   },
 });
 

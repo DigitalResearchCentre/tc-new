@@ -42,8 +42,6 @@ var HeaderComponent = ng.core.Component({
     return _.get(this.state.authUser, 'attrs.memberships', []);
   },
   showCreateOrJoin: function() {
-    console.log("auth "+this.isAuthenticated());
-    console.log("memberships "+_.isEmpty(this.getMemberships()));
     return this.isAuthenticated() && _.isEmpty(this.getMemberships());
   },
   createNotChosenF: function() {
