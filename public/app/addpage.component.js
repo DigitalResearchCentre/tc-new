@@ -38,6 +38,7 @@ var AddPageComponent = ng.core.Component({
     this.pageName="";
     this.imageUrl = '';
     this.images = [];
+    this.state = uiService.state;
   }],
   ngOnInit: function() {
     var el = this._elementRef.nativeElement
@@ -78,8 +79,9 @@ var AddPageComponent = ng.core.Component({
   },
   addPage: function() {
     var self = this
-      , uiService = this.uiService
+      , docService = this._docService
       , router = this._router
+      , state = this.state
     ;
     var options = {};
     if (this.parent) {
@@ -87,7 +89,7 @@ var AddPageComponent = ng.core.Component({
     } else if (this.after) {
       options.after = this.after;
     }
-    this._docService.commit({
+    docService.commit({
       doc: {
         name: this.pageName,
         image: _.last(this.images),
@@ -96,20 +98,19 @@ var AddPageComponent = ng.core.Component({
       },
     }, options).subscribe(function(page) {
       self.page = page;
-      uiService.selectPage(page);
+      docService.selectPage(page);
       router.navigate(['Community', {
-        id: uiService.community.getId(), route: 'view'
+        id: state.community.getId(), route: 'view'
       }]);
       self.success="Page "+self.pageName+" added";
       self.isCancel=true;
       self.isAdd=false;
       self.pageName="";
-      uiService.setDocument(uiService.document);
     });
   },
   submit: function() {
     var self = this
-      , uiService = this.uiService
+      , state = this.state
       , router = this._router
       , dropzone = this.dropzone
     ;
@@ -119,7 +120,7 @@ var AddPageComponent = ng.core.Component({
         return;
       } else {
         this.message="";
-        var matchedpage=uiService.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
+        var matchedpage= state.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
         if (matchedpage) {
           this.message="There is already a page "+this.pageName;
           return;

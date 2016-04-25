@@ -243,18 +243,28 @@ var DocService = ng.core.Injectable().Class({
     this._uiService = uiService;
     this.resourceUrl = 'docs';
 
+    uiService.docService$.subscribe(function(event) {
+      switch (event.type) {
+        case 'refreshDocument':
+          self.refreshDocument(event.payload).subscribe();
+          break;
+      }
+    });
   }],
   modelClass: function() {
     return Doc;
+  },
+  refreshDocument: function(doc) {
+    return this.fetch(doc.getId(), {
+      populate: JSON.stringify('children'),
+    });   
   },
   selectDocument: function(doc) {
     var uiService = this._uiService
       , self = this
     ;
     if (doc && uiService.state.document !== doc) {
-      this.fetch(doc.getId(), {
-        populate: JSON.stringify('children'),
-      }).subscribe(function(doc) {
+      self.refreshDocument(doc).subscribe(function(doc) {
         self.selectPage(_.get(doc, 'attrs.children.0', null));
       });
     }
@@ -327,7 +337,8 @@ var DocService = ng.core.Injectable().Class({
   },
   json2xml: json2xml,
   commit: function(data, opts, callback) {
-    var docRoot = _.defaults(data.doc, {children: []})
+    var self = this
+      , docRoot = _.defaults(data.doc, {children: []})
       , text = data.text
       , teiRoot = {}
     ;
@@ -391,16 +402,21 @@ var DocService = ng.core.Injectable().Class({
       });
     }
 
+    console.log(docRoot._id);
     if (docRoot._id) {
       return this.update(docRoot._id, {
         tei: teiRoot,
         doc: docRoot,
+      }).map(function(doc) {
+        self.selectDocument(doc);
       });
     } else {
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
-      }));
+      })).map(function(doc) {
+        self._uiService.createDocument(doc);
+      });
     }
   }
 });

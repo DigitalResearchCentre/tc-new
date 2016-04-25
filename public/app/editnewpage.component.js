@@ -28,6 +28,7 @@ var EditNewPageComponent = ng.core.Component({
     $('#manageModal').height("600px");
     this.message=this.success="";
     this.choice="Prose";
+    this.state = uiService.state;
   }],
   submit: function() {
     var newPage=$("#NewDoc").text();

@@ -1,5 +1,5 @@
-<div *ngIf="uiService.community">
-  <div id="ENPhead" modal-draggable class="modalHeader">New text in page "{{page.attrs.name}}" in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
+<div *ngIf="state.community">
+  <div id="ENPhead" modal-draggable class="modalHeader">New text in page "{{page.attrs.name}}" in document "{{state.document.attrs.name}}" for Community "{{state.community.attrs.name}}"
 <button type="button" (click)="closeModalNP()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;

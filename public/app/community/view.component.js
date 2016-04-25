@@ -40,7 +40,7 @@ var ViewComponent = ng.core.Component({
     console.log(doc);
   },
   selectDoc: function(doc) {
-    this._docService.selectDoc(doc);
+    this._docService.selectDocument(doc);
   },
   selectPage: function(page) {
     this._docService.selectPage(page);

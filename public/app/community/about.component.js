@@ -1,4 +1,4 @@
-var CommunityService = require('../services/community');
+var UIService = require('../services/ui');
 
 var CommunityAboutComponent = ng.core.Component({
   selector: 'tc-community-about',
@@ -7,13 +7,9 @@ var CommunityAboutComponent = ng.core.Component({
     'community',
   ],
 }).Class({
-  constructor: [CommunityService, function(communityService) {
-    this._communityService = communityService;
+  constructor: [UIService, function(uiService) {
+    this.state = uiService.state;
   }],
-  ngOnInit: function() {
-    console.log(this.community);
-    //this._communityService.fetchCommunityStatus(this.community);
-  }
 });
 
 module.exports = CommunityAboutComponent;

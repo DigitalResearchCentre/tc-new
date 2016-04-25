@@ -1,5 +1,5 @@
-<div *ngIf="uiService.community">
-  <div modal-draggable class="modalHeader">Add Empty Document to Community "{{uiService.community.attrs.name}}"
+<div *ngIf="state.community">
+  <div modal-draggable class="modalHeader">Add Empty Document to Community "{{state.community.attrs.name}}"
     <button type="button" (click)="closeModalAD()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;

@@ -29,30 +29,33 @@ var AddDocumentComponent = ng.core.Component({
     this._docService = docService;
     this._router = router;
     /*this for scope variables */
+    this.state = uiService.state;
   }],
   submit: function() {
     var self = this
       , uiService = this.uiService
+      , docService = this._docService
+      , community = this.state.community
     ;
     if (this.doc.name === undefined || this.doc.name.trim() === "" ) {
       this.message = 'The document must have a name';
       $('#MMADdiv').css("margin-top", "0px");
       $('#MMADbutton').css("margin-top", "10px");
-    } else if (self.alreadyDoc(uiService.community, self.doc.name.trim())){
+    } else if (self.alreadyDoc(community, self.doc.name.trim())){
         self.message='Document "'+self.doc.name+' "already exists';
         return;
     } else {
         this._docService.commit({
           doc: this.doc,
         }, {
-          community: uiService.community.getId(),
+          community: community.getId(),
         }).subscribe(function(doc) {
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
           //tell the system we have this document as current
-          uiService.setDocument(doc);
+          docService.selectDocument(doc);
           self._router.navigate(['Community', {
-            id: uiService.community.getId(), route: 'view'
+            id: community.getId(), route: 'view'
           }]);
           self.closeModalAD();
         }, function(err) {

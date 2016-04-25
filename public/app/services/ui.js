@@ -12,6 +12,8 @@ var UIService = ng.core.Class({
       publicCommunities: [],
     };
     this.authService$ = new EventEmitter();
+    this.communityService$ = new EventEmitter();
+    this.docService$ = new EventEmitter();
     this.loginModel$ = new EventEmitter();
     this.manageModal$ = new EventEmitter();
     this.newPage$ = new EventEmitter();
@@ -40,6 +42,21 @@ var UIService = ng.core.Class({
       type: 'refreshAuthUser',
     });
   },
+  createDocument: function(doc) {
+    var state = this.state;
+    state.document = doc;
+    if (_.isEmpty(doc.attrs.ancestors)) {
+      this.communityService$.emit({
+        type: 'refreshCommunity',
+        payload: state.community,
+      });
+    } else {
+      this.docService$.emit({
+        type: 'refreshDocument',
+        payload: state.document,
+      });
+    }
+  }
 });
 
 module.exports = UIService;

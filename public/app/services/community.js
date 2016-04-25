@@ -22,6 +22,14 @@ var CommunityService = ng.core.Injectable().Class({
     this.resourceUrl = 'communities';
     this._uiService = uiService;
     this._docService = docService;
+
+    uiService.communityService$.subscribe(function(event) {
+      switch (event.type) {
+        case 'refreshCommunity':
+          self.refreshCommunity(event.payload).subscribe();
+          break;
+      }
+    });
   }],
   modelClass: function() {
     return Community;
@@ -40,6 +48,11 @@ var CommunityService = ng.core.Injectable().Class({
       return communities;
     });
   },
+  refreshCommunity: function(community) {
+    return this.fetch(community.getId(), {
+      populate: JSON.stringify('documents entities')
+    });
+  },
   selectCommunity: function(community) {
     var uiService = this._uiService
       , docService = this._docService
@@ -47,10 +60,8 @@ var CommunityService = ng.core.Injectable().Class({
     if (_.isString(community)) {
       community = this.get(community);
     }
-    if (community && uiService.state.community !== community) {
-      this.fetch(community.getId(), {
-        populate: JSON.stringify('documents entities')
-      }).subscribe(function(community) {
+    if (community && (uiService.state.community !== community)) {
+      this.refreshCommunity(community).subscribe(function(community) {
         uiService.setState('community', community);
         docService.selectDocument(_.get(community, 'attrs.documents.0', null));
       });
