@@ -61,6 +61,7 @@ var CommunityService = ng.core.Injectable().Class({
     var uiService = this._uiService;
     return this.save(communityData).map(function(community) {
       uiService.createCommunity(community);
+      return community;
     });
   },
   getMemberships: function(community) {

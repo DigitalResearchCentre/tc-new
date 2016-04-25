@@ -125,7 +125,7 @@ var EditCommunityComponent = ng.core.Component({
       , self=this
     ;
     this.message=this.success="";
-    communityService.createCommunity(this.edit).subscribe(function() {
+    communityService.createCommunity(this.edit).subscribe(function(community) {
       console.log('success');
       self.success='Community "'+self.edit.name+'" saved';
       if ($('#PreviewImg')) $('#PreviewImg').remove();

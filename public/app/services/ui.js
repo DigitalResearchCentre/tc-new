@@ -10,6 +10,7 @@ var UIService = ng.core.Class({
       document: null,
       page: null,
       publicCommunities: [],
+      myCommunities: [],
     };
     this.loginModel$ = new EventEmitter();
     this.manageModal$ = new EventEmitter();
@@ -30,8 +31,12 @@ var UIService = ng.core.Class({
     }
   },
   createCommunity: function(community) {
-    this.setState('community', community);
-    this.publicCommunities.push(community);
+    var state = this.state;
+    state.community = community;
+    if (community.attrs.public) {
+      state.publicCommunities.push(community);
+    }
+    state.myCommunities.push(community);
   },
 });
 

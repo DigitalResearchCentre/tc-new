@@ -35,8 +35,14 @@ var AuthService = ng.core.Class({
         if (authUser) {
           var memberships = _.get(authUser, 'attrs.memberships', []);
           if (memberships.length === 1) {
-            communityService.setCommunity(_.get(memberships, '0.community'));
+            communityService.selectCommunity(_.get(memberships, '0.community'));
           }
+          uiService.setState(
+            'myCommunities', 
+            _.map(memberships, function(membership) {
+              return membership.community;
+            })
+          );
         }
         uiService.setState('authUser', authUser);
       }
