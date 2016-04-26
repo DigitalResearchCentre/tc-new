@@ -5,18 +5,18 @@
   <tc-pane class="text-viewer">
     <div class="transcript-header">
       <select (change)="revisionChange($event)">
-        <option [value]="0">database revision</option>
-        <option *ngFor="#revision of page.attrs.revisions; #i = index"
-          [value]="i+1">
-          {{revision.attrs.created}}
+        <option *ngFor="#revision of revisions"
+          [value]="revision.getId()">
+          {{revision.attrs.user.local.name}}
+          {{revision.attrs.created}} ({{revision.attrs.status}})
         </option>
       </select>
       <label>Compare With: </label>
       <select (change)="revisionCompareChange($event)">
-        <option [value]="0">database revision</option>
-        <option *ngFor="#revision of page.attrs.revisions; #i = index"
-          [value]="i+1">
-          {{revision.attrs.created}}
+        <option *ngFor="#revision of revisions"
+          [value]="revision.getId()">
+          {{revision.attrs.user.local.name}}
+          {{revision.attrs.created}} ({{revision.attrs.status}})
         </option>
       </select>
     </div>

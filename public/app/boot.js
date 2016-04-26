@@ -10,11 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
   ng.platform.browser.bootstrap(AppComponent, [
     ng.http.HTTP_PROVIDERS,
     ng.router.ROUTER_PROVIDERS,
-    require('./services/ui'),
+    require('./services/rest'),
     require('./services/auth'),
     require('./services/community'),
     require('./services/doc'),
-    require('./services/rest'),
+    require('./services/revision'),
+    require('./services/ui'),
   ]).catch(function(err) {
     console.error(err);
   });

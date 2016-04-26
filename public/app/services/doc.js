@@ -2,9 +2,10 @@ var Observable = Rx.Observable
   , Http = ng.http.Http
   , forwardRef = ng.core.forwardRef
   , EventEmitter = ng.core.EventEmitter
+  , Doc = require('../models/doc')
   , RESTService = require('./rest')
   , UIService = require('./ui')
-  , Doc = require('../models/doc')
+  , RevisionService = require('./revision')
   , bson = require('bson')()
   , ObjectID = bson.ObjectID
 ;
@@ -235,12 +236,13 @@ function parseTEI(text) {
 var DocService = ng.core.Injectable().Class({
   extends: RESTService,
   constructor: [
-    Http, UIService,
-    function(http, uiService){
+    Http, UIService, RevisionService,
+    function(http, uiService, revisionService){
     var self = this;
     RESTService.call(this, http);
 
     this._uiService = uiService;
+    this._revisionService = revisionService;
     this.resourceUrl = 'docs';
 
     uiService.docService$.subscribe(function(event) {
@@ -274,11 +276,6 @@ var DocService = ng.core.Injectable().Class({
     var uiService = this._uiService
       , self = this
     ;
-    if (page && uiService.state.page !== page) {
-      this.getTextTree(page).subscribe(function(teiRoot) {
-        uiService.setState('tei', self.json2xml(teiRoot))
-      });
-    }
     uiService.setState('page', page);
   },
   getTextTree: function(doc) {
@@ -322,18 +319,15 @@ var DocService = ng.core.Injectable().Class({
     ;
   },
   getRevisions: function(doc) {
-    var url = this.url({
-      id: doc.getId(),
-      func: 'revisions',
+    return this._revisionService.list({
+      search: {
+        doc: doc.getId(),
+        populate: JSON.stringify('user'),
+      },
     });
-    return this.http.get(url, this.prepareOptions({}))
-      .map(function(res) {
-        if (!res._body) {
-          return {};
-        }
-        return res.json();
-      })
-    ;
+  },
+  addRevision: function(revisionData) {
+    return this._revisionService.create(revisionData);
   },
   json2xml: json2xml,
   commit: function(data, opts, callback) {
@@ -342,8 +336,6 @@ var DocService = ng.core.Injectable().Class({
       , text = data.text
       , teiRoot = {}
     ;
-    console.log(data.doc);
-    console.log(docRoot);
     if (text) {
       var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
@@ -425,6 +417,5 @@ var DocService = ng.core.Injectable().Class({
     }
   }
 });
-
 
 module.exports = DocService;

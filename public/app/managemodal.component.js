@@ -36,7 +36,6 @@ var ManageModalComponent = ng.core.Component({
     var self = this;
     this._uiService.manageModal$.subscribe(function(event) {
       // 'add-document' || 'add-document-page' || 'add-xml-document' || 'edit-new-page' || 'extract-xml-doc'
-      console.log(event);
       self.choice = event || 'add-document';
       if (event.type === 'add-document-page') {
         self.choice = event.type;

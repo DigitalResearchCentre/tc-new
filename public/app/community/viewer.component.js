@@ -77,17 +77,29 @@ var ViewerComponent = ng.core.Component({
       , self = this
     ;
     if (page) {
+      docService.getRevisions(page).subscribe(function(revisions) {
+        self.revisions = revisions;
+        if (_.isEmpty(revisions)) {
+          docService.getTextTree(page).subscribe(function(teiRoot) {
+            var dbRevision = self.json2xml(teiRoot);
+            docService.addRevision({
+              doc: page.getId(),
+              text: dbRevision,
+              committed: new Date(),
+              status: 'COMMITTED',
+            }).subscribe(function(revision) {
+              self.revisions.shift(revision);
+            });
+            self.setContentText(dbRevision);
+          });
+        } else {
+          self.setContentText(_.get(revisions, '0.attrs.text', ''));
+        }
+      });
+
       if (image && image != this.image) {
         this.onPageChange();
       }
-      docService.page=page;
-      docService.getTextTree(this.page).subscribe(function(teiRoot) {
-        self.dbText = docService.json2xml(teiRoot);
-        self.setContentText(self.dbText);
-      });
-      docService.getRevisions(this.page).subscribe(function(revisions) {
-        self.revisions = revisions;
-      });
     }
   },
   setContentText: function(contentText) {
@@ -103,14 +115,13 @@ var ViewerComponent = ng.core.Component({
     return this._docService.json2xml(data);
   },
   revisionChange: function($event) {
-    var index = $event.target.value
+    var id = $event.target.value
       , revisions = this.revisions
     ;
-    if (index === 0) {
-      this.setContentText(this.dbText);
-    } else {
-      this.setContentText(revisions[index-1].attrs.text);
-    }
+    var revision = _.find(revisions, function(revision) {
+      return revision._id === id;
+    });
+    this.setContentText(_.get(revision, 'attrs.text', ''));
   },
   revisionCompareChange: function($event) {
     var revision = this.revisions[$event.target.value];
@@ -119,28 +130,31 @@ var ViewerComponent = ng.core.Component({
   save: function() {
     var page = this.page
       , docService = this._docService
+      , self = this
     ;
-    docService.update(page.getId(), {
-      revision: this.page.contentText,
-    }).subscribe(function() {
-      docService.fetch(page.getId(), {
-        populate: JSON.stringify('revisions'),
-      }).subscribe();
+    docService.addRevision({
+      doc: page.getId(),
+      text: page.contentText,
+      status: 'IN_PROGRESS',
+    }).subscribe(function(revision) {
+      self.revisions.shift(revision);
     });
   },
   preview: function() {
     //parse first!
-    var self=this;
+    var self = this
+      , page = this.page
+    ;
     $.post(config.BACKEND_URL+'validate'+'id='+this.community.attrs._id, {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+this.page.contentText+"</TEI>",
     }, function(res) {
 //      console.log(res);
       self._uiService.manageModal$.emit({
           type: 'preview-page',
-          page: self.page,
+          page: page,
           error: res.error,
-          content: self.page.contentText,
-          lines: self.page.contentText.split("\n")
+          content: page.contentText,
+          lines: page.contentText.split("\n")
         });
     });
   },
@@ -153,7 +167,7 @@ var ViewerComponent = ng.core.Component({
         label: page.attrs.label,
         name: page.attrs.name,
       },
-      text: this.page.contentText,
+      text: page.contentText,
     }).subscribe(function(res) {
       docService.fetch(page.getId(), {
         populate: JSON.stringify('revisions'),

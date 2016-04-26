@@ -110,6 +110,21 @@ router.put('/communities/:id/add-member', function(req, res, next) {
   });
 });
 
+var RevisionResource = _.inherit(Resource, function(opts) {
+  Resource.call(this, Revision, opts);
+}, {
+  beforeCreate: function(req, res, next) {
+    var obj = new this.model(req.body);
+    obj.user = req.user;
+    return function(cb) {
+      return cb(null, obj);
+    };
+  },
+});
+var revisionResource = new RevisionResource({id: 'revision'});
+revisionResource.serve(router, 'revisions');
+
+
 
 var EntityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Entity, opts);

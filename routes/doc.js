@@ -147,11 +147,6 @@ router.get('/:id/texts', function(req, res, next) {
 });
 
 
-router.get('/:id/revisions', function(req, res, next) {
-  res.json([]);
-});
-
-
 router.get('/:id/links', function(req, res, next) {
   var docId = req.params.id;
   Doc.getOutterBoundTexts(docId, function(err, leftBound, rightBound) {
