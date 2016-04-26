@@ -10,30 +10,29 @@ var ManageCommunityComponent = ng.core.Component({
   directives: [
   ],
 }).Class({
-  constructor: [UIService, function(uiService) {
+  constructor: [UIService, CommunityService, function(
+    uiService, communityService
+  ) {
     this._uiService = uiService;
+    this._communityService = communityService;
+    this.state = uiService.state;
   }],
   loadModal: function(which) {
-    if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "css"});
-    else if (which=='uploadjs-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "js"});
-    else if (which=='uploaddtd-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "dtd"});
-    else if (which=='add-xml-document') this._uiService.manageModal$.emit({type: "add-xml-document", community: this.community});
+    var community = this.state;
+    if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: community, filetype: "css"});
+    else if (which=='uploadjs-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: community, filetype: "js"});
+    else if (which=='uploaddtd-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: community, filetype: "dtd"});
+    else if (which=='add-xml-document') this._uiService.manageModal$.emit({type: "add-xml-document", community: community});
     else this._uiService.manageModal$.emit(which);
   },
   isLeader: function() {
-    var memberships = _.get(this._uiService.state, 'authUser.attrs.memberships');
-    var community = _.get(this._uiService.state, 'community');
-    return _.find(memberships, function (obj){
-      return obj.community === community && obj.role === "LEADER";
-    });
+    var state = this.state;
+    return this._communityService.isLeader(state.community, state.authUser);
   },
   isCreator: function(){
-    var memberships = _.get(this._uiService.state, 'authUser.attrs.memberships');
-    var community = _.get(this._uiService.state, 'community');
-    return _.find(memberships, function (obj){
-      return obj.community === community && obj.role === "CREATOR";
-    });
-   },
+    var state = this.state;
+    return this._communityService.isCreator(state.community, state.authUser);
+  },
 });
 
 module.exports = ManageCommunityComponent;

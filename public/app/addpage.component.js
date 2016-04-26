@@ -70,7 +70,7 @@ var AddPageComponent = ng.core.Component({
   },
   showSingle: function() {
     this.oneormany="OnePage";
-},
+  },
   showMany: function(){
     this.oneormany="ManyPages";
   },
@@ -98,7 +98,6 @@ var AddPageComponent = ng.core.Component({
       },
     }, options).subscribe(function(page) {
       self.page = page;
-      docService.selectPage(page);
       router.navigate(['Community', {
         id: state.community.getId(), route: 'view'
       }]);

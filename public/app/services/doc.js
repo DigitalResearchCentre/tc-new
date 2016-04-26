@@ -403,13 +403,19 @@ var DocService = ng.core.Injectable().Class({
     }
 
     if (docRoot._id) {
+      console.log('update');
       return this.update(docRoot._id, {
         tei: teiRoot,
         doc: docRoot,
       }).map(function(doc) {
-        self.selectDocument(doc);
+        if (_.isEmpty(doc.ancestors)) {
+          self.selectDocument(doc);
+        } else {
+          self.selectPage(doc);
+        }
       });
     } else {
+      console.log('create');
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
