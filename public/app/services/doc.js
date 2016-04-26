@@ -402,7 +402,6 @@ var DocService = ng.core.Injectable().Class({
       });
     }
 
-    console.log(docRoot._id);
     if (docRoot._id) {
       return this.update(docRoot._id, {
         tei: teiRoot,
