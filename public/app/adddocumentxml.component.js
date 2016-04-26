@@ -12,7 +12,6 @@ var URI = require('urijs')
 var AddDocumentXMLComponent = ng.core.Component({
   selector: 'tc-managemodal-adddocument-xml',
   templateUrl: '/app/adddocumentxml.html',
-  inputs: ['community',],
   directives: [
     require('./directives/modaldraggable'),
     require('./directives/filereader'),
@@ -37,6 +36,7 @@ var AddDocumentXMLComponent = ng.core.Component({
     this.doc = {name:"", text:""};
     /*this for scope variables */
     this.filecontent = '';
+    this.state=uiService.state;
   }],
   filechange: function(filecontent) {
     this.filecontent = filecontent;
@@ -59,7 +59,7 @@ var AddDocumentXMLComponent = ng.core.Component({
     }
     this.doc.label = 'text';
     //parse first...
-    $.post(config.BACKEND_URL+'validate?'+'id='+this.community.attrs._id, {
+    $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+text+"</TEI>",
     }, function(res) {
       if (res.error.length>0) {
@@ -76,7 +76,7 @@ var AddDocumentXMLComponent = ng.core.Component({
           doc: self.doc,
           text: text,
         }, {
-          community: self.uiService.community.getId(),
+          community: self.state.community.getId(),
         }).subscribe(function(res) {
           self.success="XML document "+self.doc.name+" loaded successfully";
     //        self.closeModalADX();

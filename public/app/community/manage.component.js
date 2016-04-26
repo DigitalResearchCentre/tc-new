@@ -18,11 +18,10 @@ var ManageCommunityComponent = ng.core.Component({
     this.state = uiService.state;
   }],
   loadModal: function(which) {
-    var community = this.state;
-    if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: community, filetype: "css"});
-    else if (which=='uploadjs-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: community, filetype: "js"});
-    else if (which=='uploaddtd-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: community, filetype: "dtd"});
-    else if (which=='add-xml-document') this._uiService.manageModal$.emit({type: "add-xml-document", community: community});
+    if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "css"});
+    else if (which=='uploadjs-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "js"});
+    else if (which=='uploaddtd-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "dtd"});
+    else if (which=='add-xml-document') this._uiService.manageModal$.emit({type: "add-xml-document", community: this.community});
     else this._uiService.manageModal$.emit(which);
   },
   isLeader: function() {
