@@ -18,6 +18,7 @@ var ExtractXMLDocComponent = ng.core.Component({
     this.uiService.sendXMLData$.subscribe(function(xmldata) {
       self.outputXML=xmldata;
     });
+    this.state = uiService.state;
   }],
   closeModalEXD: function() {
     this.message=this.success="";
