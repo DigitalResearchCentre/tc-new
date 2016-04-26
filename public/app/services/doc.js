@@ -265,6 +265,9 @@ var DocService = ng.core.Injectable().Class({
     var uiService = this._uiService
       , self = this
     ;
+    if (doc) {
+      doc.expand = true;
+    }
     if (doc && uiService.state.document !== doc) {
       self.refreshDocument(doc).subscribe(function(doc) {
         self.selectPage(_.get(doc, 'attrs.children.0', null));
@@ -275,7 +278,11 @@ var DocService = ng.core.Injectable().Class({
   selectPage: function(page) {
     var uiService = this._uiService
       , self = this
+      , doc = new Doc({_id: _.get(page, 'attrs.ancestors.0')})
     ;
+    if (uiService.state.document !== doc) {
+      this.selectDocument(doc);
+    }
     uiService.setState('page', page);
   },
   getTextTree: function(doc) {

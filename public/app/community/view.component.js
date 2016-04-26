@@ -33,11 +33,9 @@ var ViewComponent = ng.core.Component({
   },
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;
-    this._docService.fetch(doc.getId(), {
-      populate: JSON.stringify('children')
-    }).subscribe();
-    this.selectDoc(doc);
-    console.log(doc);
+    if (doc.expand) {
+      this._docService.selectDocument(doc);
+    }
   },
   selectDoc: function(doc) {
     this._docService.selectDocument(doc);
