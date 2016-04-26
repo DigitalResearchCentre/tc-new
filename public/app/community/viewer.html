@@ -20,7 +20,9 @@
         </option>
       </select>
     </div>
-    <tc-codemirror class="transcript" [(content)]="page.contentText">
+    <tc-codemirror class="transcript" 
+      [smartIndent]="smartIndent"
+      [(content)]="page.contentText">
     </tc-codemirror>
     <div class="buttons" *ngIf="page">
       <button type="button" class="btn btn-default btn-xs"

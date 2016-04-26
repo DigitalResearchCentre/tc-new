@@ -4,6 +4,7 @@ var mongoose = require('mongoose')
   , Schema = mongoose.Schema
   , ObjectId = mongoose.Types.ObjectId
   , extendNodeSchema = require('./extend-node-schema')
+  , libxml = require('libxmljs')
   , Error = require('../common/error')
   , TEI = require('./tei')
 ;
@@ -15,6 +16,7 @@ var DocSchema = extendNodeSchema('Doc', {
   label: String,
   header: String,
   image: Schema.Types.ObjectId,
+  meta: Schema.Types.Mixed,
 }, {
   methods: {
     _commit: function(teiRoot, docRoot, leftBound, rightBound, callback) {
@@ -185,6 +187,7 @@ var DocSchema = extendNodeSchema('Doc', {
       var self = this
         , teiRoot = data.tei || {}
         , docRoot = _.defaults(data.doc, self.toObject()) 
+        , revision = data.revision
       ;
       async.waterfall([
         function(cb) {
@@ -202,7 +205,9 @@ var DocSchema = extendNodeSchema('Doc', {
               });
             });
           }
-          self._commit(teiRoot, docRoot, leftBound, rightBound, cb);
+          self._commit(teiRoot, docRoot, leftBound, rightBound, function(err) {
+            return cb(err, self);
+          });
         },
       ], callback);
     },
@@ -445,103 +450,9 @@ var DocSchema = extendNodeSchema('Doc', {
         Entity.find({_id: {$in: result.values}}).exec(callback);
       });
     },
-    getPrevTexts: function(id, callback) {
-      async.waterfall([
-        function(cb) {
-          Doc.getDFSPrev(id, cb);
-        },
-        function(doc, cb) {
-          if (!doc) {
-            return cb(null, null);
-          }
-          TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
-        },
-        function(teiLeaves, cb) {
-          if (teiLeaves) {
-            TEI.getTreeFromLeaves(teiLeaves, cb);
-          } else {
-            cb(null, null);
-          }
-        },
-      ], function(err, teiRoot) {
-        if (err || !teiRoot) {
-          return callback(err, []);
-        }
-        var cur = teiRoot
-          , prevs = [cur]
-          , index
-        ;
-        while ((cur.children || []).length > 0) {
-          index = _.findLastIndex(cur.children, function(child) {
-            return !(_.isString(child) || child instanceof ObjectId) &&
-              !(child.name === '#text' && child.text.trim() === '');
-          });
-          if (index !== -1) {
-            cur = cur.children[index];
-            prevs.push(cur);
-          } else {
-            break;
-          }
-        }
-        callback(err, prevs);
-      });
-    },
-    getNextTexts: function(id, callback) {
-      async.waterfall([
-        function(cb) {
-          Doc.findOne({children: id}).exec(cb);
-        },
-        function(parent, cb) {
-          var index;
-          if (parent) {
-            index = _.findIndex(parent.children, function(child) {
-              return child.equals(id);
-            });
-            if (parent.children.length > index+1) {
-              return Doc.findOne(parent.children[index+1]).exec(cb);
-            }
-            // TODO no siblings
-          }
-          return cb(null, null);
-        },
-        function(doc, cb) {
-          if (!doc) {
-            return cb(null, null);
-          }
-          TEI.find({docs: doc.ancestors.concat(doc._id)}).exec(cb);
-        },
-        function(teiLeaves, cb) {
-          if (teiLeaves) {
-            TEI.getTreeFromLeaves(teiLeaves, cb);
-          } else {
-            cb(null, null);
-          }
-        },
-      ], function(err, teiRoot) {
-        if (err || !teiRoot) {
-          return callback(err, []);
-        }
-        var cur = teiRoot
-          , nexts = [cur]
-          , index
-        ;
-        while ((cur.children || []).length > 0) {
-          index = _.findIndex(cur.children, function(child) {
-            return !(_.isString(child) || child instanceof ObjectId) &&
-              !(child.name === '#text' && child.text.trim() === '');
-          });
-          if (index !== -1) {
-            cur = cur.children[index];
-            nexts.push(cur);
-          } else {
-            break;
-          }
-        }
-        callback(err, nexts);
-      });
-    },
   }
 });
+
 
 function _isContinueEl(el1, el2) {
   const attrs1 = _.get(el1, 'attrs', {})

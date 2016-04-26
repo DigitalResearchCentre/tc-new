@@ -115,11 +115,18 @@ var RevisionResource = _.inherit(Resource, function(opts) {
 }, {
   beforeCreate: function(req, res, next) {
     var obj = new this.model(req.body);
-    obj.user = req.user;
+    if (!obj.user) {
+      obj.user = req.user;
+    }
     return function(cb) {
       return cb(null, obj);
     };
   },
+  afterCreate: function(req, res, next) {
+    return function(revision, cb) {
+      Revision.findOne({_id: revision._id}).populate('user').exec(cb);
+    };
+  }
 });
 var revisionResource = new RevisionResource({id: 'revision'});
 revisionResource.serve(router, 'revisions');

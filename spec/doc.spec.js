@@ -4,6 +4,7 @@ const _ = require('lodash')
   , ObjectId = mongoose.Types.ObjectId
   , Doc = require('../models/doc')
   , TEI = require('../models/tei')
+  , libxml = require('libxmljs')
 ;
 
 const TEST_TEI = {
@@ -173,14 +174,11 @@ describe('Doc test', function() {
         pb1r = results[0];
         pb1v = results[1];
         pb2r = results[2];
-        console.log('!!!!!!!!!!!');
-        console.log(results);
         done();
       })
     });
   });
 
-  /*
   it('commit to a new root document', function(done) {
     async.waterfall([
       function(cb) {
@@ -243,9 +241,7 @@ describe('Doc test', function() {
       },
       function(leaves) {
         const cb = _.last(arguments);
-        console.log('*************************');
-        console.log(leaves);
-        expect(leaves.length).toBe(1);
+        expect(leaves.length).toBe(2);
         expect(_.get(leaves[0], 'name')).toBe('pb');
         cb(null);
       }
@@ -253,7 +249,6 @@ describe('Doc test', function() {
       done();
     });
   });
-  */
 
   it('commit to an existing page document', function(done) {
     let lb1 = new Doc();
@@ -338,5 +333,6 @@ describe('Doc test', function() {
   });
 
 });
+
 
 

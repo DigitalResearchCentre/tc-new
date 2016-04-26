@@ -123,12 +123,34 @@ var DocResource = _.inherit(Resource, function(opts) {
   },
   execSave: function(req, res, next) {
     return function(obj, callback) {
-      obj.commit({
-        tei: req.body.tei,
-        doc: _.assign(req.body.doc, {_id: obj._id}),
-      }, function(err) {
-       callback(err, obj); 
-      });
+      return async.waterfall([
+        function(cb) {
+          obj.commit({
+            revision: req.body.revision,
+            tei: req.body.tei,
+            doc: _.assign(req.body.doc, {_id: obj._id}),
+          }, cb);         
+        },
+        function(doc) {
+          const cb = _.last(arguments);
+          if (req.body.revision) {
+            Revision.update({_id: req.body.revision}, {
+              committed: new Date(),
+              stats: 'COMMITTED',
+            }, cb);
+          } else {
+            doc.meta = {
+              committed: new Date(),
+              user: req.user._id,
+            }
+            doc.save(cb);
+          }
+        },
+        function() {
+          const cb = _.last(arguments);
+          cb(null, obj);
+        }
+      ], callback);
     };
   },
 });
