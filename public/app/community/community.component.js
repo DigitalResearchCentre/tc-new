@@ -19,9 +19,9 @@ var CommunityComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    RouteParams, Router, Location, CommunityService, UIService, 
+    RouteParams, Router, Location, CommunityService, UIService,
   function(
-    routeParams, router, location, communityService, uiService 
+    routeParams, router, location, communityService, uiService
   ) {
     this._routeParams = routeParams;
     this._router = router;
@@ -53,13 +53,7 @@ var CommunityComponent = ng.core.Component({
     this.route = route;
   },
   isLeader: function() {
-    var memberships = _.get(this.state, 'authUser.memberships', []);
-    return _.find(memberships, function (obj){
-      return (
-        obj.community.attrs._id === community.attrs._id && 
-        (obj.role === "CREATOR" || obj.role === "LEADER")
-      );
-    });
+    return (this._communityService.canAddDocument(this.state.community, this.state.authUser));
   }
 });
 

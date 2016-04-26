@@ -34,6 +34,6 @@
   <tc-community-bulletin-board *ngSwitchWhen="'bulletin-board'"
     ></tc-community-bulletin-board>
   <tc-edit-community *ngSwitchWhen="'edit'" style="overflow:auto"
-     id="tc-edit-community"></tc-edit-community>
+     id="tc-edit-community" [community]="state.community"></tc-edit-community>
   <tc-community-home *ngSwitchDefault ></tc-community-home>
 </div>
