@@ -25,7 +25,6 @@ var UIService = ng.core.Class({
     window.state = this.state;
   }],
   setState: function(key, value) {
-
     console.log(key, value);
     return _.set(this.state, key, value);
   },
@@ -55,11 +54,11 @@ var UIService = ng.core.Class({
       });
     } else {
       state.page = doc;
-      this.docService$.emit({
-        type: 'refreshDocument',
-        payload: state.document,
-      });
     }
+    this.docService$.emit({
+      type: 'refreshDocument',
+      payload: state.document,
+    });
   }
 });
 

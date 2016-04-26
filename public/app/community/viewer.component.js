@@ -11,7 +11,7 @@ var ViewerComponent = ng.core.Component({
   selector: 'tc-viewer',
   templateUrl: '/app/community/viewer.html',
   inputs: [
-    'community', 'page',
+    'community', 'page', 'document',
   ],
   directives: [
     require('../directives/codemirror'),
@@ -74,6 +74,7 @@ var ViewerComponent = ng.core.Component({
   ngOnChanges: function() {
     var docService = this._docService
       , page = this.page
+      , doc = this.document
       , image = _.get(page, 'attrs.image')
       , self = this
     ;
@@ -81,16 +82,18 @@ var ViewerComponent = ng.core.Component({
       docService.getRevisions(page).subscribe(function(revisions) {
         self.revisions = revisions;
         console.log(_.isEmpty(revisions));
-        console.log(_.get(page, 'attrs.meta.committed'));
-        if (_.isEmpty(revisions) && _.get(page, 'attrs.meta.committed')) {
-          console.log('hello world');
+        if (_.isEmpty(revisions)) {
+          var meta = _.get(
+            page, 'attrs.meta', 
+            _.get(doc, 'attrs.meta')
+          );
           docService.getTextTree(page).subscribe(function(teiRoot) {
             var dbRevision = self.json2xml(teiRoot);
             docService.addRevision({
               doc: page.getId(),
               text: dbRevision,
-              user: _.get(page, 'attrs.meta.user'),
-              committed: _.get(page, 'attrs.meta.committed'),
+              user: meta.user,
+              committed: meta.committed,
               status: 'COMMITTED',
             }).subscribe(function(revision) {
               self.revisions.unshift(revision);

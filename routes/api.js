@@ -378,10 +378,11 @@ router.use(function(err, req, res, next) {
   if (err) {
     res.status(err.status || 500);
     if (err && err.code === 11000) {
-      var msg = /\$(.*)_.*\{ : "(.*)" }/.exec(err.message);
+      var msg = /\$(.*)_.*\{ : (.*) }/.exec(err.message);
+      console.log(err);
       err = {
         name: err.name,
-        message: `There is already a community with the ${msg[1]} "${msg[2]}"`,
+        message: `There is already a community with the ${msg[1]} ${msg[2]}`,
       };
     }
     res.json(err);

@@ -59,7 +59,8 @@
     </tc-tabs>
   </tc-pane>
   <tc-pane class="viewer">
-    <tc-viewer *ngIf="state.page" [page]="state.page"></tc-viewer>
+    <tc-viewer *ngIf="state.page" 
+      [page]="state.page" [document]="state.document"></tc-viewer>
   </tc-pane>
 </tc-splitter>
 
