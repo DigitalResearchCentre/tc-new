@@ -11,7 +11,7 @@ var CodeMirrorComponent = ng.core.Component({
   template: '<textarea [(ngModel)]="content"></textarea>',
   changeDetection: ng.core.ChangeDetectionStrategy.OnPush,
   inputs: [
-    'content'
+    'content', 'smartIndent',
   ],
   outputs: [
     'contentChange',
@@ -29,6 +29,7 @@ var CodeMirrorComponent = ng.core.Component({
     editor = CodeMirror.fromTextArea($(el).find('textarea')[0], {
       lineWrapping: true,
       lineNumbers: true,
+      smartIndent: this.smartIndent,
       mode:  'xml'
     });
     editor.on('change', this.textChange.bind(this));

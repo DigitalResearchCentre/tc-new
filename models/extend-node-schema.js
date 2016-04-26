@@ -16,12 +16,6 @@ function _idEqual(id1, id2) {
 }
 
 const _methods = {
-  getChildrenAfter: function(targetId) {
-    if (targetId._id) {
-      targetId = targetId._id;
-    }
-    this.prototype.constructor.findOne({_id: targetId});
-  },
 };
 
 const _statics = {
@@ -335,45 +329,50 @@ const _statics = {
       if (err) {
         return cb(err);
       }
-      const nodesMap = {}
-        , objs = results.concat(leaves)
-      ;
-      let root = null
+      const root = cls.getTreeFromNodes(results.concat(leaves))
         , orderedLeaves = []
-        , parent, children
       ;
-      _.each(objs, function(obj) {
-        nodesMap[obj._id] = {
-          children: [],
-          obj: obj,
-        };
-      });
-      _.each(nodesMap, function(node) {
-        let obj = node.obj;
-        if (obj.ancestors.length === 0) {
-          // only support single root for now
-          if (root !== null) {
-            throw new MultipleRootError(
-              `found multiple root in given leaves: ${root._id} ${node._id}`
-            );
-          }
-          root = node;
-        } else {
-          parent = nodesMap[_.last(obj.ancestors)];
-          var index = _.findIndex(parent.obj.children, function(id) {
-            return _idEqual(id, obj._id);
-          });
-          parent.children[index] = node;
-        }
-      });
       _.dfs([root], function(node) {
         if (node && _.isEmpty(node.children)) {
           orderedLeaves.push(node.obj);
         }
       });
-
       cb(err, orderedLeaves);
     });
+  },
+  getTreeFromNodes: function(objs) {
+    const nodesMap = {};
+    let root = null
+      , parent, children
+    ;
+    _.each(objs, function(obj) {
+      nodesMap[obj._id] = {
+        children: [],
+        obj: obj,
+      };
+    });
+    _.each(nodesMap, function(node) {
+      let obj = node.obj;
+      if (obj.ancestors.length === 0) {
+        // only support single root for now
+        if (root !== null) {
+          throw new MultipleRootError(
+            `found multiple root in given leaves: ${root._id} ${node._id}`
+          );
+        }
+        root = node;
+      } else {
+        parent = nodesMap[_.last(obj.ancestors)];
+        var index = _.findIndex(parent.obj.children, function(id) {
+          return _idEqual(id, obj._id);
+        });
+        parent.children[index] = node;
+      }
+    });
+    _.each(nodesMap, function(node) {
+      _.remove(node.children, _.isUndefined);
+    });
+    return root;
   },
 };
 

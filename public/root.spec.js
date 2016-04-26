@@ -2,12 +2,7 @@ require('jasmine-core/lib/jasmine-core/jasmine.css');
 
 require('script!jasmine-core/lib/jasmine-core/jasmine.js');
 require('script!jasmine-core/lib/jasmine-core/jasmine-html.js');
-require('script!rxjs/bundles/Rx.umd');
 require('script!jasmine-core/lib/jasmine-core/boot.js');
-require('script!reflect-metadata/Reflect.js');
-require('script!zone.js/dist/zone.js');
-require('script!rxjs/bundles/Rx.umd');
-require('script!angular2/bundles/angular2-all.umd');
 
 require('../common/mixin');
 
@@ -20,7 +15,7 @@ requireAll(require.context('app/', true, /[sS]pec\.js$/));
 
 var xml2js = require('xml2js');
 
-var parser = new xml2js.Parser({
+var options = {
   trim: true,
   explicitRoot: true,
   explicitArray: true,
@@ -52,7 +47,8 @@ var parser = new xml2js.Parser({
       return value;
     }
   ],
-});
+};
+var parser = new xml2js.Parser(options);
 parser.addListener('end', function(result) {
   console.log(result);
 });
@@ -76,7 +72,11 @@ var xml = `
   </body></text>
 `;
 
-parser.parseString(xml);
+var obj = parser.parseString(xml);
+
+var builder = new xml2js.Builder(options);
+var xml = builder.buildObject(obj);
+console.log(xml);
 
 /*
 doc-leaf - text - 56ac

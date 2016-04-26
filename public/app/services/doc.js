@@ -321,7 +321,7 @@ var DocService = ng.core.Injectable().Class({
   getRevisions: function(doc) {
     return this._revisionService.list({
       search: {
-        doc: doc.getId(),
+        find: JSON.stringify({doc: doc.getId()}),
         populate: JSON.stringify('user'),
       },
     });
@@ -333,6 +333,7 @@ var DocService = ng.core.Injectable().Class({
   commit: function(data, opts, callback) {
     var self = this
       , docRoot = _.defaults(data.doc, {children: []})
+      , revisionId = data.revision
       , text = data.text
       , teiRoot = {}
     ;
@@ -399,6 +400,7 @@ var DocService = ng.core.Injectable().Class({
       return this.update(docRoot._id, {
         tei: teiRoot,
         doc: docRoot,
+        revision: revisionId,
       }).map(function(doc) {
         if (_.isEmpty(doc.ancestors)) {
           self.selectDocument(doc);
@@ -411,6 +413,7 @@ var DocService = ng.core.Injectable().Class({
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
+        revision: revisionId,
       })).map(function(doc) {
         self._uiService.createDocument(doc);
       });

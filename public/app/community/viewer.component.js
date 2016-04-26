@@ -26,6 +26,7 @@ var ViewerComponent = ng.core.Component({
     this._elementRef = elementRef;
 
     this.revisions = [];
+    this.smartIndent = false;
   }],
   ngOnInit: function() {
     var self = this
@@ -79,24 +80,29 @@ var ViewerComponent = ng.core.Component({
     if (page) {
       docService.getRevisions(page).subscribe(function(revisions) {
         self.revisions = revisions;
-        if (_.isEmpty(revisions)) {
+        console.log(_.isEmpty(revisions));
+        console.log(_.get(page, 'attrs.meta.committed'));
+        if (_.isEmpty(revisions) && _.get(page, 'attrs.meta.committed')) {
+          console.log('hello world');
           docService.getTextTree(page).subscribe(function(teiRoot) {
             var dbRevision = self.json2xml(teiRoot);
             docService.addRevision({
               doc: page.getId(),
               text: dbRevision,
-              committed: new Date(),
+              user: _.get(page, 'attrs.meta.user'),
+              committed: _.get(page, 'attrs.meta.committed'),
               status: 'COMMITTED',
             }).subscribe(function(revision) {
-              self.revisions.shift(revision);
+              self.revisions.unshift(revision);
+              self.revisionChange({target: {value: _.get(revisions, '0._id')}});
+              console.log(self.revisions);
             });
             self.setContentText(dbRevision);
           });
         } else {
-          self.setContentText(_.get(revisions, '0.attrs.text', ''));
+          self.revisionChange({target: {value: _.get(revisions, '0._id')}});
         }
       });
-
       if (image && image != this.image) {
         this.onPageChange();
       }
@@ -118,9 +124,14 @@ var ViewerComponent = ng.core.Component({
     var id = $event.target.value
       , revisions = this.revisions
     ;
+      console.log(revisions);
     var revision = _.find(revisions, function(revision) {
       return revision._id === id;
     });
+    if (revision === _.last(this.revisions)) {
+      this.smartIndent = true;
+    }
+    this.revision = revision;
     this.setContentText(_.get(revision, 'attrs.text', ''));
   },
   revisionCompareChange: function($event) {
@@ -137,7 +148,7 @@ var ViewerComponent = ng.core.Component({
       text: page.contentText,
       status: 'IN_PROGRESS',
     }).subscribe(function(revision) {
-      self.revisions.shift(revision);
+      self.revisions.unshift(revision);
     });
   },
   preview: function() {
@@ -162,6 +173,7 @@ var ViewerComponent = ng.core.Component({
     var page = this.page;
     var docService = this._docService;
     docService.commit({
+      revision: this.revision.getId(),
       doc: {
         _id: page.getId(),
         label: page.attrs.label,
