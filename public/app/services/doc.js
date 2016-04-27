@@ -309,6 +309,7 @@ var DocService = ng.core.Injectable().Class({
             return childId;
           });
         });
+        console.log('hello');
         _.each(nodesMap, function(node) {
           if (_.isEmpty(node.ancestors)) {
             root = node;

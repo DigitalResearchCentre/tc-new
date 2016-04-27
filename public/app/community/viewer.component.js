@@ -90,9 +90,18 @@ var ViewerComponent = ng.core.Component({
           );
           if (meta) {
             docService.getTextTree(page).subscribe(function(teiRoot) {
-              _.dfs(teiRoot, function(el) {
-                if (['pb', 'cb', 'lb'].indexOf(el.name) !== -1) {
-                }
+              _.dfs([teiRoot], function(el) {
+                var children = [];
+                _.each(el.children, function(childEl) {
+                  if (['pb', 'cb', 'lb', 'div'].indexOf(childEl.name) !== -1) {
+                    children.push({
+                      name: '#text',
+                      text: '\n',
+                    });
+                  }
+                  children.push(childEl);
+                });
+                el.children = children;
               });
               var dbRevision = self.json2xml(teiRoot);
               docService.addRevision({
@@ -135,8 +144,6 @@ var ViewerComponent = ng.core.Component({
     var id = $event.target.value
       , revisions = this.revisions
     ;
-    console.log(id);
-    console.log($event);
     var revision = _.find(revisions, function(revision) {
       return revision._id === id;
     });

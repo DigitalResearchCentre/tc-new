@@ -38,7 +38,6 @@ var CodeMirrorComponent = ng.core.Component({
   },
   ngOnChanges: function(changeRecord) {
     var editor = this.editor;
-    console.log(this.content);
     if (editor) {
       if (this.content !== editor.getValue()) {
         editor.setValue(this.content || '');
