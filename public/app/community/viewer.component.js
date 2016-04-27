@@ -139,13 +139,13 @@ var ViewerComponent = ng.core.Component({
     var id = $event.target.value
       , docService = this._docService
     ;
-    var prevLink = _.find(this.prevs, function(prev) {
-      return prev._id === id;
-    });
-    var contentText = docService.relinkPage(
-      this.contentText, prevLink, this.prevs);
-    if (contentText) {
-      this.setContentText(contentText);
+    try {
+      var contentText = docService.relinkPage(
+        this.contentText, id, this.prevs);
+      if (contentText) {
+        this.setContentText(contentText);
+      }
+    } catch (e) {
     }
   },
   json2xml: function(data) {

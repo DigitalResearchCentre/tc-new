@@ -240,15 +240,39 @@ var DocService = ng.core.Injectable().Class({
         return false;
       }
     });
-    // re insert pb after link
-    _.dfs([teiRoot], function(el) {
-      if (el.name !== '#text' || (el.text || '').trim() !== '') {
-        if (teiElementEqual(link, el)) {
-          el.children.unshift(pb);
+
+    function buildPrev(parentEl, prevs, prevIndex, linkId) {
+      var prev = prevs[prevIndex];
+      _.each(parentEl.children, function(el) {
+        if (el.name !== '#text' || (el.text || '').trim() !== '') {
+          if (teiElementEqual(prev, el)) {
+            if (prev._id === linkId) {
+              el.children.unshift(pb);
+              return false;
+            }
+            buildPrev(el, prevs, prevIndex+1, link);
+          } else {
+            var cur = parentEl;
+            _.each(prevs.slice(prevIndex), function(p) {
+              var childEl = {
+                name: prev.name,
+                attrs: prev.attrs,
+                children: [],
+              };
+              cur.children.unshift(childEl);
+              cur = childEl;
+              if (p._id === linkId) {
+                cur.children.unshift(pb);
+                return false;
+              }
+            });
+          }
           return false;
         }
-      }
-    });
+      });
+    }
+    buildPrev(teiRoot, prevs, 1, link);
+
     return json2xml(teiRoot);
   },
 });
