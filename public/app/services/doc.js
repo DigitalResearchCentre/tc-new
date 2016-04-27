@@ -228,6 +228,7 @@ var DocService = ng.core.Injectable().Class({
       , prev = null
       , pb = null
       , teiRoot = xml2json(text)
+      , success = false
     ;
     // find pb and remove it from tree
     _.dfs([teiRoot], function(el) {
@@ -248,6 +249,7 @@ var DocService = ng.core.Injectable().Class({
           if (teiElementEqual(prev, el)) {
             if (prev._id === linkId) {
               el.children.unshift(pb);
+              success = true;
               return false;
             }
             buildPrev(el, prevs, prevIndex+1, link);
@@ -263,6 +265,7 @@ var DocService = ng.core.Injectable().Class({
               cur = childEl;
               if (p._id === linkId) {
                 cur.children.unshift(pb);
+                success = true;
                 return false;
               }
             });
@@ -271,9 +274,15 @@ var DocService = ng.core.Injectable().Class({
         }
       });
     }
-    buildPrev(teiRoot, prevs, 1, link);
-
-    return json2xml(teiRoot);
+    if (link === prevs[0]._id) {
+      teiRoot.children.unshift(pb);
+      success = true;
+    } else {
+      buildPrev(teiRoot, prevs, 1, link);
+    }
+    if (success) {
+      return json2xml(teiRoot);
+    }
   },
 });
 
