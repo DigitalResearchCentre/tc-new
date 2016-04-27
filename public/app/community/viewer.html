@@ -4,26 +4,26 @@
   </tc-pane>
   <tc-pane class="text-viewer">
     <div class="transcript-header">
-      <select (change)="revisionChange($event)">
-        <option *ngFor="#revision of revisions"
-          [value]="revision.getId()">
-          {{revision.attrs.user.local.name}}
-          {{revision.attrs.created}} ({{revision.attrs.status}})
+      <select [ngModel]="revision?.getId()" (change)="revisionChange($event)">
+        <option *ngFor="#r of revisions"
+          [value]="r.getId()" >
+          {{r.attrs.user.local.name}}
+          {{r.attrs.created}} ({{r.attrs.status}})
         </option>
       </select>
       <label>Compare With: </label>
-      <select (change)="revisionCompareChange($event)">
-        <option *ngFor="#revision of revisions"
-          [value]="revision.getId()">
-          {{revision.attrs.user.local.name}}
-          {{revision.attrs.created}} ({{revision.attrs.status}})
+      <select (change)="revisionChange($event)">
+        <option *ngFor="#r of revisions"
+          [value]="r.getId()" >
+          {{r.attrs.user.local.name}}
+          {{r.attrs.created}} ({{r.attrs.status}})
         </option>
       </select>
     </div>
     <tc-codemirror class="transcript" 
       [smartIndent]="smartIndent"
       [content]="localState.contentText"
-      (contentChange)="localState.contentText=$event.value">
+      (contentChange)="localState.contentText=$event">
     </tc-codemirror>
     <div class="buttons" *ngIf="page">
       <button type="button" class="btn btn-default btn-xs"

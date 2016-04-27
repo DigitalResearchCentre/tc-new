@@ -409,25 +409,25 @@ var DocService = ng.core.Injectable().Class({
     }
 
     if (docRoot._id) {
-      console.log('update');
       return this.update(docRoot._id, {
         tei: teiRoot,
         doc: docRoot,
         revision: revisionId,
       }).map(function(doc) {
-        if (_.isEmpty(doc.ancestors)) {
+        console.log(doc);
+        if (_.isEmpty(doc.attrs.ancestors)) {
           self.selectDocument(doc);
         } else {
           self.selectPage(doc);
         }
       });
     } else {
-      console.log('create');
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
         revision: revisionId,
       })).map(function(doc) {
+        console.log(doc);
         self._uiService.createDocument(doc);
       });
     }

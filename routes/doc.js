@@ -136,7 +136,7 @@ var DocResource = _.inherit(Resource, function(opts) {
           if (req.body.revision) {
             Revision.update({_id: req.body.revision}, {
               committed: new Date(),
-              stats: 'COMMITTED',
+              status: 'COMMITTED',
             }, cb);
           } else {
             doc.meta = {

@@ -80,7 +80,7 @@ var ViewerComponent = ng.core.Component({
       , self = this
     ;
     if (page) {
-      this.localState.contentText = 'hello world';
+      this.localState.contentText = '';
       docService.getRevisions(page).subscribe(function(revisions) {
         self.revisions = revisions;
         if (_.isEmpty(revisions)) {
@@ -88,20 +88,28 @@ var ViewerComponent = ng.core.Component({
             page, 'attrs.meta', 
             _.get(page.getParent(), 'attrs.meta')
           );
-          docService.getTextTree(page).subscribe(function(teiRoot) {
-            var dbRevision = self.json2xml(teiRoot);
-            docService.addRevision({
-              doc: page.getId(),
-              text: dbRevision,
-              user: meta.user,
-              committed: meta.committed,
-              status: 'COMMITTED',
-            }).subscribe(function(revision) {
-              self.revisions.unshift(revision);
-              self.revisionChange({target: {value: _.get(revisions, '0._id')}});
+          if (meta) {
+            docService.getTextTree(page).subscribe(function(teiRoot) {
+              _.dfs(teiRoot, function(el) {
+                if (['pb', 'cb', 'lb'].indexOf(el.name) !== -1) {
+                }
+              });
+              var dbRevision = self.json2xml(teiRoot);
+              docService.addRevision({
+                doc: page.getId(),
+                text: dbRevision,
+                user: meta.user,
+                committed: meta.committed,
+                status: 'COMMITTED',
+              }).subscribe(function(revision) {
+                self.revisions.unshift(revision);
+                self.revisionChange({
+                  target: {value: _.get(revisions, '0._id')}
+                });
+              });
+              self.setContentText(dbRevision);
             });
-            self.setContentText(dbRevision);
-          });
+          }
         } else {
           self.revisionChange({target: {value: _.get(revisions, '0._id')}});
         }
@@ -127,6 +135,8 @@ var ViewerComponent = ng.core.Component({
     var id = $event.target.value
       , revisions = this.revisions
     ;
+    console.log(id);
+    console.log($event);
     var revision = _.find(revisions, function(revision) {
       return revision._id === id;
     });
@@ -151,6 +161,7 @@ var ViewerComponent = ng.core.Component({
       status: 'IN_PROGRESS',
     }).subscribe(function(revision) {
       self.revisions.unshift(revision);
+      self.revision = revision;
     });
   },
   preview: function() {
@@ -172,20 +183,25 @@ var ViewerComponent = ng.core.Component({
     });
   },
   commit: function() {
-    var page = this.page;
-    var docService = this._docService;
+    var docService = this._docService
+      , page = this.page
+      , revision = this.revision
+      , contentText = this.localState.contentText
+    ;
+    if (contentText !== revision.attrs.text) {
+      alert(`You haven't save this revision yet.`);
+      return
+    }
     docService.commit({
-      revision: this.revision.getId(),
+      revision: revision.getId(),
       doc: {
         _id: page.getId(),
         label: page.attrs.label,
         name: page.attrs.name,
       },
       text: this.localState.contentText,
-    }).subscribe(function(res) {
-      docService.fetch(page.getId(), {
-        populate: JSON.stringify('revisions'),
-      }).subscribe();
+    }).subscribe(function() {
+      revision.set('status', 'COMMITTED');
     });
   },
 });
