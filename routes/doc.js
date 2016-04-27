@@ -171,13 +171,13 @@ router.get('/:id/texts', function(req, res, next) {
 
 router.get('/:id/links', function(req, res, next) {
   var docId = req.params.id;
-  Doc.getOutterBoundTexts(docId, function(err, leftBound, rightBound) {
+  Doc.getOutterTextBounds(docId, function(err, leftBound, rightBound) {
     if (err) {
       return next(err);
     }
     res.json({
-      prev: leftBound,
-      next: rightBound,
+      prevs: leftBound,
+      nexts: rightBound,
     });
   });
 });

@@ -27,8 +27,9 @@ var ViewerComponent = ng.core.Component({
 
     this.revisions = [];
     this.smartIndent = false;
-    this.localState = {};
-    window.localState = this.localState
+    this.contentText = '';
+    this.prevs = [];
+    this.prevLink = null;
   }],
   ngOnInit: function() {
     var self = this
@@ -49,12 +50,12 @@ var ViewerComponent = ng.core.Component({
       // image name as page name, order by name, reorder, rename
     });
     this.viewer = viewer;
-    this.onPageChange();
+    this.onImageChange();
     this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
   },
-  onPageChange: function() {
+  onImageChange: function() {
     var viewer = this.viewer;
     this.image = this.page.attrs.image;
     if (this.image) {
@@ -80,56 +81,53 @@ var ViewerComponent = ng.core.Component({
       , self = this
     ;
     if (page) {
-      this.localState.contentText = '';
-      docService.getRevisions(page).subscribe(function(revisions) {
-        self.revisions = revisions;
-        if (_.isEmpty(revisions)) {
-          var meta = _.get(
-            page, 'attrs.meta', 
-            _.get(page.getParent(), 'attrs.meta')
-          );
-          if (meta) {
-            docService.getTextTree(page).subscribe(function(teiRoot) {
-              _.dfs([teiRoot], function(el) {
-                var children = [];
-                _.each(el.children, function(childEl) {
-                  if (['pb', 'cb', 'lb', 'div'].indexOf(childEl.name) !== -1) {
-                    children.push({
-                      name: '#text',
-                      text: '\n',
-                    });
-                  }
-                  children.push(childEl);
-                });
-                el.children = children;
-              });
-              var dbRevision = self.json2xml(teiRoot);
-              docService.addRevision({
-                doc: page.getId(),
-                text: dbRevision,
-                user: meta.user,
-                committed: meta.committed,
-                status: 'COMMITTED',
-              }).subscribe(function(revision) {
-                self.revisions.unshift(revision);
-                self.revisionChange({
-                  target: {value: _.get(revisions, '0._id')}
-                });
-              });
-              self.setContentText(dbRevision);
-            });
+      this.contentText = '';
+      docService.getLinks(page).subscribe(function(links) {
+        self.prevs = links.prevs.slice(0, links.prevs.length-1);
+        docService.getRevisions(page).subscribe(function(revisions) {
+          self.revisions = revisions;
+          if (_.isEmpty(revisions)) {
+            self.createDefaultRevisionFromDB();
+          } else {
+            self.revisionChange({target: {value: _.first(revisions).getId()}});
           }
-        } else {
-          self.revisionChange({target: {value: _.get(revisions, '0._id')}});
-        }
+        });
       });
       if (image && image != this.image) {
-        this.onPageChange();
+        this.onImageChange();
       }
     }
   },
+  createDefaultRevisionFromDB: function() {
+    var docService = this._docService
+      , self = this
+      , page = this.page
+      , meta = _.get(
+        page, 'attrs.meta', 
+        _.get(page.getParent(), 'attrs.meta')
+      )
+    ;
+    if (meta) {
+      docService.getTextTree(page).subscribe(function(teiRoot) {
+        var dbRevision = self.json2xml(prettyTei(teiRoot));
+        docService.addRevision({
+          doc: page.getId(),
+          text: dbRevision,
+          user: meta.user,
+          committed: meta.committed,
+          status: 'COMMITTED',
+        }).subscribe(function(revision) {
+          self.revisions.unshift(revision);
+          self.revisionChange({
+            target: {value: revision.getId()}
+          });
+        });
+        self.setContentText(dbRevision);
+      });
+    }
+  },
   setContentText: function(contentText) {
-    this.localState.contentText = contentText;
+    this.contentText = contentText;
     if (this.page.attrs.children.length === 0 && this.revisions.length === 0) {
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
@@ -137,21 +135,39 @@ var ViewerComponent = ng.core.Component({
       });
     }
   },
+  prevLinkChange: function($event) {
+    var id = $event.target.value
+      , docService = this._docService
+    ;
+    var prevLink = _.find(this.prevs, function(prev) {
+      return prev._id === id;
+    });
+    var contentText = docService.relinkPage(
+      this.contentText, prevLink, this.prevs);
+    if (contentText) {
+      this.setContentText(contentText);
+    }
+  },
   json2xml: function(data) {
     return this._docService.json2xml(data);
   },
   revisionChange: function($event) {
     var id = $event.target.value
+      , docService = this._docService
       , revisions = this.revisions
     ;
     var revision = _.find(revisions, function(revision) {
       return revision._id === id;
     });
-    if (revision === _.last(this.revisions)) {
-      this.smartIndent = true;
-    }
+    var contentText = _.get(revision, 'attrs.text', '');
     this.revision = revision;
-    this.setContentText(_.get(revision, 'attrs.text', ''));
+    try {
+      this.prevLink = docService.checkPagePrevLinks(contentText, this.prevs);
+    } catch (e) {
+      this.prevLink = null;
+    }
+    console.log(this.prevLink);
+    this.setContentText(contentText);
   },
   revisionCompareChange: function($event) {
     var revision = this.revisions[$event.target.value];
@@ -164,7 +180,7 @@ var ViewerComponent = ng.core.Component({
     ;
     docService.addRevision({
       doc: page.getId(),
-      text: this.localState.contentText,
+      text: this.contentText,
       status: 'IN_PROGRESS',
     }).subscribe(function(revision) {
       self.revisions.unshift(revision);
@@ -175,7 +191,7 @@ var ViewerComponent = ng.core.Component({
     //parse first!
     var self = this
       , page = this.page
-      , contentText = this.localState.contentText
+      , contentText = this.contentText
     ;
     $.post(config.BACKEND_URL+'validate'+'id='+this.community.attrs._id, {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
@@ -193,7 +209,7 @@ var ViewerComponent = ng.core.Component({
     var docService = this._docService
       , page = this.page
       , revision = this.revision
-      , contentText = this.localState.contentText
+      , contentText = this.contentText
     ;
     if (contentText !== revision.attrs.text) {
       alert(`You haven't save this revision yet.`);
@@ -206,11 +222,28 @@ var ViewerComponent = ng.core.Component({
         label: page.attrs.label,
         name: page.attrs.name,
       },
-      text: this.localState.contentText,
+      text: this.contentText,
     }).subscribe(function() {
       revision.set('status', 'COMMITTED');
     });
   },
 });
+
+function prettyTei(teiRoot) {
+  _.dfs([teiRoot], function(el) {
+    var children = [];
+    _.each(el.children, function(childEl) {
+      if (['pb', 'cb', 'lb', 'div'].indexOf(childEl.name) !== -1) {
+        children.push({
+          name: '#text',
+          text: '\n',
+        });
+      }
+      children.push(childEl);
+    });
+    el.children = children;
+  });
+  return teiRoot;
+}
 
 module.exports = ViewerComponent;

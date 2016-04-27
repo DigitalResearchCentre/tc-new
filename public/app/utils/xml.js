@@ -209,5 +209,3 @@ function parseTEI(text) {
 }
 
 
-
-module.exports = 
