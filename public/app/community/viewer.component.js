@@ -11,7 +11,7 @@ var ViewerComponent = ng.core.Component({
   selector: 'tc-viewer',
   templateUrl: '/app/community/viewer.html',
   inputs: [
-    'community', 'page', 'document',
+    'community', 'page',
   ],
   directives: [
     require('../directives/codemirror'),
@@ -27,6 +27,8 @@ var ViewerComponent = ng.core.Component({
 
     this.revisions = [];
     this.smartIndent = false;
+    this.localState = {};
+    window.localState = this.localState
   }],
   ngOnInit: function() {
     var self = this
@@ -74,18 +76,17 @@ var ViewerComponent = ng.core.Component({
   ngOnChanges: function() {
     var docService = this._docService
       , page = this.page
-      , doc = this.document
       , image = _.get(page, 'attrs.image')
       , self = this
     ;
     if (page) {
+      this.localState.contentText = 'hello world';
       docService.getRevisions(page).subscribe(function(revisions) {
         self.revisions = revisions;
-        console.log(_.isEmpty(revisions));
         if (_.isEmpty(revisions)) {
           var meta = _.get(
             page, 'attrs.meta', 
-            _.get(doc, 'attrs.meta')
+            _.get(page.getParent(), 'attrs.meta')
           );
           docService.getTextTree(page).subscribe(function(teiRoot) {
             var dbRevision = self.json2xml(teiRoot);
@@ -98,7 +99,6 @@ var ViewerComponent = ng.core.Component({
             }).subscribe(function(revision) {
               self.revisions.unshift(revision);
               self.revisionChange({target: {value: _.get(revisions, '0._id')}});
-              console.log(self.revisions);
             });
             self.setContentText(dbRevision);
           });
@@ -112,7 +112,7 @@ var ViewerComponent = ng.core.Component({
     }
   },
   setContentText: function(contentText) {
-    this.page.contentText = contentText;
+    this.localState.contentText = contentText;
     if (this.page.attrs.children.length === 0 && this.revisions.length === 0) {
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
@@ -127,7 +127,6 @@ var ViewerComponent = ng.core.Component({
     var id = $event.target.value
       , revisions = this.revisions
     ;
-      console.log(revisions);
     var revision = _.find(revisions, function(revision) {
       return revision._id === id;
     });
@@ -148,7 +147,7 @@ var ViewerComponent = ng.core.Component({
     ;
     docService.addRevision({
       doc: page.getId(),
-      text: page.contentText,
+      text: this.localState.contentText,
       status: 'IN_PROGRESS',
     }).subscribe(function(revision) {
       self.revisions.unshift(revision);
@@ -158,17 +157,17 @@ var ViewerComponent = ng.core.Component({
     //parse first!
     var self = this
       , page = this.page
+      , contentText = this.localState.contentText
     ;
     $.post(config.BACKEND_URL+'validate'+'id='+this.community.attrs._id, {
-      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+this.page.contentText+"</TEI>",
+      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
     }, function(res) {
-//      console.log(res);
       self._uiService.manageModal$.emit({
           type: 'preview-page',
           page: page,
           error: res.error,
-          content: page.contentText,
-          lines: page.contentText.split("\n")
+          content: contentText,
+          lines: contentText.split("\n")
         });
     });
   },
@@ -182,7 +181,7 @@ var ViewerComponent = ng.core.Component({
         label: page.attrs.label,
         name: page.attrs.name,
       },
-      text: page.contentText,
+      text: this.localState.contentText,
     }).subscribe(function(res) {
       docService.fetch(page.getId(), {
         populate: JSON.stringify('revisions'),

@@ -264,13 +264,17 @@ var DocService = ng.core.Injectable().Class({
   selectDocument: function(doc) {
     var uiService = this._uiService
       , self = this
+      , state = uiService.state
     ;
     if (doc) {
       doc.expand = true;
     }
-    if (doc && uiService.state.document !== doc) {
+    if (doc && state.document !== doc) {
       self.refreshDocument(doc).subscribe(function(doc) {
-        self.selectPage(_.get(doc, 'attrs.children.0', null));
+        var page = doc.getFirstChild();
+        if (!state.page || state.page.getParent() !== doc) {
+          self.selectPage(page);
+        }
       });
     }
     uiService.setState('document', doc);
@@ -278,12 +282,12 @@ var DocService = ng.core.Injectable().Class({
   selectPage: function(page) {
     var uiService = this._uiService
       , self = this
-      , doc = new Doc({_id: _.get(page, 'attrs.ancestors.0')})
+      , doc = page.getParent()
     ;
+    uiService.setState('page', page);
     if (uiService.state.document !== doc) {
       this.selectDocument(doc);
     }
-    uiService.setState('page', page);
   },
   getTextTree: function(doc) {
     var url = this.url({
@@ -326,10 +330,12 @@ var DocService = ng.core.Injectable().Class({
     ;
   },
   getRevisions: function(doc) {
+    console.log(doc);
     return this._revisionService.list({
       search: {
         find: JSON.stringify({doc: doc.getId()}),
         populate: JSON.stringify('user'),
+        sort: JSON.stringify('-created'),
       },
     });
   },
