@@ -1,17 +1,17 @@
-<div *ngIf="uiService.community" style="height:90%">
-  <div id="ENPhead" modal-draggable class="modalHeader">Preview text in page "{{page.attrs.name}}" in document "{{uiService.document.attrs.name}}" for Community "{{uiService.community.attrs.name}}"
+<div *ngIf="uiService.state.community" style="height:90%">
+  <div id="ENPhead" modal-draggable class="modalHeader">Preview text in page "{{page.attrs.name}}" in document "{{uiService.state.document.attrs.name}}" for Community "{{uiService.state.community.attrs.name}}"
 <button type="button" (click)="closeModalPP()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;
   </button>
-  </div>
+</div>
     <div *ngIf="error.length>0" class="alert alert-danger" style="margin-bottom: 10px">
       <div *ngFor="#nerror of error">
         <p>Error in line {{nerror.line-3}}, character {{nerror.column}}: {{nerror.message}}<br/>
         Context is: "{{lines[nerror.line-4]}}"</p>
       </div>
   </div>
-  <div *ngIf="error.length==0" style="margin-top: 10px; margin-left: 10px; margin-right: 10px; height: 100%">
+  <div id="predivparent" *ngIf="error.length==0" style="margin-top: 10px; margin-left: 10px; margin-right: 10px; height: 100%">
     <iframe id="previewdiv" height="100%" width="100%" onLoad="uploadDone();">
     </iframe>
   </div>

@@ -15,7 +15,7 @@
         <option *ngFor="#r of revisions"
           [value]="r.getId()" >
           {{r.attrs.user.local.name}}
-          {{r.attrs.created}} ({{r.attrs.status}})
+          {{formatDate(r.attrs.created)}} ({{r.attrs.status}})
         </option>
       </select>
       <label>Compare With: </label>
@@ -23,11 +23,11 @@
         <option *ngFor="#r of revisions"
           [value]="r.getId()" >
           {{r.attrs.user.local.name}}
-          {{r.attrs.created}} ({{r.attrs.status}})
+          {{formatDate(r.attrs.created)}} ({{r.attrs.status}})
         </option>
       </select>
     </div>
-    <tc-codemirror class="transcript" 
+    <tc-codemirror class="transcript"
       [smartIndent]="smartIndent"
       [content]="contentText"
       (contentChange)="setContentText($event)">

@@ -30,6 +30,7 @@ var ViewerComponent = ng.core.Component({
     this.contentText = '';
     this.prevs = [];
     this.prevLink = null;
+    this.state=uiService.state;
   }],
   ngOnInit: function() {
     var self = this
@@ -54,6 +55,14 @@ var ViewerComponent = ng.core.Component({
     this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
+  },
+  formatDate: function(rawdate) {
+    var date = new Date(rawdate);
+    var options = {
+    year: "numeric", month: "short",
+    day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false
+    };
+    return date.toLocaleTimeString("en-us", options);
   },
   onImageChange: function() {
     var viewer = this.viewer;
@@ -103,7 +112,7 @@ var ViewerComponent = ng.core.Component({
       , self = this
       , page = this.page
       , meta = _.get(
-        page, 'attrs.meta', 
+        page, 'attrs.meta',
         _.get(page.getParent(), 'attrs.meta')
       )
     ;
@@ -193,7 +202,7 @@ var ViewerComponent = ng.core.Component({
       , page = this.page
       , contentText = this.contentText
     ;
-    $.post(config.BACKEND_URL+'validate'+'id='+this.community.attrs._id, {
+    $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
     }, function(res) {
       self._uiService.manageModal$.emit({
@@ -212,8 +221,8 @@ var ViewerComponent = ng.core.Component({
       , contentText = this.contentText
     ;
     if (contentText !== revision.attrs.text) {
-      alert(`You haven't save this revision yet.`);
-      return
+      alert(`You haven't saved this revision yet.`);
+      return;
     }
     docService.commit({
       revision: revision.getId(),
