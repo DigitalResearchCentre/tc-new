@@ -25,7 +25,7 @@ var config = {
   context: clientRoot,
   entry: {
     app: path.join(clientRoot, 'app/boot.js'),
-    //test: path.join(clientRoot, 'root.spec.js'),
+    t: path.join(clientRoot, 'app/t.js'),
   },
   output: {
     path: path.join(clientRoot, 'dist'),

@@ -378,8 +378,14 @@ const _statics = {
 
 function extendNodeSchema(modelName, schema, options) {
   const nodeSchema = new Schema(_.assign({
-    ancestors: [{type: Schema.Types.ObjectId, ref: modelName}],
-    children: [{type: Schema.Types.ObjectId, ref: modelName}],
+    ancestors: {
+      type: [{type: Schema.Types.ObjectId, ref: modelName}], 
+      index: true,
+    },
+    children: {
+      type: [{type: Schema.Types.ObjectId, ref: modelName}],
+      index: true,
+    },
     // TODO: children unique check
   }, schema));
 

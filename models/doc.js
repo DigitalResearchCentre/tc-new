@@ -229,15 +229,19 @@ var DocSchema = extendNodeSchema('Doc', {
       let results = [];
       async.waterfall([
         function(cb) {
-          Doc.getTextsLeaves(id, cb);
+          TEI.find({docs: id, children: []}, cb);
         },
-        function(leaves) {
+        function(nodes) {
           const cb = _.last(arguments);
-          results = results.concat(leaves);
-          TEI.getAncestorsFromLeaves(leaves, cb);
+          results = nodes;
+          console.log('nodes');
+          console.log(nodes.length);
+          TEI.getAncestorsFromLeaves(nodes, cb);
         },
         function(ancestors) {
           const cb = _.last(arguments);
+          console.log('ancestors');
+          console.log(ancestors.length);
           cb(null, ancestors.concat(results));
         },
       ], callback);
