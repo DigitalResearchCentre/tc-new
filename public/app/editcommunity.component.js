@@ -10,9 +10,9 @@ var EditCommunityComponent = ng.core.Component({
     'community',
   ],
 }).Class({
-  constructor: [
-    CommunityService, UIService, function(
-      communityService, uiService) {
+  constructor: [CommunityService, UIService, function(
+    communityService, uiService
+  ) {
     var self=this;
     this._communityService = communityService;
     this._uiService = uiService;
@@ -20,14 +20,16 @@ var EditCommunityComponent = ng.core.Component({
       chosen:false, maxSize:100*1024,
       maxHeight:35, maxWidth:300, valid:false, file:""
     };
-  }],
-  ngOnInit: function() {
-    var self=this;
-    this.initEdit(this.community);
-    this.message = '';
     this._uiService.sendCommand$.subscribe(function(chosen) {
       if (chosen==="createCommunity") self.submit();
     });
+  }],
+  ngOnInit: function() {
+    var self=this;
+    this.message = '';
+  },
+  ngOnChanges: function() {
+    this.initEdit(this.community);
   },
   initEdit: function(community) {
     this._uiService.sendCommand$.emit("createChosen");
@@ -126,14 +128,11 @@ var EditCommunityComponent = ng.core.Component({
     ;
     this.message=this.success="";
     communityService.createCommunity(this.edit).subscribe(function(community) {
-      console.log('success');
       self.success='Community "'+self.edit.name+'" saved';
       if ($('#PreviewImg')) $('#PreviewImg').remove();
       self.initEdit(community);
       document.getElementById("ECSuccess").scrollIntoView(true);
     }, function(err) {
-      console.log('error');
-      console.log(err);
       self.message = err.json().message;
       document.getElementById("ECMessage").scrollIntoView(true);
     });

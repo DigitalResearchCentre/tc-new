@@ -98,7 +98,7 @@ var Model = _.inherit(Object, function(attrs) {
       return id.toString();
     }
     try {
-      return new ObjectId(id).toString();
+      return new ObjectID(id).toString();
     } catch (e) {
       return null;
     }

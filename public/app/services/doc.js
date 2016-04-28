@@ -49,7 +49,7 @@ var DocService = ng.core.Injectable().Class({
     if (doc && state.document !== doc) {
       self.refreshDocument(doc).subscribe(function(doc) {
         var page = doc.getFirstChild();
-        if (!state.page || state.page.getParent() !== doc) {
+        if (page && (!state.page || state.page.getParent() !== doc)) {
           self.selectPage(page);
         }
       });
@@ -59,7 +59,7 @@ var DocService = ng.core.Injectable().Class({
   selectPage: function(page) {
     var uiService = this._uiService
       , self = this
-      , doc = page.getParent()
+      , doc = page ? page.getParent() : null
     ;
     uiService.setState('page', page);
     if (uiService.state.document !== doc) {
