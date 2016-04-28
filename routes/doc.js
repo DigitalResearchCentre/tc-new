@@ -159,10 +159,12 @@ var DocResource = _.inherit(Resource, function(opts) {
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, '');
 router.get('/:id/texts', function(req, res, next) {
+  console.log('get texts');
   Doc.getTexts(req.params.id, function(err, texts) {
      if (err) {
       next(err);
     } else {
+      console.log(texts.length);
       res.json(texts);
     }
   });

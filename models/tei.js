@@ -9,8 +9,8 @@ var mongoose = require('mongoose')
 var TEISchema = extendNodeSchema('TEI', {
   name: String,
   text: String,
-  docs: [{type: Schema.Types.ObjectId, ref: 'Doc'}],
-  entities: [{type: Schema.Types.ObjectId, ref: 'Entity'}],
+  docs: [{type: Schema.Types.ObjectId, ref: 'Doc', index: true}],
+  entities: [{type: Schema.Types.ObjectId, ref: 'Entity', index: true}],
   attrs: {type: Schema.Types.Mixed},
 }, {
   statics: {

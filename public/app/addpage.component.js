@@ -7,10 +7,6 @@ var $ = require('jquery')
   , ElementRef = ng.core.ElementRef
   , config = require('./config')
 ;
-//require('jquery-ui/draggable');
-//require('jquery-ui/resizable');
-//require('jquery-ui/dialog');
-
 
 var AddPageComponent = ng.core.Component({
   selector: 'tc-managemodal-addpage',
@@ -127,16 +123,16 @@ var AddPageComponent = ng.core.Component({
         this.addPage();
       }
     }
-   },
-   closeModalAP: function() {
-     this.message=this.success=this.pageName="";
-     this.oneormany="OnePage";
-     $('MMADBS').prop('checked', true);
-     $('#manageModal').modal('hide');
-     this.isCancel=false;
-     this.isAdd=true;
-     this.dropzone.removeAllFiles();
-   }
+  },
+  closeModalAP: function() {
+    this.message = this.success = this.pageName = "";
+    this.oneormany = "OnePage";
+    $('MMADBS').prop('checked', true);
+    $('#manageModal').modal('hide');
+    this.isCancel = false;
+    this.isAdd = true;
+    this.dropzone.removeAllFiles();
+  }
 });
 
 
