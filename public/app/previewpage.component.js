@@ -26,11 +26,18 @@ var PreviewPageComponent = ng.core.Component({
     $('#manageModal').height("600px");
     this.message=this.success="";
   }],
+  ngOnChanges: function() {
+    //remove the iframe element and replace it
+    var prevdiv=$('#previewdiv').clone();
+    $('#previewdiv').remove();
+    prevdiv.appendTo('#predivparent');
+  },
   closeModalPP: function() {
     this.message=this.success="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
+    //force reload of iframe by removing and restoring it
   }
 });
 
