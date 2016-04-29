@@ -62,6 +62,9 @@ var AddPageComponent = ng.core.Component({
       });
     });
   },
+  ngOnChanges: function() {
+    this.pageName = _.get(this.page, 'attrs.name');
+  },
   onQueueComplete: function() {
     var dropzone = this.dropzone
       , files = dropzone.getAcceptedFiles()
@@ -76,31 +79,32 @@ var AddPageComponent = ng.core.Component({
       });
     });
     images = _.values(imagesMap);
-    if (this.pageName === "") {
-      this.message="You must supply a name for the page";
-      return;
-    } else {
-      this.message="";
-      var matchedpage= state.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
-      if (matchedpage) {
-        this.message="There is already a page "+this.pageName;
-        return;
-      }
-      this.editPage(
-        self.pageName,
-        (_.last(images) || {})._id, function() {
-          _.each(files, function(f) {
-            dropzone.removeFile(f);
-          });
-        }
-      );
-    }
+    this.editPage(self.pageName, (_.last(images) || {})._id, function() {
+      _.each(files, function(f) {
+        dropzone.removeFile(f);
+      });
+    });
   },
   editPage: function(pageName, image, cb) {
     var self = this
       , docService = this._docService
     ;
     var options = {};
+    if (!_.isFunction(cb)) {
+      cb = function() {};
+    }
+    if (this.pageName === "") {
+      this.pageName = _.get(this.page, 'attrs.name');
+    } else if (this.pageName !== _.get(this.page, 'attrs.name')) {
+      this.message="";
+      var matchedpage= _.find(state.document.attrs.children, function (obj){
+        return obj.attrs.name === self.pageName;
+      });
+      if (matchedpage) {
+        this.message="There is already a page "+this.pageName;
+        return cb(null);
+      }
+    }
     docService.update(this.page.getId(), {
       name: pageName,
       image: image,

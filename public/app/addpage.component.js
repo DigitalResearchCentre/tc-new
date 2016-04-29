@@ -103,31 +103,19 @@ var AddPageComponent = ng.core.Component({
     });
     images = _.values(imagesMap);
     if (this.oneormany=="OnePage") {
-      if (this.pageName === "") {
-        this.message="You must supply a name for the page";
-        return;
-      } else {
-        this.message="";
-        var matchedpage= state.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
-        if (matchedpage) {
-          this.message="There is already a page "+this.pageName;
-          return;
+      this.addPage(
+        self.pageName,
+        (_.last(images) || {})._id, function() {
+          _.each(files, function(f) {
+            dropzone.removeFile(f);
+          });
         }
-        this.addPage(
-          self.pageName,
-          (_.last(images) || {})._id, function() {
-            _.each(files, function(f) {
-              dropzone.removeFile(f);
-            });
-          }
-        );
-      }
+      );
     } else {
       async.whilst(function() {
         return !_.isEmpty(images);
       }, function(cb) {
         var image = images.shift();
-        console.log(image);
         self.addPage(image.filename.split('.')[0], image._id, cb);
       }, function(err, n) {
         _.each(files, function(f) {
@@ -136,11 +124,6 @@ var AddPageComponent = ng.core.Component({
       });
     }
   },
-  onImageUploaded: function(file, res) {
-    console.log(this.dropzone.getQueuedFiles());
-    console.log(file);
-    console.log(res);
-  },
   addPage: function(pageName, image, cb) {
     var self = this
       , docService = this._docService
@@ -148,29 +131,46 @@ var AddPageComponent = ng.core.Component({
       , state = this.state
     ;
     var options = {};
-    if (this.parent) {
-      options.parent = this.parent;
-    } else if (this.after) {
-      options.after = this.after;
+    if (!_.isFunction(cb)) {
+      cb = function() {}
     }
-    docService.commit({
-      doc: {
-        name: pageName,
-        image: image,
-        label: 'pb',
-        children: [],
-      },
-    }, options).subscribe(function(page) {
-      self.page = page;
-      router.navigate(['Community', {
-        id: state.community.getId(), route: 'view'
-      }]);
-      self.success="Page "+pageName+" added";
-      self.isCancel=true;
-      self.isAdd=false;
-      self.pageName="";
-      cb(null, page);
-    });
+    if (this.pageName === "") {
+      this.message="You must supply a name for the page";
+      return cb(null);
+    } else {
+      this.message="";
+      var matchedpage = _.find(state.document.attrs.children, function (obj){
+        return obj.attrs.name === self.pageName;
+      });
+      if (matchedpage) {
+        this.message="There is already a page "+this.pageName;
+        return cb(null);
+      }
+      if (this.parent) {
+        options.parent = this.parent;
+      } else if (this.after) {
+        options.after = this.after;
+      }
+
+      docService.commit({
+        doc: {
+          name: pageName,
+          image: image,
+          label: 'pb',
+          children: [],
+        },
+      }, options).subscribe(function(page) {
+        self.page = page;
+        router.navigate(['Community', {
+          id: state.community.getId(), route: 'view'
+        }]);
+        self.success="Page "+pageName+" added";
+        self.isCancel=true;
+        self.isAdd=false;
+        self.pageName="";
+        cb(null, page);
+      });
+    }
   },
   submit: function() {
     var self = this
