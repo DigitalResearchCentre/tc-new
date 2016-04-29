@@ -201,6 +201,7 @@ var DocService = ng.core.Injectable().Class({
         tei: teiRoot,
         doc: docRoot,
         revision: revisionId,
+        commit: true,
       }).map(function(doc) {
         console.log(doc);
         if (_.isEmpty(doc.attrs.ancestors)) {
@@ -214,6 +215,7 @@ var DocService = ng.core.Injectable().Class({
         tei: teiRoot,
         doc: docRoot,
         revision: revisionId,
+        commit: true,
       })).map(function(doc) {
         console.log(doc);
         self._uiService.createDocument(doc);

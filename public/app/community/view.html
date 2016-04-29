@@ -24,6 +24,8 @@
                     <a (click)="selectPage(page)">
                       {{page.attrs.name}}
                     </a>
+                    <span (click)="editPageImage(page)" 
+                      class="edit-page-image"></span>
                     <span (click)="addPageAfter(page)" 
                       class="add-page-after"></span>
                   </li>
@@ -59,7 +61,9 @@
     </tc-tabs>
   </tc-pane>
   <tc-pane class="viewer">
-    <tc-viewer *ngIf="state.page" [page]="state.page"></tc-viewer>
+    <tc-viewer *ngIf="state.page" 
+      [page]="state.page"
+      [image]="state.page.attrs.image"></tc-viewer>
   </tc-pane>
 </tc-splitter>
 

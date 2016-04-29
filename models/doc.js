@@ -19,14 +19,17 @@ var DocSchema = extendNodeSchema('Doc', {
   meta: Schema.Types.Mixed,
 }, {
   methods: {
-    _commit: function(teiRoot, docRoot, leftBound, rightBound, callback) {
+    _commit: function(
+      teiRoot, docRoot, entityRoot, leftBound, rightBound, callback
+    ) {
       let self = this
         , docsMap = {}
+        , entitiesMap = {}
         , updateTeis = []
         , insertTeis = []
         , deleteTeis = []
+        , docs, entities
         , docEl
-        , docs
       ;
       if (self.ancestors.length === 0) {
         docEl = {name: 'text'};
@@ -77,8 +80,13 @@ var DocSchema = extendNodeSchema('Doc', {
         docsMap[d._id.toString()] = d;
       });
       docRoot = docs.shift();
-      // load entities
-      // load teis
+
+      /*
+      entities = Doc.Entity._loadNodesFromTree(entityRoot);
+      _.each(entities, function(d) {
+        entitiesMap[d._id.toString()] = d;
+      });
+      */
 
       _.dfs([teiRoot], function(el) {
         let cur = TEI.clean(el);
@@ -89,8 +97,10 @@ var DocSchema = extendNodeSchema('Doc', {
           cur.docs = docsMap[el.doc].ancestors.concat(new ObjectId(el.doc));
         }
         if (el.entity) {
-          cur.entities = docsMap[el.entity].ancestors.concat(
+          /*
+          cur.entities = entitiesMap[el.entity].ancestors.concat(
             new ObjectId(el.entity));
+            */
         }
         cur.children = TEI._loadChildren(cur);
         if (el._bound) {
@@ -187,13 +197,27 @@ var DocSchema = extendNodeSchema('Doc', {
       var self = this
         , teiRoot = data.tei || {}
         , docRoot = _.defaults(data.doc, self.toObject()) 
+        , entityRoot = data.entity
         , revision = data.revision
       ;
       async.waterfall([
         function(cb) {
-          Doc.getOutterTextBounds(self._id, cb);
+          async.parallel([
+            function(cb1) {
+              //Doc.Entity.updateTree(entityRoot, cb1);
+              cb(null, {});
+            },
+            function(cb1) {
+              Doc.getOutterTextBounds(self._id, cb1);
+            },
+          ], function(err, results) {
+            cb(err, 
+               _.first(results),
+               _.get(results, '1.0'),
+               _.get(results, '1.1'));
+          });
         },
-        function(leftBound, rightBound) {
+        function(entityRoot, leftBound, rightBound) {
           const cb = _.last(arguments)
           if (!_.isEmpty(teiRoot)) {
             _.dfs([teiRoot], function(el) {
@@ -205,9 +229,12 @@ var DocSchema = extendNodeSchema('Doc', {
               });
             });
           }
-          self._commit(teiRoot, docRoot, leftBound, rightBound, function(err) {
-            return cb(err, self);
-          });
+          self._commit(
+            teiRoot, docRoot, entityRoot, leftBound, rightBound, 
+            function(err) {
+              return cb(err, self);
+            }
+          );
         },
       ], callback);
     },
@@ -234,14 +261,10 @@ var DocSchema = extendNodeSchema('Doc', {
         function(nodes) {
           const cb = _.last(arguments);
           results = nodes;
-          console.log('nodes');
-          console.log(nodes.length);
           TEI.getAncestorsFromLeaves(nodes, cb);
         },
         function(ancestors) {
           const cb = _.last(arguments);
-          console.log('ancestors');
-          console.log(ancestors.length);
           cb(null, ancestors.concat(results));
         },
       ], callback);
@@ -414,7 +437,7 @@ var DocSchema = extendNodeSchema('Doc', {
       async.waterfall([
         function(cb) {
           if (entityId) {
-            Entity.findOne({_id: entityId}).exec(cb);
+            Doc.Entity.findOne({_id: entityId}).exec(cb);
           } else {
             cb(null, null);
           }
@@ -451,7 +474,7 @@ var DocSchema = extendNodeSchema('Doc', {
         if (result.ok !== 1) {
           return callback(result);
         }
-        Entity.find({_id: {$in: result.values}}).exec(callback);
+        Doc.Entity.find({_id: {$in: result.values}}).exec(callback);
       });
     },
   }
@@ -473,7 +496,7 @@ function _idEqual(id1, id2) {
 }
 
 function _el2str(el) {
-  return `${el.name}`
+  return `${el.name}`;
 }
 
 function _boundsMap(leftBound, rightBound) {

@@ -49,6 +49,12 @@ var ViewComponent = ng.core.Component({
       parent: doc,
     });
   },
+  editPageImage: function(page) {
+    this._uiService.manageModal$.emit({
+      type: 'edit-page',
+      page: page,
+    });
+  },
   addPageAfter: function(page) {
     this._uiService.manageModal$.emit({
       type: 'add-document-page',

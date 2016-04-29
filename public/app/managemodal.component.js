@@ -22,6 +22,7 @@ var ManageModalComponent = ng.core.Component({
     require('./previewpage.component'),
     require('./parsexmlload.component'),
     require('./messagelogin.component'),
+    require('./editpage.component'),
     require('./community/uploadfile.component'),
   ],
 }).Class({
@@ -41,6 +42,9 @@ var ManageModalComponent = ng.core.Component({
         self.choice = event.type;
         self.docParent = event.parent;
         self.docAfter = event.after;
+      } else if (event.type === 'edit-page') {
+        self.choice = event.type;
+        self.page = event.page;
       } else if (event.type === 'edit-new-page') {
         self.choice = event.type;
         self.page = event.page;

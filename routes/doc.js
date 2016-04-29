@@ -87,6 +87,10 @@ var DocResource = _.inherit(Resource, function(opts) {
     const docData = req.body.doc
       , tei = req.body.tei
     ;
+    if (!req.body.commit) {
+      return next(new ParameterError(
+        'Create Doc is Not Allowed, should use commit'));
+    }
     return function(callback) {
       // TODO: should check against a TEI schema  
       // if (!validTEI(tei)) cb(new TEIError());
@@ -121,9 +125,30 @@ var DocResource = _.inherit(Resource, function(opts) {
       });
     };
   },
+  beforeUpdate: function(req, res, next) {
+    return function(obj, cb) {
+      var body = req.body;
+      // normal update can only update name/image
+      // change ancestors and children is NOT ALLOWED
+      if (!body.commit) {
+        obj.set(_.omit(Doc.clean(_.assign(
+          {_id: obj._id, }, 
+          body
+        )), ['children', 'ancestors']));
+      }
+      cb(null, obj);
+    };
+  },
   execSave: function(req, res, next) {
+    if (!req.body.commit) {
+      return function(obj, callback) {
+        obj.save(function(err, obj) {
+          callback(err, obj);
+        });
+      };
+    }
     return function(obj, callback) {
-      return async.waterfall([
+        return async.waterfall([
         function(cb) {
           obj.commit({
             revision: req.body.revision,

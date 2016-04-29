@@ -2,6 +2,8 @@
    <div [ngSwitch]="choice" style="height:98%">
     <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
     </tc-managemodal-adddocument>
+    <tc-managemodal-editpage *ngSwitchWhen="'edit-page'" [page]="page">
+    </tc-managemodal-editpage>
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'" [community]="community">
     </tc-managemodal-adddocument-xml>
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'"

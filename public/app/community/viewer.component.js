@@ -11,7 +11,7 @@ var ViewerComponent = ng.core.Component({
   selector: 'tc-viewer',
   templateUrl: '/app/community/viewer.html',
   inputs: [
-    'community', 'page',
+    'community', 'page', 'image',
   ],
   directives: [
     require('../directives/codemirror'),
@@ -51,7 +51,6 @@ var ViewerComponent = ng.core.Component({
       // image name as page name, order by name, reorder, rename
     });
     this.viewer = viewer;
-    this.onImageChange();
     this.onResize();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
@@ -66,11 +65,12 @@ var ViewerComponent = ng.core.Component({
   },
   onImageChange: function() {
     var viewer = this.viewer;
-    this.image = this.page.attrs.image;
     if (this.image) {
       $.get(config.IIIF_URL + this.image + '/info.json', function(source) {
         if (viewer) viewer.open([source]);
       });
+    } else {
+      if (viewer) viewer.open([]);
     }
   },
   onResize: function() {
@@ -86,7 +86,6 @@ var ViewerComponent = ng.core.Component({
   ngOnChanges: function() {
     var docService = this._docService
       , page = this.page
-      , image = _.get(page, 'attrs.image')
       , self = this
     ;
     if (page) {
@@ -102,10 +101,8 @@ var ViewerComponent = ng.core.Component({
           }
         });
       });
-      if (image && image != this.image) {
-        this.onImageChange();
-      }
     }
+    this.onImageChange();
   },
   createDefaultRevisionFromDB: function() {
     var docService = this._docService
