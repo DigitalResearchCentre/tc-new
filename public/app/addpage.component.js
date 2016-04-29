@@ -1,4 +1,5 @@
 var $ = require('jquery')
+  , async = require('async')
   , Router = ng.router.Router
   , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
@@ -33,7 +34,6 @@ var AddPageComponent = ng.core.Component({
     this.oneormany="OnePage";
     this.pageName="";
     this.imageUrl = '';
-    this.images = [];
     this.state = uiService.state;
   }],
   ngOnInit: function() {
@@ -59,14 +59,14 @@ var AddPageComponent = ng.core.Component({
         "Click here to upload a file, or drop image file or files here",
     });
     this.dropzone = $dropzone[0].dropzone;
-    this.dropzone.on('success', this.onImageUploaded.bind(this));
+    this.dropzone.on('queuecomplete', this.onQueueComplete.bind(this));
     this.dropzone.on('addedfile', function(file) {
       if (self.oneormany === "OnePage") {
         var files = this.getQueuedFiles()
           , dropzone = this
         ;
         _.each(files, function(f) {
-          dropzone.removeFile(f)
+          dropzone.removeFile(f);
         });
       }
     });
@@ -77,15 +77,71 @@ var AddPageComponent = ng.core.Component({
     console.log(this.after);
   },
   showSingle: function() {
-    this.oneormany="OnePage";
+    var dropzone = this.dropzone
+      , files = dropzone.getQueuedFiles()
+    ;
+    this.oneormany = "OnePage";
+    _.each(files.slice(0, files.length-1), function(f) {
+      dropzone.removeFile(f)
+    });
   },
   showMany: function(){
     this.oneormany="ManyPages";
   },
-  onImageUploaded: function(file, res) {
-    this.images = this.images.concat(res);
+  onQueueComplete: function() {
+    var dropzone = this.dropzone
+      , files = dropzone.getAcceptedFiles()
+      , imagesMap = {}
+      , images = []
+      , self = this
+    ;
+    _.each(files, function(f) {
+      var data = JSON.parse(f.xhr.responseText);
+      _.each(data, function(image) {
+        imagesMap[image._id] = image;
+      });
+    });
+    images = _.values(imagesMap);
+    if (this.oneormany=="OnePage") {
+      if (this.pageName === "") {
+        this.message="You must supply a name for the page";
+        return;
+      } else {
+        this.message="";
+        var matchedpage= state.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
+        if (matchedpage) {
+          this.message="There is already a page "+this.pageName;
+          return;
+        }
+        this.addPage(
+          self.pageName,
+          (_.last(images) || {})._id, function() {
+            _.each(files, function(f) {
+              dropzone.removeFile(f);
+            });
+          }
+        );
+      }
+    } else {
+      async.whilst(function() {
+        return !_.isEmpty(images);
+      }, function(cb) {
+        var image = images.shift();
+        console.log(image);
+        self.addPage(image.filename.split('.')[0], image._id, cb);
+      }, function(err, n) {
+        _.each(files, function(f) {
+          dropzone.removeFile(f);
+        });
+      });
+    }
   },
-  addPage: function() {
+  onImageUploaded: function(file, res) {
+    console.log(this.dropzone.getQueuedFiles());
+    console.log(file);
+    console.log(res);
+  },
+  addPage: function(pageName, image, cb) {
     var self = this
       , docService = this._docService
       , router = this._router
@@ -99,8 +155,8 @@ var AddPageComponent = ng.core.Component({
     }
     docService.commit({
       doc: {
-        name: this.pageName,
-        image: _.last(this.images),
+        name: pageName,
+        image: image,
         label: 'pb',
         children: [],
       },
@@ -109,10 +165,11 @@ var AddPageComponent = ng.core.Component({
       router.navigate(['Community', {
         id: state.community.getId(), route: 'view'
       }]);
-      self.success="Page "+self.pageName+" added";
+      self.success="Page "+pageName+" added";
       self.isCancel=true;
       self.isAdd=false;
       self.pageName="";
+      cb(null, page);
     });
   },
   submit: function() {
@@ -121,19 +178,10 @@ var AddPageComponent = ng.core.Component({
       , router = this._router
       , dropzone = this.dropzone
     ;
-    if (this.oneormany=="OnePage") {
-      if (this.pageName === "") {
-        this.message="You must supply a name for the page";
-        return;
-      } else {
-        this.message="";
-        var matchedpage= state.document.attrs.children.filter(function (obj){return obj.attrs.name === self.pageName;})[0];
-        if (matchedpage) {
-          this.message="There is already a page "+this.pageName;
-          return;
-        }
-        this.addPage();
-      }
+    if (dropzone.getQueuedFiles().length > 0) {
+      dropzone.processQueue();
+    } else {
+      this.addPage(this.pageName);
     }
   },
   closeModalAP: function() {
