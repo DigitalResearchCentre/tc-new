@@ -52,12 +52,24 @@ var AddPageComponent = ng.core.Component({
     }
     $dropzone.dropzone({
       url: url,
-      autoProcessQueue: true,
-      uploadMultiple: false,
-      dictDefaultMessage: "Click here to upload a file, or drop image file or files here",
+      autoProcessQueue: false,
+      uploadMultiple: true,
+      addRemoveLinks: true,
+      dictDefaultMessage: 
+        "Click here to upload a file, or drop image file or files here",
     });
     this.dropzone = $dropzone[0].dropzone;
     this.dropzone.on('success', this.onImageUploaded.bind(this));
+    this.dropzone.on('addedfile', function(file) {
+      if (self.oneormany === "OnePage") {
+        var files = this.getQueuedFiles()
+          , dropzone = this
+        ;
+        _.each(files, function(f) {
+          dropzone.removeFile(f)
+        });
+      }
+    });
     window.dropzone = this.dropzone;
   },
   ngOnChanges: function() {
