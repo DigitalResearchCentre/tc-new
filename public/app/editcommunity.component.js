@@ -27,6 +27,7 @@ var EditCommunityComponent = ng.core.Component({
   ngOnInit: function() {
     var self=this;
     this.message = '';
+    this.initEdit(this.community);
   },
   ngOnChanges: function() {
     this.initEdit(this.community);
