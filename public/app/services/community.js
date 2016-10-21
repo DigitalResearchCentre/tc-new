@@ -50,7 +50,7 @@ var CommunityService = ng.core.Injectable().Class({
   },
   refreshCommunity: function(community) {
     return this.fetch(community.getId(), {
-      populate: JSON.stringify('documents entities')
+      populate: JSON.stringify('documents')
     });
   },
   selectCommunity: function(community) {
@@ -126,7 +126,7 @@ var CommunityService = ng.core.Injectable().Class({
       }), JSON.stringify(doc), this.prepareOptions({})
     ).map(function(res) {
       self.fetch(community.getId(), {
-        populate: JSON.stringify('documents entities')
+        populate: JSON.stringify('documents')
       }).subscribe();
       return new Doc(res.json());
     });

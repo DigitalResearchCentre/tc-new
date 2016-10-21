@@ -6,10 +6,14 @@ var mongoose = require('mongoose')
 
 const EntitySchema = extendNodeSchema('Entity', {
   name: String,
+  entityName: String,
+  ancestorName: String,
+  isTerminal: Boolean,
+  childOrder: [],
 }, {
   statics: {
     updateTree: function(entityRoot, callback) {
-      
+
     },
     getDocIds: function(entityId, docId, callback) {
       if (_.isString(entityId)) {
@@ -66,4 +70,3 @@ const EntitySchema = extendNodeSchema('Entity', {
 var Entity = mongoose.model('Entity', EntitySchema);
 
 module.exports = Entity;
-

@@ -25,7 +25,7 @@ var CommunitySchema = new Schema({
   css: String,
   js: String,
   documents: [{type: ObjectId, ref: 'Doc'}],
-  entities: [{type: ObjectId, ref: 'Entity'}],
+  entities: [],
 });
 
 _.assign(CommunitySchema.methods, {
@@ -40,7 +40,7 @@ _.assign(CommunitySchema.methods, {
   setDTD: function(dtd) {
     let dtdPath = this.getDTDPath()
       , dirpath = path.dirname(dtdPath)
-      , uploadDir = path.dirname(dirpath) 
+      , uploadDir = path.dirname(dirpath)
     ;
     if (dtdPath) {
       try {

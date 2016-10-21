@@ -27,6 +27,9 @@ var DocService = ng.core.Injectable().Class({
         case 'refreshDocument':
           self.refreshDocument(event.payload).subscribe();
           break;
+        case 'refreshDocEntity':
+            self.refreshDocEntity(event.payload).subscribe();
+            break;
       }
     });
   }],
@@ -34,9 +37,36 @@ var DocService = ng.core.Injectable().Class({
     return Doc;
   },
   refreshDocument: function(doc) {
-    return this.fetch(doc.getId(), {
+    return this.fetch(doc._id, {
       populate: JSON.stringify('children'),
-    });   
+    });
+  },
+  refreshDocEntity: function(docEntity) {
+    return this.fetch(docEntity._id, {
+      populate: JSON.stringify('children'),
+    });
+  },
+  selectEntity: function(docEntity) {
+    console.log("getting the doc entity")
+    console.log(docEntity);
+    var uiService = this._uiService
+      , self = this
+      , state = uiService.state
+    ;
+    if (docEntity) {
+      docEntity.expand = true;
+    }
+    if (docEntity && state.docEntity !== docEntity) {
+      self.refreshDocument(docEntity).subscribe(function(docEntity) {
+        console.log("getting doc entities");
+        console.log(docEntity)
+  /*      var thisEntity = docEntity.getFirstChild();
+        if (thisEntity && (!state.page || state.page.getParent() !== doc)) {
+          self.selectPage(page);
+        } */
+      });
+    }
+    uiService.setState('documentEntity', docEntity);
   },
   selectDocument: function(doc) {
     var uiService = this._uiService
@@ -151,7 +181,7 @@ var DocService = ng.core.Injectable().Class({
       _.dfs([teiRoot], function(cur) {
         if (!_.startsWith(cur.name, '#')) {
           index = docTags.indexOf(cur.name);
-          // if node is doc 
+          // if node is doc
           if (index > -1 || (prevDoc && cur.name === prevDoc.label)) {
             if (cur.name === docRoot.label) {
               if (!prevDoc) {
@@ -340,7 +370,7 @@ function loadObjTree(xmlDoc, parentEl, obj, queue) {
   var childEl;
   if (!obj) {
     return
-  } 
+  }
   if (obj.name === '#text') {
     childEl = xmlDoc.createTextNode(obj.text);
   } else if (obj.name === '#comment') {

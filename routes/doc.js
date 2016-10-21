@@ -16,7 +16,7 @@ const ParameterError = Error.extend('ParameterError');
 router.use(function(req, res, next) {
   res.set({
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 
+    'Access-Control-Allow-Headers':
       'Origin, X-Requested-With, Content-Type, Accept, Key, Cache-Control',
   });
   next();
@@ -80,7 +80,7 @@ var DocResource = _.inherit(Resource, function(opts) {
   // POST: /api/docs/:id/
   //  body: {
   //    parent | after | community,
-  //    tei,  // will auto create empty page if tei is empty 
+  //    tei,  // will auto create empty page if tei is empty
   //    doc,  // should contain valid label and name
   //  }
   beforeCreate: function(req, res, next) {
@@ -92,7 +92,7 @@ var DocResource = _.inherit(Resource, function(opts) {
         'Create Doc is Not Allowed, should use commit'));
     }
     return function(callback) {
-      // TODO: should check against a TEI schema  
+      // TODO: should check against a TEI schema
       // if (!validTEI(tei)) cb(new TEIError());
       let obj = new Doc(_.omit(Doc.clean(docData), ['children', 'ancestors']));
       async.waterfall([
@@ -132,7 +132,7 @@ var DocResource = _.inherit(Resource, function(opts) {
       // change ancestors and children is NOT ALLOWED
       if (!body.commit) {
         obj.set(_.omit(Doc.clean(_.assign(
-          {_id: obj._id, }, 
+          {_id: obj._id, },
           body
         )), ['children', 'ancestors']));
       }
@@ -153,8 +153,9 @@ var DocResource = _.inherit(Resource, function(opts) {
           obj.commit({
             revision: req.body.revision,
             tei: req.body.tei,
+            community: req.body.community,
             doc: _.assign(req.body.doc, {_id: obj._id}),
-          }, cb);         
+          }, cb);
         },
         function(doc) {
           const cb = _.last(arguments);
@@ -168,6 +169,7 @@ var DocResource = _.inherit(Resource, function(opts) {
               committed: new Date(),
               user: req.user._id,
             }
+  //          console.log("about to save again ");
             doc.save(cb);
           }
         },

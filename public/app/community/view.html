@@ -1,69 +1,189 @@
-<tc-splitter class="content" (resize)="onResize($event)">
+<tc-splitter class="content" (resize)="onResize($event)" *ngIf="state.community">
   <tc-pane class="sidebar">
-    <tc-tabs *ngIf="state.community">
-      <tc-tab [active]="true" title="Documents">
-        <tc-tabs>
-          <tc-tab [active]="true" title="By Page">
-            <ul class="tree">
-              <li *ngFor="#doc of state.community.attrs.documents" 
-                [class.collapse-node]="!doc.expand">
-                <div>
-                  <span class="icon" aria-hidden="true"
-                    (click)="toggleDoc(doc)"></span>
-                  <a (click)="selectDoc(doc)">
-                    {{doc.attrs.name}}
-                  </a>
-                  <a target="_blank" class="extract-xml"
-                    (click)="extractXML($event, doc)">
-                  </a>
-                  <span (click)="addFirstPage(doc)" 
-                    class="add-page-after"></span>
-                </div>
-                <ul>
-                  <li *ngFor="#page of doc.attrs.children">
-                    <a (click)="selectPage(page)">
-                      {{page.attrs.name}}
+    <ul class="nav nav-tabs">
+      <li id="docTabHead" class="center active" (click)="active('Documents')"><a>Documents</a></li>
+      <li id="collationTabHead" class="center" (click)="active('Collation')"><a>Collation</a></li>
+    </ul>
+    <div class="tc-tab" id="docTab">
+      <ul class="nav nav-tabs" style="font-size:90%">
+        <li id="pageTabHead" class="center active" (click)="active('Pages')"><a>By Page</a></li>
+        <li id="itemTabHead" class="center" (click)="active('Items')"><a>By Item</a></li>
+      </ul>
+    </div>
+    <div class="tab-content tc-tab" id="pageTab" style="overflow:auto">
+      <ul class="tree">
+        <li *ngFor="#doc of state.community.attrs.documents"
+          [class.collapse-node]="!doc.expand">
+          <div>
+            <span class="icon" aria-hidden="true"
+              (click)="toggleDoc(doc)"></span>
+            <a (click)="selectDoc(doc)">
+              {{doc.attrs.name}}
+            </a>
+            <a target="_blank" class="extract-xml"
+              (click)="extractXML($event, doc)">
+            </a>
+            <span (click)="addFirstPage(doc)"
+              class="add-page-after"></span>
+          </div>
+          <ul>
+            <li *ngFor="#page of doc.attrs.children">
+              <a (click)="selectPage(page)">
+                {{page.attrs.name}}
+              </a>
+              <span (click)="editPageImage(page)"
+                class="edit-page-image"></span>
+              <span (click)="addPageAfter(page)"
+                class="add-page-after"></span>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="tab-content tc-tab" id="itemTab" style="display:none; overflow:auto">
+      <ul class="tree">
+       <li *ngFor="#doc of state.community.attrs.documents"
+          [class.collapse-node]="!doc.expand">
+          <div>
+            <span *ngIf="doc.attrs.entities" class="icon" aria-hidden="true"
+              (click)="toggleDoc(doc)"></span>
+            <a (click)="selectDoc(doc)">
+              {{doc.attrs.name}}
+            </a>
+          </div>
+          <ul>
+            <li *ngFor="#docEntity of doc.attrs.entities"
+              [class.collapse-node]="!docEntity.expand">
+              <div>
+                <span *ngIf="docEntity.entityChildren.length"  class="icon" aria-hidden="true"
+                  (click)="toggleDocEntities(docEntity)"></span>
+                <a (click)="selectDocEntity(doc, docEntity)">
+                  {{docEntity.name}}
+                </a>
+              </div>
+              <ul>
+                <li *ngFor="#subDocEntity of docEntity.entities"
+                  [class.collapse-node]="!subDocEntity.expand">
+                  <div>
+                    <span *ngIf="subDocEntity.hasChild" class="icon" aria-hidden="true"
+                      (click)="toggleDocEntities(subDocEntity)"></span>
+                    <a (click)="selectDocEntity(doc, subDocEntity)">
+                      {{subDocEntity.name}}
                     </a>
-                    <span (click)="editPageImage(page)" 
-                      class="edit-page-image"></span>
-                    <span (click)="addPageAfter(page)" 
-                      class="add-page-after"></span>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </tc-tab>
-          <tc-tab title="By Item">
-            <div>world</div>
-            <ul class="tree">
-              <li *ngFor="#entity of state.community.attrs.entities"
-                [class.collapse-node]="!entity.expand">
-                <div>
-                  <span class="icon" aria-hidden="true"
-                    (click)="toggleEntity(entity)"></span>
-                  <a (click)="selectEntity(entity)">
-                    {{doc.name}}
-                  </a>
-                </div>
-                <ul>
-                  <li *ngFor="#node of entity.attrs.children"
-                    [class.collapse-node]="!node.expand">
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </tc-tab>
-        </tc-tabs>
-      </tc-tab>
-      <tc-tab title="Collations">
-        <p>Collation will go here</p>
-      </tc-tab>
-    </tc-tabs>
+                  </div>
+                  <ul>
+                    <li *ngFor="#subSubDocEntity of subDocEntity.entities"
+                      [class.collapse-node]="!subSubDocEntity.expand">
+                      <div>
+                        <span *ngIf="subSubDocEntity.hasChild" class="icon" aria-hidden="true"
+                          (click)="toggleDocEntities(subSubDocEntity)"></span>
+                        <a (click)="selectDocEntity(doc, subSubDocEntity)">
+                          {{subSubDocEntity.name}}
+                        </a>
+                      </div>
+                      <ul>
+                        <li *ngFor="#subSubSubDocEntity of subSubDocEntity.entities"
+                          [class.collapse-node]="!subSubSubDocEntity.expand">
+                          <div>
+                            <span *ngIf="subSubSubDocEntity.hasChild" class="icon" aria-hidden="true"
+                              (click)="toggleDocEntities(subsubDocEntity)"></span>
+                            <a (click)="selectDocEntity(doc, subsubDocEntity)">
+                              {{subsubDocEntity.name}}
+                            </a>
+                          </div>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div id="collationView" class="tab-content tc-tab" style="display:none; overflow:auto; ">
+      <ul class="tree">
+        <li *ngFor="#entity of state.community.attrs.entities"
+          [class.collapse-node]="!entity.expand">
+          <div>
+            <span *ngIf="!entity.isTerminal" class="icon" aria-hidden="true"
+              (click)="toggleEntities(entity)">
+               <span class="collationMenu">{{entity.attrs.name}}</span>
+            </span>
+            <span *ngIf="entity.isTerminal">
+            <a (click)="selectEntity(entity)">
+              {{entity.attrs.name}}
+            </a></span>
+          </div>
+          <ul>
+            <li *ngFor="#subEntity of entity.entities"
+              [class.collapse-node]="!subEntity.expand">
+              <div>
+                <span *ngIf="!subEntity.isTerminal" class="icon" aria-hidden="true"
+                  (click)="toggleEntities(subEntity)">
+                    <span class="collationMenu">{{subEntity.name}}</span>
+                </span>
+                <span *ngIf="subEntity.isTerminal">
+                <a (click)="selectEntity(subEntity)">
+                  {{subEntity.name}}
+                </a></span>
+              </div>
+              <ul>
+                <li *ngFor="#subSubEntity of subEntity.entities"
+                  [class.collapse-node]="!subSubEntity.expand">
+                  <div>
+                    <span *ngIf="!subSubEntity.isTerminal" class="icon" aria-hidden="true"
+                      (click)="toggleEntities(subSubEntity)">
+                      <span class="collationMenu">{{subSubEntity.name}}</span>
+                    </span>
+                    <span *ngIf="subSubEntity.isTerminal">
+                    <a (click)="selectEntity(subSubEntity)">
+                      {{subSubEntity.name}}
+                    </a></span>
+                  </div>
+                  <ul>
+                    <li *ngFor="#subSubSubEntity of subSubEntity.entities"
+                      [class.collapse-node]="!subSubSubEntity.expand">
+                      <div>
+                        <span *ngIf="!subSubSubEntity.isTerminal" class="icon" aria-hidden="true"
+                          (click)="toggleEntities(subSubSubEntity)">
+                          <span class="collationMenu">{{subSubSubEntity.name}}</span>
+                        </span>
+                        <span *ngIf="subSubSubEntity.isTerminal">
+                        <a (click)="selectEntity(subSubSubEntity)">
+                          {{subSubSubEntity.name}}
+                        </a></span>
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
   </tc-pane>
   <tc-pane class="viewer">
-    <tc-viewer *ngIf="state.page" 
-      [page]="state.page"
-      [image]="state.page.attrs.image"></tc-viewer>
+    <tc-viewer *ngIf="state.page"
+        [page]="state.page"
+        [image]="state.page.attrs.image"></tc-viewer>
+    <div id="tcCollation" style="display:none">
+        <p *ngIf="!state.community.attrs.entities.length">
+          No entities found. Commit pages in the document viewer, using "n" attributes on elements to
+          declare them as entities (e.g. &lt;div n="1" type="book"> for Book 1).
+        </p>
+        <p *ngIf="state.community.attrs.entities.length && !versions.length">
+          Click on entity elements in the side panel to show all occurrences of that entity in the documents.
+        </p>
+        <div *ngIf="versions.length" style="overflow:auto">
+            <p>Versions of {{state.community.entityName}}</p>
+          <div *ngFor="#version of versions" class="row" style="min-width:600px">
+              <span class="col-sm-1">{{version.sigil}}</span>
+              <span class="col-sm-11">{{version.version}}</span>
+          </div>
+        </div>
+      </div>
   </tc-pane>
 </tc-splitter>
-

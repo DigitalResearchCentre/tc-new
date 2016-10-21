@@ -1,16 +1,17 @@
+
 var Tab = ng.core.Component({
   selector: 'tc-tab',
   inputs: [
     'title', 'active',
   ],
   template: `
-    <div class="tab-content" [hidden]="!active"> 
+    <div class="tab-content" [hidden]="!active">
       <ng-content></ng-content>
     </div>
   `,
 }).Class({
   constructor: function() {
-    
+
   },
 });
 
@@ -18,17 +19,17 @@ var Tabs = ng.core.Component({
   selector: 'tc-tabs',
   template: `
     <ul class="nav nav-tabs">
-      <li *ngFor="#tab of tabs" (click)="active(tab)" 
+      <li *ngFor="#tab of tabs" (click)="active(tab)"
         [class.active]="tab.active"><a>{{tab.title}}</a></li>
     </ul>
     <ng-content></ng-content>
   `,
-  queries: {
+ directives: [Tab],
+ queries: {
     tabs: new ng.core.ContentChildren(Tab),
   },
-  directives: [Tab],
 }).Class({
-  constructor: [function() { 
+  constructor: [function() {
     this._activeTab = null;
   }],
   ngAfterContentChecked: function() {
@@ -54,4 +55,3 @@ module.exports = {
   Tabs: Tabs,
   Tab: Tab,
 };
-

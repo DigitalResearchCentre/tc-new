@@ -212,6 +212,7 @@ var ViewerComponent = ng.core.Component({
     });
   },
   commit: function() {
+//    console.log(this.state.community.attrs.abbr);
     var docService = this._docService
       , page = this.page
       , revision = this.revision

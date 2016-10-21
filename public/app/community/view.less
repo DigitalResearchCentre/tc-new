@@ -8,7 +8,7 @@ tc-community-view {
     tc-splitter {
         .flex(1, 1, 0);
         overflow: hidden;
-
+        .center {text-align: center}
         .flex-row;
 
         .sidebar {
@@ -16,7 +16,9 @@ tc-community-view {
 
             .flex-column;
 
-            tc-tabs {
+            .tab-content {background-color: white; height: 100%}
+
+            .tc-tabs {
                 .flex(1, 1, 0);
 
                 .flex-column;
@@ -29,23 +31,23 @@ tc-community-view {
                     .flex(0, 0, initial);
                 }
 
-                tc-tab {
+                .tc-tab {
                     .flex-column;
                     overflow: auto;
                 }
             }
 
-            ul.tab-heads {
+/*            ul.tab-heads {
                 font-size: 80%;
                 >li>a {padding: 7px 5px 7px 5px}
-            }
+            } */
 
             ul {
                 list-style: none;
                 padding: 0;
             }
 
-            tc-tab ul.tree {
+            .tc-tab ul.tree {
                 overflow: auto;
 
                 li {
@@ -102,5 +104,3 @@ tc-community-view {
 
     }
 }
-
-

@@ -344,6 +344,108 @@ router.post('/sendmail', function(req, res, next) {
   });
 });
 
+router.post('/getSubEntities', function(req, res, next) {
+//  console.log("looking for entities with ancestor "+req.query.ancestor)
+  var foundEntities=[];
+  Entity.find({"ancestorName":req.query.ancestor}, function(err, children) {
+    foundEntities=children;
+    res.json({foundEntities});
+  });
+});
+
+router.post('/getEntityVersions', function(req, res, next) {
+//  console.log("looking for versions of identifier "+req.query.id)
+  var foundVersions=[];
+  TEI.find({"entityName":req.query.id}, function(err, versions) {
+    var nversions=versions.length;
+    console.log("versions found "+nversions);
+    var nprocessed=0;
+    async.forEachOf(versions, function(version) {
+      const cb2 = _.last(arguments);
+      async.waterfall([
+        function(callback) {
+         Doc.findOne({_id:version.docs[0]}, function (err, myDoc) {
+            callback(err, myDoc);
+          });
+        },
+        function(myDoc, callback) {
+          console.log("now get the teis for "+myDoc.name);
+          //use async recursive to pull these together
+          var teiContent={"content":""};
+          loadTEIContent(version, teiContent).then(function (){
+            nprocessed++;
+            foundVersions.push({"sigil":myDoc.name, "version":teiContent.content})
+            console.log("here we write out the version "+teiContent.content);
+            if (nprocessed==nversions) res.json({foundVersions});
+          });
+        },
+      ])
+    });
+  });
+});
+
+function procTEIs (teiID, callback) {
+    TEI.findOne({_id:teiID}, function (err, version) {
+      var tei={"content":""};
+      loadTEIContent(version, tei).then(function (){
+        //might here have to wrap element content in xml stuff?
+        //test: is this an element...if it is, bookend with xml
+        //when preparing for collation .. drop note elements here
+        if (version.children.length && version.name!="#text") {
+          var attrs="";
+          if (version.attrs) {
+            for (var key in version.attrs) {
+              attrs+=" "+key+"=\""+version.attrs[key]+"\"";
+            }
+          }
+          tei.content="<"+version.name+attrs+">"+tei.content+"</"+version.name+">";
+        }
+//        console.log("adding the tei "+tei.content)
+        callback(err, tei.content);
+      });
+    });
+}
+
+function loadTEIContent(version, content) {
+  var deferred = Promise.defer();
+  if (version.children.length) {
+    async.map(version.children, procTEIs, function (err, results) {
+        var newContent="";
+        for (var i=0; i<results.length; i++) {newContent+=results[i];}
+        content.content=newContent;
+        deferred.resolve();
+    })
+  } else { //only one! add this to the tei
+      if (version.name=="#text") {
+        content.content+=version.text;
+      } else {
+        //no content, but an element -- pb or lb or similar, ignore
+      }
+      deferred.resolve();
+  }
+  return deferred.promise;
+}
+
+
+router.post('/getSubDocEntities', function(req, res, next) {
+    TEI.findOne({_id: req.query.id}, function(err, tei) {
+      var foundTEIS=[];
+      var hits=0;
+      for (var i=0; i<tei.entityChildren.length; i++) {
+          TEI.findOne({_id: tei.entityChildren[i]}, function(err, oneTEI) {
+            var hasChild=true;
+            hits++;
+            if (!oneTEI.entityChildren.length) hasChild=false;
+            foundTEIS.push({"name":oneTEI.attrs.n, "tei_id":oneTEI._id, "hasChild":hasChild, "page":oneTEI.docs[1]});
+            if (hits==tei.entityChildren.length) {
+              res.json({foundTEIS});
+            }
+        });
+      }
+
+    });
+});
+
 router.post('/validate', function(req, res, next) {
   var xmlDoc, errors;
   Community.findOne({_id: req.query.id}, function(err, community) {
@@ -390,58 +492,3 @@ router.use(function(err, req, res, next) {
 });
 
 module.exports = router;
-
-/*
-<text>
-<body>
-  <div n="div1">
-    <pb n="1r"/>
-    <head n="h1"> head </head>
-    <ab n="ab1"> ab1 </ab>
-    <ab n="ab2"> ab2 </ab>
-    <lb/>
-    <l n="1"> hello <lb/> world </l>
-    <lb/>
-  </div>
-  <div n="div2">
-    <l n="1">
-      foo
-      <pb n="1v"/>
-      <lb/>
-      bar
-    </l>
-  </div>
-</body>
-</text>
-
-<text>
-<body>
-  <div n="div1">
-    <pb n="1r"/>
-    <head n="h1"> head </head>
-    <ab n="ab1"> ab1 </ab>
-    <ab n="ab2"> ab2 </ab>
-    <lb n="1r1"/>
-    <l n="1"> hello <lb  n="1r2"/> world </l>
-    <lb  n="1r3"/>
-     <l n="2"> foo  bar </l>
-    <lb  n="1r4"/>
-     <l n="3"> good  good </l>
-  </div>
-  <div n="div2">
-        <lb n="1r5"/>
-    <l n="1">
-      foo
-
-      <pb n="1v"/>
-      <lb n="1v1"/>
-      bar
-    </l>
-    <pb n="2r"/>
-<lb n="2r1"/>
-     <l n="1"> see <lb n="2r2"/> you</l>
-  </div>
-</body>
-</text>
-
- */

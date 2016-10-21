@@ -6,13 +6,13 @@ var EventEmitter = ng.core.EventEmitter
 
 var FileReaderComponent = ng.core.Component({
   selector: 'tc-filereader',
-  template: '<input type="file"/>',
-  // style="width: 250px; display: inline-block" 
+  template: '<input id="FRinput" type="file"/>',
+  // style="width: 250px; display: inline-block"
   outputs: [
     'filechange'
   ],
 }).Class({
-  constructor: [ElementRef, function(elementRef) { 
+  constructor: [ElementRef, function(elementRef) {
     this._elementRef = elementRef;
 
     this.filechange = new EventEmitter();
@@ -33,4 +33,3 @@ var FileReaderComponent = ng.core.Component({
 });
 
 module.exports = FileReaderComponent;
-

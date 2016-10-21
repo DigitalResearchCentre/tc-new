@@ -45,6 +45,7 @@ var AddDocumentComponent = ng.core.Component({
         self.message='Document "'+self.doc.name+' "already exists';
         return;
     } else {
+        this.doc.community=community.attrs.abbr;
         this._docService.commit({
           doc: this.doc,
         }, {
@@ -52,13 +53,14 @@ var AddDocumentComponent = ng.core.Component({
         }).subscribe(function(doc) {
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");
+          self.doc = {name:"", label: 'text'};
           //tell the system we have this document as current
           self._router.navigate(['Community', {
             id: community.getId(), route: 'view'
           }]);
           self.closeModalAD();
         }, function(err) {
-          self.message = err.message;
+          self.message = "Error writing to database";
         });
     }
   },
@@ -66,6 +68,7 @@ var AddDocumentComponent = ng.core.Component({
     this.message=this.success=this.doc.name="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
+    this.doc = {name:"", label: 'text'};
     $('#manageModal').modal('hide');
   },
   alreadyDoc: function(community, docname) {

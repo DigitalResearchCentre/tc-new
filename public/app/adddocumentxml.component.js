@@ -72,6 +72,7 @@ var AddDocumentXMLComponent = ng.core.Component({
         return;
       } else {
         self.success="XML document "+self.doc.name+" parsed successfully. Now loading.";
+        self.doc.community=self.state.community.attrs.abbr;
         docService.commit({
           doc: self.doc,
           text: text,
@@ -79,18 +80,27 @@ var AddDocumentXMLComponent = ng.core.Component({
           community: self.state.community.getId(),
         }).subscribe(function(res) {
           self.success="XML document "+self.doc.name+" loaded successfully";
+          self.text="";
+          $('#FRinput').val("");
+          self.doc = {name:"", text:""};
+          self.filecontent = '';
     //        self.closeModalADX();
         }, function(err) {
-          self.message = err.message;
+          var errbody=JSON.parse(err._body)
+          self.message = errbody.message;
         });
       }
     })
   },
   closeModalADX: function() {
-    this.message=this.success=this.doc.name="";
+    this.message=this.success=this.doc.name=this.text="";
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
+    this.filecontent = '';
+    this.state=this.uiService.state;
+    this.doc = {name:"", text:""};
+    $('#FRinput').val("");
   }
 });
 

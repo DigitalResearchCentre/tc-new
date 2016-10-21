@@ -8,10 +8,8 @@ var Entity = _.inherit(Model, {
   // statics
   fields: {
     _id: '',
+    name: '',
   },
 });
 
 module.exports = Entity;
-
-
-

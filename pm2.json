@@ -6,11 +6,11 @@
     "watch": true,
     "ignore_watch" : [
       ".git", ".DS_Store",
-      "public", 
-      "data", 
-      "spec", 
-      "node_modules", 
-      "bower_components" 
+      "public",
+      "data",
+      "spec",
+      "node_modules",
+      "bower_components"
     ],
     "watch_options": {
       "followSymlinks": false
