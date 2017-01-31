@@ -9,9 +9,11 @@ var mongoose = require('mongoose')
   , TEI = require('./tei')
   , Entity = require('./entity')
   , Community = require('./community')
+  , $ = require('jquery')
 
 
 const CheckLinkError = Error.extend('CheckLinkError');
+var killTheseEntities =[];
 
 var DocSchema = extendNodeSchema('Doc', {
   name: String,
@@ -42,6 +44,8 @@ var DocSchema = extendNodeSchema('Doc', {
       } else {
         docEl = {name: self.label, attrs: {n: self.name}};
       }
+      console.log("communityAbbr "+communityAbbr);
+
       if (_.isEmpty(teiRoot)) {
         let loop = true;
 
@@ -124,9 +128,13 @@ var DocSchema = extendNodeSchema('Doc', {
         //all the entities are now listed. Accumulate them in liveEntities list
   //      topEntities=filterLiveEntities(insertTeis, insertEntities);
       var uniqueEntities = {};
-      //convert tei references to toplevel entities to entity ids from the database, write to entities
+        //convert tei references to toplevel entities to entity ids from the database, write to entities
   //    console.log(insertTeis);
-      filterEntities(insertTeis, communityAbbr, function(myentities, err) {
+      var elInfo = {"currAncestor": {}, "currEntity": {}, "curPath": [] };
+ //use this to hold mongoDB element for page
+      console.log("starting out with");
+      console.log(insertTeis);
+      filterEntities(docRoot, insertTeis, communityAbbr, elInfo, function(myentities, err) {
       //    self.entities=myentities;
           topEntities=filterLiveEntities(insertTeis, insertEntities);
     //      console.log(insertTeis);
@@ -137,54 +145,218 @@ var DocSchema = extendNodeSchema('Doc', {
           //note TODO: this may NOT catch all that need to be caught. Will only catch the last men standing in the ancestor queue
           //could be different ancestors referenced in deleted page. May have to deal with those differently
           insertTeis=removeDNW(insertTeis);
-          async.parallel([
-            function(cb1) {
-          //    console.log(self);
+          //we changed parallel to waterfall: need to have this tasks occur in sequence or wierd things may happen
+          async.waterfall([
+            function identifyTEIDeleteChildren (cb1) {
+                TEI.find({$or: [{ancestors: {$in: deleteTeis}}, {_id: {$in: deleteTeis}},]}, function (err, results) {
+  //                console.log("doing delete children "+results)
+                  var TEIDeleteChildren=[];
+                  for (var i=0; i<results.length; i++) {
+                    var entityPath=[];
+                    entityPath.push(results[i].entityName);
+                    TEIDeleteChildren.push({id:results[i]._id, entityName: results[i].entityName, ancestorName: results[i].entityAncestor, entityPath: entityPath, isEntity:results[i].isEntity});
+                  }
+//                  console.log("after making delete children "+TEIDeleteChildren);
+                  cb1(null, TEIDeleteChildren);
+                });
+              },
+            function saveDocRoot (TEIDeleteChildren, cb1) {
+              console.log("delete children "+TEIDeleteChildren);
+              console.log(docRoot);
+              console.log(insertTeis[0]);
+              console.log(self);
           //    console.log(topEntities);
+          //now in this case: if we are coming from a file (=a whole doc), docRoot and self are BOTH
+          //the whole document. BUT if we are coming from a page within a doc:
+          //docRoot and self are BOTH the page, not the doc.
+          //we can distinguish: if from file, first insertTeis has no ancestors
+          //from file:
+            if (!insertTeis[0].ancestors.length) {
               self.entities=topEntities;
-  //            console.log(self);
               self.children = docRoot.children;
               self.save(function(err) {
-                console.log('save done');
+                console.log('save done of docroot');
+                console.log(self);
                 cb1(err, self);
               });
+            } else { //from doc
+              console.log("docroot "); console.log(self);
+
+              console.log("top entities "); console.log(topEntities);
+              //here we find the docRoot and add new entities to this
+              console.log("first tei "+insertTeis[0]);  //first insertTei will be body without a doc..
+              //doc will be in the docs array; alter it in there and away we go
+              console.log("first tei "); console.log(insertTeis[0]);  //first insertTei will be body without a doc..
+              console.log("second tei "); console.log(insertTeis[1]);  //first insertTei will be body without a doc..
+//              console.log("docs "); console.log(docs);
+              Doc.findOne({_id: insertTeis[1].docs[0]}, function(err, doc) {
+                if (err) throw err;
+                if (doc)  {
+                //check it here
+                  console.log("got the document"); console.log(doc);
+//                  console.log("got the topentities"); console.log(topEntities);
+//                  console.log("got the deleteTeis"); console.log(deleteTeis);
+                  //right... check if we already have these entity children
+                  if (_.isEmpty(doc.entities)) {
+                    doc.entities=topEntities;
+                  } else {
+                    console.log("hunting here");
+//                    console.log("entityChildren"+doc.entities[0].entityChildren)
+                    for (var i=0; i<doc.entities.length; i++) {
+                      console.log("removing "+TEIDeleteChildren+" from entity "+doc.entities[i].entityChildren+" for deleteteis "+deleteTeis)
+                      for (var j=0; j<topEntities.length; j++) {
+                        if (typeof(topEntities[j].alreadyHere) == "undefined") topEntities[j].alreadyHere=false;
+                        if (doc.entities[i].entityName==topEntities[j].entityName) {
+                          //top fella here .. check the children
+                          //if existing child is to be deleted: take it out of here
+                          //update tei_id is_terminal in doc
+                          topEntities[j].alreadyHere=true;
+                          doc.entities[i].tei_id=topEntities[j].tei_id;
+                          doc.entities[i].isTerminal=topEntities[j].isTerminal;
+//                          console.log("removing "+TEIDeleteChildren+" from entity "+doc.entities[i].entityChildren+" for deleteteis "+deleteTeis)
+                          for (var k=0; k<doc.entities[i].entityChildren.length; k++) {
+//                            console.log("checking for "+doc.entities[i].entityChildren[k]);
+                            for (var m=0; m<TEIDeleteChildren.length; m++) {
+//                              console.log("compare "+TEIDeleteChildren[m].id+" to "+doc.entities[i].entityChildren[k]);
+                              if (String(TEIDeleteChildren[m].id)==String(doc.entities[i].entityChildren[k])) {
+//                                console.log("remove this one "+TEIDeleteChildren[m]+" working "+doc.entities[i]);
+//                                console.log("before splice "+doc.entities[i].entityChildren);
+                                doc.entities[i].entityChildren.splice(k, 1);
+//                                console.log("after splice "+doc.entities[i].entityChildren);
+                                k--;
+                              }
+                            }
+                          }
+                          //deletion done. Let's add new children (to do: have to adjust order of children)
+                          doc.entities[i].entityChildren.push(topEntities[j].entityChildren);
+  //                        console.log("after adding "+doc.entities[i].entityChildren);
+                        }
+                      }
+                    }
+                    //top entity not in doc, just add it
+                    for (var j=0; j<topEntities.length; j++) {
+                      if (!topEntities[j].alreadyHere) doc.entities.push({entityName: topEntities[j].entityName, isTerminal: topEntities[j].isTerminal, name: topEntities[j].name, tei_id: topEntities[j].tei_id, entityChildren: topEntities[j].entityChildren});
+                    }
+                    //if the top entity is already there.. leave it
+                    //check children of top entity, may need to add to top
+                    //first -- if current top entity is among those to be deleted
+                  }
+                  console.log('about to save '+doc)
+  //                console.log(doc.entities[0].entityChildren);
+                  //for some reason, straight doc.save does not work. This does.
+                  Doc.collection.update({_id: doc._id}, {
+                    $set: {entities: doc.entities},
+                  }, cb1(null, self));
+                  //for some reason .. doc save is not actually saving
+                  //so: lets use update function instead
+            /*      doc.save(function(err, doc1, numberAffected) {
+                    console.log("saved "+numberAffected); console.log(doc1);
+                    console.log("saved "); console.log(doc1.entities[0]);
+                    cb1(null, self);
+                  }); */
+                } else {
+                  cb1(null, self);
+                }
+                });
+              }
             },
-            function(cb1) {
+            function insertDocsFunct(argument, cb1) {
               for (var i=0; i<docs.length; i++) {docs[i].community=communityAbbr};
               if (docs.length > 0) {
-                  Doc.collection.insert(docs, function(err) {
+                Doc.collection.insertMany(docs, function(err, result) {
                   console.log('docs done');
-                  cb1(err);
+//                  console.log(docs);
+                  cb1(err, self);
                 });
               } else {
-                cb1(null, []);
+                cb1(null, self);
               }
             },
-            function(cb1) {
+            function deleteStuffFunct(argument, cb1) {
               console.log("delete these"); console.log(deleteTeis);
+              //wierd things happening with synchronicity I think.. need to have things happen in order
               //first, remove entity children from master TEIs
-              if (deleteTeis.length > 0) {
-                TEI.collection.remove({
-                  $or: [
-                    {ancestors: {$in: deleteTeis}},
-                    {_id: {$in: deleteTeis}},
-                  ]
-                }, function(err) {
-                  console.log('delete teis done');
-                  cb1(err);
+              //set up waterfall to do the deletions
+              var deleteEntityNames=[];
+              if (deleteTeis.length) {
+                async.waterfall([
+                 function getEntityNames (cbAsync) {
+                   //create array of entities we are going to delete
+                   TEI.find({ancestors: {$in: deleteTeis}, isEntity: true, entityChildren: { $eq: [] }}, function (err, deleteEntities) {
+                     console.log("to delete entities"); console.log(deleteEntities.length);
+        /*             for (var i=0; i<deleteEntities.length; i++) {
+                        var thisTEI=deleteEntities[i];
+                        console.log(thisTEI);
+                        deleteEntityNames.push({id:thisTEI._id, entityName: thisTEI.entityName, ancestorName: thisTEI.entityAncestor, entityPath:[], isEntity:true});
+                     } */
+                     deleteEntities.forEach(function(thisTEI) {
+                        console.log(" delete: "); console.log(thisTEI);
+                        var entityPath=[];
+                        entityPath.push(thisTEI.entityName);
+                        deleteEntityNames.push({id:thisTEI._id, entityName: thisTEI.entityName, ancestorName: thisTEI.entityAncestor, entityPath: entityPath, isEntity:true});
+                    });
+                    cbAsync(null, deleteEntityNames)
+                  });
+                },
+                  function getDeleteEntityPaths (deleteEntityNames, cb1) {
+                    //create paths for every tei we are going to delete
+                    async.map(deleteEntityNames, getEntityPaths, function (err, results){
+                      deleteEntityNames=results;
+                      console.log("now in delete paths");
+                      console.log(deleteEntityNames);
+                      cb1(null, deleteEntityNames);
+                    });
+                  }, function doDeletion (deleteEntityNames, cbAsync) {
+                  //deleteTEIs here
+                  if (deleteTeis.length > 0) {
+                    TEI.collection.remove({
+                      $or: [
+                        {ancestors: {$in: deleteTeis}},
+                        {_id: {$in: deleteTeis}},
+                      ]
+                    }, function(err) {
+                      //are there any entities in teis for this one?
+                      console.log('delete teis done');
+                      cbAsync(null, deleteEntityNames);
+                    });
+                  } else {
+                    cbAsync(null, deleteEntityNames);
+                  }
+                }, function deleteDeadEntities (deleteEntityNames, cbAsync) {
+                  console.log("about to keill entities" + deleteEntityNames.length);
+                  console.log("here is where we will kill the entities "+deleteEntityNames);
+                  //if in insertTeis -- filter from deleteEntityNames
+                  //no need to delete if we are just going to put it back in!
+                  if (deleteEntityNames.length) {
+                    for (var i=0; i<deleteEntityNames.length; i++) {
+                      var insertTei=insertTeis.filter(function (obj){return obj.entityName==deleteEntityNames[i].entityName})[0];
+                      if (insertTei) {
+                        deleteEntityNames.splice(i, 1);
+                      }
+                    }
+                    async.mapSeries(deleteEntityNames, deleteEntityName, function (err, results) {
+                      cbAsync(null, []);
+                    });
+                  } else {cbAsync(null, []);}
+                }
+               ], function (error, success) {
+                  if (error) { console.log('Something is wrong!');
+                    cb1(error, self);
+                  }
+                  console.log('delete teis done in test async');
+                  console.log('vaporize these entities '+killTheseEntities);
+                  cb1(null, self);
                 });
-              } else {
-                cb1(null, []);
-              }
+              } else {cb1(null, self);}
             },
-            function(cb1) {
+            function cleanEntitiesFunct(argument, cb1) {
               console.log("delete entity children");
               //first, remove entity children from ancestor TEIs
               if (deleteTeis.length > 0) {
                 async.map(deleteTeis, findEntChildren, function (err, results) {
                   var uniqueEntities = _.uniqBy(results, "entityName");
                   console.log("got the results before removal "+uniqueEntities);
-                  console.log("deleteTEIs"+deleteTeis);
+  //                console.log("deleteTEIs"+deleteTeis);
                   for (var i=0; i<uniqueEntities.length; i++) {
                     if (uniqueEntities[i]) {
                       for (var j=0; j<deleteTeis.length; j++) {
@@ -195,7 +367,7 @@ var DocSchema = extendNodeSchema('Doc', {
                       }
                     }
                   }
-                  console.log("got the results after removal "+uniqueEntities);
+    //              console.log("got the results after removal "+uniqueEntities);
                   async.forEachOf(uniqueEntities, function(up) {
                     if (up) {
                       const cb2 = _.last(arguments);
@@ -205,17 +377,16 @@ var DocSchema = extendNodeSchema('Doc', {
                     }
                   }, function(err) {
                     console.log('update ent children done');
-                    cb1(err);
+                    cb1(err, self);
                   });
-
                   //save all our entities now
-                  cb1(err);
+                  cb1(err, self);
                 });
               } else {
-                cb1(null, []);
+                cb1(null, self);
               }
             },
-            function(cb1) {
+            function upDateTeis(argument, cb1) {
               if (updateTeis.length > 0) {
                 async.forEachOf(updateTeis, function(up) {
                   const cb2 = _.last(arguments);
@@ -224,13 +395,13 @@ var DocSchema = extendNodeSchema('Doc', {
                   }, cb2);
                 }, function(err) {
                   console.log('update teis done');
-                  cb1(err);
+                  cb1(err, self);
                 });
               } else {
-                cb1(null, []);
+                cb1(null, self);
               }
             },
-           function(cb1) {
+           function insertEntitiesFunct(argument, cb1) {
               if (uniqueEntities.length > 0) {
                 async.forEachOf(uniqueEntities, function(up) {
                   const cb2 = _.last(arguments);
@@ -248,13 +419,13 @@ var DocSchema = extendNodeSchema('Doc', {
                   });
                 }, function(err) {
                   console.log('insert entities done');
-                  cb1(err);
+                  cb1(err, self);
                   });
               } else {
-                cb1(null, []);
+                cb1(null, self);
               }
             },
-            function(cb1) {
+            function insertTopEntitiesFunc(argument, cb1) {
               if (topEntities.length) {
                 async.forEachOf(topEntities, function(up) {
                   const cb2 = _.last(arguments);
@@ -262,21 +433,21 @@ var DocSchema = extendNodeSchema('Doc', {
                     cb2);
                 }, function(err) {
                   console.log('insert topentities done');
-                  cb1(err);
+                  cb1(err, self);
                 });
-              } else cb1(null, []);
+              } else cb1(null, self);
             },
-            function(cb1) {
+            function insertTeisFunct(argument, cb1) {
               console.log("about to do insert teis");
               //for some reason: we get an error when we are trying to insert only some teis
-              console.log(insertTeis);
+              //console.log(insertTeis);
               async.forEachOf(insertTeis, function(insert) {
                 const cb2 = _.last(arguments);
                 TEI.collection.insert(insert, cb2);
               }, function(err) {
                     console.log(err);
                     console.log('insert teis done');
-                    cb1(err);
+                    cb1(err, self);
                 });
           /*          if (insertTeis.length > 0) {
 
@@ -286,7 +457,13 @@ var DocSchema = extendNodeSchema('Doc', {
                   cb1(err);
                });
              } else cb1(null, []); */
-            },
+           },  //this one to definitively remove vaporized entities
+      /*      function killDeadEntities (argument, cb1) {
+              console.log("entities to go "+killTheseEntities);
+              async.map(killTheseEntities, vaporizeEntity, function (err, results) {
+                cb1(err, self);
+              });
+            }, */
           ], callback);
        });
     },
@@ -364,17 +541,6 @@ var DocSchema = extendNodeSchema('Doc', {
         }
       ], callback);
     },
-    /*
-    * example: <div1>
-    *            <div2>
-    *              <pb n="1"/><ab1><t1/></ab1>
-    *              <pb n="2"/>
-    *            <div2>
-    *            <t2/>
-    *            <pb n="3"/>
-    *          </div1>
-    *  should return [div1, div2 ab1, t1], [div1, pb]
-    */
     getOutterTextBounds: function(id, callback) {
       const cls = this;
       async.parallel([
@@ -734,7 +900,8 @@ function findEntChildren (teiID, callback) {
     callback(err, version);
   });
 }
-function filterEntities(sourceTeis, community, callback) {
+function filterEntities(docRoot, sourceTeis, community, elInfo, callback) {
+  console.log("ancestor doc is "+docRoot);
   var entities=[];
   //very slow doing lots of filter look ups -- ie doing a filter look up on each child. Let's do it another way..
   //go through all array, lookup from child to ancestor caching each child
@@ -742,12 +909,13 @@ function filterEntities(sourceTeis, community, callback) {
     sourceTeis[i].isEntity=false;
     sourceTeis[i].community=community;  //help with housekeeping -- each tei gets allocated to a community
   }
-  var curPath=[];
-  /*either: we have a text element very early in the piece, or we are starting in media res*/
-  /*if in media res: first element will have ancestors.  Extract and populate the path */
+  // either: we have a text element very early in the piece, or we are starting in media res
+  // if in media res: first element will have ancestors.  Extract and populate the path
   var i=0;
   if (sourceTeis[i].ancestors.length) {
     //roll through teis till we hit an entity element...
+    console.log("in load from page "+docRoot+" id "+ sourceTeis[i].docs);
+//    console.log(sourceTeis[i]);
     while (!isEntity(sourceTeis[i]) && (i<sourceTeis.length)) {i++};
     if (i==sourceTeis.length) { //no entities here at all
       callback(entities);
@@ -756,9 +924,15 @@ function filterEntities(sourceTeis, community, callback) {
   //  console.log("first element is")
   //  console.log(sourceTeis[i]);
     //use async routine to get ancestor details
-    var currEntity={}, currAncestor={};
     async.map(sourceTeis[i].ancestors, getTEIs, function (err, results) {
-      curPath.push({"tei_id": results[0]._id, "index":i,  "entName": "text" });
+      console.log("processing the tei ancestors "+sourceTeis[i].ancestors.length)
+      //note: will return nullfor teis not saved -- remove them
+      console.log(results);
+      for (var a=0; a<results.length; a++) {  if (!results[a]) results.splice(a, 1);}
+      console.log(results);
+      console.log(results[0]+" length "+results.length);
+      elInfo.curPath.push({"tei_id": results[0]._id, "index":i,  "entName": "text" });
+      console.log(elInfo.curPath[0])
   //    //("before splice");
   //    console.log(sourceTeis[i]);
       results[0].doNotWrite=true;
@@ -766,200 +940,323 @@ function filterEntities(sourceTeis, community, callback) {
 //      console.log("after splice");
 //      console.log(sourceTeis[i]);
 //      console.log(results);
-      for (var j=1; j<results.length; j++) {
-//          console.log("processing the tei ancestors "+j)
-//          console.log(results[j]);
-          if (isEntity(results[j])) {
-            curPath.push({"tei_id":results[j]._id, "index":i+curPath.length, "entName": results[j].name, "entity": nameEntity(results[j], community, curPath.length), "doNotWrite": true});
-            results[j].doNotWrite=true;
-            sourceTeis.splice(i+curPath.length-1,0,results[j]);
-            if (curPath.length==2) {
-                //0 is text, 1 must be the entity
-//                console.log("making the entity")
-                if (results[j].docs && results[j].docs[1]) var page=results[j].docs[1];
-                else page=null;
-                entities.push({"tei_id":results[j]._id, "name":results[j].attrs.n, "page":page, "entityChildren":[]});
-                currEntity=entities[entities.length-1];
-            }
-        }
-        if (j==results.length-1) {
-            currAncestor=sourceTeis[curPath[curPath.length-1].index]
-  //          console.log("currentAncestor")
-  //          console.log(currAncestor);
-  //          console.log(curPath);
-            processEntities(sourceTeis, i+curPath.length, curPath, entities, community, currEntity, currAncestor).then(function(){
-    //          console.log("finished processing")
-              callback(entities);
-              return;
-            });
+// only one result--must be the text. Text element is now 0;process from 1
+      if (results.length==1) {
+        console.log("calling pe")
+        processEntities(elInfo, sourceTeis, i+1, entities, community, function(){
+          callback(entities);
+        });
+      } else {
+        //page is deep within a structure.. this needs to be checked out
+        for (var j=1; j<results.length; j++) {
+            if (results[j] && isEntity(results[j])) {
+              elInfo.curPath.push({"tei_id":results[j]._id, "index":i+elInfo.curPath.length, "entName": results[j].name, "entity": nameEntity(results[j], community, elInfo.curPath.length), "doNotWrite": true});
+              results[j].doNotWrite=true;
+              sourceTeis.splice(i+elInfo.curPath.length-1,0,results[j]);
+              if (elInfo.curPath.length==2) {
+                  //0 is text, 1 must be the entity
+  //                console.log("making the entity")
+                  if (results[j].docs && results[j].docs[1]) var page=results[j].docs[1];
+                  else page=null;
+                  entities.push({"tei_id":results[j]._id, "name":results[j].attrs.n, "page":page, "entityChildren":[]});
+                  elInfo.currEntity=entities[entities.length-1];
+              }
+          }
+          if (j==results.length-1) {
+              elInfo.currAncestor=sourceTeis[elInfo.curPath[elInfo.curPath.length-1].index]
+    //          console.log("currentAncestor")
+    //          console.log(currAncestor);
+    //          console.log(curPath);
+              processEntities(elInfo, sourceTeis, i+1, entities, community, function(){
+      //          console.log("finished processing")
+                callback(entities);
+              });
+          }
         }
       }
     }); //end in media res situation
   } else {
       //deals with load from file, or first saved page
-//    console.log("in load from file");
-    for (; !curPath.length; i++) {
+    console.log("in load from file "+docRoot+" page "+ sourceTeis[0].docs);
+    for (; !elInfo.curPath.length; i++) {
       var childEl=sourceTeis[i];
       if (childEl.name=="text") {
-        curPath.push({"tei_id":childEl._id, "index":i, "entName": "text" });
+        elInfo.curPath.push({"tei_id":childEl._id, "index":i, "entName": "text" });
         childEl.isEntity= true;
         childEl.entityChildren=[];
-        processEntities(sourceTeis, i, curPath, entities, community, null, null).then(function(){
+        processEntitiesFile(elInfo, sourceTeis, i+1,  entities, community, function(){
+    //      console.log(entities);
+    //      console.log(sourceTeis)
           callback(entities);
-          return;
         });
       }
     }
   }
 }
 
-function isEntity(thisTei) {
-    if (thisTei.attrs && thisTei.attrs.n && thisTei.children.length && thisTei.name!="pb" && thisTei.name!="cb" && thisTei.name!="lb") return true;
-    else return false;
+//async function called in page modification
+//if we have deleted an entity: check all ancestors too
+// we are going to create a list of all entities for definitive deletion here..
+// topentities etc MIGHT think an entity is referenced here where actually it has no TEI descendants
+// so: create a list of entities for removal; last cleanup takes them out
+
+function deleteEntityName(thisTei, callback) {
+  console.log("about to delete entity");
+  console.log(thisTei);
+  //calculate what ancestor entity will be..
+  var entityAncestor="";
+  for (var j=0; j<thisTei.entityPath.length; j++) {
+    if (thisTei.entityName==thisTei.entityPath[j]) {
+      if (j==thisTei.entityPath.length-1) entityAncestor="";
+      else entityAncestor=thisTei.entityPath[j+1]
+    }
+  }
+  console.log("entity ancestor: "); console.log(entityAncestor);
+  //first check there are no other teis for this entity name
+  TEI.findOne({entityName: thisTei.entityName}, function(err, teiel) {
+    console.log("finding to delete "+teiel);
+    //a bit tricky here. Need to see if entity exists -- might already have been deleted
+    //if not deleted: delete. Regardless: go up the entity path checking each level
+    if (!teiel) { /*
+      //delete from entities. Check it is here .. if so, delete and go up tree
+      //if not here: just go up the tree
+      console.log("ok, no teis. delete "); console.log(thisTei.entityName);
+      var isTopEntity;
+      if (entityAncestor=="") isTopEntity=true else isTopEntity=false;
+      killTheseEntities.push({entityName: thisTei.entityName, isTopEntity: isTopEntity});
+      Entity.findOne({'entityName':thisTei.entityName}, function (err1, entityEl){
+        //create an array of ancestor names going all the way to the root
+        console.log("entity el to delete"); console.log(entityEl);
+        if (entityEl) {
+          Entity.collection.remove({'entityName':thisTei.entityName}, function (err2, result){
+            console.log("deletion done of "+thisTei.entityName);
+            if (entityAncestor=="") { //at the top!
+              callback(err2, true);
+            } else {
+              thisTei.entityName=entityAncestor;
+              deleteEntityName(thisTei, callback, function (err3, result) {
+                callback(err3, true);
+              });
+            }
+          });
+        } else {
+          if (entityAncestor=="") callback(err1, true);
+          else {
+            thisTei.entityName=entityAncestor;
+            deleteEntityName(thisTei, callback, function (err3, result) {
+              callback(err3, true);
+            });
+          }
+        }
+      }); */
+    } else {
+      //there is a tei -- then leave it in place
+      callback(err, true);
+    }
+  });
 }
 
-//tnis one is now recursive and asynchronous
-function processEntities (sourceTeis, i, curPath, entities, community, currEntity, currAncestor) {
-  var deferred = Promise.defer();  //makes sure we don't return till we have done all the recursion
-  console.log("current path ")
-  for (var z; z<curPath.length; z++) {
-    console.log(curPath[z])
-  }
-  for (; i<sourceTeis.length; i++) {
-    var childEl=sourceTeis[i];
-    if (isEntity(childEl)) {
-          //first, get the current ancestor. Do this by cycling through tei ancestors comparing to current path
-          //pop current path if we need to till it holds the ancestor of this element
-          //note that by definition, the text element must be in this path
-          //now, we have to handle the case where we have a div element OUTSIDE this page
-          //which did open the page but now does not, so won't appear in insertTeis listed
-          //nor will its id appear in the current path -- we have to go fetch it...
-  //    console.log("first entity "); console.log(childEl);
-  //    console.log("curPath "); console.log(curPath);
-      var j=childEl.ancestors.length-1, found=false;
-      for (var j=childEl.ancestors.length-1; j>=0 && !found; j--) {
-          for (var k=curPath.length-1; k>=0 && !found; k--) {
-          if (String(curPath[k].tei_id)==String(childEl.ancestors[j])) {
-              found=true;
+
+function isEntity(thisTei) {
+    console.log(thisTei.attrs+!_.isEmpty(thisTei.attrs));
+    if (!_.isEmpty(thisTei.attrs) && thisTei.attrs.n && thisTei.children.length && thisTei.name!="pb" && thisTei.name!="cb" && thisTei.name!="lb") {
+      console.log("is entity");
+      return true;
+    }
+    else {
+      console.log("is not entity");
+      return false;
+    }
+}
+
+function asyncLoop(iterations, func, callback) {
+    var index = 0;
+    var done = false;
+    var loop = {
+        next: function() {
+            if (done) {
+                return;
+            }
+
+            if (index < iterations) {
+                index++;
+                func(loop);
+
+            } else {
+                done = true;
+                callback();
+            }
+        },
+
+        iteration: function() {
+            return index - 1;
+        },
+
+        break: function() {
+            done = true;
+            callback();
+        }
+    };
+    loop.next();
+    return loop;
+}
+
+function processEntitiesFile (elInfo, sourceTeis, i, entities, community, callback) {
+  //in this case -- we DONT need to handle async calls at all. So we can just loop through whole
+  //souceTeis and send back what we have
+    for (i; i<sourceTeis.length; i++) {
+      processEntity(elInfo, sourceTeis[i], sourceTeis, i, entities, community, true, null);
+    }
+    console.log('file load ended');
+    callback();
+}
+
+//processes either synchronously when fromFile or asysnchronously when submitting page
+//reason: when submitting page, have to do asynch db searches while processing in strict order
+function processEntity(elInfo, childEl, sourceTeis, i, entities, community, fromFile, callback) {
+  console.log("replication "+i);
+  console.log(elInfo);
+  console.log("childEl "); console.log(childEl);
+  if (isEntity(childEl)) {
+    var j=childEl.ancestors.length-1, found=false;
+    for (var j=childEl.ancestors.length-1; j>=0 && !found; j--) {
+        for (var k=elInfo.curPath.length-1; k>=0 && !found; k--) {
+        if (String(elInfo.curPath[k].tei_id)==String(childEl.ancestors[j])) {
+            found=true;
 //              console.log("we have an entity in the currpath "); console.log();
-              currAncestor=sourceTeis[curPath[k].index];
-              if (k<curPath.length-1) { //remove in current path where match is up the tree
-                curPath.splice(k+1, curPath.length-k)
-              }
-              //however.. this ancestor might NOT be the immediate ancestor. In which case, we fetch the ancestors below this one
-              //ie: might be an ancestor below
-              //we are here if we have not got a match for this element
-              //however: if the currpath holds ONLY entName 'text', then this element is a top level entity
-              //now, things become complicated. If we are dealing with one page only, ancestors might be outside the page
-              //and outside the currPath. So we have to get them off the element itself and add them to the current path
-              //we may need this one later... for now, just cut it out
-              if (j>10000)
-            /*  if (j<childEl.ancestors.length-1) */ {
-//                console.log("need to get an ancestor here for "+j+ " ancestor length"+childEl.ancestors.length)
-//                console.log("childEl: "); console.log(childEl);
-//                console.log("curPath: "); console.log(curPath);
-                var ancestorsArr=[];
-                for (j+1; j<childEl.ancestors.length; j++) {ancestorsArr.push(childEl.ancestors[j])};
-//                console.log("ancestorsArr: "+ancestorsArr);
-                async.map(ancestorsArr, getTEIs, function (err, results) {
-                  //add them to the current path; splice to insertTeis; adjust nAncestors; then call processEntities yet again
-//                  console.log("got the tei now, n found "+results.length);
-//                  console.log(results);
-                  for (var x=0; x<results.length; x++) {
-                    curPath.push({"tei_id":results[x]._id, "index":i+x, "entName": results[x].name, "entity": nameEntity(results[x], community, x), "doNotWrite":true});
-                    results[x].doNotWrite=true;  //so we don't write this one out
-                    sourceTeis.splice(i+x, 0, results[x]);
-          //          console.log(sourceTeis);
-                    //this might be the entity.. if we have matched right back to the ancestor
-                    if (curPath.length==2) {
-                      if (results[x].docs && results[x].docs[1]) var page=results[x].docs[1];
-                      else var page=null;
-                      entities.push({"tei_id":results[x]._id, "name":results[x].attrs.n, "page":page, "entityChildren":[]});
-                      currEntity=entities[entities.length-1];
-                    }
-                    if (x==results.length-1) {
-                      currAncestor=results[x];
-      //                console.log("looking at result "+x)
-      //                console.log(currAncestor);
-                    }
-                  }
-    //              console.log(curPath);
-                  //having got that one out of the way.. now recurse back to main loop
-                  processEntities (sourceTeis, i, curPath, entities, community, currEntity, currAncestor).then(function(){
-    //                console.log("processed all the ones in here now");
-                    deferred.resolve();
-                  });
-                });
-              } else {
-                //no problem identifying id; so append, go on to next element
-                //now we have the ancestor. Tack this entity onto it...
-                //recall that ancestors are ALWAYS found before children.  So ancestor will ALWAYS be in the current path
-                //not always.. in the tricky case where
-                childEl.isEntity= true;
-                childEl.entityChildren=[];
-                if (curPath.length>1) childEl.entityAncestor=currAncestor.entityName;
-                else childEl.entityAncestor="";
-                curPath.push({"tei_id":childEl._id, "index":i, "entName": childEl.name, "entity": nameEntity(childEl, community, curPath.length)});
-                childEl.entityName=createPath(curPath, childEl);
-                //special case! if the entity ancestor is text, this is a top-level entity
-                if (currAncestor.name=="text") {
-                  if (childEl.docs && childEl.docs[1]) var page=childEl.docs[1];
-                  else var page=null;
-                  entities.push({"tei_id":childEl._id, "name":childEl.attrs.n, "page":page, "entityChildren":[]});
-                  currEntity=entities[entities.length-1];
-                }
-                if (currAncestor.doNotWrite && curPath.length!=3) {
-                    //ancestor TEI already written. Find, add to entitity children save, go on
-                    TEI.findOne({_id: currAncestor._id}, function(err, teiel) {
-                      if (teiel) {
-                        teiel.entityChildren.push(childEl._id);
-                        teiel.save(function(err) {
-                            if (err) throw err;
-                            processEntities (sourceTeis, i, curPath, entities, community, currEntity, currAncestor).then(function(){
-                              deferred.resolve();
-                            });
-                        });
-                      }
-                    });
-                }
-                else if (currAncestor.doNotWrite) {
-                  TEI.findOne({_id: currAncestor_id}, function(err, teiel) {
-                    if (teiel) {
-                      teiel.entityChildren.push(childEl._id);
-                      teiel.save(function(err) {
-                          if (err) throw err;
-                          processEntities (sourceTeis, i, curPath, entities, community, currEntity, currAncestor).then(function(){
-                            deferred.resolve();
-                          });
-                      });
-                    }
-                  });
-                }
-                else currAncestor.entityChildren.push(childEl._id);
-                if (curPath.length==3) {
-                  //ie, we must be dealing with children of the top level entities
-                   if (currEntity.doNotWrite) {
-                      TEI.findOne({_id: currEntity_id}, function(err, teiel) {
-                        if (teiel) {
-                          teiel.entityChildren.push(childEl._id);
-                          teiel.save(function(err) {
-                              if (err) throw err;
-                              processEntities (sourceTeis, i, curPath, entities, community, currEntity, currAncestor).then(function(){
-                                deferred.resolve();
-                              });
-                          });
-                        }
-                      });
-                   } else currEntity.entityChildren.push(childEl._id);
-                }
-                deferred.resolve();}
+            elInfo.currAncestor=sourceTeis[elInfo.curPath[k].index];
+            if (k<elInfo.curPath.length-1) { //remove in current path where match is up the tree
+              elInfo.curPath.splice(k+1, elInfo.curPath.length-k)
+            }
           }
         }
       }
+    childEl.isEntity= true;
+    childEl.entityChildren=[];
+    if (elInfo.curPath.length>1) childEl.entityAncestor=elInfo.currAncestor.entityName;
+    else childEl.entityAncestor="";
+    elInfo.curPath.push({"tei_id":childEl._id, "index":i, "entName": childEl.name, "entity": nameEntity(childEl, community, elInfo.curPath.length)});
+    childEl.entityName=createPath(elInfo.curPath, childEl);
+    if (elInfo.currAncestor.doNotWrite) {
+      console.log("about to add here 4");
+      TEI.findOne({_id: elInfo.currAncestor._id}, function(err, teiel) {
+//                console.log("about to add here 5 "+teiel);
+        if (teiel) {
+          teiel.entityChildren.push(childEl._id);
+//          console.log("after adding "+teiel);
+          teiel.save(function(err) {
+              if (err) throw err;
+              callback();
+          });
+        } else {
+          console.log("can't find the ancestor")
+          callback();
+      }
+      });
     }
+    else {
+      elInfo.currAncestor.entityChildren.push(childEl._id);
+      if (elInfo.curPath.length!=3 && elInfo.currAncestor.name!="text") {
+        if  (fromFile) return; else callback();
+      }
+    }
+    if (elInfo.currAncestor.name=="text") {
+      console.log("in the text element");
+      if (childEl.docs && childEl.docs[0]) var thisdoc=childEl.docs[0];
+      else var thisdoc=null;
+      if (childEl.docs && childEl.docs[1]) page=childEl.docs[1];
+      else var page=null;
+  //    console.log("my page now is "+page+" in document "+thisdoc);
+      //if this is a top level entity: locate document element among hierarchy and add this as child to
+      //page element (necessary so we can find this entity in this document)
+  //    console.log("my entity is "+childEl._id+" name "+childEl.entityName);
+      entities.push({"tei_id":childEl._id, "name":childEl.attrs.n, "page":page, "entityChildren":[]});
+      elInfo.currEntity=entities[entities.length-1];
+      //locate parent document and add to parent, if not already there
+      //note..our childEl may have changed, add him to function
+      var thisEl=childEl;
+      if (fromFile) return; else callback();
+  //      i=sourceTeis.length;
+      //if we have already written this page element...
+//      console.log("looking for page 1 "+childEl.docs)
+// had stuff in here to find the page -- taken out, we deal with this only when adding topentities at end
+     }
+     //now: if this is a child of an entity, we need to be sure we have
+     //next should catch all cases where we need to write to ancestor
+       if (elInfo.curPath.length==3) {
+         //ie, we must be dealing with children of the top level entities
+         //note: child of top level entities must also be added to the master doc element among entity children
+         //let us see what we are dealing with
+          console.log("Entity child to add to: "+elInfo.currAncestor.attrs.n);
+           //    i=sourceTeis.length; //we are going to recurse from her
+          if (elInfo.currEntity.doNotWrite) {
+            var thisEl=childEl;
+             TEI.findOne({_id: elInfo.currEntity._id}, function(err, teiel) {
+               if (teiel) {
+                 teiel.entityChildren.push(thisEl._id);
+                 teiel.save(function(err) {
+                   if (err) throw err;
+                   callback();
+                 });
+               }
+             });
+          } else {
+            console.log("doNotWrite is false or undefined for "+childEl+" childdocs "+childEl.docs)
+             //here we add the child entity to the page if it is not already there
+             elInfo.currEntity.entityChildren.push(childEl._id);
+             if (fromFile) return; else callback();
+             //next bit removed as could not get page lookup etc to work; now done in top entities
+       }
+     }
+    } else {
+//      console.log("not an entity");
+      if (fromFile) return; else callback();
   }
-//  console.log(entities)\
-  return deferred.promise;
+}
+
+//ensures entities with no teis are removed; also removes from community and doucments so not referenced
+function vaporizeEntity (entityEl, callback) {
+
+}
+//gets the entity path for each tei element
+
+function getEntityPaths  (entityTEI, callback) {
+//    console.log("in getting entity");
+//    console.log(entityTEI);
+    if (!entityTEI.isEntity || entityTEI.ancestorName=="") {
+      callback(null, entityTEI);
+    } else {
+      Entity.findOne({entityName: entityTEI.ancestorName}, function (err, entity) {
+        if (entity) {
+  //        console.log("found entity"+entity)
+          entityTEI.entityPath.push(entity.entityName);
+          entityTEI.ancestorName=entity.ancestorName;
+            //recurse up enti
+          getEntityPaths(entityTEI, function (err, result) {
+            callback(err, result)
+          });
+        } else {
+          console.log("can't find ancestor")
+          callback("Failed to find ancestor entity. This is impossible", null)
+        }
+      });
+    }
+}
+
+//tnis one is now recursive and asynchronous; cna only be used on shortish stretches of text maybe
+function processEntities (elInfo, sourceTeis, i, entities, community, callback) {
+  var jk=i;
+  console.log("about to do pe at "+jk);
+  asyncLoop(sourceTeis.length-i, function(loop) {
+    processEntity(elInfo, sourceTeis[jk], sourceTeis, jk, entities, community, false, function(result) {
+        // log the iteration
+//        console.log("sf "+loop.iteration());
+        jk++;
+        loop.next();
+    })},
+    function(){console.log('cycle 1 ended')
+    callback()}
+  );
 }
 
 
@@ -1005,10 +1302,10 @@ function filterLiveEntities(insertTeis, liveEntities) {
 
 function removeDNW(arr) {
   for (var i=0; i<arr.length; i++) {
-    console.log("element "+i)
-    console.log(arr[i]);
+//    console.log("element "+i)
+//    console.log(arr[i]);
     if (arr[i].doNotWrite) {
-      console.log("got one to remove")
+      //("got one to remove")
       //check no teis to delete are in the entity children; if they are, remove them
   /*    for (var j=0; j<deleteTeis.length; j++) {
 

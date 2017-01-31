@@ -138,6 +138,7 @@ var ViewerComponent = ng.core.Component({
       this._uiService.manageModal$.emit({
         type: 'edit-new-page',
         page: this.page,
+        context: this,
       });
     }
   },
@@ -217,21 +218,53 @@ var ViewerComponent = ng.core.Component({
       , page = this.page
       , revision = this.revision
       , contentText = this.contentText
+      , state = this.state
     ;
     if (contentText !== revision.attrs.text) {
       alert(`You haven't saved this revision yet.`);
       return;
     }
-    docService.commit({
-      revision: revision.getId(),
-      doc: {
-        _id: page.getId(),
-        label: page.attrs.label,
-        name: page.attrs.name,
-      },
-      text: this.contentText,
-    }).subscribe(function() {
-      revision.set('status', 'COMMITTED');
+    //parse first!
+    var self = this;
+    $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
+      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
+    }, function(res) {
+      if (res.error.length) {
+        self._uiService.manageModal$.emit({
+            type: 'preview-page', page: page, error: res.error, content: contentText, lines: contentText.split("\n")
+          });
+      }
+      if (!res.error.length) {
+         self._uiService.manageModal$.emit({
+            type: 'info-message',
+            page: page.attrs.name,
+            docname: self.state.document.attrs.name,
+            message: "Page validated. Now committing"
+          });
+        docService.commit({
+          revision: revision.getId(),
+          doc: {
+            _id: page.getId(),
+            label: page.attrs.label,
+            name: page.attrs.name,
+            community: self.state.community.attrs.abbr,
+          },
+          text: self.contentText,
+        }).subscribe(function() {
+          //go get these from the db
+          self._uiService.manageModal$.emit({type: 'info-message', page: page.attrs.name,   docname: self.state.document.attrs.name, message: "Page successfully committed"});
+            revision.set('status', 'COMMITTED');
+          //update entity status too..
+          $.post(config.BACKEND_URL+'getEntities?'+'community='+state.community.attrs.abbr, function(res) {
+            state.community.attrs.entities=res.foundEntities;
+          });
+          $.post(config.BACKEND_URL+'getDocEntities?'+'document='+state.document.attrs._id, function(res) {
+            //locate the doc in the state structure and update it
+            var thisDoc=state.community.attrs.documents.filter(function (obj){return obj.attrs.name===state.document.attrs.name;})[0];
+            thisDoc.attrs.entities=res.foundDocEntities;
+          });
+        });
+      }
     });
   },
 });

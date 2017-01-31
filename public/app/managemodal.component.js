@@ -24,6 +24,7 @@ var ManageModalComponent = ng.core.Component({
     require('./messagelogin.component'),
     require('./editpage.component'),
     require('./community/uploadfile.component'),
+    require('./infomessage.component'),
   ],
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -48,6 +49,7 @@ var ManageModalComponent = ng.core.Component({
       } else if (event.type === 'edit-new-page') {
         self.choice = event.type;
         self.page = event.page;
+        self.context = event.context;
       } else if (event.type === 'message-login') {
         self.choice = event.type;
         self.community = event.community;
@@ -96,6 +98,11 @@ var ManageModalComponent = ng.core.Component({
           self.error = event.error;
           self.lines = event.lines;
           self.docname = event.docname;
+      } else if (event.type ==='info-message'){
+          self.choice = event.type;
+          self.page=event.page;
+          self.docname=event.docname;
+          self.message=event.message;
       }
       $('#manageModal').modal('show');
     });

@@ -9,7 +9,7 @@
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'"
       [parent]="docParent" [after]="docAfter">
     </tc-managemodal-addpage>
-    <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'" [page]="page">
+    <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'" [page]="page" [context]="context">
     </tc-managemodal-edit-new-page>
     <tc-managemodal-preview-page *ngSwitchWhen="'preview-page'" [page]="page"  [error]="error" [lines]="lines" [content]="content">
     </tc-managemodal-preview-page>
@@ -25,6 +25,7 @@
     </tc-managemodal-message-login>
     <tc-uploadfile-community *ngSwitchWhen="'uploadfile-community'" [community]="community" [filetype]="filetype" [text]="text">
     </tc-uploadfile-community>
-
+    <tc-managemodal-info-message *ngSwitchWhen="'info-message'" [page]="page" [message]="message" [docname]="docname">
+    </tc-managemodal-info-message>
   </div>
 </div>

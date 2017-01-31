@@ -86,9 +86,9 @@
                           [class.collapse-node]="!subSubSubDocEntity.expand">
                           <div>
                             <span *ngIf="subSubSubDocEntity.hasChild" class="icon" aria-hidden="true"
-                              (click)="toggleDocEntities(subsubDocEntity)"></span>
-                            <a (click)="selectDocEntity(doc, subsubDocEntity)">
-                              {{subsubDocEntity.name}}
+                              (click)="toggleDocEntities(subSubSubDocEntity)"></span>
+                            <a (click)="selectDocEntity(doc, subSubSubDocEntity)">
+                              {{subSubSubDocEntity.name}}
                             </a>
                           </div>
                         </li>

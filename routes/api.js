@@ -353,6 +353,33 @@ router.post('/getSubEntities', function(req, res, next) {
   });
 });
 
+router.post('/getEntities', function(req, res, next) {
+  var foundEntities=[];
+  Community.findOne({abbr: req.query.community}, function(err, community) {
+    if (community) {
+      for (var i=0; i<community.entities.length; i++) {
+        foundEntities.push({"attrs":{"name":community.entities[i].name, "isTerminal":community.entities[i].isTerminal, "entityName": community.entities[i].entityName}});
+      }
+        res.json({foundEntities});
+    }
+  });
+});
+
+router.post('/getDocEntities', function(req, res, next) {
+  var foundDocEntities=[];
+  Doc.findOne({_id: req.query.document}, function(err, document) {
+    if (document) {
+      for (var i=0; i<document.entities.length; i++) {
+        console.log(document);
+        foundDocEntities.push({"name":document.entities[i].name, "isTerminal":document.entities[i].isTerminal, "entityName": document.entities[i].entityName, "entityChildren": document.entities[i].entityChildren, "tei_id": document.entities[i].tei_id});
+      }
+        res.json({foundDocEntities});
+    }
+  });
+});
+
+
+
 router.post('/getEntityVersions', function(req, res, next) {
 //  console.log("looking for versions of identifier "+req.query.id)
   var foundVersions=[];
@@ -428,14 +455,18 @@ function loadTEIContent(version, content) {
 
 
 router.post('/getSubDocEntities', function(req, res, next) {
+    console.log("looking for "+req.query.id);
     TEI.findOne({_id: req.query.id}, function(err, tei) {
+      console.log("error "+err);
+      console.log("tei "+tei);
       var foundTEIS=[];
       var hits=0;
       for (var i=0; i<tei.entityChildren.length; i++) {
           TEI.findOne({_id: tei.entityChildren[i]}, function(err, oneTEI) {
+            console.log("child "+oneTEI)
             var hasChild=true;
             hits++;
-            if (!oneTEI.entityChildren.length) hasChild=false;
+            if (oneTEI.entityChildren.length==0) hasChild=false;
             foundTEIS.push({"name":oneTEI.attrs.n, "tei_id":oneTEI._id, "hasChild":hasChild, "page":oneTEI.docs[1]});
             if (hits==tei.entityChildren.length) {
               res.json({foundTEIS});

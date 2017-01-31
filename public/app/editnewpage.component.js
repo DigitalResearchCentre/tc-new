@@ -1,6 +1,7 @@
 var $ = require('jquery')
   , UIService = require('./services/ui')
   , DocService = require('./services/doc')
+  , config = require('./config')
 ;
 
 var EditNewPageComponent = ng.core.Component({
@@ -16,7 +17,7 @@ var EditNewPageComponent = ng.core.Component({
     require('./directives/newpageempty.component'),
   ],
   inputs: [
-    'page',
+    'context', 'page',
   ],
 }).Class({
   constructor: [UIService, DocService, function(uiService, docService) {
@@ -28,12 +29,29 @@ var EditNewPageComponent = ng.core.Component({
     $('#manageModal').height("600px");
     this.message=this.success="";
     this.choice="Prose";
+//    this.revisions = [];
     this.state = uiService.state;
   }],
   submit: function() {
-    var newPage=$("#NewDoc").text();
-    this.page.contentText = newPage;
+    //save the page as a revision
+    var newPage=$("#NewDoc").text(), page = this.page, docService = this.docService,
+      meta = _.get( page, 'attrs.meta',_.get(page.getParent(), 'attrs.meta')), self=this;
+//    console.log("new text "+newPage);
+    this.context.contentText = newPage;
     this.closeModalNP();
+    this.revisions=this.context.revisions;
+    docService.addRevision({
+      doc: page.getId(),
+      text: newPage,
+      user: meta.user,
+      committed: meta.committed,
+      status: 'NEWPAGETEMPLATE',
+    }).subscribe(function(revision) {
+      //propogate on parent page
+      self.context.revisions=self.revisions;
+      self.context.revisions.unshift(revision);
+      self.context.revision=self.revision=revision;
+      });
   },
   choose: function(choice) {
     switch (choice) {
