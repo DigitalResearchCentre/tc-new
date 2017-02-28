@@ -13,7 +13,13 @@ var express = require('express')
   , passport = require('./passport')
   , app = express()
 ;
-mongoose.connect(config.database.uri);
+var dburi = config.database.uri;
+if(config.database.username != '' && config.database.password != '')
+{
+        dburi = 'mongodb://'+config.database.username+':'+config.database.password+'@'+config.database.host+'/'+config.database.database;
+}
+mongoose.connect(dburi);
+//mongoose.connect(config.database.uri);
 
 app.use(express.static(path.join(__dirname, 'public')));
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
