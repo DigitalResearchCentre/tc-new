@@ -41,3 +41,6 @@ config/production.js
 
 # ignore user uploaded files
 upload
+
+#ignore https cert folder
+cert
