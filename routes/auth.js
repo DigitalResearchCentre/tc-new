@@ -4,8 +4,7 @@ var express = require('express')
   , User = require('../models/user')
   , TCMailer=require('../localmailer')
   , TCAddresses=TCMailer.addresses
-
-
+  , config=require('../config')
 ;
 
 var TCModalState = {state:0};
@@ -48,7 +47,7 @@ router.post('/login', function(req, res, next) {
       }
       //are we authenticated? if not...send email and return message
       if (!isValidProfile(user)) {
-        authenticateUser (user.local.email, user, req.protocol + '://' + req.get('host'));
+        authenticateUser (user.local.email, user, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: user});
         req.logout();
         return;
@@ -112,7 +111,7 @@ router.post('/signup', function(req, res) {
       newUser.local.authenticated= "0";
       newUser.save(function(err) {
         if (err) {}
-        authenticateUser (newUser.local.email, newUser, req.protocol + '://' + req.get('host'));
+        authenticateUser (newUser.local.email, newUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: newUser})
         req.logout();
         return;
@@ -127,7 +126,7 @@ router.post('/signup', function(req, res) {
 // called from /profile, if this user is not authenticated
 router.get('/sendauthenticate', function(req, res) {
   var user=req.user;
-  authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+  authenticateUser (req.user.local.email, req.user, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
   // render the page and pass in any flash data if it exists
   res.render('authenticate.ejs', {user: user, context: req.query.context} );
   req.logout();
@@ -375,7 +374,7 @@ router.post('/facebooklinkemail', function(req, res) {
           existingUser.save(); //in case of synchrony -- we don't need the separate one we just made
         });
         if (!isValidProfile(existingUser)) {
-          authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
+          authenticateUser (existingUser.local.email, existingUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
           res.render('authenticate.ejs', {context:"email", user: existingUser})
           req.logout();
           return;
@@ -407,7 +406,6 @@ router.post('/facebooklinkemail', function(req, res) {
 
 //just set up a new account
 router.get('/facebooknew', function(req, res) {
-
   if (req.user.local.name) {
     var thisUser=new User();
     thisUser.facebook=req.user.facebook;
@@ -422,7 +420,7 @@ router.get('/facebooknew', function(req, res) {
   thisUser.local.authenticated= "0";
   thisUser.save(function(err) {
     if (err) {}
-    authenticateUser (thisUser.local.email, thisUser, req.protocol + '://' + req.get('host'));
+    authenticateUser (thisUser.local.email, thisUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
     res.render('authenticate.ejs', {context:"facebook", user: thisUser});
     req.logout();
   });
@@ -496,7 +494,7 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
     if (!req.user.local.email) res.redirect('/app?prompt=twitteremail');
     else {
       if (req.user.local.authenticated=="0") {
-        authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+        authenticateUser (req.user.local.email, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         res.redirect('/app?prompt=sendauthenticate&context=twitter');
       }
     }
@@ -529,7 +527,7 @@ router.post('/twitterlinklocal', function(req, res) {
       });
       existingUser.save();
       if (existingUser.local.authenticated=="0") {
-        authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
+        authenticateUser (existingUser.local.email, existingUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {user: existingUser, context: "twitter"} );
         req.logout();
       } else {
@@ -586,7 +584,7 @@ router.post('/twitteremail', function(req, res) {
       req.user.local.password=req.user.generateHash("X"); //place holder
       req.user.local.authenticated= "0";
       req.user.save();
-      authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
+      authenticateUser (req.user.local.email, req.user, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
       res.render('authenticate.ejs', {context:"twitter", user: req.user});
       req.logout();
     }
@@ -675,7 +673,7 @@ router.post('/googlelinkemail', function(req, res) {
           existingUser.save(); //in case of synchrony -- we don't need the separate one we just made
         });
         if (!isValidProfile(existingUser)) {
-          authenticateUser (existingUser.local.email, existingUser, req.protocol + '://' + req.get('host'));
+          authenticateUser (existingUser.local.email, existingUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
           res.render('authenticate.ejs', {context:"google", user: existingUser})
           req.logout();
           return;
@@ -797,7 +795,7 @@ router.get('/googlenew', function(req, res) {
   thisUser.local.authenticated= "0";
   thisUser.save(function(err) {
     if (err) {}
-    authenticateUser (thisUser.local.email, thisUser, req.protocol + '://' + req.get('host'));
+    authenticateUser (thisUser.local.email, thisUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
     res.render('authenticate.ejs', {context:"google", user: thisUser});
     req.logout();
   });

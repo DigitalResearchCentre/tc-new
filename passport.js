@@ -154,7 +154,7 @@ var configAuth = config.auth;
 
       // all is well, go send an email here!
       else {
-        resetpass(email, user, done,  req.protocol + '://' + req.get('host'));
+        resetpass(email, user, done, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         user.save(function(err) {
           if (err)
             throw err;
