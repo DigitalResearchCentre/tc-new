@@ -7,8 +7,8 @@ var TwitterStrategy  = require('passport-twitter').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 //emailer ======================================================================
-var TCMailer=require('./TCMailer');
-var TCAddresses=require('./TCMailer').addresses;
+var TCMailer=require('./localmailer');
+var TCAddresses=TCMailer.addresses;
 
 // load up the user model
 var User = require('./models/user');
@@ -411,7 +411,7 @@ function resetpass (email, user, done, thisURL) {
 //  console.log( TCAddresses.replyto+" "+TCAddresses.from);
   user.local.timestamp=new Date().getTime();
   user.local.hash=hash;
-  TCMailer.nodemailerMailgun.sendMail({
+  TCMailer.localmailer.sendMail({
     from: TCAddresses.from,
     to: email,
     subject: 'Reset your Textual Communities password',
