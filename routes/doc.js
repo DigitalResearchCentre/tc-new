@@ -51,6 +51,7 @@ function _getDependency(req, doc, callback) {
           doc: doc._id,
           user: req.user._id,
           text: req.body.revision,
+          community: req.body.doc.community,
           status: Revision.status.IN_PROGRESS,
         });
         revision.save(cb);
@@ -148,21 +149,22 @@ var DocResource = _.inherit(Resource, function(opts) {
       };
     }
     return function(obj, callback) {
+        console.log("about to commit?")
         return async.waterfall([
         function(cb) {
-          obj.commit({
+            obj.commit({
             revision: req.body.revision,
             tei: req.body.tei,
-            community: req.body.community,
+            community: req.body.doc.community,
+            res: res,
             doc: _.assign(req.body.doc, {_id: obj._id}),
           }, cb);
         },
         function(doc) {
           const cb = _.last(arguments);
           if (req.body.revision) {
-            Revision.update({_id: req.body.revision}, {
-              committed: new Date(),
-              status: 'COMMITTED',
+            Revision.update({_id: req.body.revision}, {                                                                                                                                                                                                                                                    committed: new Date(),
+              status: 'COMMITTED', community: req.body.doc.community,
             }, cb);
           } else {
             doc.meta = {
@@ -186,12 +188,12 @@ var DocResource = _.inherit(Resource, function(opts) {
 var docResource = new DocResource({id: 'doc'});
 docResource.serve(router, '');
 router.get('/:id/texts', function(req, res, next) {
-  console.log('get texts');
+//  console.log('get texts');
   Doc.getTexts(req.params.id, function(err, texts) {
      if (err) {
       next(err);
     } else {
-      console.log(texts.length);
+//      console.log(texts.length);
       res.json(texts);
     }
   });

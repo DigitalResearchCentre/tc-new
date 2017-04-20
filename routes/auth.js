@@ -281,13 +281,49 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   //if TCModalState.state is 1: then we are coming from index.ejs; after success, return to main window
   //by closing modal; if state is 3, stay in this window
   // The user has authenticated with Facebook.  Now check to see if the profile
-  // The user has authenticated with Facebook.  Now check to see if the profile
   // is "complete".  If not, send them down a form to fill out more details.
   //ah... req will have the facebook user, which may NOT have been identified with the local user..
+  //let's simplify this drastically.  sign in with fb or google.. you are in!!!
   if (isValidProfile(req.user)) {
-      res.redirect('/app');
+    if (TCModalState.state==3) res.redirect('/app?prompt=showprofile');
+    else res.redirect('/app');
   } else {
+    //as for facebook -- if you have google you are IN!
+    //we are not checking if there is already a user with this email. Ok, I know we should...
+  //  res.redirect('/app?prompt=googleassocemail');
+     User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
+       if (!user) {
+          req.user.local.email= req.user.facebook.email;
+          req.user.local.name= req.user.facebook.name;
+          req.user.local.authenticated="1";
+          req.user.local.password = req.user.generateHash("default");
+          req.user.save();
+          res.redirect('/app');
+        } else { //got one.. link the google account to this already and tell the user
+          user.facebook=req.user.facebook;
+          //remove this account, to save duplication and log in as this user
+          req.user.remove({});
+          req.logout();
+          user.save();
+          req.logIn(user, function (err){
+            res.redirect('/app?prompt=facebookassocemail')
+          });
+        }
+    });
+ /*
     //first, check if there is a user with this email
+    //ok, we are going to make this REALLY easy. Skip all this stuff
+      var newUser            = new User();
+      newUser.local.email =  newUser.facebook.email = req.user.facebook.email;
+      newUser.local.authenticated=="1";
+      newUser.local.password = newUser.generateHash("default");
+      newUser.save(function(err) {
+        if (err) {}
+        req.logIn(newUser, function (err) {
+          res.redirect('/app');
+        });
+    }); */
+    /*
     User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
       if (user) {
         //there might be a facebook account already associated with this user. So tell them
@@ -302,7 +338,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
           res.redirect('/app?prompt=facebookassocemail');
         }
       } else {res.redirect('/app?prompt=facebooklinkemail');}
-    });
+    }); */
   }
 });
 
@@ -315,6 +351,11 @@ router.get('/facebookassocemail', function(req, res) {
     res.render('associate.ejs', { email: req.user.facebook.email, context:"Facebook", linkname: "facebook"});
 });
 
+router.get('/twitterassocemail', function(req, res) {
+    res.render('associate.ejs', { email: req.user.local.email, context:"Twitter", linkname: "twitter"});
+});
+
+
 //cancel the link .. to do, if the modal closes, we need to catch the event, this = cancel
 router.get('/facebookcancel', function(req, res) {
   User.findOne({'facebook.id': req.user.facebook.id}, function(err, deleteUser) {
@@ -324,6 +365,7 @@ router.get('/facebookcancel', function(req, res) {
 });
 
 //we have the go ahead: link the accounts
+//no longer used -- we automatically link now, no questions asked
 router.get('/facebooklink', function(req, res) {
   //get the user record again; link; delete surplus facebook ac
   User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
@@ -493,6 +535,7 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
     if (TCModalState.state==3) res.redirect('/app?prompt=showprofile');
     else res.redirect('/app');
   } else {
+    console.log("calling twitteremail")
     if (!req.user.local.email) res.redirect('/app?prompt=twitteremail');
     else {
       if (req.user.local.authenticated=="0") {
@@ -506,17 +549,16 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
 //we don't have a twitter email! get one
 router.get('/twitteremail', function(req, res) {
   // render the page and pass in any flash data if it exists
+  // there is no local user associated with this email
+  // so: get the user and link him/her
+
   res.render('twitteremail.ejs', { message: req.flash('twitterMessage'), name:req.user.twitter.displayName });
 });
 
+//don't do anything with this now.. just ignore
 router.get('/twittercancel', function(req, res) {
   //logout, delete the user
-  //      console.log("who I am in delete: "+req.user);
-  var twitterid=req.user.twitter.id;
-  req.logout();
-  User.findOne({'twitter.id': twitterid}, function(err, deleteUser) {
-    deleteUser.remove({});
-  });
+        console.log("who I am in delete: "+req.user);
   res.render('closemodal.ejs', {url: "/app/home"} );
 });
 
@@ -572,23 +614,35 @@ router.post('/twitteremail', function(req, res) {
     if (existingUser) {
       //if there is no twitter person reg'd with this local email -- just write the details there!
       //if there is no twitter account associated with the account -- send a link to confirm add twitter to this
+      //now, we just do the link, log me in, and that is that
       if (!existingUser.twitter.token) {
-        res.render('twitterlinklocal.ejs', {twitter: req.user.twitter, local: existingUser.local});
+        console.log("here now")
+        existingUser.twitter=req.user.twitter;
+        //delete the one we just made...
+        req.user.remove({});
+        req.logout();
+        existingUser.save();
+        req.logIn(existingUser, function (err) {
+          console.log(err);
+          res.render('associate.ejs', { email: existingUser.local.email, context:"Twitter", linkname: "twitter"});
+    //      res.render('twitterlinklocal.ejs', {twitter: req.user.twitter, local: existingUser.local});
+        });
       }
-      else {
+      else { //probably need to look at this sometime...
         res.render('twitteremail.ejs', { message: "There is already a Twitter account linked to the Textual Communities user identified by the email '"+req.body.email+"'. If you want to link this twitter account to that account, log in with that email and unlink the Twitter account from \"Login Profile\".", name:req.user.twitter.displayName});
         return;
       }
     } else {
       //there isn't one! so, just set the local email and display name to the values here
+      //no need to authenticate now
       req.user.local.email=req.body.email;
       req.user.local.name=req.user.twitter.displayName;
       req.user.local.password=req.user.generateHash("X"); //place holder
-      req.user.local.authenticated= "0";
-      req.user.save();
-      authenticateUser (req.user.local.email, req.user, req.protocol + '://' + req.get('host'));
-      res.render('authenticate.ejs', {context:"twitter", user: req.user});
-      req.logout();
+      req.user.local.authenticated= "1";
+      req.user.save();   //we don't bother authenticating now
+      req.logIn(req.user, function (err){
+        res.redirect('/app?prompt=twitterassocemail');
+      });
     }
   });
 });
@@ -611,6 +665,7 @@ router.get('/callgoogle', function(req, res) {
 router.get('/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
 
 // the callback after google has authenticated the user
+//greatly simplified now. No need for authentication...
 router.get('/google/callback', passport.authenticate('google', {
   scope: 'email',
   failureRedirect : '/auth/'
@@ -621,7 +676,31 @@ router.get('/google/callback', passport.authenticate('google', {
     if (TCModalState.state==3) res.redirect('/app?prompt=showprofile');
     else res.redirect('/app');
   } else {
-    User.findOne({'local.email':  req.user.google.email }, function(err, user) {
+    //as for facebook -- if you have google you are IN!
+    //we are not checking if there is already a user with this email. Ok, I know we should...
+  //  res.redirect('/app?prompt=googleassocemail');
+     User.findOne({'local.email':  req.user.google.email }, function(err, user) {
+       if (!user) {
+          req.user.local.email= req.user.google.email;
+          req.user.local.name= req.user.google.name;
+          req.user.local.authenticated="1";
+          req.user.local.password = req.user.generateHash("default");
+          req.user.save();
+          res.redirect('/app');
+        } else { //got one.. link the google account to this already and tell the user
+          user.google=req.user.google;
+          //remove this account, to save duplication and log in as this user
+          req.user.remove({});
+          req.logout();
+          user.save();
+          req.logIn(user, function (err){
+            res.redirect('/app?prompt=googleassocemail')
+          })
+        }
+    });
+    /*
+
+/*    User.findOne({'local.email':  req.user.google.email }, function(err, user) {
       //there might be a google account already associated with this user. So tell them
       if (user) {
         if (user.google.email) {
@@ -635,7 +714,7 @@ router.get('/google/callback', passport.authenticate('google', {
           res.redirect('/app?prompt=googleassocemail');
         }
       } else {res.redirect('/app?prompt=googlelinkemail');}
-    });
+    }); */
   }
 });
 
@@ -647,6 +726,7 @@ router.get('/googlelinkemail', function(req, res) {
   res.render('googleemail.ejs', { message: "", google:req.user.google});
 });
 
+//we no longer use this one either
 router.post('/googlelinkemail', function(req, res) {
   // render the page and pass in any flash data if it exists
   if (req.body.email!=req.body.emailconfirm) {

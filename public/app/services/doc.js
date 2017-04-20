@@ -21,6 +21,7 @@ var DocService = ng.core.Injectable().Class({
     this._uiService = uiService;
     this._revisionService = revisionService;
     this.resourceUrl = 'docs';
+    this.state=uiService.state;
 
     uiService.docService$.subscribe(function(event) {
       switch (event.type) {
@@ -47,8 +48,8 @@ var DocService = ng.core.Injectable().Class({
     });
   },
   selectEntity: function(docEntity) {
-    console.log("getting the doc entity")
-    console.log(docEntity);
+//    console.log("getting the doc entity")
+//    console.log(docEntity);
     var uiService = this._uiService
       , self = this
       , state = uiService.state
@@ -58,12 +59,6 @@ var DocService = ng.core.Injectable().Class({
     }
     if (docEntity && state.docEntity !== docEntity) {
       self.refreshDocument(docEntity).subscribe(function(docEntity) {
-        console.log("getting doc entities");
-        console.log(docEntity)
-  /*      var thisEntity = docEntity.getFirstChild();
-        if (thisEntity && (!state.page || state.page.getParent() !== doc)) {
-          self.selectPage(page);
-        } */
       });
     }
     uiService.setState('documentEntity', docEntity);
@@ -103,6 +98,7 @@ var DocService = ng.core.Injectable().Class({
     });
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
+        console.log(res.json);
         if (!res._body) {
           return {};
         }
@@ -116,7 +112,7 @@ var DocService = ng.core.Injectable().Class({
             return childId;
           });
         });
-        console.log('hello');
+  //      console.log('hello');
         _.each(nodesMap, function(node) {
           if (_.isEmpty(node.ancestors)) {
             root = node;
@@ -148,7 +144,7 @@ var DocService = ng.core.Injectable().Class({
     });
   },
   getRevisions: function(doc) {
-    console.log(doc);
+//    console.log(doc);
     return this._revisionService.list({
       search: {
         find: JSON.stringify({doc: doc.getId()}),
@@ -175,10 +171,13 @@ var DocService = ng.core.Injectable().Class({
         , cur, prevDoc, curDoc, index, label
       ;
       teiRoot = xmlDoc2json(xmlDoc);
+      console.log("after making the root")
+      console.log(teiRoot);
       if (docRoot.label === 'text') {
         prevDoc = docRoot;
       }
       _.dfs([teiRoot], function(cur) {
+//        console.log(cur.attrs);
         if (!_.startsWith(cur.name, '#')) {
           index = docTags.indexOf(cur.name);
           // if node is doc
@@ -201,6 +200,9 @@ var DocService = ng.core.Injectable().Class({
               };
               if ((cur.attrs || {}).n) {
                 curDoc.name = (cur.attrs || {}).n;
+              }
+              if ((cur.attrs || {}).facs) {
+                curDoc.facs = (cur.attrs || {}).facs;
               }
               if (docTags.indexOf(prevDoc.label) < index) {
                 docQueue.push(prevDoc);
@@ -225,7 +227,6 @@ var DocService = ng.core.Injectable().Class({
         }
       });
     }
-
     if (docRoot._id) {
       return this.update(docRoot._id, {
         tei: teiRoot,
@@ -233,7 +234,16 @@ var DocService = ng.core.Injectable().Class({
         revision: revisionId,
         commit: true,
       }).map(function(doc) {
-        console.log(doc);
+//        console.log("after commit update"+doc);  //second part of horrid hack...
+        //I am deeply unproud of this. We are forced to pick up errors in parsing etc on the server here, not in the
+        //callbacks to the calling function.  But OK. It works.
+        if (doc.attrs.error) {
+  //        console.log("error!!!"); console.log(doc.attrs.error);
+  //        alert(doc.attrs.error.message);
+          self._uiService.changeMessage$.emit({type: 'commit', page: doc.attrs.data.name,   docname: self.state.document.attrs.name, message: doc.attrs.error.message});
+          //send a message
+          doc.attrs=(doc.attrs.data);
+        }
         if (_.isEmpty(doc.attrs.ancestors)) {
           self.selectDocument(doc);
         } else {
@@ -241,13 +251,14 @@ var DocService = ng.core.Injectable().Class({
         }
       });
     } else {
+      console.log("add options "+opts)
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
         revision: revisionId,
         commit: true,
-      })).map(function(doc) {
-        console.log(doc);
+      })).map(function(doc, err) {
+        console.log("after commit create"); console.log(doc);
         self._uiService.createDocument(doc);
       });
     }
@@ -311,6 +322,7 @@ var DocService = ng.core.Injectable().Class({
       success = true;
     } else {
       buildPrev(teiRoot, prevs, 1, link);
+      console.log("changing now "+prevs); console.log(teiRoot);
     }
     if (success) {
       return json2xml(teiRoot);

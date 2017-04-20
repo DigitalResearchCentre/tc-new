@@ -22,6 +22,7 @@ var _ = require('lodash')
   , Revision = models.Revision
   , TEI = models.TEI
   , RESTError = require('./resterror')
+  , ObjectId = mongoose.Types.ObjectId
 ;
 
 router.use(function(req, res, next) {
@@ -115,6 +116,7 @@ var RevisionResource = _.inherit(Resource, function(opts) {
 }, {
   beforeCreate: function(req, res, next) {
     var obj = new this.model(req.body);
+//    console.log(req.body);
     if (!obj.user) {
       obj.user = req.user;
     }
@@ -279,15 +281,15 @@ router.get('/actions/:id', function(req, res, next) {
 
 router.post('/actions', function(req, res, next) {
   var action = req.body;
-  console.log(action);
+//  console.log(action);
   if (!validateAction(action)) {
     return next({error: 'Action format error'});
   }
   switch (action.type) {
     case 'request-membership':
       requestMembership(action, function(err, _action) {
-      console.log('requestMembership finish');
-        console.log(err);
+//      console.log('requestMembership finish');
+//        console.log(err);
         if (err) {
           next(err);
         } else {
@@ -316,7 +318,7 @@ var upload = multer({
   storage: gridfs,
 });
 router.post('/upload', upload.any(), function(req, res, next) {
-  console.log(req.files);
+//  console.log(req.files);
   res.json(req.files);
 });
 
@@ -370,7 +372,7 @@ router.post('/getDocEntities', function(req, res, next) {
   Doc.findOne({_id: req.query.document}, function(err, document) {
     if (document) {
       for (var i=0; i<document.entities.length; i++) {
-        console.log(document);
+//        console.log(document);
         foundDocEntities.push({"name":document.entities[i].name, "isTerminal":document.entities[i].isTerminal, "entityName": document.entities[i].entityName, "entityChildren": document.entities[i].entityChildren, "tei_id": document.entities[i].tei_id});
       }
         res.json({foundDocEntities});
@@ -385,7 +387,6 @@ router.post('/getEntityVersions', function(req, res, next) {
   var foundVersions=[];
   TEI.find({"entityName":req.query.id}, function(err, versions) {
     var nversions=versions.length;
-    console.log("versions found "+nversions);
     var nprocessed=0;
     async.forEachOf(versions, function(version) {
       const cb2 = _.last(arguments);
@@ -396,13 +397,11 @@ router.post('/getEntityVersions', function(req, res, next) {
           });
         },
         function(myDoc, callback) {
-          console.log("now get the teis for "+myDoc.name);
           //use async recursive to pull these together
           var teiContent={"content":""};
           loadTEIContent(version, teiContent).then(function (){
             nprocessed++;
             foundVersions.push({"sigil":myDoc.name, "version":teiContent.content})
-            console.log("here we write out the version "+teiContent.content);
             if (nprocessed==nversions) res.json({foundVersions});
           });
         },
@@ -455,15 +454,15 @@ function loadTEIContent(version, content) {
 
 
 router.post('/getSubDocEntities', function(req, res, next) {
-    console.log("looking for "+req.query.id);
+//    console.log("looking for "+req.query.id);
     TEI.findOne({_id: req.query.id}, function(err, tei) {
-      console.log("error "+err);
-      console.log("tei "+tei);
+//      console.log("error "+err);
+//      console.log("tei "+tei);
       var foundTEIS=[];
       var hits=0;
       for (var i=0; i<tei.entityChildren.length; i++) {
+          var thisTeiId=tei.entityChildren[i];
           TEI.findOne({_id: tei.entityChildren[i]}, function(err, oneTEI) {
-            console.log("child "+oneTEI)
             var hasChild=true;
             hits++;
             if (oneTEI.entityChildren.length==0) hasChild=false;
@@ -476,6 +475,686 @@ router.post('/getSubDocEntities', function(req, res, next) {
 
     });
 });
+
+//use this to remove temp div and p placed outside pb elements, before inserting new text from template
+router.post('/zeroDocument', function(req, res, next) {
+  var docroot=req.query.id;
+  //should check that no pbs have any teis below them..
+  var deleteTeis=[];
+  async.waterfall([
+      function(cb) {
+        TEI.findOne({docs: ObjectId(docroot), name:"pb"}, function(err, pbel){
+          var firstAnc=pbel.ancestors[pbel.ancestors.length-1];
+          deleteTeis=pbel.ancestors.slice(1);
+          cb(null, firstAnc);
+        })
+      },
+      function(firstAnc, cb) {
+        TEI.findOne({_id: ObjectId(firstAnc)}, function(err, firstancel){
+          if (firstancel.name!="text") {
+            var textEl=firstancel.ancestors[0];
+            var pbchildren=firstancel.children;
+            cb(null, {textEl:textEl, pbchildren: pbchildren});
+          } else cb(null, null)
+        })
+      },
+      function(thisAnc, cb) {
+        console.log("parameter "); console.log(thisAnc);
+        if (!thisAnc) cb(null, null);   //all fine! no need to do anything at all
+        else {
+          TEI.findOne({_id: ObjectId(thisAnc.textEl)}, function(err, textel){
+            if (textel.name=="text") {
+              //set the children of text to children of the p element
+              var pbchildren=thisAnc.pbchildren;
+              console.log("about to save pbchildren "+pbchildren)
+              TEI.collection.update({_id: ObjectId(thisAnc.textEl)}, {$set: {children: pbchildren, docs: [ObjectId(docroot)]}}, function (err, result) {
+                  cb(null, {textEl:thisAnc.textEl, pbchildren: pbchildren});
+              });
+            } else cb("we have a problem here")
+          })
+        }
+      },
+      function (thisAnc, cb) {
+        //set ancestors of each child to text element
+        if (!thisAnc) cb(null, []);
+        else {
+          var pbinfs=[];
+          thisAnc.pbchildren.map(function(pb){pbinfs.push({pbid: pb, textEl: thisAnc.textEl});});
+          console.log("adjust pb ancestor"); console.log(pbinfs);
+          async.map(pbinfs, savePbInfs, function (err) {cb(err, []);});
+        }
+      },
+      function (argument, cb) {
+        if (deleteTeis.length>0) {
+          TEI.collection.remove({_id: {$in: deleteTeis}}, function (err, result) {
+            cb(err,[]);
+          })
+        } else cb(null,[]);
+      },
+   ], function(err, results) {
+    if (err) res.json({"success":false});
+    else {
+      res.json({"success":true});
+    }
+  });
+});
+
+function savePbInfs(pageInf, callback) {
+  console.log("pbel "+pageInf.pbid+" textel "+pageInf.textEl);
+  TEI.update({_id: ObjectId(pageInf.pbid)}, {$set: {ancestors: [ObjectId(pageInf.textEl)]}}, function(err) {
+    callback(err);
+  });
+}
+
+var globalCommAbbr;
+var globalDoc;
+var globalNentels=0;
+
+//just take all the text out of the document; leave pbs and any divs surrounding etc in place
+router.post('/deleteDocumentText', function(req, res, next) {
+  var npages=0, nodocels=0, nallels=0, npagetrans=0, deleteTeiEntities=[], pages=[], deleteTeis=[];
+  var docroot=req.query.id;
+  globalCommAbbr=req.query.community;
+//  console.log("starting deletion for "+docroot+" in community "+globalCommAbbr);
+  //delete all docs all entitiees all revisions...
+    async.waterfall([
+      function(cb) {
+        Doc.findOne({_id: docroot}, function(err, document) {
+    //      console.log(document);
+          pages=document.children;
+          globalDoc=document;
+          npages=document.children.length;
+  //        console.log("pages "); console.log(pages);
+          cb(err, []);
+        });
+      },
+      function(argument, cb) {
+        //get all the entities in this document
+        TEI.find({docs: {$in: pages}}, function(err, teis) {
+          teis.forEach(function(teiEl){
+            if (teiEl.isEntity) {
+              var entityPath=[];
+              entityPath.push(teiEl.entityName);
+              deleteTeiEntities.push({id:teiEl._id, entityName: teiEl.entityName, ancestorName: teiEl.entityAncestor, entityPath: entityPath, isEntity:teiEl.isEntity});
+            }
+          });
+  //        console.log("entities to delete"); console.log(deleteTeiEntities);
+          cb(err, []);
+        });
+      },
+      function getDeleteEntityPaths (argument, cb) {
+        //delete all revisions, teis and doc elements
+        if (deleteTeiEntities.length>0) {
+          async.map(deleteTeiEntities, getEntityPaths, function (err, results){
+            deleteTeiEntities=results;
+//            console.log("delete with paths"); console.log(deleteTeiEntities);
+            cb(null, []);
+          });
+        } else {
+          cb(null, []);
+        }
+      },
+      function deleteTEIs (argument, cb) {
+  //      console.log("about to delete"+deleteTeis)
+  //take out every tei descending from a doc
+        TEI.collection.remove({docs:  {$in: pages}, name:{$ne:"pb"}}, function(err, result) {
+          nallels+=result.result.n;
+//          console.log('delete teis done');
+          cb(err, []);
+        });
+      },
+      function deleteDocs (argument, cb) {
+//          console.log("about to delete docs"+docroot);
+//      leave pages, but remove lbs
+        Doc.collection.remove({ancestors: {$in: pages}}, function(err, result) {
+//            console.log(err);
+            nodocels+=result.result.n;
+//            console.log('delete docs done'+nodocels);
+            cb(err, []);
+          });
+      },
+      function deleteDeadEntities (argument, cb) {
+//         console.log("about to keill entities" + deleteTeiEntities.length);
+//         console.log("here is where we will kill the entities ");  for (var i = 0; i < deleteTeiEntities.length; i++) { console.log(deleteTeiEntities[i])};
+        if (deleteTeiEntities.length>0) {
+          async.mapSeries(deleteTeiEntities, deleteEntityName, function (err, results) {
+            cb(err, []);
+          });
+        } else {cb(null, []);}
+      },
+      function deleteRevisions (argument, cb) {
+  //      console.log(pages);
+        async.forEachOf(pages, function(thisPage) {
+            const cb2 = _.last(arguments);
+//            console.log(thisPage);
+            if (thisPage) {
+              Revision.collection.remove({doc:thisPage}, function (err, result){
+//                  console.log("err"); console.log(err);
+      //            console.log("result"); console.log(result);
+                  npagetrans+=result.result.n;
+                  cb2(err);
+              });
+            } else {cb2(err)}
+          }, function(err){
+            cb(err, []);
+          });
+      },
+    ], function(err, results) {
+      res.json({"npages":npages, "nodocels": nodocels, "nentels": globalNentels, "nallels": nallels, "npagetrans": npagetrans});
+  });
+});
+
+router.post('/deleteDocument', function(req, res, next) {
+  var npages=0, nodocels=0, nallels=0, npagetrans=0, deleteTeiEntities=[], pages=[], deleteTeis=[];
+  var docroot=req.query.id;
+  globalCommAbbr=req.query.community;
+//  console.log("starting deletion for "+docroot+" in community "+globalCommAbbr);
+  //delete all docs all entitiees all revisions...
+    async.waterfall([
+      function(cb) {
+        Doc.findOne({_id: docroot}, function(err, document) {
+    //      console.log(document);
+          pages=document.children;
+          globalDoc=document;
+          npages=document.children.length;
+  //        console.log("pages "); console.log(pages);
+          cb(err, []);
+        });
+      },
+      function(argument, cb) {
+        //find the tei  which is ancestor text of this doc
+        TEI.findOne({docs: docroot}, function (err, deleteRoot) {
+          if (!deleteRoot) {
+    //         console.log("did not find root")
+             cb(null, []);
+          } else {
+            if (deleteRoot.name=="text") {
+              deleteTeis.push(deleteRoot._id);
+              cb(err, deleteRoot._id);
+            } else {
+              deleteTeis.push(deleteRoot.ancestors[0]);
+    //          console.log("after finding text"+deleteTeis);
+    //          console.log(deleteRoot);
+              cb(err, deleteRoot.ancestors[0]);
+            }
+          }
+        });
+      },
+      function(textid, cb) {
+        //find the body for the text of this doc
+        TEI.findOne({_id: ObjectId(textid)}, function (err, body) {
+          if (!body) {
+  //          console.log("cant find body")
+             cb(null, []);
+          } else {
+            deleteTeis.push(body._id);
+  //          console.log("after finding body "+deleteTeis);
+            cb(null, []);
+          }
+        });
+      },
+      function(argument, cb) {
+        //get all the entities in this document
+        TEI.find({docs: {$in: pages}}, function(err, teis) {
+          teis.forEach(function(teiEl){
+            if (teiEl.isEntity) {
+              var entityPath=[];
+              entityPath.push(teiEl.entityName);
+              deleteTeiEntities.push({id:teiEl._id, entityName: teiEl.entityName, ancestorName: teiEl.entityAncestor, entityPath: entityPath, isEntity:teiEl.isEntity});
+            }
+          });
+  //        console.log("entities to delete"); console.log(deleteTeiEntities);
+          cb(err, []);
+        });
+      },
+      function getDeleteEntityPaths (argument, cb) {
+        //delete all revisions, teis and doc elements
+        if (deleteTeiEntities.length>0) {
+          async.map(deleteTeiEntities, getEntityPaths, function (err, results){
+            deleteTeiEntities=results;
+//            console.log("delete with paths"); console.log(deleteTeiEntities);
+            cb(null, []);
+          });
+        } else {
+          cb(null, []);
+        }
+      },
+      function deleteTEIs (argument, cb) {
+  //      console.log("about to delete"+deleteTeis)
+        if (deleteTeis.length > 0) {
+          TEI.collection.remove({
+            $or: [
+              {ancestors: {$in: deleteTeis}},
+              {_id: {$in: deleteTeis}},
+              {docs: ObjectId(docroot)},
+            ]
+          }, function(err, result) {
+            nallels+=result.result.n;
+  //          console.log('delete teis done');
+            cb(err, []);
+          });
+        } else {
+           cb(null, []);
+        }
+      },
+      function deleteDocs (argument, cb) {
+//          console.log("about to delete docs"+docroot);
+        Doc.collection.remove({$or: [{_id: ObjectId(docroot)}, {ancestors: ObjectId(docroot)}]}, function(err, result) {
+//            console.log(err);
+            nodocels+=result.result.n;
+//            console.log('delete docs done'+nodocels);
+            cb(err, []);
+          });
+      },
+      function deleteDeadEntities (argument, cb) {
+//         console.log("about to keill entities" + deleteTeiEntities.length);
+//         console.log("here is where we will kill the entities ");  for (var i = 0; i < deleteTeiEntities.length; i++) { console.log(deleteTeiEntities[i])};
+        if (deleteTeiEntities.length>0) {
+          async.mapSeries(deleteTeiEntities, deleteEntityName, function (err, results) {
+            cb(err, []);
+          });
+        } else {cb(null, []);}
+      },
+      function deleteRevisions (argument, cb) {
+  //      console.log(pages);
+        async.forEachOf(pages, function(thisPage) {
+            const cb2 = _.last(arguments);
+//            console.log(thisPage);
+            if (thisPage) {
+              Revision.collection.remove({doc:thisPage}, function (err, result){
+//                  console.log("err"); console.log(err);
+      //            console.log("result"); console.log(result);
+                  npagetrans+=result.result.n;
+                  cb2(err);
+              });
+            } else {cb2(err)}
+          }, function(err){
+            cb(err, []);
+          });
+      },
+      function updateDocCommunity(argument, cb) {
+//        console.log(globalCommAbbr);
+//        console.log(docroot)
+        Community.update({'abbr': globalCommAbbr}, { $pull: { documents: docroot } }, function(err){
+          cb(err, []);
+        });
+      }
+    ], function(err, results) {
+      res.json({"npages":npages, "nodocels": nodocels, "nentels": globalNentels, "nallels": nallels, "npagetrans": npagetrans});
+  });
+});
+
+function deleteEntityName(thisTei, callback) {
+  //calculate what ancestor entity will be..
+  //either: we are dealing with base entity, in which case we are looking for the
+  //tei for the entity for deletion
+  //or: we are looking for ancestors of the entity, in which case find ancestor teis
+  var entityAncestor="";
+  var isBaseEntity=false;  //ie, at lowest level
+  for (var j=0; j<thisTei.entityPath.length; j++) {
+    if (thisTei.entityName==thisTei.entityPath[j]) {
+      if (j==0) {  isBaseEntity=true;}
+      if (j==thisTei.entityPath.length-1) entityAncestor="";
+      else entityAncestor=thisTei.entityPath[j+1]
+    }
+  }
+  //first check there are no other teis for this entity name, if we are looking
+  if (isBaseEntity) {
+    TEI.findOne({entityName:thisTei.entityName}, function(err, teiel) {
+//      //("finding to delete "+teiel);
+      //a bit tricky here. Need to see if entity exists -- might already have been deleted
+      //if not deleted: delete. Regardless: go up the entity path checking each level
+      if (!teiel) {
+        //delete from entities. Check it is here .. if so, delete and go up tree
+        //if not here: just go up the tree
+        var isTopEntity;
+        if (entityAncestor=="") isTopEntity=true; else isTopEntity=false;
+        //delete entity right here .. if it is
+        vaporizeEntity(thisTei, isTopEntity, function(){
+          if (entityAncestor=="") callback(err, true);
+          else {
+            thisTei.entityName=entityAncestor;
+            deleteEntityName(thisTei, callback, function (err1, result){
+              callback(err1, true);
+            });
+          }
+        });
+      } else {
+        //there is a tei -- then leave it in place
+        callback(err, true);
+      }
+    });
+  } else {
+    TEI.findOne({entityAncestor:thisTei.entityName}, function(err, teiel) {
+      //a bit tricky here. Need to see if entity exists -- might already have been deleted
+      //if not deleted: delete. Regardless: go up the entity path checking each level
+      if (!teiel) {
+        //delete from entities. Check it is here .. if so, delete and go up tree
+        //if not here: just go up the tree
+        var isTopEntity;
+        if (entityAncestor=="") isTopEntity=true; else isTopEntity=false;
+        //delete entity right here .. if it is
+        vaporizeEntity(thisTei, isTopEntity, function(){
+          if (entityAncestor=="") callback(err, true);
+          else {
+            thisTei.entityName=entityAncestor;
+            deleteEntityName(thisTei, callback, function (err1, result){
+              callback(err1, true);
+            });
+          }
+        });
+      } else {
+        //there is a tei -- then leave it in place
+        callback(err, true);
+      }
+    });
+  }
+}
+
+function vaporizeEntity (entityEl, isTopEntity, callback) {
+  if (isTopEntity) {
+    //take out from: the document; the communit
+    async.waterfall ([
+      function identifyPage (cb1) {
+        if (globalDoc.ancestors.length) {
+            Doc.findOne({_id: globalDoc.ancestors[0]}, function(err, doc) {
+              cb1(err, doc);
+            });
+        } else {
+          cb1(null, globalDoc);
+        }
+      },
+      function removeEntityDoc (myDoc, cb1) {
+        Doc.update({'_id': myDoc._id}, { $pull: { entities: { entityName: entityEl.entityName} } }, function(err, doc){
+          cb1(err, myDoc);
+        });
+      },
+      function removeEntityCommunity (myDoc, cb1) {
+        Community.update({'abbr': globalCommAbbr}, { $pull: { entities: { entityName: entityEl.entityName} } }, function(err, doc){
+          cb1(err, doc);
+        });
+      }
+    ])
+  }
+  Entity.collection.remove({entityName: entityEl.entityName}, function (err, result){
+    globalNentels+=result.result.n;
+    callback(err, true);
+  });
+}
+
+function getEntityPaths  (entityTEI, callback) {
+    if (!entityTEI.isEntity || entityTEI.ancestorName=="") {
+      callback(null, entityTEI);
+    } else {
+      Entity.findOne({entityName: entityTEI.ancestorName}, function (err, entity) {
+        if (entity) {
+          entityTEI.entityPath.push(entity.entityName);
+          entityTEI.ancestorName=entity.ancestorName;
+            //recurse up enti
+          getEntityPaths(entityTEI, function (err, result) {
+            callback(err, result)
+          });
+        } else {
+          callback("Failed to find ancestor entity. This is impossible", null)
+        }
+      });
+    }
+}
+
+router.post('/statusTranscript', function(req, res, next) {
+  var isPrevPageText=false, isThisPageText=false;
+  async.waterfall([
+   function findDoc(cb) {
+//      console.log("looking for "+req.query.docid);
+      Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, document){
+        if (!document) {
+          res.json({isPrevPageText: false, isThisPageText: false, docFound: false});
+        } else {
+          cb(err, document);
+        }
+      })
+    },
+    function hasPrevPageText (document, cb) {
+      //is first page
+      if (document.children.length[0]==req.query.pageid) {
+        isPrevPageText=false;
+        cb(null, []);
+      } else { //not first page. Any teis for previous page?
+        for (var i = 0; i < document.children.length; i++) {
+          if (document.children[i]==req.query.pageid) {
+              TEI.findOne({docs: ObjectId(document.children[i-1]), name:{$ne:"pb"}}, function(err, prevpagetei) {
+              if (!prevpagetei) isPrevPageText=false;
+              else isPrevPageText=true;
+              cb(err, []);
+            });
+          }
+        }
+      }
+  },  //ok, settled prev page status. What about this page?
+  function hasThisPageText (argument, cb) {
+//    console.log("looking for page"); console.log(req.query.pageid);
+    //find the TEI for this pb
+    TEI.findOne({docs: ObjectId(req.query.pageid), name: {$ne:"pb"}}, function(err, thispagetei) {
+      if (!thispagetei) isThisPageText=false;
+      else  isThisPageText=true;
+      cb(err, [])
+    });
+  }                                                                         ,
+ ], function(err, results) {
+    res.json({isPrevPageText: isPrevPageText, isThisPageText: isThisPageText, docFound: true})
+  });
+});
+
+router.post('/getDocPages', function(req, res, next){
+  var myPagesOrder;
+//  console.log("starting search"+req.query.document);
+  async.parallel([
+    function(cb) {
+      Doc.findOne({_id: ObjectId(req.query.document)}, cb);
+    },
+    function(cb) {
+      Doc.find({ancestors: ObjectId(req.query.document), label:"pb"}, cb);
+    },
+  ], function(err, results) {
+//      console.log(results[0]);
+      res.json({children: results[0].children, pages: results[1]});
+  });
+});
+
+router.post('/saveDocPages', function(req, res, next) {
+  var replace=req.body.replace;
+  var order=req.body.order;
+  var origchildren=req.body.origorder;
+  async.waterfall([
+    function(cb) {
+      if (replace.length>0) {
+        async.map(replace, replaceVals, function (err, results) {
+            cb(err,[]);
+        });
+      } else cb(null, []);
+    },
+    function(argument, cb) {
+      if (order.length>0) {
+        //replace each order val by ObjectId
+        var neworder=order.map(function(page){return ObjectId(page)});
+        var neworigchildren=origchildren.map(function(page){return ObjectId(page)});
+        var origchildrenteis=[], neworderteis=[];
+        async.waterfall([
+         function (cb1) {
+              async.mapSeries(neworigchildren, getTeiDoc, function (err, teipbs) {
+                origchildrenteis=teipbs;
+                cb1(err, []);
+              });
+          },
+          function (argument, cb1) {
+                async.mapSeries(neworder, getTeiDoc, function (err, teipbs) {
+                neworderteis=teipbs;
+                cb1(err, []);
+              });
+          },
+          function (argument, cb1) {
+              Doc.collection.update({_id: ObjectId(req.query.document)}, {$set: {children: neworder}}, function (err, result) {
+                cb1(err, []);
+              });
+          },
+          function (argument, cb1) {
+              TEI.collection.update({children:origchildrenteis}, {$set: {children:neworderteis}}, function (err, result){
+                cb1(err, []);
+            });
+          }
+        ], cb);
+      } else cb(null);
+    }
+  ], function(err) {
+    if (err) res.json({result: "No we did not do it"});
+    else res.json({result: "Yes we did it"});
+  });
+});
+
+function getTeiDoc(page, callback) {
+  TEI.findOne({docs: ObjectId(page), name:"pb"}, function(err, pageTei){
+    if (err) callback(err);
+    else callback(null, ObjectId(pageTei._id));
+  })
+}
+
+function replaceVals(replace, callback) {
+    Doc.collection.update({_id: ObjectId(replace.id)}, {$set: {name: replace.name, facs: replace.facs}}, function (err, result) {
+      if (!err) {
+//        console.log("replacing in TEI"); console.log(replace);
+        TEI.collection.update({docs: ObjectId(replace.id), name:"pb"}, {$set: {"attrs.n": replace.name, "attrs.facs": replace.facs}}, function (err, result){
+          callback(err);
+        });
+      } else {callback(err)};
+    });
+};
+
+
+router.post('/deleteAllDocs', function(req, res, next) {
+    var ndocs=0, npages=0, ndocels=0, nentels=0, cAbbrev="", nallels=0, npagetrans=0;
+  //delete all docs all entitiees all revisions...
+    async.waterfall([
+      function(cb) {
+          Community.findOne({_id: req.query.id}, function(err, community) {
+            cAbbrev=community.abbr;
+            cb(err, community.documents);
+          });
+      },
+      function(documents, cb) {
+        ndocs=documents.length;
+        async.map(documents, getPagesInDocs, function (err, allPages){
+          for (var i = 0; i < allPages.length; i++) {
+            npages+=allPages[i].length;
+          }
+          cb(err, allPages, documents);
+        });
+      },
+      function (allPages, documents, cb) {
+//          console.log(documents);
+//          console.log(allPages)
+          //now we can delete
+          async.parallel([
+            function(cb1) {
+              Community.update({_id:req.query.id}, {$set: {documents:[], entities:[]}}, cb1);
+            },
+            function(cb1) {
+              Doc.collection.remove({$or: [{_id: {$in: documents}}, {ancestors: {$in: documents}},]}, function (err, result){
+                ndocels=result.result.n;
+                cb1(err);
+              });
+            },
+            function(cb1) {
+              TEI.collection.remove( {docs: {$in: documents}}, function (err, result){
+                nallels=result.result.n;
+                cb1(err);
+              });
+            },
+            function(cb1) {
+              Doc.collection.remove({community: cAbbrev}, function (err, result){
+                  ndocels+=result.result.n;
+                cb1(err);
+              });
+            },
+            function(cb1) {
+//              console.log("allpages"+allPages);
+              async.forEachOf(allPages, function(thisPage) {
+                  const cb2 = _.last(arguments);
+                  if (thisPage) {
+                    Revision.collection.remove({$or: [{doc:thisPage}, {doc: {$in: thisPage}},]}, function (err, result){
+                        npagetrans+=result.result.n;
+                        cb2(err);
+                    });
+                  } else {cb2(err)}
+                }, function(err){
+                  cb1(err);
+                });
+            },
+            function(cb1) {
+              Revision.collection.remove({community: cAbbrev}, function (err, result){
+                npagetrans+=result.result.n;
+                cb1(err);
+              });
+            },
+            function(cb1) {
+              Entity.collection.remove({community: cAbbrev}, function (err, result){
+                nentels=result.result.n;
+                cb1(err);
+              });
+            },
+            function(cb1) {
+              TEI.collection.remove({community: cAbbrev}, function (err, result){
+                  nallels+=result.result.n;
+                cb1(err);
+              });
+            },
+          ], function(err, results) {
+            cb(null);
+          });
+      }
+    ], function(err, results) {
+      res.json({"ndocs":ndocs, "npages":npages, "ndocels": ndocels, "nentels": nentels, "nallels": nallels, "npagetrans": npagetrans});
+    })
+  });
+
+function getPagesInDocs (pageID, callback) {
+  Doc.findOne({_id: pageID}, function(err, page) {
+    callback(err, page.children);
+  });
+}
+
+router.post('/isDocTranscript', function(req, res, next) {
+  //need to check every page...
+  var nPageTranscripts=0;
+  async.waterfall([
+    function (cb) {
+      Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, thisdoc) {
+        if (err || ! thisdoc) cb("error", []);
+        else cb(null, thisdoc.children);
+      })
+    },
+    function(children, cb) {
+      var newchildren=children.map(function(page){return ObjectId(page)});
+      async.mapSeries(newchildren, hasPageTranscript, function (err, results){
+        results.map(function(page){if (page==1) nPageTranscripts+=1; return})
+        cb(null,[]);
+      });
+    }
+  ], function (err){
+    if (err) res.json({"error": true});
+    if (!nPageTranscripts) res.json({"isDocText": false});
+    else res.json({"isDocText": true});
+  });
+});
+
+function hasPageTranscript (page, callback) {
+  TEI.findOne({docs: page, name:{$ne:"pb"}}, function (err, thistei) {
+    if (err) callback(err);
+    else {
+      if (thistei) callback(null, 1);
+      else callback(null, 0);
+    }
+  });
+}
 
 router.post('/validate', function(req, res, next) {
   var xmlDoc, errors;
@@ -512,7 +1191,7 @@ router.use(function(err, req, res, next) {
     res.status(err.status || 500);
     if (err && err.code === 11000) {
       var msg = /\$(.*)_.*\{ : (.*) }/.exec(err.message);
-      console.log(err);
+  //    console.log(err);
       err = {
         name: err.name,
         message: `There is already a community with the ${msg[1]} ${msg[2]}`,

@@ -85,7 +85,11 @@ var HeaderComponent = ng.core.Component({
     if (which === 'add-document-page') {
       which = {
         type: which,
+        document: this.state.document,
         parent: this.state.document,
+        page: null,
+        afterPage: false,
+        multiple: false
       };
     }
     this.uiService.manageModal$.emit(which);

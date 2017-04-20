@@ -1,0 +1,25 @@
+<div>
+  <div modal-draggable class="modalHeader">{{header}}
+    <button type="button" (click)="closeModalCMLC()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div id="ECSuccess" [innerHTML]="warning">
+  </div>
+  <div  *ngIf="showButtons" style="text-align: center; margin-top:10px">
+    <span *ngIf="action=='continueAddPages'">
+      <button type="button" class="btn btn-primary btn-md" (click)="addPages(document, page, context)">Add pages</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </span>
+    <button *ngIf="action=='continueAddPages'" type="button" class="btn btn-primary btn-md" (click)="reorderPages(document, page, context)">Reorder/rename pages</button>
+    <button *ngIf="action=='continueAddPage'" type="button" class="btn btn-primary btn-md" (click)="addPage(document, page, context)">Add another page</button>
+    <button *ngIf="action=='deleteAllDocs'" type="button" class="btn btn-primary btn-md" (click)="confirmDelete()">Delete all documents</button>
+    <button *ngIf="action=='addPage'" type="button" class="btn btn-primary btn-md" (click)="continuePrev(document, page, context)">Continue</button>
+    <button *ngIf="action=='deleteDocument'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteDocument()">Delete document</button>
+    <button *ngIf="action=='deleteDocumentText'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteDocumentText()">Delete document text</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <button *ngIf="action=='continueAddPages'" type="button" class="btn btn-primary btn-md" (click)="transcribeFirstPage(document, page, context)">Transcribe </button>
+    <button *ngIf="action=='continueAddPage'" type="button" class="btn btn-primary btn-md" (click)="transcribePage(document, page, context)">Transcribe {{docname}}</button>
+    <button *ngIf="action=='deleteAllDocs'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
+    <button *ngIf="action=='deleteDocument'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
+    <button *ngIf="action=='deleteDocumentText'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
+    <button *ngIf="action=='addPage'" type="button" class="btn btn-primary btn-md" (click)="newPage()">New</button>
+  </div>
+</div>

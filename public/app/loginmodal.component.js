@@ -54,7 +54,9 @@ var LoginModalComponent = ng.core.Component({
         src = base + 'googleassocemail';
       } if (prompt=="facebookassocemail") {
         src = base + 'facebookassocemail';
-      } else if (prompt=="resetpwExpired") {
+      } if (prompt=="twitterassocemail") {
+        src = base + 'twitterassocemail';
+      }else if (prompt=="resetpwExpired") {
         src = base + 'resetpwExpired';
       } else if (
         prompt=='showprofile' || (prompt=="facebookconnect" && context==="")

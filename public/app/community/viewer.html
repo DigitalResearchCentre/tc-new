@@ -1,11 +1,11 @@
-<tc-splitter class="horizontal" (resize)="onResize($event)">
+  <tc-splitter class="horizontal" (resize)="onResize($event)" id="viewerSplitter">
   <tc-pane class="image-viewer">
     <div id="imageMap" class="image_map"></div>
   </tc-pane>
   <tc-pane class="text-viewer">
     <div class="transcript-header">
-      <label>Prev: </label>
-      <select [ngModel]="prevLink?._id" (change)="prevLinkChange($event)">
+      <label *ngIf="prevs.length">From previous page: </label>
+      <select *ngIf="prevs.length" [ngModel]="prevLink?._id" (change)="prevLinkChange($event)">
         <option *ngFor="#el of prevs" [value]="el._id">
           {{el.name}} {{el.attrs?.n}}
         </option>
@@ -18,27 +18,52 @@
           {{formatDate(r.attrs.created)}} ({{r.attrs.status}})
         </option>
       </select>
-      <label>Compare With: </label>
+      <!-- label>Compare With: </label>
       <select (change)="revisionChange($event)">
         <option *ngFor="#r of revisions"
           [value]="r.getId()" >
           {{r.attrs.user.local.name}}
           {{formatDate(r.attrs.created)}} ({{r.attrs.status}})
         </option>
-      </select>
+      </select-->
     </div>
     <tc-codemirror class="transcript"
       [smartIndent]="smartIndent"
       [content]="contentText"
       (contentChange)="setContentText($event)">
     </tc-codemirror>
-    <div class="buttons" *ngIf="page">
-      <button type="button" class="btn btn-default btn-xs"
-        (click)="save()">Save</button>
-      <button type="button" class="btn btn-default btn-xs"
-        (click)="commit()">Commit</button>
-        <button type="button" class="btn btn-default btn-xs"
-        (click)="preview()">Preview</button>
+    <div class="container" style="width:100%">
+      <div class="row" style="width:100%">
+        <div class="col-md-5" *ngIf="page">
+          <div class="buttons" style="float:left; margin-top: 4px">
+            <button type="button" class="btn btn-default btn-xs"
+              (click)="save()">Save</button>
+            <button type="button" class="btn btn-default btn-xs"
+              (click)="commit()">Commit</button>
+            <button type="button" class="btn btn-default btn-xs"
+              (click)="preview()">Preview</button>
+            <button *ngIf="!isText" type="button" class="btn btn-default btn-xs"
+                (click)="newText()">New text</button>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div style="text-align: center; margin:auto" *ngIf="!isVerticalSplit">
+            <span data-toggle="tooltip" title="Split screen vertically" (click)="splitVertical()" style="text-align: center; margin-top: 4px" class="split-horizontal"></span>
+          </div>
+          <div style="text-align: center; margin:auto" *ngIf="isVerticalSplit">
+            <span data-toggle="tooltip" title="Split screen horizontally" (click)="splitHorizontal()" style="text-align: center; margin-top: 4px" class="split-vertical"></span>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div style="float:right; margin-top: 4px">
+            <button *ngIf="isPrevPage(page, document)" type="button" class="btn btn-default btn-xs"
+              (click)="showPrev(page, document)"><{{prevPage}}</button>
+            {{page.attrs.name}} in {{document.attrs.name}}
+            <button *ngIf="isNextPage(page, document)" type="button" class="btn btn-default btn-xs"
+              (click)="showNext(page, document)">{{nextPage}}></button>&nbsp;&nbsp;&nbsp;&nbsp;
+          </div>
+        </div>
+      </div>
     </div>
   </tc-pane>
 </tc-splitter>

@@ -1,15 +1,19 @@
-<div  id="manageModal" class="modal fade resizable" role="dialog" style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px">
+<div  id="manageModal" class="modal fade" role="dialog" style="margin: auto; width:500px; height: 400px; background-color: white; border-radius: 4px; display: none">
    <div [ngSwitch]="choice" style="height:98%">
     <tc-managemodal-adddocument *ngSwitchWhen="'add-document'">
     </tc-managemodal-adddocument>
+    <tc-managemodal-adddocument-choice *ngSwitchWhen="'add-document-choice'">
+    </tc-managemodal-adddocument-choice>
     <tc-managemodal-editpage *ngSwitchWhen="'edit-page'" [page]="page">
     </tc-managemodal-editpage>
+    <tc-managemodal-addbulkimages *ngSwitchWhen="'add-bulk-images'" [document]="document">
+    </tc-managemodal-addbulkimages>
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'" [community]="community">
     </tc-managemodal-adddocument-xml>
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'"
-      [parent]="docParent" [after]="docAfter">
+      [document]="document" [page]="page" [afterPage]="afterPage" [parent]="docParent" [after]="docAfter" [multiple]="multiple">
     </tc-managemodal-addpage>
-    <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'" [page]="page" [context]="context">
+    <tc-managemodal-edit-new-page *ngSwitchWhen="'edit-new-page'" [page]="page" [context]="context" [document]="document">
     </tc-managemodal-edit-new-page>
     <tc-managemodal-preview-page *ngSwitchWhen="'preview-page'" [page]="page"  [error]="error" [lines]="lines" [content]="content">
     </tc-managemodal-preview-page>
@@ -27,5 +31,9 @@
     </tc-uploadfile-community>
     <tc-managemodal-info-message *ngSwitchWhen="'info-message'" [page]="page" [message]="message" [docname]="docname">
     </tc-managemodal-info-message>
+    <tc-managemodal-confirm-message *ngSwitchWhen="'confirm-message'" [page]="page" [header]="header" [warning]="warning" [docname]="docname" [action]="action" [context]="context" [document]="document">
+    </tc-managemodal-confirm-message>
+    <tc-managemodal-reorder-document *ngSwitchWhen="'reorder-document'" [document]="document">
+    </tc-managemodal-reorder-document>
   </div>
 </div>

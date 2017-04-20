@@ -4,6 +4,7 @@ var CodeMirror = require('codemirror/lib/codemirror')
   , EventEmitter = ng.core.EventEmitter
   , ElementRef = ng.core.ElementRef
   , UIService = require('../services/ui')
+  , editInitialized=true;
 ;
 
 var CodeMirrorComponent = ng.core.Component({
@@ -18,9 +19,17 @@ var CodeMirrorComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [ElementRef, UIService, function(elementRef, uiService) {
+    var self=this;
     this._elementRef = elementRef;
     this._uiService=uiService;
     this.contentChange = new EventEmitter();
+    this._uiService.requestEditorText$.subscribe(function(choice) {
+      var text=self.editor.getValue();
+      self._uiService.sendEditorText$.emit({text: text, choice: choice});
+    });
+    this._uiService.nullEditor$.subscribe(function(choice) {
+      self.editor=null;
+    });
   }],
   ngOnInit: function() {
     var el = this._elementRef.nativeElement
@@ -32,27 +41,43 @@ var CodeMirrorComponent = ng.core.Component({
       smartIndent: this.smartIndent,
       mode:  'xml'
     });
-    editor.on('change', this.textChange.bind(this));
+//    editor.on('change', this.textChange.bind(this));
     editor.setValue(this.content || '');
     this.editor = editor;
   },
   ngOnChanges: function(changeRecord) {
+    //the editor is pretty slow -- updates editor and this.content after EVERY editing act
+    //this should not be necessary. ToDo -- find a way that does NOT rely on updating after EVERY editing act
+    //done that... but now we have a problem. Marking first line as readOnly and cancelling the change also
+    //stops display of all changes
     var editor = this.editor;
     if (editor) {
       if (this.content !== editor.getValue()) {
+        if (this.content) this.content=adjustStart(this.content);
         editor.setValue(this.content || '');
       }
+      editor.markText({line:0,ch:0},{line:0,ch:1000},{css:"background-color: #E5E5E5;", readOnly: true});
+/*      editor.on('beforeChange',function(cm,change) {
+      if ( ~readOnlyLines.indexOf(change.from.line) ) {
+          change.cancel();
+        }
+      }); */
     }
-  },
+  }, /*
   textChange: function(instance) {
-    var newValue = instance.getValue();
+   var newValue = instance.getValue();
     if (newValue !== this.content) {
       this.content = newValue;
       this.contentChange.emit(newValue);
     }
-  },
+  }, */
 });
 
+function adjustStart(text) {
+  var pbPlace=text.indexOf("/>");
+  if (text.charAt(pbPlace+2)!='\n' && text.charAt(pbPlace+2)!='\r') text=[text.slice(0,pbPlace+2),'\n',text.slice(pbPlace+2)].join('');
+  text=[text.slice(0, pbPlace).replace(/[\n\r]/g,''),text.slice(pbPlace)].join('');
+  return(text);
+}
+
 module.exports = CodeMirrorComponent;
-
-

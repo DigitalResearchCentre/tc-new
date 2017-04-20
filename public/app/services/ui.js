@@ -19,13 +19,17 @@ var UIService = ng.core.Class({
     this.newPage$ = new EventEmitter();
     this.sendCommand$ = new EventEmitter();
     this.sendXMLData$ = new EventEmitter();
+    this.requestEditorText$ = new EventEmitter();
+    this.sendEditorText$ = new EventEmitter();
+    this.nullEditor$ = new EventEmitter();
     this._communitySubject = new EventEmitter();
-
+    this.choosePage$ = new EventEmitter();
+    this.showDocument$ = new EventEmitter();
+    this.changeMessage$ = new EventEmitter();
     this.community = null;
     window.state = this.state;
   }],
   setState: function(key, value) {
-    console.log(key, value);
     return _.set(this.state, key, value);
   },
   loginRequired: function() {
@@ -44,7 +48,6 @@ var UIService = ng.core.Class({
     });
   },
   createDocument: function(doc) {
-    console.log(doc);
     var state = this.state;
     if (_.isEmpty(doc.attrs.ancestors)) {
       state.document = doc;
@@ -63,5 +66,3 @@ var UIService = ng.core.Class({
 });
 
 module.exports = UIService;
-
-

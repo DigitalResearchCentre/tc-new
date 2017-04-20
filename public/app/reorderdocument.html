@@ -1,0 +1,25 @@
+<div id="reorderModal" style="font-size: 110%; height:100%;">
+  <div  modal-draggable class="modalHeader"><span *ngIf="!isDocText">Reorder and rename</span><span *ngIf="isDocText">Rename</span> pages in document {{document.attrs.name}}
+    <button type="button" (click)="closeModalRP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div style="height:520px; overflow:scroll; position:absolute">
+    <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 1px;">
+      {{message}}
+    </div>
+    <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 1px">
+      {{success}}
+    </div>
+    <ul id="TCreorderpages" (ngModel)="pages" class="TCsortableContainer">
+      <li class="ui-state-default TCsortableItem"  *ngFor="#page of pages" data-id="{{page.id}}">
+        <input type="hidden" class="name" name="{{page.name}}"> <input class="facs" type="hidden" name="{{page.facs}}">
+        <div *ngIf="!isDocText" class="ui-icon ui-icon-arrowthick-2-n-s TCsortableItemDiv1"></div>
+        <div class="TCsortableItemDiv2"><span style="width: 250px"><input type="text" style="display: inline-block;" size="8" [(ngModel)]="page.name"/></span></div>
+        <div class="TCsortableItemDiv3"><span style="width: 250px">facs: <input type="text" style="display: inline-block" size="8" [(ngModel)]="page.facs"/></span></div>
+      </li>
+    </ul>
+  </div>
+<hr style="border: 1px solid #8c8b8b; margin-bottom: 5px; margin-top:0px; position: relative; top: 522px ">
+  <div class="form-group" style="text-align: center; height: 18px; position: relative; top: 524px">
+    <button type="button" class="btn btn-primary" (click)="submit()">Save</button>
+  </div>
+</div>

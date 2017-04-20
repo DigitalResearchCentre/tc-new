@@ -1,17 +1,17 @@
 <div style="font-size: 110%">
   <div modal-draggable class="modalHeader">
     {{title}}
-    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
-  <div *ngIf="message.length>0" class="alert alert-danger" 
+  <div *ngIf="message.length>0" class="alert alert-danger"
     style="margin-bottom: 10px">
     {{message}}
   </div>
-  <div *ngIf="success.length>0" class="alert alert-success" 
+  <div *ngIf="success.length>0" class="alert alert-success"
     style="margin-bottom: 10px">
     {{success}}
   </div>
-  <div class="container-fluid" 
+  <div class="container-fluid"
     style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 15px; font-size: 110%">
     <div class="row">
       <div class="col-sm-6">
@@ -20,8 +20,8 @@
           One page
       </div>
       <div class="col-sm-6">
-        <input type="radio" name="oneormanyRB" 
-          [(ngModel)]="oneormany" value="ManyPages"/> 
+        <input type="radio" name="oneormanyRB"
+          [(ngModel)]="oneormany" value="ManyPages"/>
           Many pages
       </div>
   </div>

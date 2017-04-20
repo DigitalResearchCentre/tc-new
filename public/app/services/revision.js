@@ -13,4 +13,3 @@ var RevisionService = ng.core.Injectable().Class({
 });
 
 module.exports = RevisionService;
-

@@ -25,11 +25,20 @@ var ManageModalComponent = ng.core.Component({
     require('./editpage.component'),
     require('./community/uploadfile.component'),
     require('./infomessage.component'),
+    require('./confirmmessage.component'),
+    require('./adddocumentchoice.component'),
+    require('./reorderdocument.component'),
+    require('./addbulkimages.component'),
   ],
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
     this._uiService = uiService;
     this.restService=restService;
+/*    $('#manageModal').resizable(
+      { handleSelector: ".win-size-grip",
+        onDragStart: function (e, $el, opt) {
+        $el.css("cursor", "nwse-resize")}
+      }); */
 /*
     this.loginFrame = '/auth?url=/index.html#/home';
     this.loginFrameHeight = 233; */
@@ -39,10 +48,24 @@ var ManageModalComponent = ng.core.Component({
     this._uiService.manageModal$.subscribe(function(event) {
       // 'add-document' || 'add-document-page' || 'add-xml-document' || 'edit-new-page' || 'extract-xml-doc'
       self.choice = event || 'add-document';
+      if (event.type === 'add-document') {
+        self.choice = event.type;
+      }
+      if (event.type === 'add-bulk-images') {
+        self.choice = event.type;
+        self.document = event.document;
+      }
+      if (event.type === 'add-document-choice') {
+        self.choice = event.type;
+      }
       if (event.type === 'add-document-page') {
         self.choice = event.type;
+        self.afterPage = event.afterPage;
+        self.document = event.document;
+        self.page = event.page;
         self.docParent = event.parent;
         self.docAfter = event.after;
+        self.multiple = event.multiple;
       } else if (event.type === 'edit-page') {
         self.choice = event.type;
         self.page = event.page;
@@ -50,6 +73,7 @@ var ManageModalComponent = ng.core.Component({
         self.choice = event.type;
         self.page = event.page;
         self.context = event.context;
+        self.document = event.document;
       } else if (event.type === 'message-login') {
         self.choice = event.type;
         self.community = event.community;
@@ -103,6 +127,18 @@ var ManageModalComponent = ng.core.Component({
           self.page=event.page;
           self.docname=event.docname;
           self.message=event.message;
+      } else if (event.type ==='reorder-document'){
+          self.choice = event.type;
+          self.document=event.document;
+      } else if (event.type ==='confirm-message'){
+          self.choice = event.type;
+          self.page=event.page;
+          self.docname=event.docname;
+          self.header=event.header;
+          self.warning=event.warning;
+          self.action=event.action;
+          self.document=event.document;
+          self.context=event.context;
       }
       $('#manageModal').modal('show');
     });

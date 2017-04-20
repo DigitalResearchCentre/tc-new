@@ -38,8 +38,9 @@ var AddPageComponent = ng.core.Component({
       , url = config.IMAGE_UPLOAD_URL
       , $dropzone = $('.dropzone', $el)
     ;
+    this.pageName = _.get(this.page, 'attrs.name');
     $('#manageModal').width("530px");
-    $('#manageModal').height("415px");
+    $('#manageModal').height("300px");
     if (config.env !== 'production') {
       url += '?env=' + config.env;
     }
@@ -48,8 +49,8 @@ var AddPageComponent = ng.core.Component({
       autoProcessQueue: false,
       uploadMultiple: true,
       addRemoveLinks: true,
-      dictDefaultMessage: 
-        "Click here to upload a file, or drop image file or files here",
+      dictDefaultMessage:
+        "Click here to upload an image file, or drop image file here",
     });
     this.dropzone = $dropzone[0].dropzone;
     this.dropzone.on('queuecomplete', this.onQueueComplete.bind(this));
@@ -93,25 +94,12 @@ var AddPageComponent = ng.core.Component({
     if (!_.isFunction(cb)) {
       cb = function() {};
     }
-    if (this.pageName === "") {
-      this.pageName = _.get(this.page, 'attrs.name');
-    } else if (this.pageName !== _.get(this.page, 'attrs.name')) {
-      this.message="";
-      var matchedpage= _.find(state.document.attrs.children, function (obj){
-        return obj.attrs.name === self.pageName;
-      });
-      if (matchedpage) {
-        this.message="There is already a page "+this.pageName;
-        return cb(null);
-      }
-    }
     docService.update(this.page.getId(), {
-      name: pageName,
+//      name: pageName,
       image: image,
     }, options).subscribe(function(page) {
       self.page = page;
-      self.success="Page "+pageName+" added";
-      self.pageName="";
+//      self.pageName="";
       cb(null, page);
     });
   },
@@ -127,7 +115,6 @@ var AddPageComponent = ng.core.Component({
     }
   },
   closeModalAP: function() {
-    this.message = this.success = this.pageName = "";
     $('MMADBS').prop('checked', true);
     $('#manageModal').modal('hide');
     this.dropzone.removeAllFiles();

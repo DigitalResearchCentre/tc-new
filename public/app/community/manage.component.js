@@ -1,6 +1,7 @@
 var CommunityService = require('../services/community')
   , UIService = require('../services/ui')
   , DocService = require('../services/doc')
+  , config = require('../config')
 ;
 
 var ManageCommunityComponent = ng.core.Component({
@@ -31,6 +32,16 @@ var ManageCommunityComponent = ng.core.Component({
   isCreator: function(){
     var state = this.state;
     return this._communityService.isCreator(state.community, state.authUser);
+  },
+  deleteAllDocs: function(){
+    this._uiService.manageModal$.emit({
+       type: 'confirm-message',
+       page: "",
+       docname: "",
+       header: "Delete all documents from community "+this.community.attrs.name,
+       warning: "Are you sure? This will delete all documents, transcripts, encodings, and images from this community. It cannot be undone.",
+       action: 'deleteAllDocs'
+     });
   },
 });
 

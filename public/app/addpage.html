@@ -1,47 +1,59 @@
-<div style="font-size: 110%; height:100%">
-  <div modal-draggable class="modalHeader">Add Page (or Pages) to Document "{{state.document.attrs.name}}"
-    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+<div style="font-size: 110%; height:100%; display:flex; flex-direction: column;">
+  <div  modal-draggable class="modalHeader">Add <span *ngIf="!afterPage">first </span>page or pages to document {{document.attrs.name}} <span *ngIf="afterPage">after page {{page.attrs.name}} </span>
+    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
-  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 3px; margin-top: 3px">
     {{message}}
   </div>
-  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
+  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 3px; margin-top: 3px">
     {{success}}
   </div>
-<div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 8px; margin-bottom: 5px; font-size: 110%; height:32px">
-  <div class="row" >
+<div class="container-fluid" style="text-align: center; margin-left: 0px; margin-right: 0px; margin-top: 8px; margin-bottom: 5px; font-size: 110%; height:32px; ">
+  <div *ngIf="oneormany=='OnePage'"  class="row" >
     <div class="col-sm-6">
-      <input id="MMADBS" 
-        (click)="showSingle()" 
-        name="oneormanyRB"  checked="checked" value="OnePage" type="radio"  />One page</div>
+      <input id="MMADBS"
+        (click)="showSingle()"
+        name="oneormanyRB"  checked="checked" value="OnePage" type="radio">One page
+    </div>
     <div class="col-sm-6">
-      <input (click)="showMany()" 
-        name="oneormanyRB" type="radio"  value="ManyPages"> Many pages</div>
+     <input (click)="showMany()"
+      name="oneormanyRB" type="radio"  value="ManyPages"> Many pages
+    </div>
+  </div>
+  <div *ngIf="oneormany=='ManyPages'"  class="row" >
+    <div class="col-sm-6">
+      <input id="MMADBS"
+        (click)="showSingle()"
+        name="oneormanyRB" value="OnePage" type="radio">One page
+    </div>
+    <div class="col-sm-6">
+     <input (click)="showMany()"
+      name="oneormanyRB" type="radio" checked="checked" value="ManyPages"> Many pages
+    </div>
   </div>
 </div>
-<hr style="border: 1px solid #8c8b8b; margin-top: 5px">
-<div *ngIf="oneormany=='OnePage'" style="margin-left: 10px; margin-right: 25px; margin-top: 5px; margin-bottom: 5px; font-size: 100%; height: 32px">
+<!-- hr style="border: 1px solid #8c8b8b; margin-top: 5px"-->
+<div *ngIf="oneormany=='OnePage'" style="margin-left: 10px; margin-right: 25px; margin-top: 5px; margin-bottom: 5px; font-size: 100%; height: 32px; ">
   <div class="form-group" style="text-align: center; margin:0px">
     <label style="font-weight: normal">Page name&nbsp;&nbsp;</label>
     <input type="text" style="width: 100px; display: inline-block" class="form-control"  placeholder="Name"
       [(ngModel)]="pageName"/>
   </div>
 </div>
-<div  *ngIf="oneormany=='ManyPages'" style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 20px;  font-size: 100%; text-align: center">
-  <p style="font-size: 100%;  margin-top: 8px; margin-bottom: 8px;">File names will be used for page names (change later).</p>
+<div  *ngIf="oneormany=='ManyPages'" style="margin-left: 10px; margin-right: 25px; margin-top: 15px; margin-bottom: 20px; font-size: 100%; text-align: center; ">
+  <p style="font-size: 100%;  margin-top: 8px; margin-bottom: 8px;" id="dzAdviseMultiple">File names will be used for page names (change and reorder later).</p>
   <div class="form-group" id="MMAPPMFDD" style="display:none">
     <label style="font-weight: normal;">Drop files in the dropzone below&nbsp;</label>
     <textarea style="margin-bottom: 0px" rows="5" cols="45"></textarea>
   </div>
 </div>
-<div class="form-group" style="margin-top: 10px; margin-right: 10px; margin-left: 10px; margin-bottom: 0px; text-align: center; ">
-  <form class="dropzone" style="height:200px"></form>
+<div class="form-group" style="flex:2; display: flex; width: 100%; margin-top: 10px; margin-right: 10px; margin-left: 10px; margin-bottom: 0px; text-align: center; ">
+  <form class="dropzone" style="height:100%; width: 100%; margin-bottom:0px; margin-right:20px" id="mydz"><div class="dz-message" data-dz-message><span id="dzMessage">Click here to upload an image file, or drop image file here</span></div></form>
 </div>
-<hr style="border: 1px solid #8c8b8b; margin-bottom: 15px">
-<form action="" style="width:100%; height: 32px">
-  <div class="form-group" style="text-align: center;">
-    <button *ngIf="isAdd" type="button" class="btn btn-primary" (click)="submit()">Add</button>
+<hr style="border: 1px solid #8c8b8b; margin-bottom: 5px; margin-top:0px">
+  <div class="form-group" style="text-align: center; height: 18px;">
+    <button *ngIf="isAdd" type="button" class="btn btn-primary" (click)="submit()">Add Page</button>
     <button *ngIf="isCancel" type="button" class="btn btn-primary" (click)="closeModalAP()">Close</button>
   </div>
-</form>
 </div>
+<div modal-resizable class="win-size-grip"></div>
