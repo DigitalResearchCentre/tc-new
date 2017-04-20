@@ -7,6 +7,10 @@ var NewPagePoetryComponent = ng.core.Component({
 }).Class({
   constructor: [ function() {
   }],
+  ngOnInit: function() {
+    if (this.page.attrs.facs) this.facs=' facs="'+this.page.attrs.facs+'"';
+    else this.facs="";
+  }
 });
 
 module.exports = NewPagePoetryComponent;

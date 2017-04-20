@@ -37,7 +37,7 @@
                 <li role="separator" class="divider"></li>
                 <li *ngFor="#membership of state.authUser.attrs.memberships">
                   <a [routerLink]="['Community',
-                    {id: membership.community.getId(), route: 'home'}]">
+                    {id: membership.community.getId(), route: 'view'}]">
                     {{membership.community.attrs.name}}
                   </a>
                 </li>
@@ -115,7 +115,7 @@
         style="width: 170px;">Join Community</button></a>
   </p>
   <p *ngIf="showAddDocument()" class="wizardp">
-    <a  (click)="loadModal('add-document')">
+    <a  (click)="loadModal('add-document-choice')">
       <button class="btn btn-lg wizardbutton"
         onmouseover="this.style.color='#ffe2be';"
         onmouseout="this.style.color='white';"

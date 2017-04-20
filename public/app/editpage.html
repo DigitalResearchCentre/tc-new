@@ -1,29 +1,29 @@
 <div style="font-size: 110%; height:100%">
-  <div modal-draggable class="modalHeader">Edit Page "{{page.attrs.name}}"
-    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+  <div modal-draggable class="modalHeader">Replace or add image for "{{page.attrs.name}}"
+    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
-  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
+  <!--div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 10px">
     {{message}}
   </div>
   <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 10px">
     {{success}}
   </div>
   <div class="container-fluid" style="text-align: center; margin-left: 10px; margin-right: 25px; margin-top: 8px; margin-bottom: 5px; font-size: 110%; height:32px">
-</div>
-<div style="margin-left: 10px; margin-right: 25px; margin-top: 5px; margin-bottom: 5px; font-size: 100%; height: 32px">
+</div -->
+<!--div style="margin-left: 10px; margin-right: 25px; margin-top: 5px; margin-bottom: 5px; font-size: 100%; height: 32px">
   <div class="form-group" style="text-align: center; margin:0px">
     <label style="font-weight: normal">Page name&nbsp;&nbsp;</label>
     <input type="text" style="width: 100px; display: inline-block" class="form-control"  placeholder="Name"
       [(ngModel)]="pageName"/>
   </div>
-</div>
+</div-->
 <div class="form-group" style="margin-top: 10px; margin-right: 10px; margin-left: 10px; margin-bottom: 0px; text-align: center; ">
   <form class="dropzone" style="height:200px"></form>
 </div>
-<form action="" style="width:100%; height: 32px">
+<form action="" style="width:100%; height: 32px; margin-top:10px" >
   <div class="form-group" style="text-align: center;">
-    <button type="button" 
-      class="btn btn-primary" (click)="submit()">edit</button>
+    <button type="button"
+      class="btn btn-primary" (click)="submit()">Add image</button>
   </div>
 </form>
 </div>

@@ -5,7 +5,7 @@ var ElementRef = ng.core.ElementRef
 var ModalDraggable = ng.core.Directive({
   selector: '[modal-draggable]',
 }).Class({
-  constructor: [ElementRef, function(elementRef) { 
+  constructor: [ElementRef, function(elementRef) {
     this._elementRef = elementRef;
   }],
   ngOnInit: function() {
@@ -46,6 +46,3 @@ var ModalDraggable = ng.core.Directive({
 
 
 module.exports = ModalDraggable;
-
-
-

@@ -102,11 +102,15 @@ _.assign(Resource.prototype, {
     };
   },
   afterUpdate: function(req, res, next) {
+//    console.log("start after update");
     return function(obj, cb) {
+//      console.log("back to here");
+//      console.log(obj);
       cb(null, obj);
     };
   },
   sendData: function(req, res, next) {
+//    console.log("sending stuff back")
     var fields = _parseJSON(req.query.fields, [])
       , optFields
     ;
@@ -114,8 +118,18 @@ _.assign(Resource.prototype, {
       fields = [fields];
     }
     function _sendData(err, data) {
+//      console.log("this is where it all goes back in _send  ")
+//      console.log(err);
       if (err) {
-        return next(err);
+//        console.log("have error")
+        res.json({'data':data,'error':err}); //this is really a horrid hack. But I can't see any other way of getting the error data back..
+    //does not seem any way of picking up the value of the error in the calling function
+    //.subscribe does NOT pick up the res value in the return (this is available in the response body of the call
+  // but to get at it we will have to get away from the subscribe method)
+    //    return next(err);
+    //wierd here...
+    //ok... this goes somewhere wierd before coming back to subscription in viewer...
+  //      res.json(data);
       } else {
         res.json(data);
       }

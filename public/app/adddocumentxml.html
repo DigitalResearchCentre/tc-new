@@ -1,31 +1,30 @@
-<div>
+<div style="font-size: 110%; height:100%;">
   <div modal-draggable class="modalHeader">Load XML Document to Community "{{uiService.state.community.attrs.name}}"
-    <button type="button" (click)="closeModalADX()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:200; position: relative; left:-10px; top:-3px;">&times;</button>
+    <button type="button" (click)="closeModalADX()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
 
-<form action="">
-  <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 3px; margin-top: 3px">
-    {{message}}
-  </div>
-  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 3px; margin-top: 3px">
-    {{success}}
-  </div>
-  <div id="MMADXdiv" class="form-group" style="margin-top: 15px; margin-bottom: 12px; margin-left: 20px; margin-right: 20px">
-  <label>Document Name&nbsp;&nbsp;</label>
-    <input type="text" style="width: 170px; display: inline-block" class="form-control" placeholder="Name"
-      [(ngModel)]="doc.name">
-  </div>
-  <div id="MMADXTdiv" class="form-group" style="margin-top: 8px; margin-left: 20px; margin-right: 20px">
+  <form>
+    <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 3px; margin-top: 3px">
+      {{message}}
+    </div>
+    <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 3px; margin-top: 3px">
+      {{success}}
+    </div>
+    <div id="MMADXdiv" class="form-group" style="margin-top: 15px; margin-bottom: 12px; margin-left: auto; margin-right: auto; width: 90%; text-align: center">
+    <label>Document Name&nbsp;&nbsp;</label>&nbsp;&nbsp;
+      <input type="text" style="width: 170px; display: inline-block" class="form-control" placeholder="Name"
+        [(ngModel)]="doc.name">
+    </div>
+  </form>
+  <!-- div id="MMADXTdiv" class="form-group" style="width: 100%; margin-top: 8px; margin-left: 20px; margin-right: 20px">
     <label style="display: inline-block; vertical-align: top">XML&nbsp;&nbsp;</label>
-    <textarea [(ngModel)]="text" rows="9" cols="40">
+    <textarea [(ngModel)]="text" rows="11" cols="40">
     </textarea>
-  </div>
-  <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; margin-left: 20px; margin-right: 20px">
-    <label>XML file&nbsp;&nbsp;</label>
+  </div-->
+  <div id="MMADXFdiv" class="form-group" style="margin-top: 5px;">
     <tc-filereader (filechange)="filechange($event)"></tc-filereader>
     <div style="text-align: center; margin-top: 10px">
-      <button type="button" class="btn btn-primary" (click)="submit()">Create</button>
+      <button type="button" class="btn btn-primary" (click)="submit()">Load</button>
     </div>
   </div>
-</form>
 </div>

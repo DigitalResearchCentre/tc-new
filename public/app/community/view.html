@@ -10,7 +10,7 @@
         <li id="itemTabHead" class="center" (click)="active('Items')"><a>By Item</a></li>
       </ul>
     </div>
-    <div class="tab-content tc-tab" id="pageTab" style="overflow:auto">
+    <div class="tab-content tc-tab" id="pageTab" style="overflow:auto; width:100%">
       <ul class="tree">
         <li *ngFor="#doc of state.community.attrs.documents"
           [class.collapse-node]="!doc.expand">
@@ -19,11 +19,29 @@
               (click)="toggleDoc(doc)"></span>
             <a (click)="selectDoc(doc)">
               {{doc.attrs.name}}
+            </a>&nbsp;
+            <a *ngIf="docLacksImages(doc)" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
+              <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/camera-multiple-missing.png">
             </a>
-            <a target="_blank" class="extract-xml"
+            <a *ngIf="!docLacksImages(doc)" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
+              <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/camera-multiple.png">
+            </a>
+            <a target="_blank" (click)="reorderDocument(doc)" data-toggle="tooltip" title="Reorder or rename pages">
+              <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/reorderdoc.png">
+            </a>
+            <a target="_blank" data-toggle="tooltip" title="Remove document text"
+              (click)="removeDocumentText(doc)">
+              <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/deletedoctext.png">
+            </a>
+            <a target="_blank" data-toggle="tooltip" title="Delete document"
+              (click)="deleteDocument(doc)">
+              <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/deletedoc.png">
+            </a>
+           <a target="_blank" class="extract-xml" data-toggle="tooltip" title="Get document XML"
               (click)="extractXML($event, doc)">
+              <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/getdocxml.png">
             </a>
-            <span (click)="addFirstPage(doc)"
+            <span *ngIf="showAddFirstPage(doc)" (click)="addFirstPage(doc)"
               class="add-page-after"></span>
           </div>
           <ul>
@@ -31,14 +49,23 @@
               <a (click)="selectPage(page)">
                 {{page.attrs.name}}
               </a>
-              <span (click)="editPageImage(page)"
-                class="edit-page-image"></span>
-              <span (click)="addPageAfter(page)"
+              <a *ngIf="pageHasImage(page)" target="_blank" data-toggle="tooltip" title="Change Image"
+                (click)="editPageImage(page)">
+                <img onmouseover="this.width='22';this.height='19'" onmouseout="this.width='15'; this.height='12'" class="menuimg" height="12" width="15" src="../../images/camera-black.png">
+              </a>
+              <a *ngIf="!pageHasImage(page)" target="_blank" data-toggle="tooltip" title="No image present. Add image."
+                (click)="editPageImage(page)">
+                <img onmouseover="this.width='22';this.height='19'" onmouseout="this.width='15'; this.height='12'" class="menuimg" height="12" width="15" src="../../images/camera-red.png">
+              </a>
+              <span *ngIf="showAddPage(page, doc)" (click)="addPageAfter(page, doc)"
                 class="add-page-after"></span>
             </li>
           </ul>
         </li>
       </ul>
+        <span data-toggle="tooltip" title="Add document" (click)="addDocument()" class="add-document">
+          <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='24'; this.height='24'" class="menuimg" height="24" width="24" src="../../images/adddocument.png">
+        </span>
     </div>
     <div class="tab-content tc-tab" id="itemTab" style="display:none; overflow:auto">
       <ul class="tree">
@@ -102,7 +129,7 @@
         </li>
       </ul>
     </div>
-    <div id="collationView" class="tab-content tc-tab" style="display:none; overflow:auto; ">
+    <div id="collationView" class="tab-content tc-tab" style="display:none; overflow:auto; " >
       <ul class="tree">
         <li *ngFor="#entity of state.community.attrs.entities"
           [class.collapse-node]="!entity.expand">
@@ -165,25 +192,29 @@
       </ul>
     </div>
   </tc-pane>
-  <tc-pane class="viewer">
+  <tc-pane class="viewer" style="width:100%; height:100%" id="tcPaneViewer">
     <tc-viewer *ngIf="state.page"
         [page]="state.page"
+        [document]="state.document"
+        [community]="state.community"
         [image]="state.page.attrs.image"></tc-viewer>
-    <div id="tcCollation" style="display:none">
-        <p *ngIf="!state.community.attrs.entities.length">
-          No entities found. Commit pages in the document viewer, using "n" attributes on elements to
-          declare them as entities (e.g. &lt;div n="1" type="book"> for Book 1).
-        </p>
-        <p *ngIf="state.community.attrs.entities.length && !versions.length">
-          Click on entity elements in the side panel to show all occurrences of that entity in the documents.
-        </p>
-        <div *ngIf="versions.length" style="overflow:auto">
+    <div id="tcCollation" style="display:none; width:100%" >
+        <div id="CXcontainer" style="overflow:auto;">
+          <p *ngIf="!state.community.attrs.entities.length">
+            No entities found. Commit pages in the document viewer, using "n" attributes on elements to
+            declare them as entities (e.g. &lt;div n="1" type="book"> for Book 1).
+          </p>
+          <p *ngIf="state.community.attrs.entities.length && !versions.length">
+            Click on entity elements in the side panel to show all occurrences of that entity in the documents.
+          </p>
+        </div>
+        <div *ngIf="versions.length" style="overflow:auto" id="tcVersions">
             <p>Versions of {{state.community.entityName}}</p>
           <div *ngFor="#version of versions" class="row" style="min-width:600px">
               <span class="col-sm-1">{{version.sigil}}</span>
               <span class="col-sm-11">{{version.version}}</span>
           </div>
-        </div>
+       </div>
       </div>
   </tc-pane>
 </tc-splitter>

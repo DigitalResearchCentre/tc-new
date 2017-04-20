@@ -26,6 +26,7 @@ var AddDocumentComponent = ng.core.Component({
     this.message="";
     this.success="";
     this.uiService = uiService;
+    this.state= uiService.state;
     this._docService = docService;
     this._router = router;
     /*this for scope variables */
@@ -58,7 +59,8 @@ var AddDocumentComponent = ng.core.Component({
           self._router.navigate(['Community', {
             id: community.getId(), route: 'view'
           }]);
-          self.closeModalAD();
+    //      $('#manageModal').modal('hide');  //now go and add pages
+          self.uiService.manageModal$.emit({type: 'add-document-page', afterPage: false, document: self.state.document, page:null, parent:self.state.document, multiple: false  });
         }, function(err) {
           self.message = "Error writing to database";
         });
@@ -79,7 +81,6 @@ var AddDocumentComponent = ng.core.Component({
     } else {
       return false;
     }
-    var bill="1"
   }
 });
 

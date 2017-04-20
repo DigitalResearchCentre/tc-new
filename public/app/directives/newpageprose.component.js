@@ -11,6 +11,8 @@ var NewPageProseComponent = ng.core.Component({
   constructor: [ function() {
   }],
     ngOnInit: function() {
+      if (this.page.attrs.facs) this.facs=' facs="'+this.page.attrs.facs+'"';
+      else this.facs="";
     }
 });
 

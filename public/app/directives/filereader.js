@@ -6,7 +6,7 @@ var EventEmitter = ng.core.EventEmitter
 
 var FileReaderComponent = ng.core.Component({
   selector: 'tc-filereader',
-  template: '<input id="FRinput" type="file"/>',
+  template: '<input id="FRinput" class="btn wizardbutton" style="margin-left: 70px; color: white; text-align: center" type="file"/>',
   // style="width: 250px; display: inline-block"
   outputs: [
     'filechange'

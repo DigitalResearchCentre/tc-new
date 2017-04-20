@@ -1,0 +1,17 @@
+<div *ngIf="state.community">
+  <div modal-draggable class="modalHeader">New Document for Community "{{state.community.attrs.name}}"
+    <button type="button" (click)="closeModalADC()" class="close"
+    data-dismiss="modal"
+    style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;
+  </button>
+  </div>
+  <div style="margin-top: 11px">
+    <ul>
+    <li style="margin-bottom: 6px"><b>Page by page</b>: One or more pages at a time</li>
+    <li><b>XML file</b>:From an XML file
+  </ul>
+  <div style="text-align: center; margin-top:10px">
+    <button  type="button" class="btn btn-primary btn-md" (click)="byPage()">Page by page</button>&nbsp;&nbsp;&nbsp;&nbsp;
+    <button  type="button" class="btn btn-primary btn-md" (click)="xmlFile()">XML file</button>
+  </div>
+</div>

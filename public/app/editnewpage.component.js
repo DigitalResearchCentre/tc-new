@@ -17,7 +17,7 @@ var EditNewPageComponent = ng.core.Component({
     require('./directives/newpageempty.component'),
   ],
   inputs: [
-    'context', 'page',
+    'context', 'page', 'document',
   ],
 }).Class({
   constructor: [UIService, DocService, function(uiService, docService) {
@@ -28,15 +28,15 @@ var EditNewPageComponent = ng.core.Component({
     $('#manageModal').width("510px");
     $('#manageModal').height("600px");
     this.message=this.success="";
+    this.community= uiService.state.community;
     this.choice="Prose";
 //    this.revisions = [];
     this.state = uiService.state;
   }],
   submit: function() {
-    //save the page as a revision
+    //save the page as a revision, and commit it also
     var newPage=$("#NewDoc").text(), page = this.page, docService = this.docService,
       meta = _.get( page, 'attrs.meta',_.get(page.getParent(), 'attrs.meta')), self=this;
-//    console.log("new text "+newPage);
     this.context.contentText = newPage;
     this.closeModalNP();
     this.revisions=this.context.revisions;
@@ -44,6 +44,7 @@ var EditNewPageComponent = ng.core.Component({
       doc: page.getId(),
       text: newPage,
       user: meta.user,
+      community: this.community,
       committed: meta.committed,
       status: 'NEWPAGETEMPLATE',
     }).subscribe(function(revision) {
@@ -51,7 +52,13 @@ var EditNewPageComponent = ng.core.Component({
       self.context.revisions=self.revisions;
       self.context.revisions.unshift(revision);
       self.context.revision=self.revision=revision;
+      //if this is first page..we should remove temporary divs etc placed OUTSIDE pbs so they do not mess
+      //up this new commit (temp divs there only to get skeleton pbs etc to parse)
+      //now commit it also. Do this by sending a message to the viewer
+      $.post(config.BACKEND_URL+'zeroDocument?'+'id='+self.document._id, function(res) {
+        self.uiService.sendCommand$.emit("commitTranscript");
       });
+    });
   },
   choose: function(choice) {
     switch (choice) {
