@@ -499,14 +499,14 @@ router.post('/zeroDocument', function(req, res, next) {
         })
       },
       function(thisAnc, cb) {
-        console.log("parameter "); console.log(thisAnc);
+  //      console.log("parameter "); console.log(thisAnc);
         if (!thisAnc) cb(null, null);   //all fine! no need to do anything at all
         else {
           TEI.findOne({_id: ObjectId(thisAnc.textEl)}, function(err, textel){
             if (textel.name=="text") {
               //set the children of text to children of the p element
               var pbchildren=thisAnc.pbchildren;
-              console.log("about to save pbchildren "+pbchildren)
+//              console.log("about to save pbchildren "+pbchildren)
               TEI.collection.update({_id: ObjectId(thisAnc.textEl)}, {$set: {children: pbchildren, docs: [ObjectId(docroot)]}}, function (err, result) {
                   cb(null, {textEl:thisAnc.textEl, pbchildren: pbchildren});
               });
@@ -520,7 +520,7 @@ router.post('/zeroDocument', function(req, res, next) {
         else {
           var pbinfs=[];
           thisAnc.pbchildren.map(function(pb){pbinfs.push({pbid: pb, textEl: thisAnc.textEl});});
-          console.log("adjust pb ancestor"); console.log(pbinfs);
+//          console.log("adjust pb ancestor"); console.log(pbinfs);
           async.map(pbinfs, savePbInfs, function (err) {cb(err, []);});
         }
       },
@@ -540,7 +540,7 @@ router.post('/zeroDocument', function(req, res, next) {
 });
 
 function savePbInfs(pageInf, callback) {
-  console.log("pbel "+pageInf.pbid+" textel "+pageInf.textEl);
+//  console.log("pbel "+pageInf.pbid+" textel "+pageInf.textEl);
   TEI.update({_id: ObjectId(pageInf.pbid)}, {$set: {ancestors: [ObjectId(pageInf.textEl)]}}, function(err) {
     callback(err);
   });
@@ -551,8 +551,9 @@ var globalDoc;
 var globalNentels=0;
 
 //just take all the text out of the document; leave pbs and any divs surrounding etc in place
+//todo -- make surviving children pbs direct children of textelement
 router.post('/deleteDocumentText', function(req, res, next) {
-  var npages=0, nodocels=0, nallels=0, npagetrans=0, deleteTeiEntities=[], pages=[], deleteTeis=[];
+  var npages=0, nodocels=0, nallels=0, npagetrans=0, deleteTeiEntities=[], pages=[], deleteTeis=[], nTeis=0;
   var docroot=req.query.id;
   globalCommAbbr=req.query.community;
 //  console.log("starting deletion for "+docroot+" in community "+globalCommAbbr);
@@ -571,28 +572,36 @@ router.post('/deleteDocumentText', function(req, res, next) {
       function(argument, cb) {
         //get all the entities in this document
         TEI.find({docs: {$in: pages}}, function(err, teis) {
-          teis.forEach(function(teiEl){
-            if (teiEl.isEntity) {
-              var entityPath=[];
-              entityPath.push(teiEl.entityName);
-              deleteTeiEntities.push({id:teiEl._id, entityName: teiEl.entityName, ancestorName: teiEl.entityAncestor, entityPath: entityPath, isEntity:teiEl.isEntity});
-            }
-          });
-  //        console.log("entities to delete"); console.log(deleteTeiEntities);
-          cb(err, []);
+          console.log("number of teis "+teis.length)
+          nTeis=teis.length;
+          if (nTeis<3000) {
+            teis.forEach(function(teiEl){
+              if (teiEl.isEntity) {
+                var entityPath=[];
+                entityPath.push(teiEl.entityName);
+                deleteTeiEntities.push({id:teiEl._id, entityName: teiEl.entityName, ancestorName: teiEl.entityAncestor, entityPath: entityPath, isEntity:teiEl.isEntity});
+              }
+            });
+    //        console.log("entities to delete"); console.log(deleteTeiEntities);
+            cb(err, []);
+          } else {
+            cb(err, []);
+          }
         });
       },
-      function getDeleteEntityPaths (argument, cb) {
+      function getDeleteEntityPaths (nTeis, cb) {
         //delete all revisions, teis and doc elements
-        if (deleteTeiEntities.length>0) {
-          async.map(deleteTeiEntities, getEntityPaths, function (err, results){
-            deleteTeiEntities=results;
-//            console.log("delete with paths"); console.log(deleteTeiEntities);
+        if (nTeis<3000) {
+          if (deleteTeiEntities.length>0) {
+            async.map(deleteTeiEntities, getEntityPaths, function (err, results){
+              deleteTeiEntities=results;
+  //            console.log("delete with paths"); console.log(deleteTeiEntities);
+              cb(null, []);
+            });
+          } else {
             cb(null, []);
-          });
-        } else {
-          cb(null, []);
-        }
+          }
+        } else {cb(null, [])};
       },
       function deleteTEIs (argument, cb) {
   //      console.log("about to delete"+deleteTeis)
@@ -616,11 +625,26 @@ router.post('/deleteDocumentText', function(req, res, next) {
       function deleteDeadEntities (argument, cb) {
 //         console.log("about to keill entities" + deleteTeiEntities.length);
 //         console.log("here is where we will kill the entities ");  for (var i = 0; i < deleteTeiEntities.length; i++) { console.log(deleteTeiEntities[i])};
-        if (deleteTeiEntities.length>0) {
-          async.mapSeries(deleteTeiEntities, deleteEntityName, function (err, results) {
-            cb(err, []);
-          });
-        } else {cb(null, []);}
+        if (nTeis<3000) {
+          if (deleteTeiEntities.length>0) {
+            async.mapSeries(deleteTeiEntities, deleteEntityName, function (err, results) {
+              cb(err, []);
+            });
+          } else {cb(null, []);}
+        } else {
+          //more than 3000.. do top down removL
+          globalNentels=0;
+          globalDeleteEntities=[];
+          Community.findOne({'abbr': globalCommAbbr}, function(err, myCommunity){
+            async.map(myCommunity.entities, topDownDeleteEntity, function (err, results){
+              console.log("getting rid of "+globalNentels);
+              Entity.collection.remove({_id: {$in: globalDeleteEntities}}, function(err, result){
+                console.log("done removal")
+                cb(err, []);
+              });
+            })
+          })
+        }
       },
       function deleteRevisions (argument, cb) {
   //      console.log(pages);
@@ -638,21 +662,23 @@ router.post('/deleteDocumentText', function(req, res, next) {
           }, function(err){
             cb(err, []);
           });
-      },
+      },   //missing and important! add all teis for pages as children for text element, and make each pb a child of text
     ], function(err, results) {
       res.json({"npages":npages, "nodocels": nodocels, "nentels": globalNentels, "nallels": nallels, "npagetrans": npagetrans});
   });
 });
 
+var globalDeleteEntities=[];
+
 router.post('/deleteDocument', function(req, res, next) {
-  var npages=0, nodocels=0, nallels=0, npagetrans=0, deleteTeiEntities=[], pages=[], deleteTeis=[];
+  var npages=0, nodocels=0, nallels=0, npagetrans=0, deleteTeiEntities=[], pages=[], deleteTeis=[], nTeis=0;
   var docroot=req.query.id;
   globalCommAbbr=req.query.community;
 //  console.log("starting deletion for "+docroot+" in community "+globalCommAbbr);
   //delete all docs all entitiees all revisions...
     async.waterfall([
       function(cb) {
-        Doc.findOne({_id: docroot}, function(err, document) {
+        Doc.findOne({_id: ObjectId(docroot)}, function(err, document) {
     //      console.log(document);
           pages=document.children;
           globalDoc=document;
@@ -696,28 +722,34 @@ router.post('/deleteDocument', function(req, res, next) {
       function(argument, cb) {
         //get all the entities in this document
         TEI.find({docs: {$in: pages}}, function(err, teis) {
-          teis.forEach(function(teiEl){
-            if (teiEl.isEntity) {
-              var entityPath=[];
-              entityPath.push(teiEl.entityName);
-              deleteTeiEntities.push({id:teiEl._id, entityName: teiEl.entityName, ancestorName: teiEl.entityAncestor, entityPath: entityPath, isEntity:teiEl.isEntity});
-            }
-          });
+          nTeis=teis.length;
+          console.log("about to delete document teis "+nTeis)
+          if (nTeis<3000) {
+            teis.forEach(function(teiEl){
+              if (teiEl.isEntity) {
+                var entityPath=[];
+                entityPath.push(teiEl.entityName);
+                deleteTeiEntities.push({id:teiEl._id, entityName: teiEl.entityName, ancestorName: teiEl.entityAncestor, entityPath: entityPath, isEntity:teiEl.isEntity});
+              }
+            });
+          }
   //        console.log("entities to delete"); console.log(deleteTeiEntities);
           cb(err, []);
         });
       },
       function getDeleteEntityPaths (argument, cb) {
         //delete all revisions, teis and doc elements
-        if (deleteTeiEntities.length>0) {
-          async.map(deleteTeiEntities, getEntityPaths, function (err, results){
-            deleteTeiEntities=results;
-//            console.log("delete with paths"); console.log(deleteTeiEntities);
+        if (nTeis<3000) {
+          if (deleteTeiEntities.length>0) {
+            async.map(deleteTeiEntities, getEntityPaths, function (err, results){
+              deleteTeiEntities=results;
+              console.log("delete with paths"); console.log(deleteTeiEntities);
+              cb(null, []);
+            });
+          } else {
             cb(null, []);
-          });
-        } else {
-          cb(null, []);
-        }
+          }
+        } else {cb(null, []);}
       },
       function deleteTEIs (argument, cb) {
   //      console.log("about to delete"+deleteTeis)
@@ -749,10 +781,12 @@ router.post('/deleteDocument', function(req, res, next) {
       function deleteDeadEntities (argument, cb) {
 //         console.log("about to keill entities" + deleteTeiEntities.length);
 //         console.log("here is where we will kill the entities ");  for (var i = 0; i < deleteTeiEntities.length; i++) { console.log(deleteTeiEntities[i])};
-        if (deleteTeiEntities.length>0) {
-          async.mapSeries(deleteTeiEntities, deleteEntityName, function (err, results) {
-            cb(err, []);
-          });
+        if (nTeis<3000) {
+          if (deleteTeiEntities.length>0) {
+            async.mapSeries(deleteTeiEntities, deleteEntityName, function (err, results) {
+              cb(err, []);
+            });
+          } else {cb(null, []);}
         } else {cb(null, []);}
       },
       function deleteRevisions (argument, cb) {
@@ -772,6 +806,22 @@ router.post('/deleteDocument', function(req, res, next) {
             cb(err, []);
           });
       },
+      function updateDeleteEntities (argument, cb) {
+        if (nTeis>=3000) {
+          //ok, check every entity and delete all those for which we have no TEI
+          globalNentels=0;
+          globalDeleteEntities=[];
+          Community.findOne({'abbr': globalCommAbbr}, function(err, myCommunity){
+            async.map(myCommunity.entities, topDownDeleteEntity, function (err, results){
+              console.log("getting rid of "+globalNentels);
+              Entity.collection.remove({_id: {$in: globalDeleteEntities}}, function(err, result){
+                console.log("done removal")
+                cb(err, []);
+              });
+            })
+          })
+        } else {cb(null, [])}
+      },
       function updateDocCommunity(argument, cb) {
 //        console.log(globalCommAbbr);
 //        console.log(docroot)
@@ -783,6 +833,47 @@ router.post('/deleteDocument', function(req, res, next) {
       res.json({"npages":npages, "nodocels": nodocels, "nentels": globalNentels, "nallels": nallels, "npagetrans": npagetrans});
   });
 });
+
+var globalEntitiesRemoved;
+function topDownDeleteEntity(thisEntity, callback) {
+  //given an entity: checks if there are any tei which have this entity. If not, wipe it out
+  //note! find is FAR faster than findOne
+  TEI.find({entityName:thisEntity.entityName}, function(err, results){
+    if (results.length==0) {
+  //      console.log("missing at "+thisEntity.entityName);
+//      Entity.collection.remove({entityName:thisEntity.entityName}, function(err, result){
+        globalDeleteEntities.push(ObjectId(thisEntity._id));
+        globalNentels+=1;
+        if (globalNentels % 1000 == 0) console.log("deleting entities "+globalNentels+" this one "+thisEntity.entityName);
+        if (!thisEntity.ancestorName) {
+          console.log("about to remove "+thisEntity.entityName);
+          Community.update({abbr:globalCommAbbr},{$pull: {entities:  {entityName:thisEntity.entityName}}}, function (err, result) {
+            if (!thisEntity.isTerminal) {
+              Entity.find({ancestorName: thisEntity.entityName}, function(err, results){
+                if (!results.length) callback(err);
+                else async.map(results, topDownDeleteEntity, function(err, results){callback(err)});
+              });
+            } else {callback(null);}
+          });
+        } else {
+          if (!thisEntity.isTerminal) {
+            Entity.find({ancestorName: thisEntity.entityName}, function(err, results){
+              if (!results.length) callback(err);
+              else async.map(results, topDownDeleteEntity, function(err){callback(err)});
+            });
+          } else {callback(null);}
+        }
+//      })
+    } else {
+      if (!thisEntity.isTerminal) {
+        Entity.find({ancestorName: thisEntity.entityName}, function(err, results){
+          if (!results.length) callback(err);
+          else async.map(results, topDownDeleteEntity, function(err){callback(err)});
+        });
+      } else {callback(null);}
+    }
+  });
+}
 
 function deleteEntityName(thisTei, callback) {
   //calculate what ancestor entity will be..
@@ -800,11 +891,11 @@ function deleteEntityName(thisTei, callback) {
   }
   //first check there are no other teis for this entity name, if we are looking
   if (isBaseEntity) {
-    TEI.findOne({entityName:thisTei.entityName}, function(err, teiel) {
+    TEI.find({entityName:thisTei.entityName}, function(err, results) {
 //      //("finding to delete "+teiel);
       //a bit tricky here. Need to see if entity exists -- might already have been deleted
       //if not deleted: delete. Regardless: go up the entity path checking each level
-      if (!teiel) {
+      if (results.length==0) {
         //delete from entities. Check it is here .. if so, delete and go up tree
         //if not here: just go up the tree
         var isTopEntity;
@@ -825,10 +916,10 @@ function deleteEntityName(thisTei, callback) {
       }
     });
   } else {
-    TEI.findOne({entityAncestor:thisTei.entityName}, function(err, teiel) {
+    TEI.find({entityAncestor:thisTei.entityName}, function(err, results) {
       //a bit tricky here. Need to see if entity exists -- might already have been deleted
       //if not deleted: delete. Regardless: go up the entity path checking each level
-      if (!teiel) {
+      if (results.length==0) {
         //delete from entities. Check it is here .. if so, delete and go up tree
         //if not here: just go up the tree
         var isTopEntity;
@@ -902,46 +993,80 @@ function getEntityPaths  (entityTEI, callback) {
 }
 
 router.post('/statusTranscript', function(req, res, next) {
-  var isPrevPageText=false, isThisPageText=false;
+  var isPrevPageText=false, isThisPageText=false, isMultiPages=false;
+  globalTextEl=null;
+//  console.log("starting in status")
   async.waterfall([
    function findDoc(cb) {
 //      console.log("looking for "+req.query.docid);
       Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, document){
         if (!document) {
           res.json({isPrevPageText: false, isThisPageText: false, docFound: false});
+          cb("a problem",[]);
         } else {
           cb(err, document);
         }
       })
     },
+    function(document, cb) {  //get the text element. If no textel with these children -- then must have transcripts
+//      console.log("looking for text el for"+req.query.docid);
+      TEI.findOne({name:"pb", docs: ObjectId(req.query.docid)}, function (err, pbEl){
+        //top level ancestor of pbEl by definition will be the text elements
+        if (err) cb(err, []);
+        else {
+          TEI.findOne({_id: ObjectId(pbEl.ancestors[0]), name:"text"}, function (err, textEl) {
+            if (err) cb(err, []);
+            else {
+              globalTextEl=textEl;
+//              console.log("got text el "+globalTextEl)
+              cb(null, document);
+            }
+          });
+        }
+      })
+    },
     function hasPrevPageText (document, cb) {
       //is first page
-      if (document.children.length[0]==req.query.pageid) {
+//      console.log("testing doc children"+document);
+      if (document.children.length>1) isMultiPages=true;
+      if (document.children[0]==req.query.pageid) {
         isPrevPageText=false;
-        cb(null, []);
+        cb(null, document);
       } else { //not first page. Any teis for previous page?
-        for (var i = 0; i < document.children.length; i++) {
-          if (document.children[i]==req.query.pageid) {
-              TEI.findOne({docs: ObjectId(document.children[i-1]), name:{$ne:"pb"}}, function(err, prevpagetei) {
-              if (!prevpagetei) isPrevPageText=false;
-              else isPrevPageText=true;
-              cb(err, []);
-            });
+        //changed how we do this... now, if the parent of this is our friend the text element then it is blank
+        var foundN=0;
+  //      console.log("looking in"+document+" for page "+req.query.pageid);
+        for (var i = 1; i < document.children.length; i++) {
+          if (document.children[i]==req.query.pageid) {  //get the previous page tei and check against textel children
+            foundN=i;
+            i=document.children.length;
           }
         }
+  //      console.log("looking for "+document.children[foundN-1]+" at offset "+foundN);
+        //possibly, this could be out of sync and return null
+        TEI.findOne({name:"pb", docs: ObjectId(document.children[foundN-1])}, function (err, pbTei){
+//          console.log("got the pbtei "+pbTei)
+          var prevPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
+          if (prevPbInText) isPrevPageText=false;
+          else isPrevPageText=true;
+          i=document.children.length;
+          cb(null, document);
+        });
       }
-  },  //ok, settled prev page status. What about this page?
-  function hasThisPageText (argument, cb) {
-//    console.log("looking for page"); console.log(req.query.pageid);
+  },  //ok, settled prev page status. What about this page? Again: if direct child of the text element, no text
+  function hasThisPageText (document, cb) {
+//    console.log("looking for page text now"); console.log(req.query.pageid);
     //find the TEI for this pb
-    TEI.findOne({docs: ObjectId(req.query.pageid), name: {$ne:"pb"}}, function(err, thispagetei) {
-      if (!thispagetei) isThisPageText=false;
-      else  isThisPageText=true;
-      cb(err, [])
+    TEI.findOne({name:"pb", docs:ObjectId(req.query.pageid)}, function (err, pbTei){
+      var thisPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
+      if (thisPbInText) isThisPageText=false;
+      else isThisPageText=true;
+      cb(null, []);
     });
-  }                                                                         ,
+  }
  ], function(err, results) {
-    res.json({isPrevPageText: isPrevPageText, isThisPageText: isThisPageText, docFound: true})
+//    console.log("about to stop..")
+    res.json({isPrevPageText: isPrevPageText, isThisPageText: isThisPageText, isMultiPages: isMultiPages, docFound: true})
   });
 });
 
@@ -1117,14 +1242,26 @@ router.post('/deleteAllDocs', function(req, res, next) {
   });
 
 function getPagesInDocs (pageID, callback) {
-  Doc.findOne({_id: pageID}, function(err, page) {
+  Doc.findOne({_id: ObjectId(pageID)}, function(err, page) {
     callback(err, page.children);
   });
 }
 
+router.post('/deletePage', function(req, res, next) {
+  //this one just eliminates page from docs and teis and as a child of text and document
+  async.waterfall([
+
+  ], function(err, results) {
+    res.json({"success":1});
+  });
+});
+
+var globalTextEl=null;
 router.post('/isDocTranscript', function(req, res, next) {
   //need to check every page...
+  //short cut: if all pages are children of text element, then we have no transcripts
   var nPageTranscripts=0;
+  globalTextEl=null;
   async.waterfall([
     function (cb) {
       Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, thisdoc) {
@@ -1132,7 +1269,24 @@ router.post('/isDocTranscript', function(req, res, next) {
         else cb(null, thisdoc.children);
       })
     },
+    function(children, cb) {  //get the text element. If no textel with these children -- then must have transcripts
+      //first, find any pb descended from this doc
+      TEI.findOne({name:"pb", docs: ObjectId(req.query.docid)}, function (err, pbEl){
+        //top level ancestor of pbEl by definition will be the text elements
+        if (err) cb(err, []);
+        else {
+          TEI.findOne({_id: ObjectId(pbEl.ancestors[0]), name:"text"}, function (err, textEl) {
+            if (err) cb(err, []);
+            else {
+              globalTextEl=textEl;
+              cb(null, children);
+            }
+          });
+        }
+      })
+    },
     function(children, cb) {
+      //
       var newchildren=children.map(function(page){return ObjectId(page)});
       async.mapSeries(newchildren, hasPageTranscript, function (err, results){
         results.map(function(page){if (page==1) nPageTranscripts+=1; return})
@@ -1146,14 +1300,20 @@ router.post('/isDocTranscript', function(req, res, next) {
   });
 });
 
+//if this pb is a first level child of the text element.. then it can't have any text, fullstop
 function hasPageTranscript (page, callback) {
-  TEI.findOne({docs: page, name:{$ne:"pb"}}, function (err, thistei) {
-    if (err) callback(err);
-    else {
-      if (thistei) callback(null, 1);
-      else callback(null, 0);
-    }
-  });
+  if (!globalTextEl) {
+    callback(null, 0);
+  } else {
+    TEI.findOne({docs: page, name:"pb"}, function (err, thistei) {
+      if (err) callback(err);
+      else {
+        var inTextEl=globalTextEl.children.filter(function(obj){return String(obj) == String(thistei._id);})[0];
+        if (inTextEl) callback(null, 0);
+        else callback(null, 1);
+      }
+    });
+  }
 }
 
 router.post('/validate', function(req, res, next) {

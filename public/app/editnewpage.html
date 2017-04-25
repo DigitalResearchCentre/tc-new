@@ -19,8 +19,9 @@
   <div class="row text-center" style="margin-left: 40px; margin-top: 10px">
     <div class="col-sm-6" style="text-align: left">
       <p class="NewDocPage"><input type="radio" checked="checked" name="chooseStructure" (click)="choose('Prose')">Prose (Novel)</p>
-      <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Poetry')">Poetry</p>
+      <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Poetry')">Commedia</p>
       <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Play')">Play</p>
+      <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('CTP')">Canterbury Tales</p>
     </div>
     <div class="col-sm-6"  style="text-align: left">
       <p class="NewDocPage"><input type="radio" name="chooseStructure" (click)="choose('Letter')">Letter</p>
@@ -39,6 +40,7 @@
       <tc-newpage-prose *ngSwitchWhen="'Prose'" [entity]="entity" [(template)]="template" [page]="page"></tc-newpage-prose>
       <tc-newpage-poetry *ngSwitchWhen="'Poetry'" [entity]="entity" [page]="page" ></tc-newpage-poetry>
       <tc-newpage-play *ngSwitchWhen="'Play'" [entity]="entity" [page]="page"></tc-newpage-play>
+      <tc-newpage-ctp *ngSwitchWhen="'CTP'" [entity]="entity" [page]="page"></tc-newpage-ctp>
       <tc-newpage-letter *ngSwitchWhen="'Letter'" [entity]="entity" [page]="page"></tc-newpage-letter>
       <tc-newpage-plain *ngSwitchWhen="'Plain'" [entity]="entity" [page]="page"></tc-newpage-plain>
       <tc-newpage-empty *ngSwitchWhen="'Empty'" [entity]="entity" [page]="page"></tc-newpage-empty>

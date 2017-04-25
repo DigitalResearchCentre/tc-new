@@ -17,7 +17,7 @@
     </tc-managemodal-edit-new-page>
     <tc-managemodal-preview-page *ngSwitchWhen="'preview-page'" [page]="page"  [error]="error" [lines]="lines" [content]="content">
     </tc-managemodal-preview-page>
-    <tc-managemodal-extract-xml-doc *ngSwitchWhen="'extract-xml-doc'">
+    <tc-managemodal-extract-xml-doc *ngSwitchWhen="'extract-xml-doc'" [document]="document">
     </tc-managemodal-extract-xml-doc>
     <tc-managemodal-join-community *ngSwitchWhen="'join-community'"  [joiningcommunity]="community" [communityleader]="communityleader" [status]="status">
     </tc-managemodal-join-community>

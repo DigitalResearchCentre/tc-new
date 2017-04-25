@@ -407,8 +407,8 @@ var DocSchema = extendNodeSchema('Doc', {
                  async.forEachOf(uniqueEntities, function(up) {
                    const cb2 = _.last(arguments);
                      //this version is MJCH MUCH faster then using upsert
-                     Entity.findOne({'entityName': up.entityName}, function(err, entity) {
-                     if (!entity)  {
+                     Entity.find({'entityName': up.entityName}, function(err, results) {
+                     if (results.length==0)  {
                        Entity.collection.insert(up, function(err){
                        });
                      }
@@ -486,7 +486,7 @@ var DocSchema = extendNodeSchema('Doc', {
        );
     },
     commit: function(data, callback) {
-      console.log("calling here"); console.log(data);
+  //    console.log("calling here"); console.log(data);
       var self = this
         , teiRoot = data.tei || {}
         , docRoot = _.defaults(data.doc, self.toObject())
@@ -1121,11 +1121,11 @@ function deleteEntityName(thisTei, callback) {
   }
   //first check there are no other teis for this entity name, if we are looking
   if (isBaseEntity) {
-    TEI.findOne({entityName:thisTei.entityName}, function(err, teiel) {
+    TEI.find({entityName:thisTei.entityName}, function(err, results) {
 //      //("finding to delete "+teiel);
       //a bit tricky here. Need to see if entity exists -- might already have been deleted
       //if not deleted: delete. Regardless: go up the entity path checking each level
-      if (!teiel) {
+      if (results.length==0) {
         //delete from entities. Check it is here .. if so, delete and go up tree
         //if not here: just go up the tree
         var isTopEntity;
@@ -1146,10 +1146,10 @@ function deleteEntityName(thisTei, callback) {
       }
     });
   } else {
-    TEI.findOne({entityAncestor:thisTei.entityName}, function(err, teiel) {
+    TEI.find({entityAncestor:thisTei.entityName}, function(err, results) {
       //a bit tricky here. Need to see if entity exists -- might already have been deleted
       //if not deleted: delete. Regardless: go up the entity path checking each level
-      if (!teiel) {
+      if (results.length==0) {
         //delete from entities. Check it is here .. if so, delete and go up tree
         //if not here: just go up the tree
         var isTopEntity;
@@ -1175,7 +1175,7 @@ function deleteEntityName(thisTei, callback) {
 function adjustPBstuff(textchildren, textEl, sourceTeis, callback) {
   //need to check.. we may have ALREADY inserted a pagebreak in deepest element on page. In that case.. don't insert yet another!
   //check this way: if next pb child of the body element is NOT the page following this.. then it is already inserted. Leave it alone
-  console.log("textchildren"); console.log(textchildren);
+//  console.log("textchildren"); console.log(textchildren);
   async.waterfall([
     function (cb7) {
       async.map(textchildren, getTeiAncestors, function (err, results){
@@ -1202,10 +1202,10 @@ function adjustPBstuff(textchildren, textEl, sourceTeis, callback) {
        //now, we ONLY bump the first page. So lets just remove all but the first element
 
        if (bodypages.length>0) {
-         console.log("bodypages "+bodypages);
+  //       console.log("bodypages "+bodypages);
          TEI.collection.update({_id:textEl._id},{$pull: {children:  bodypages[0]}}, function (err, result) {
            findDeepestParent(sourceTeis, function(err, deepestElAncestor) {
-             console.log("deepest ancestor after callbacks "); console.log(deepestElAncestor);
+//             console.log("deepest ancestor after callbacks "); console.log(deepestElAncestor);
              TEI.collection.update({_id: ObjectId(deepestElAncestor)}, {$push: {children: bodypages[0]}}, function (err, result){
                  TEI.findOne({_id: ObjectId(deepestElAncestor)}, function (err, thisDeepest) {
                    var thisPageAncs=thisDeepest.ancestors;
@@ -1240,7 +1240,7 @@ function findCurrentDeepest(sourceTeis, callback) {
       function (ancestors, cb) {
         //inspect each ancestor: find the highest one with a right sibling within sourceTeis. That one will be our deepest ancestor
         //if no right siblings: then we are still in the same ancestor element. that will be our deepest ancestor
-        console.log("ancestors"); console.log(ancestors);
+//        console.log("ancestors"); console.log(ancestors);
         var rightSibEl=null;
         for (var i = 0; i < ancestors.length; i++) {
           if (ancestors[i].children.length>1) {
@@ -1250,9 +1250,9 @@ function findCurrentDeepest(sourceTeis, callback) {
                 //..ho! last child might be rightsibling of a current element, in sourceTeis
                 //test if this right sibling is among sourceTeis
                 rightSibEl = sourceTeis.filter(function (obj){return String(obj._id) == String(ancestors[i].children[ancestors[i].children.length-1]);})[0];
-                console.log("right sibling found"); console.log(rightSibEl);
+  //              console.log("right sibling found"); console.log(rightSibEl);
                 if (rightSibEl && rightSibEl.children.length) {
-                  console.log("got a deep one"); console.log(rightSibEl);
+  //                console.log("got a deep one"); console.log(rightSibEl);
                   deepestEl=rightSibEl._id;
                   i=ancestors[i].children.length;
                 }
@@ -1275,10 +1275,10 @@ function findDeepestParent(sourceTeis, callback) {
   //problem..right most child is likely a pb element...
   //we need to find the right most child which is a content element....
   //first child of sourceTeis might be body! which is easy. But might be pb.. and that one is tough
-  console.log("sourcetei 0 before callbacks "); console.log(sourceTeis[0]);
+//  console.log("sourcetei 0 before callbacks "); console.log(sourceTeis[0]);
   findCurrentDeepest(sourceTeis, function (err, thisChildId){
     if (!err) {
-      console.log("childid returned from current deepest"); console.log(thisChildId);
+//      console.log("childid returned from current deepest"); //(thisChildId);
       var thisChildEl = sourceTeis.filter(function (obj){return String(obj._id) == String(thisChildId);})[0];
       //if thisChildEl is null: it is the current ancestor which begins BEFORE this page.
       //in the case.. just call back with this one!
@@ -1286,7 +1286,7 @@ function findDeepestParent(sourceTeis, callback) {
         callback(null, thisChildId)
       }
       else {
-        console.log("childel "+thisChildEl)
+//        console.log("childel "+thisChildEl)
         var soughtChildEl=null;
         while (thisChildEl) {
           soughtChildEl=JSON.parse(JSON.stringify(thisChildEl));

@@ -116,7 +116,6 @@ var AddPageComponent = ng.core.Component({
         }
       );
     } else {
-      self.storedFiles=[];
       async.whilst(function() {
         return !_.isEmpty(images);
       }, function(cb) {
@@ -146,7 +145,7 @@ var AddPageComponent = ng.core.Component({
       return cb(null);
     } else {
       this.message="";
-      var matchedpage = _.find(state.document.attrs.children, function (obj){
+      var matchedpage = _.find(this.state.document.attrs.children, function (obj){
         return obj.attrs.name === self.pageName;
       });
       if (matchedpage && this.oneormany=="OnePage") {
@@ -162,7 +161,6 @@ var AddPageComponent = ng.core.Component({
       if (this.oneormany=="ManyPages" && image && this.dropzone) {
         var facsel=this.dropzone.files.filter(function (obj){return obj.name.split('.')[0]== pageName;})[0];
         var myDoc={name: pageName, image: image, label: "pb", facs: facsel.name, children:[],}
-        this.storedFiles.push({name: pageName, facs: facsel.name});
       } else var myDoc={name: pageName, image: image, label: "pb", children:[],}
       docService.commit({
         doc: myDoc,

@@ -225,38 +225,9 @@ var ViewComponent = ng.core.Component({
     this._uiService.manageModal$.emit({
        type: 'confirm-message',
        page: "",
+       document: doc,
        docname: doc._id,
-       header: "Delete document "+this.state.document.attrs.name+" from community "+this.state.community.attrs.name,
-       warning: "Are you sure? This will delete all transcripts, encodings, and images for this document. It cannot be undone.",
-       action: 'deleteDocument'
-     });
-  },
-  deleteDocument: function(doc) {
-    this._uiService.manageModal$.emit({
-       type: 'confirm-message',
-       page: "",
-       docname: doc._id,
-       header: "Delete document "+this.state.document.attrs.name+" from community "+this.state.community.attrs.name,
-       warning: "Are you sure? This will delete all transcripts, encodings, and images for this document. It cannot be undone.",
-       action: 'deleteDocument'
-     });
-  },
-  deleteDocument: function(doc) {
-    this._uiService.manageModal$.emit({
-       type: 'confirm-message',
-       page: "",
-       docname: doc._id,
-       header: "Delete document "+this.state.document.attrs.name+" from community "+this.state.community.attrs.name,
-       warning: "Are you sure? This will delete all transcripts, encodings, and images for this document. It cannot be undone.",
-       action: 'deleteDocument'
-     });
-  },
-  deleteDocument: function(doc) {
-    this._uiService.manageModal$.emit({
-       type: 'confirm-message',
-       page: "",
-       docname: doc._id,
-       header: "Delete document "+this.state.document.attrs.name+" from community "+this.state.community.attrs.name,
+       header: "Delete document "+doc.attrs.name+" from community "+this.state.community.attrs.name,
        warning: "Are you sure? This will delete all transcripts, encodings, and images for this document. It cannot be undone.",
        action: 'deleteDocument'
      });
@@ -274,7 +245,7 @@ var ViewComponent = ng.core.Component({
   extractXML: function($event, doc) {
     var self=this;
     var docService = this._docService;
-    self._uiService.manageModal$.emit("extract-xml-doc");
+    self._uiService.manageModal$.emit({type: "extract-xml-doc", document: doc});
     docService.getTextTree(doc).subscribe(function(teiRoot) {
 //      console.log(teiRoot);
       self._uiService.sendXMLData$.emit(docService.json2xml(prettyTei(teiRoot)));
