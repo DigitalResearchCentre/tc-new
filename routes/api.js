@@ -9,7 +9,7 @@ var _ = require('lodash')
   , router = express.Router()
   , Resource = require('./resource')
   , models = require('../models')
-  , TCMailer = require('../TCMailer')
+  , TCMailer = require('../localmailer')
   , mongoose = require('mongoose')
   , config = require('../config')
   , gridfs = require('../utils/gridfs')
@@ -211,7 +211,7 @@ function requestMembership(action, callback) {
           communityowner: leader.name
         }
       );
-      TCMailer.nodemailerMailgun.sendMail({
+      TCMailer.localmailer.sendMail({
         from: TCMailer.addresses.from,
         to: leader.local.email,
         subject: `
@@ -337,7 +337,7 @@ router.get('/gridfs/:id',  function(req, res, next) {
 });
 
 router.post('/sendmail', function(req, res, next) {
-  TCMailer.nodemailerMailgun.sendMail(req.body, function(err, status) {
+  TCMailer.localmailer.sendMail(req.body, function(err, status) {
     if (!err) {
       res.json(status);
     } else {
