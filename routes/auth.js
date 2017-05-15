@@ -1009,7 +1009,7 @@ function authenticateUser (email, user, thisUrl) {
   user.local.timestamp=new Date().getTime();
   user.local.hash=hash;
   user.save();
-  TCMailer.nodemailerMailgun.sendMail({
+  TCMailer.localmailer.sendMail({
     from: TCAddresses.from,
     to: email,
     subject: 'Authenticate your Textual Communities account',
