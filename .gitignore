@@ -40,8 +40,8 @@ npm-debug.log
 #config/production.js
 
 # ignore all config files
-config/*
-public/app/config/*
+config/*.js
+public/app/config/*.js
 
 # ignore user uploaded files
 upload
