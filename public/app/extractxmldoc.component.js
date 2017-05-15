@@ -5,6 +5,7 @@ var URI = require('urijs')
 var ExtractXMLDocComponent = ng.core.Component({
   selector: 'tc-managemodal-extract-xml-doc',
   templateUrl: '/app/extractxmldoc.html',
+  inputs : ['document'],
   directives: [
     require('./directives/modaldraggable'),
   ],

@@ -98,7 +98,7 @@ var DocService = ng.core.Injectable().Class({
     });
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
-        console.log(res.json);
+  //      console.log(res.json);
         if (!res._body) {
           return {};
         }
@@ -165,14 +165,15 @@ var DocService = ng.core.Injectable().Class({
       , teiRoot = {}
     ;
     if (text) {
+//      console.log("text is "+text);
       var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
         , docQueue = []
         , cur, prevDoc, curDoc, index, label
       ;
       teiRoot = xmlDoc2json(xmlDoc);
-      console.log("after making the root")
-      console.log(teiRoot);
+//      console.log("after making the root")
+//      console.log(teiRoot);
       if (docRoot.label === 'text') {
         prevDoc = docRoot;
       }
@@ -251,14 +252,14 @@ var DocService = ng.core.Injectable().Class({
         }
       });
     } else {
-      console.log("add options "+opts)
+//      console.log("add options "+opts)
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
         revision: revisionId,
         commit: true,
       })).map(function(doc, err) {
-        console.log("after commit create"); console.log(doc);
+//        console.log("after commit create"); console.log(doc);
         self._uiService.createDocument(doc);
       });
     }
@@ -322,7 +323,7 @@ var DocService = ng.core.Injectable().Class({
       success = true;
     } else {
       buildPrev(teiRoot, prevs, 1, link);
-      console.log("changing now "+prevs); console.log(teiRoot);
+//      console.log("changing now "+prevs); console.log(teiRoot);
     }
     if (success) {
       return json2xml(teiRoot);

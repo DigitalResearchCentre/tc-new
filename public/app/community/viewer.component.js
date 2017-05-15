@@ -33,6 +33,7 @@ var ViewerComponent = ng.core.Component({
     this.state=uiService.state;
     this.state.doNotParse=false;
     this.isVerticalSplit=true;
+    this.state.isProcessSetContent=false;
     this._uiService.sendEditorText$.subscribe(function(data) {
       self.contentText = data.text;
       if (data.choice=="save") {self.saveSend(data.text)}
@@ -46,8 +47,7 @@ var ViewerComponent = ng.core.Component({
         self.commit();
       };
       if (chosen==="newTranscript") {
-        self.state.newTranscript=true;
-        self.setContentText(self.contentText);
+        self.newText();
       }
     });
     this._uiService.changeMessage$.subscribe(function(message){
@@ -58,7 +58,8 @@ var ViewerComponent = ng.core.Component({
   }],
   ngOnInit: function() {
     var self=this;
-    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.document._id+'&pageid='+this.page._id, function(res) {
+    this.state.isProcessSetContent=false;
+    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
       self.isText=res.isThisPageText;
     });
     var self = this
@@ -127,9 +128,9 @@ var ViewerComponent = ng.core.Component({
       , page = this.page
       , self = this
     ;
-    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.document._id+'&pageid='+this.page._id, function(res) {
-      this.isNoText=res.isThisPageText;
-    });
+/*    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.document._id+'&pageid='+this.page._id, function(res) {
+      this.isText=res.isThisPageText;
+    }); */
     if (page) {
       this.contentText = '';
       docService.getLinks(page).subscribe(function(links) {
@@ -258,48 +259,39 @@ var ViewerComponent = ng.core.Component({
     //shifted test for new pages, etc, over to
     var self=this, docService=this._docService;
     this.contentText = contentText;
-    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.document._id+'&pageid='+this.page._id, function(res) {
-      self.isText=res.isThisPageText;
-      if (!res.isThisPageText) {
-        //ok... if nothing in prevs, just go to make new transcript
-        //if there is something from previous page, then choose to continue, or not
-        //send a call to the database...is there text in the preceding page?
-        //if there is: there will be tei descendants of this pb
-        //here is where we handle multipage docs where we want to continue text from the previous page
-        //not sure we need this one..
-        self.state.newTranscript=false; //returns: res.isPrevPageText and res.isThisPageText
-        //I don't think there is any way res.isThisPageText can be true. This is a new page!
-        if (!res.isPrevPageText) {
-          self._uiService.manageModal$.emit({
-            type: 'edit-new-page',
-            page: self.page,
-            document: self.document,
-            context: self,
-          });
-        } else { //res.isPrevPageText is true -- we have transcribed text on the preceding page
-          //we have continuing text on this page
-          //here is where we will deceive the system into creating a default transcript continuing from
-          //previous page in case of document with multiple pages...we pull the page break out of the text element children
-          //and pass that into docService.commit as a new page...
-          var myDoc={name: "2r", label: "pb", facs: "2r.jpg", children:[],}
-          docService.commit({
-            doc: myDoc,
-          },{adjust:1}).subscribe(function(page) {
-            var bill=1;
-          })
-    /*      self._uiService.manageModal$.emit({
-             type: 'confirm-message',
-             page: self.page,
-             docname: "",
-             header: "Add text to page "+self.page.attrs.name+" in "+self.state.document.attrs.name,
-             warning: "Continue text from previous page or add new text",
-             document: self.document,
-             action: 'addPage',
-             context: self,
-           }); */
+    if (!this.state.isProcessSetContent) {
+      this.state.isProcessSetContent=true;  //block this call for first call each page...
+      $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
+        self.isText=res.isThisPageText;
+        //have we got a new text to add...? check if we have text in previous page, etc
+        if (!res.isThisPageText) {
+          //returns: res.isPrevPageText and res.isThisPageText
+          //I don't think there is any way res.isThisPageText can be true. This is a new page!
+          if (res.isPrevPageText && res.isMultiPages) {
+              //here is where we will deceive the system into creating a default transcript continuing from
+            //previous page in case of document with multiple pages...we pull the page break out of the text element children
+            self.state.isProcessSetContent=true;  //block this till the next page is added
+            if (self.page.attrs.facs) {
+              var myDoc={name: self.page.attrs.name, label: "pb", facs: self.page.attrs.facs, children:[],}
+            } else {
+            var myDoc={name: self.page.attrs.name, label: "pb", children:[],}
+            }
+            var afterPage=self.document.attrs.children.filter(function (obj){return String(obj.attrs.name) == String(self.prevPage);})[0]
+            var options = {after: afterPage}
+            //ok, got to eliminate this page from db then add it right back again
+            $.post(config.BACKEND_URL+'deletePage?'+'docid='+self.document._id+'&pageid='+self.page._id, function(res) {
+              docService.commit({
+                doc: myDoc,
+              }, options).subscribe(function(page) {
+                var bill=1;
+                self.state.isProcessSetContent=false;
+                //call new page id here...
+              })
+            });
+          }
         }
-      }
-    });
+      });
+    }
   },
   prevLinkChange: function($event) {
     var id = $event.target.value
@@ -309,6 +301,7 @@ var ViewerComponent = ng.core.Component({
       var contentText = docService.relinkPage(
         this.contentText, id, this.prevs);
       if (contentText) {
+        this.state.isProcessSetContent=false;
         this.setContentText(contentText);
       }
     } catch (e) {
@@ -332,6 +325,7 @@ var ViewerComponent = ng.core.Component({
     } catch (e) {
       this.prevLink = null;
     }
+    this.state.isProcessSetContent=false;
     this.setContentText(contentText);
   },
   revisionCompareChange: function($event) {
@@ -442,7 +436,7 @@ var ViewerComponent = ng.core.Component({
             thisDoc.attrs.entities=res.foundDocEntities;
             state.doNotParse=false;
           });
-          $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.document._id+'&pageid='+self.page._id, function(res) {
+          $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
             self.isText=res.isThisPageText;
           });
         });
@@ -451,7 +445,7 @@ var ViewerComponent = ng.core.Component({
   },
   newText: function() {
     var self=this;
-    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.document._id+'&pageid='+self.page._id, function(res) {
+    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
       if (res.isPrevPageText) {
         self._uiService.manageModal$.emit({
            type: 'confirm-message',

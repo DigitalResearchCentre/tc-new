@@ -15,6 +15,7 @@ var EditNewPageComponent = ng.core.Component({
     require('./directives/newpageletter.component'),
     require('./directives/newpageplain.component'),
     require('./directives/newpageempty.component'),
+    require('./directives/newpagectp.component'),
   ],
   inputs: [
     'context', 'page', 'document',
@@ -71,6 +72,9 @@ var EditNewPageComponent = ng.core.Component({
       case "Play":
           this.entity = {name:"Hamlet", sample:'"Hamlet", "The Doll House"'};
           break;
+      case "CTP":
+              this.entity = {name:"CT", sample:'The Canterbury Tales project'};
+              break;
       case "Letter":
           this.entity = {name:"Letters", sample:'"His Letters", "Her Letters"'};
           break;
