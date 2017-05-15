@@ -23,6 +23,7 @@ var _ = require('lodash')
   , TEI = models.TEI
   , RESTError = require('./resterror')
   , ObjectId = mongoose.Types.ObjectId
+  , FunctionService = require('../services/functions')
 ;
 
 router.use(function(req, res, next) {
@@ -233,6 +234,7 @@ function validateAction(action) {
 }
 
 router.get('/actions/:id', function(req, res, next) {
+  console.log("lets save here")
   Action.findOne({_id: req.params.id}, function(err, action) {
     var payload = action.payload
       , role = payload.role
@@ -570,7 +572,7 @@ router.post('/deleteDocumentText', function(req, res, next) {
         });
       },
       function(argument, cb) {
-        //get all the entities in this document
+        //get all the teis in this document
         TEI.find({docs: {$in: pages}}, function(err, teis) {
           console.log("number of teis "+teis.length)
           nTeis=teis.length;
@@ -585,6 +587,7 @@ router.post('/deleteDocumentText', function(req, res, next) {
     //        console.log("entities to delete"); console.log(deleteTeiEntities);
             cb(err, []);
           } else {
+            //top down deletion
             cb(err, []);
           }
         });
@@ -606,7 +609,7 @@ router.post('/deleteDocumentText', function(req, res, next) {
       function deleteTEIs (argument, cb) {
   //      console.log("about to delete"+deleteTeis)
   //take out every tei descending from a doc
-        TEI.collection.remove({docs:  {$in: pages}, name:{$ne:"pb"}}, function(err, result) {
+        TEI.collection.remove({docs:  {$in: pages}, name:{$ne: "pb"}}, function(err, result) {
           nallels+=result.result.n;
 //          console.log('delete teis done');
           cb(err, []);
@@ -663,6 +666,26 @@ router.post('/deleteDocumentText', function(req, res, next) {
             cb(err, []);
           });
       },   //missing and important! add all teis for pages as children for text element, and make each pb a child of text
+      function reshufflePbs (argument, cb) {
+        async.map(pages, getTeiEl, function (err, allTeiPbs) {
+          console.log("the docs "+pages);
+          console.log("got the pbs now "+allTeiPbs);
+          //now get the text element..
+          console.log(allTeiPbs[0]);
+          TEI.findOne({_id: ObjectId(allTeiPbs[0].ancestors[0])}, function (err, textEl){
+            async.forEachOf(allTeiPbs, function(thisPb) {
+              const cb2 = _.last(arguments);
+              TEI.update({_id: thisPb._id}, {$set: {ancestors: [textEl._id]}}, function (err){
+                cb2(err);
+              });
+            }, function(err){  //loses body front etc
+              TEI.update({_id: textEl._id}, {$set: {children: allTeiPbs}}, function (err){
+                cb(err, []);
+              })
+            });
+          });
+        });
+      },
     ], function(err, results) {
       res.json({"npages":npages, "nodocels": nodocels, "nentels": globalNentels, "nallels": nallels, "npagetrans": npagetrans});
   });
@@ -965,12 +988,18 @@ function vaporizeEntity (entityEl, isTopEntity, callback) {
           cb1(err, doc);
         });
       }
-    ])
+    ], function (err, results) {
+      Entity.collection.remove({entityName: entityEl.entityName}, function (err, result){
+        globalNentels+=result.result.n;
+        callback(err, true);
+      });
+    })
+  } else {
+    Entity.collection.remove({entityName: entityEl.entityName}, function (err, result){
+      globalNentels+=result.result.n;
+      callback(err, true);
+    });
   }
-  Entity.collection.remove({entityName: entityEl.entityName}, function (err, result){
-    globalNentels+=result.result.n;
-    callback(err, true);
-  });
 }
 
 function getEntityPaths  (entityTEI, callback) {
@@ -1018,6 +1047,7 @@ router.post('/statusTranscript', function(req, res, next) {
             if (err) cb(err, []);
             else {
               globalTextEl=textEl;
+              if (!globalTextEl) console.log("no text el???");
 //              console.log("got text el "+globalTextEl)
               cb(null, document);
             }
@@ -1058,6 +1088,7 @@ router.post('/statusTranscript', function(req, res, next) {
 //    console.log("looking for page text now"); console.log(req.query.pageid);
     //find the TEI for this pb
     TEI.findOne({name:"pb", docs:ObjectId(req.query.pageid)}, function (err, pbTei){
+      //note...there might be no children of the
       var thisPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
       if (thisPbInText) isThisPageText=false;
       else isThisPageText=true;
@@ -1140,6 +1171,13 @@ function getTeiDoc(page, callback) {
   TEI.findOne({docs: ObjectId(page), name:"pb"}, function(err, pageTei){
     if (err) callback(err);
     else callback(null, ObjectId(pageTei._id));
+  })
+}
+
+function getTeiEl(page, callback) {
+  TEI.findOne({docs: ObjectId(page), name:"pb"}, function(err, pageTei){
+    if (err) callback(err);
+    else callback(null, pageTei);
   })
 }
 
@@ -1249,8 +1287,38 @@ function getPagesInDocs (pageID, callback) {
 
 router.post('/deletePage', function(req, res, next) {
   //this one just eliminates page from docs and teis and as a child of text and document
+  //only called when we are deleting a page in order to add it back in by docservice
   async.waterfall([
-
+    function (cb) {
+      Doc.collection.remove({_id: ObjectId(req.query.pageid)}, function(err, result) {
+        if (err || result.result.n==0) cb("error", []);
+        else cb(null, []);
+      })
+    },
+    function (argument, cb) {
+      Doc.collection.update({_id: ObjectId(req.query.docid)}, {$pull:{children: ObjectId(req.query.pageid)}}, function(err, result) {
+        if (err || result.result.n==0) cb("error", []);
+        else cb(null, []);
+      })
+    },
+    function(argument, cb) {
+      TEI.findOne({name:"pb", docs: ObjectId(req.query.pageid)}, function (err, pbEl){
+        if (err || !pbEl) cb("error", []);
+        else {
+          TEI.collection.remove({_id:pbEl._id}, function (err, result){
+            if (err || result.result.n==0) cb("error", []);
+            else cb(null, pbEl);
+          });
+        }
+      });
+    },
+    function (pbTei, cb) {
+      //take this out of the text element
+        TEI.collection.update({_id: ObjectId(pbTei.ancestors[0]), name:"text"}, {$pull: {children: pbTei._id}}, function (err) {
+          if (err) cb(err, []);
+          else cb(null, []);
+        });
+    }
   ], function(err, results) {
     res.json({"success":1});
   });
@@ -1316,6 +1384,19 @@ function hasPageTranscript (page, callback) {
   }
 }
 
+router.post('/updateDbJson', function(req, res, next) {
+  var collection=req.query.collection;
+  var param1=req.body[0];
+  var param2=req.body[1];
+    if (collection=="Community") {
+    var myarray=["0","1"];
+    Community.collection.update(param1, param2, function(err, result){
+      if (err) res.json("fail");
+      else res.json("success");
+    })
+  }
+});
+
 router.post('/validate', function(req, res, next) {
   var xmlDoc, errors;
   Community.findOne({_id: req.query.id}, function(err, community) {
@@ -1359,6 +1440,133 @@ router.use(function(err, req, res, next) {
     }
     res.json(err);
   }
+});
+
+//hereon: collation editor calls
+router.get('/cewitness', function(req, res, next) {
+//  console.log(req.query.witness);
+//we have to find the entities in this doc. First, find the doc in this community, then all teis in this doc which are this entity
+//along the way: construct the full colleditor form of this doc
+//get the docid first:
+  async.waterfall([
+    function (cb) {
+      Community.findOne({'abbr':req.query.community}, function (err, myCommunity) {
+        if (err) cb(err, []);
+        else cb(null, myCommunity.documents);
+      });
+    },
+    function (myDocs, cb) {
+      Doc.findOne({_id: {$in: myDocs}, name: req.query.witness}, function (err, myDoc) {
+        if (err) cb(err, []);
+        else {
+          cb(null, myDoc);
+        }
+      })
+    },
+    function (myDoc, cb) {
+      //check for more tnan one instance...
+        TEI.find({docs: myDoc._id, entityName: req.query.entity}, function(err, teis){
+          if (err) cb(err, []);
+          else {  //have to deal with case where this entity is absent from the document
+            if (teis.length==0) {
+              cb("no witness", []);
+            } else {
+              var content='{"transcription_id": "'+req.query.witness+'","transcription_siglum": "'+req.query.witness+'","siglum": "'+req.query.witness+'"';
+              var teiContent={"content":""}; //make this a loop if more than one wit here
+              loadTEIContent(teis[0], teiContent).then(function (){
+                if (teiContent.content!="") {
+                  content+=',"witnesses":['
+                  content+=makeJsonList(teiContent.content, req.query.witness);
+                  content+=']}'
+                  cb(null, content);
+                }
+                else cb(null, content);
+              });
+            }
+          }
+        });
+    },
+  ], function(err, result) {
+    if (err=="no witness") {
+        res.sendStatus(404); //this feels like a hack but it gives the desired result
+      }  else {
+//      console.log(result);
+      res.json(JSON.parse(result));                                                                                                                                                                                                                                          res.json(JSON.parse(result));
+    }
+  });
+});
+
+//turns our content string into collation editor ready json
+function makeJsonList(content, witness) {
+  var thistext='{"id":"'+witness+'","tokens":[';
+  //remove line breaks,tabs, etc
+//  thistext+=content.replace(/(\r\n|\n|\r)/gm,"");
+  content=content.replace(/(\r\n|\n|\r)/gm,"");
+  content=content.replace(/  +/g, ' ');
+  content=content.replace(/"/g, '\\"');
+  content=content.replace(/'/g, "\\'");
+  content=content.trim();
+  //ok, process into an array with word and expanword elements
+  var myWords=FunctionService.makeCeArray(content);
+//  console.log(myWords);
+//  var myWords=content.split(" ");
+  for (var i = 0; i < myWords.length; i++) {
+    var index=(i+1)*2;
+    var rule_match='"rule_match":["'+myWords[i].word+'"]';
+    var token = '"t":"'+myWords[i].word+'"';
+    var original='"original":"'+myWords[i].word+'"';
+    var expanded="";
+    //test: is there an expansion for this word? does this word contain <am>/<ex>?
+    if (myWords[i].expanword!="") {
+      var expanword=myWords[i].expanword;
+      var origword=myWords[i].word
+      token='"t":"'+expanword+'"';
+      rule_match='"rule_match":["'+expanword+'","'+origword+'"]';
+      original='"original":"'+origword+'"';
+      expanded=',"expanded":"'+expanword+'"';
+    }
+    thistext+='{"index":"'+index+'",'+token+","+rule_match+',"reading":"'+witness+'",'+original+expanded+'}';
+    if (i<myWords.length-1) thistext+=',';
+  }
+  thistext+=']}'
+//  console.log(thistext);
+  return(thistext);
+}
+
+router.post('/baseHasEntity', function(req, res, next) {
+  TEI.findOne({docs: ObjectId(req.query.docid), entityName: req.query.entityName}, function(err, tei){
+    console.log(tei);
+    if (!tei) res.json({success: 0})
+    else res.json({success: 1})
+  });
+});
+// wrinkle: populate witnesses field from documents array...
+//now: use what is in ceconfig witnesses
+router.get('/ceconfig', function(req, res, next) {
+  Community.findOne({abbr: req.query.community}, function(err, community) {
+    //now get the witnesses
+//    console.log("looking for ce "+community)
+//  if ceconfig.witnesses is not empty -- use it!!!
+    if (community.ceconfig.witnesses.length>0) res.json(community.ceconfig);
+    else {
+      async.mapSeries(community.documents, function(document, callback) {
+        Doc.findOne({_id: ObjectId(document)}, function(err, myDoc){
+          return callback(err, myDoc.name)
+        })
+      }, function(err, results) {
+  //do we have a witness which corresponds to the selected base? if so, no problem
+  //else: make first doc the base
+  //this one not needed now -- we intercept before we get to this point
+  /*      var isBaseWit=results.filter(function (obj){return obj== community.ceconfig.base_text;})[0];
+        console.log(community.ceconfig.base_text);
+        if (!isBaseWit) community.ceconfig.base_text=results[0]; */
+        community.ceconfig.witnesses=results;
+        community.ceconfig.project=community.name;
+  //      console.log(community.ceconfig);
+        res.json(community.ceconfig);
+      });
+    }
+  });
 });
 
 module.exports = router;

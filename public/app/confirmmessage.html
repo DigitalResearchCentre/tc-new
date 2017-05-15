@@ -11,7 +11,7 @@
     <button *ngIf="action=='continueAddPages'" type="button" class="btn btn-primary btn-md" (click)="reorderPages(document, page, context)">Reorder/rename pages</button>
     <button *ngIf="action=='continueAddPage'" type="button" class="btn btn-primary btn-md" (click)="addPage(document, page, context)">Add another page</button>
     <button *ngIf="action=='deleteAllDocs'" type="button" class="btn btn-primary btn-md" (click)="confirmDelete()">Delete all documents</button>
-    <button *ngIf="action=='addPage'" type="button" class="btn btn-primary btn-md" (click)="continuePrev(document, page, context)">Continue</button>
+    <button *ngIf="action=='addPage'" type="button" class="btn btn-primary btn-md" (click)="continuePrev(document, page, prevpage, context)">Continue</button>
     <button *ngIf="action=='deleteDocument'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteDocument()">Delete document</button>
     <button *ngIf="action=='deleteDocumentText'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteDocumentText()">Delete document text</button>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

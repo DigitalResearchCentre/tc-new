@@ -33,7 +33,6 @@ var ViewerComponent = ng.core.Component({
     this.state=uiService.state;
     this.state.doNotParse=false;
     this.isVerticalSplit=true;
-    this.state.isProcessSetContent=false;
     this._uiService.sendEditorText$.subscribe(function(data) {
       self.contentText = data.text;
       if (data.choice=="save") {self.saveSend(data.text)}
@@ -48,17 +47,20 @@ var ViewerComponent = ng.core.Component({
       };
       if (chosen==="newTranscript") {
         self.newText();
+      };
+      if (chosen==="ContinuingTranscript") {
+          self.state.isNewContinuingText=true;
+          self.setContentText(self.contentText);
       }
     });
     this._uiService.changeMessage$.subscribe(function(message){
-      console.log(message);
-      self._uiService.manageModal$.emit({type: 'info-message', page: message.page,   docname: message.docname, message: message.message});
+//      console.log(message);
+      self._uiService.manageModal$.emit({type: 'info-message', header: "Committing page "+message.page+" in document "+message.docname, message:message.message});
       if (message.type=="commit") self.commitFailed=true;
     });
   }],
   ngOnInit: function() {
     var self=this;
-    this.state.isProcessSetContent=false;
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
       self.isText=res.isThisPageText;
     });
@@ -257,41 +259,41 @@ var ViewerComponent = ng.core.Component({
   },
   setContentText: function(contentText) {
     //shifted test for new pages, etc, over to
-    var self=this, docService=this._docService;
-    this.contentText = contentText;
-    if (!this.state.isProcessSetContent) {
-      this.state.isProcessSetContent=true;  //block this call for first call each page...
-      $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
-        self.isText=res.isThisPageText;
-        //have we got a new text to add...? check if we have text in previous page, etc
-        if (!res.isThisPageText) {
-          //returns: res.isPrevPageText and res.isThisPageText
-          //I don't think there is any way res.isThisPageText can be true. This is a new page!
-          if (res.isPrevPageText && res.isMultiPages) {
-              //here is where we will deceive the system into creating a default transcript continuing from
-            //previous page in case of document with multiple pages...we pull the page break out of the text element children
-            self.state.isProcessSetContent=true;  //block this till the next page is added
-            if (self.page.attrs.facs) {
-              var myDoc={name: self.page.attrs.name, label: "pb", facs: self.page.attrs.facs, children:[],}
-            } else {
-            var myDoc={name: self.page.attrs.name, label: "pb", children:[],}
-            }
-            var afterPage=self.document.attrs.children.filter(function (obj){return String(obj.attrs.name) == String(self.prevPage);})[0]
-            var options = {after: afterPage}
-            //ok, got to eliminate this page from db then add it right back again
-            $.post(config.BACKEND_URL+'deletePage?'+'docid='+self.document._id+'&pageid='+self.page._id, function(res) {
-              docService.commit({
-                doc: myDoc,
-              }, options).subscribe(function(page) {
-                var bill=1;
-                self.state.isProcessSetContent=false;
-                //call new page id here...
-              })
-            });
-          }
-        }
+    var self=this, docService=this._docService, page=this.page;
+    if (this.state.isNewContinuingText) {
+      //we have just reset the text to continue from previous page. Here we catch the change, fiddle with it, add the text to revisions and commit
+      this.state.isNewContinuingText=false;
+      var origText=contentText;
+      var meta = _.get(page, 'attrs.meta', _.get(page.getParent(), 'attrs.meta'));
+      origText = origText.replace(/(\r\n|\n|\r)/gm,"");
+      var re = /(.*[^<])<pb(.*)\/><(.*)/;
+      var newText=origText.replace(re, '$1<pb $2/>\r<lb/>Continuing text. (Select a different element in the "From Previous Page" menu to change what is continuing)\r<$3')
+        //include specimen text in page after page break; then commit it
+  //    context.contentText=newText;
+      //need to save the version as a revision too...
+  //    this.revisions=this.context.revisions;
+      this._docService.addRevision({
+        doc: page.getId(),
+        text: newText,
+        user: meta.user,
+        community: this.community,
+        committed: meta.committed,
+        status: 'CONTINUEPAGE',
+      }).subscribe(function(revision) {
+        //propogate on parent page
+        self.contentText=newText;
+        self.revisions.unshift(revision);
+        self.revision=revision;
+        self.state.doNotParse=true;
+        self.commit();
+//        self._uiService.sendCommand$.emit("commitTranscript");
       });
+    } else {
+      this.contentText = contentText;
     }
+    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
+      self.isText=res.isThisPageText;
+    });
   },
   prevLinkChange: function($event) {
     var id = $event.target.value
@@ -301,8 +303,7 @@ var ViewerComponent = ng.core.Component({
       var contentText = docService.relinkPage(
         this.contentText, id, this.prevs);
       if (contentText) {
-        this.state.isProcessSetContent=false;
-        this.setContentText(contentText);
+          this.setContentText(contentText);
       }
     } catch (e) {
     }
@@ -325,7 +326,6 @@ var ViewerComponent = ng.core.Component({
     } catch (e) {
       this.prevLink = null;
     }
-    this.state.isProcessSetContent=false;
     this.setContentText(contentText);
   },
   revisionCompareChange: function($event) {
@@ -404,8 +404,7 @@ var ViewerComponent = ng.core.Component({
         if (!state.doNotParse) {
          self._uiService.manageModal$.emit({
             type: 'info-message',
-            page: page.attrs.name,
-            docname: self.state.document.attrs.name,
+            header:   "Committing page "+page.attrs.name+" in document "+self.state.document.attrs.name,
             message: "Page validated. Now committing"
           });
         }
@@ -422,7 +421,7 @@ var ViewerComponent = ng.core.Component({
           //go get these from the db
           if (!state.doNotParse) {
             if (!self.commitFail)
-              self._uiService.manageModal$.emit({type: 'info-message', page: page.attrs.name,   docname: self.state.document.attrs.name, message: "Page successfully committed"});
+              self._uiService.manageModal$.emit({type: 'info-message', header: "Committing page "+page.attrs.name+" in document "+self.state.document.attrs.name, message: "Page successfully committed"});
           }
           if (!self.commitFailed) revision.set('status', 'COMMITTED');
           self.commitFailed=false;
@@ -443,18 +442,19 @@ var ViewerComponent = ng.core.Component({
       }
     });
   },
-  newText: function() {
+  newText: function(page, document) {
     var self=this;
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
       if (res.isPrevPageText) {
         self._uiService.manageModal$.emit({
            type: 'confirm-message',
-           page: self.page,
+           page: page,
+           prevpage: self.prevPage,
            docname: "",
            header: "Add text to page "+self.page.attrs.name+" in "+self.state.document.attrs.name,
            warning: "Continue text from previous page or add new text.",
            action: 'addPage',
-           document: self.document,
+           document: document,
            context: self,
          });
       } else {

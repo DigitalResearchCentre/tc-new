@@ -54,9 +54,9 @@ window.uploadDone=function(){
   $('#previewdiv').contents().find('body').html(p4);
   self.restService.http.get('http://code.jquery.com/jquery-1.10.2.min.js').subscribe(function(jqueryfile) {
      $('#previewdiv').contents().find('head').append("<script type='text/javascript'>"+jqueryfile._body+"</script>\r");
-     self.restService.http.get('/app/directives/default.css').subscribe(function(cssfile) {
+     self.restService.http.get('/app/data/default.css').subscribe(function(cssfile) {
         $('#previewdiv').contents().find('head').append("<style>"+cssfile._body+"</style>\r");
-        self.restService.http.get('/app/directives/default.js').subscribe(function(jsfile) {
+        self.restService.http.get('/app/data/default.js').subscribe(function(jsfile) {
              $('#previewdiv').contents().find('body').append("<script type='text/javascript'>"+jsfile._body+"</script>\r");
            });
       });

@@ -29,10 +29,12 @@
     </tc-managemodal-message-login>
     <tc-uploadfile-community *ngSwitchWhen="'uploadfile-community'" [community]="community" [filetype]="filetype" [text]="text">
     </tc-uploadfile-community>
-    <tc-managemodal-info-message *ngSwitchWhen="'info-message'" [page]="page" [message]="message" [docname]="docname">
+    <tc-managemodal-info-message *ngSwitchWhen="'info-message'" [message]="message" [header]="header" [source]="source">
     </tc-managemodal-info-message>
-    <tc-managemodal-confirm-message *ngSwitchWhen="'confirm-message'" [page]="page" [header]="header" [warning]="warning" [docname]="docname" [action]="action" [context]="context" [document]="document">
+    <tc-managemodal-confirm-message *ngSwitchWhen="'confirm-message'" [page]="page" [header]="header" [warning]="warning" [docname]="docname" [action]="action" [context]="context" [document]="document" [prevpage]="prevpage">
     </tc-managemodal-confirm-message>
+    <tc-managemodal-editcollation *ngSwitchWhen="'choosebase-community'" [action]="action" [community]="community">
+    </tc-managemodal-editcollation>
     <tc-managemodal-reorder-document *ngSwitchWhen="'reorder-document'" [document]="document">
     </tc-managemodal-reorder-document>
   </div>

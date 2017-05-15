@@ -24,6 +24,8 @@ var CommunitySchema = new Schema({
   image: String,
   css: String,
   js: String,
+  dtd: String,
+  ceconfig: {},
   documents: [{type: ObjectId, ref: 'Doc'}],
   entities: [],
 });

@@ -1,0 +1,34 @@
+<div id="editCollationModal" style="font-size: 110%; height:100%;">
+  <div  modal-draggable class="modalHeader">{{header}}
+    <button type="button" (click)="closeModalCE()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div style="height:520px; width: 100%; overflow:scroll; position:absolute">
+    <div *ngIf="message.length>0" class="alert alert-danger" style="margin-bottom: 1px;">
+      {{message}}
+    </div>
+    <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 1px">
+      {{success}}
+    </div>
+    <table class="container" style="width:100%" *ngIf="action=='chooseBase'">
+      <tr class="row"  *ngFor="#document of documents" data-id="{{document.id}}" style="width:100%">
+        <td *ngIf="base==document.attrs.name" style="border-bottom-width:0px" class="col-md-2"><input checked="checked" type="checkbox" id="{{document.attrs.name}}" (click)="chooseBase(document.attrs.name)"></td>
+        <td *ngIf="base!=document.attrs.name" style="border-bottom-width:0px" class="col-md-2"><input type="checkbox" id="{{document.attrs.name}}" (click)="chooseBase(document.attrs.name)"></td>
+        <td style="border-bottom-width:0px" class="col-md-10">{{document.attrs.name}}</td>
+      </tr>
+    </table>
+    <table class="container" style="width:100%" *ngIf="action=='chooseWitnesses'">
+      <tr class="row"  *ngFor="#document of documents" data-id="{{document.id}}" style="width:100%">
+        <td style="border-bottom-width:0px" class="col-md-2"><input type="checkbox" id="{{document.attrs.name}}"></td>
+        <td style="border-bottom-width:0px" class="col-md-10">{{document.attrs.name}}</td>
+      </tr>
+    </table>
+
+  </div>
+<hr style="border: 1px solid #8c8b8b; margin-bottom: 5px; margin-top:0px; position: relative; top: 522px ">
+  <div class="form-group" style="text-align: center; height: 18px; position: relative; top: 524px">
+    <span *ngIf="action=='chooseWitnesses'">
+      <button type="button" class="btn btn-primary" (click)="selectAll()">Select All</button>&nbsp;&nbsp;&nbsp;
+      <button type="button" class="btn btn-primary" (click)="clearAll()">Clear All</button>&nbsp;&nbsp;&nbsp;</span>
+    <button type="button" class="btn btn-primary" (click)="submit()">Save</button>
+  </div>
+</div>

@@ -3,7 +3,7 @@ var $ = require('jquery');
 var InfoMessageComponent = ng.core.Component({
   selector: 'tc-managemodal-info-message',
   templateUrl: '/app/infomessage.html',
-  inputs : ['page', 'message', 'docname'],
+  inputs : ['message', 'header', 'source'],
   directives: [
     require('./directives/modaldraggable')
   ],
@@ -18,6 +18,12 @@ var InfoMessageComponent = ng.core.Component({
     $('#MMADdiv').css("margin-top", "30px");
     $('#MMADbutton').css("margin-top", "20px");
     $('#manageModal').modal('hide');
+  },
+  ngOnChanges: function() {
+    if (this.source="CollationBase") {
+      $('#manageModal').width("400px");
+      $('#manageModal').height("150px");
+    }
   },
   doLoginModal: function() {
     $('#manageModal').modal('hide');

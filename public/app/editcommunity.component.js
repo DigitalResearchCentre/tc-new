@@ -1,5 +1,6 @@
 var CommunityService = require('./services/community')
   , UIService = require('./services/ui')
+  , RESTService = require('./services/rest')
 ;
 
 
@@ -10,12 +11,13 @@ var EditCommunityComponent = ng.core.Component({
     'community',
   ],
 }).Class({
-  constructor: [CommunityService, UIService, function(
-    communityService, uiService
+  constructor: [CommunityService, UIService, RESTService, function(
+    communityService, uiService, restService
   ) {
     var self=this;
     this._communityService = communityService;
     this._uiService = uiService;
+    this._restService=restService;
     this.picFile={
       chosen:false, maxSize:100*1024,
       maxHeight:35, maxWidth:300, valid:false, file:""
@@ -47,6 +49,7 @@ var EditCommunityComponent = ng.core.Component({
         elPreview.appendChild(image);
       }
     } else {
+      var self=this;
       this.edit = {
         public: false,
         name: "",
@@ -60,6 +63,12 @@ var EditCommunityComponent = ng.core.Component({
         haspicture: false,
         image: "",
       };
+      //load ceconfig
+       this._restService.http.get('/app/data/CollEditorConfig.json').subscribe(function(colledfile) {
+         var dummy="";
+         dummy=colledfile._body;
+         self.edit.ceconfig=JSON.parse(dummy);  //also kind of hacky
+       });
     }
   },
   fileTooBig: function(){

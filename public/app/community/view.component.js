@@ -2,7 +2,10 @@ var CommunityService = require('../services/community')
   , Viewer = require('./viewer.component')
   , UIService = require('../services/ui')
   , DocService = require('../services/doc')
+  , RestService = require('../services/rest')
+  , UpdateDbService = require('../services/updatedb')
   , config = require('../config')
+  , async = require('async')
   , $ = require('jquery')
 ;
 
@@ -19,14 +22,15 @@ var ViewComponent = ng.core.Component({
     viewer: new ng.core.ViewChild(Viewer),
   }, */
 }).Class({
-  constructor: [CommunityService, UIService, DocService, function(
-    communityService, uiService, docService
+  constructor: [CommunityService, UIService, DocService, RestService, function(
+    communityService, uiService, docService, restService
   ) {
 //    console.log('community view');
     var self=this;
     this._uiService = uiService;
     this._communityService = communityService;
     this._docService = docService;
+    this._restService = restService
     this.state = uiService.state;
     this.showByPage=true;
     this.versions=[];
@@ -36,6 +40,8 @@ var ViewComponent = ng.core.Component({
     this._uiService.showDocument$.subscribe(function (docpage) {
       self.selectDocPage(docpage.doc, docpage.page);
     });
+    this.collationEditor=false;
+    this.callCollationEditor='';
     $( window ).resize(function() {
       var tcWidth=$('#tcPaneViewer').width();
       var tcHeight=$('#tcPaneViewer').height();
@@ -141,7 +147,49 @@ var ViewComponent = ng.core.Component({
   },
   selectEntity: function(entity) {
     //go get the different versions; collate them; yoho!
-    var self =this;
+    //we just supply the url for the collation editor and it does the rest. hooray.
+    //we will add some choices to the community menu: to choose default collation tool (collateX..collation editor..multiple text viewer)
+    var self=this;
+    this.collationEditor=true;
+    var pages=this.state.community.attrs.documents.map(function(page){return(page.attrs.name)});
+    var isBaseDoc=this.state.community.attrs.documents.filter(function (obj){return obj.attrs.name==this.state.community.attrs.ceconfig.base_text})[0];
+    if (!isBaseDoc) {
+      this._uiService.manageModal$.emit({type: 'info-message', message: "The chosen base text \""+this.state.community.attrs.ceconfig.base_text+"\" in community \""+this.state.community.attrs.abbr+"\" is not a document in this community. Either supply this document or choose a different base text from the Manage>Collation menu.", header:"Base text error in collation", source: "CollationBase"});
+      return;
+    }
+    //do the next as a waterfall...
+    //is our base in this list, or is it missing text?
+    async.waterfall([
+      function (cb) {
+        $.post(config.BACKEND_URL+'baseHasEntity?'+'docid='+isBaseDoc.attrs._id+'&entityName='+entity.entityName, function(res) {
+          if (res.success=="0") {
+            self._uiService.manageModal$.emit({type: 'info-message', message: "The chosen base text \""+self.state.community.attrs.ceconfig.base_text+"\" in community \""+self.state.community.attrs.abbr+"\" has no text for \""+entity.entityName+"\". Either supply a text of this section in this document or choose a different base text from the Manage>Collation menu.", header:"Base text error in collation", source: "CollationBase"});
+            return;
+          } else cb(null, []);
+        });
+      } /*
+       function (argument, cb) {
+         //load witnesses into ceconfig and save
+    //     self.state.community.attrs.ceconfig.witnesses=pages;
+        //we want to change just one field
+        var jsoncall='[{"abbr":"'+self.state.community.attrs.abbr+'"},{"$set":{"ceconfig.witnesses":['+pages+']}}]';
+        UpdateDbService("Community", jsoncall, function(result){
+           console.log(result);
+           cb(null, []);
+         });
+         self._communityService.update(self.state.community.getId(), self.state.community).subscribe(function(community) {
+           cb(null, []);
+         });
+       } */
+     ], function (err) {
+       if (!err) {
+         self.collationEditor=true;
+         var src="http://127.0.0.1:8080/collation/?dbUrl="+config.BACKEND_URL+"&entity="+entity.entityName+"&community="+this.state.community.attrs.abbr;
+         $('#ce_iframe').attr('src', src);
+        }
+       }
+    );
+  /*  var self =this;
     self.state.community.entityName=entity.entityName;
     var tcWidth=$('#tcPaneViewer').width();
     var tcHeight=$('#tcPaneViewer').height();
@@ -181,7 +229,7 @@ var ViewComponent = ng.core.Component({
           alert( "error" + errorThrown );
         });
       }
-    });
+    }); */
   },
   selectDocEntity: function(doc, docEntity) {
       //choose the right page at this point
@@ -237,7 +285,8 @@ var ViewComponent = ng.core.Component({
        type: 'confirm-message',
        page: "",
        docname: doc._id,
-       header: "Delete all text from document "+this.state.document.attrs.name+" in community "+this.state.community.attrs.name,
+       document: doc,
+       header: "Delete all text from document "+doc.attrs.name+" in community "+this.state.community.attrs.name,
        warning: "Are you sure? This will delete the text of all transcripts for this document,while leaving pages and images. It cannot be undone.",
        action: 'deleteDocumentText'
      });

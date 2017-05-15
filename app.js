@@ -97,7 +97,7 @@ app.use(function(err, req, res, next) {
     stack: err.stack,
   };
   try {
-    let errorLog = new ErrorLog(_.assign({ 
+    let errorLog = new ErrorLog(_.assign({
       created: new Date(),
     }, _.omit(error, 'error')));
     errorLog.save();
@@ -118,4 +118,3 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
-

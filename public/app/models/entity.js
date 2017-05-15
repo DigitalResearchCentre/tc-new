@@ -9,6 +9,8 @@ var Entity = _.inherit(Model, {
   fields: {
     _id: '',
     name: '',
+    entityName:'',
+    isTerminal:''
   },
 });
 

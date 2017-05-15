@@ -29,6 +29,7 @@ var ManageModalComponent = ng.core.Component({
     require('./adddocumentchoice.component'),
     require('./reorderdocument.component'),
     require('./addbulkimages.component'),
+    require('./editcollation.component'),
   ],
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -93,21 +94,27 @@ var ManageModalComponent = ng.core.Component({
         self.filetype = event.filetype;
         if (event.filetype=="css") {
             if (!event.community.attrs.css || event.community.attrs.css=="") {
-              self.restService.http.get('/app/directives/default.css').subscribe(function(cssfile) {
+              self.restService.http.get('/app/data/default.css').subscribe(function(cssfile) {
                 self.text=cssfile._body;});
             } else self.text=event.community.attrs.css;
         }
         if (event.filetype=="js") {
             if (!event.community.attrs.js || event.community.attrs.js=="") {
-              self.restService.http.get('/app/directives/default.js').subscribe(function(jsfile) {
+              self.restService.http.get('/app/data/default.js').subscribe(function(jsfile) {
                 self.text=jsfile._body;});
             } else self.text=event.community.attrs.js;
         }
         if (event.filetype=="dtd") {
             if (!event.community.attrs.dtd || event.community.attrs.dtd=="") {
-              self.restService.http.get('/app/directives/default.dtd').subscribe(function(dtdfile) {
+              self.restService.http.get('/app/data/default.dtd').subscribe(function(dtdfile) {
                 self.text=dtdfile._body;});
             } else self.text=event.community.attrs.dtd;
+        }
+        if (event.filetype=="json") {
+            if (!event.community.attrs.ceconfig || event.community.attrs.ceconfig=={}) {
+              self.restService.http.get('/app/data/CollEditorConfig.json').subscribe(function(ceconfigfile) {
+                self.text=ceconfigfile._body;});
+            } else self.text=JSON.stringify(event.community.attrs.ceconfig);
         }
       }  else if (event.type === 'preview-page') {
           self.choice = event.type;
@@ -128,16 +135,25 @@ var ManageModalComponent = ng.core.Component({
           self.docname = event.docname;
       } else if (event.type ==='info-message'){
           self.choice = event.type;
-          self.page=event.page;
-          self.docname=event.docname;
+          self.header=event.header;
           self.message=event.message;
+          self.source=event.source;
       } else if (event.type ==='reorder-document'){
           self.choice = event.type;
           self.document=event.document;
+      } else if (event.type ==='choosebase-community'){
+          self.choice = event.type;
+          self.community=event.community;
+          self.action='chooseBase';
+      } else if (event.type ==='choosebase-choosewitnesses'){
+          self.choice = 'choosebase-community';  //let's be economical!
+          self.community=event.community;
+          self.action='chooseWitnesses';
       } else if (event.type ==='confirm-message'){
           self.choice = event.type;
           self.page=event.page;
           self.docname=event.docname;
+          self.prevpage=event.prevpage;
           self.header=event.header;
           self.warning=event.warning;
           self.action=event.action;

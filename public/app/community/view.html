@@ -204,9 +204,12 @@
             No entities found. Commit pages in the document viewer, using "n" attributes on elements to
             declare them as entities (e.g. &lt;div n="1" type="book"> for Book 1).
           </p>
-          <p *ngIf="state.community.attrs.entities.length && !versions.length">
-            Click on entity elements in the side panel to show all occurrences of that entity in the documents.
+          <p *ngIf="state.community.attrs.entities.length && !collationEditor">
+            Click on entity elements in the side panel to show the collation of that entity in the documents.
           </p>
+        </div>
+        <div style="overflow:auto">
+            <iframe id="ce_iframe" width="100%" height="600px"></iframe>
         </div>
         <div *ngIf="versions.length" style="overflow:auto" id="tcVersions">
             <p>Versions of {{state.community.entityName}}</p>

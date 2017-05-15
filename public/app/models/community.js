@@ -25,6 +25,7 @@ var Community = _.inherit(Model, {
     css: '',
     js: '',
     dtd: '',
+    ceconfig:{},
   },
   verify: function(obj) {
     var message = [];

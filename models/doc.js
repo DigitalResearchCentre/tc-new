@@ -30,6 +30,7 @@ var DocSchema = extendNodeSchema('Doc', {
   entities: [],
   image: Schema.Types.ObjectId,
   meta: Schema.Types.Mixed,
+  cemetadata: {},
 }, {
   methods: {
     _commit: function(

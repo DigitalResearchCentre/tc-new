@@ -8,7 +8,7 @@ var $ = require('jquery')
 var ConfirmMessageComponent = ng.core.Component({
   selector: 'tc-managemodal-confirm-message',
   templateUrl: '/app/confirmmessage.html',
-  inputs : ['page', 'header', 'warning', 'docname', 'action', 'context', 'document'],
+  inputs : ['page', 'header', 'warning', 'docname', 'action', 'context', 'document', 'prevpage'],
   directives: [
     require('./directives/modaldraggable')
   ],
@@ -87,32 +87,40 @@ var ConfirmMessageComponent = ng.core.Component({
       multiple: true,
     });
   },
-  continuePrev: function(document, page, context) {
-    var origText=context.contentText;
-    var meta = _.get(page, 'attrs.meta', _.get(page.getParent(), 'attrs.meta'));
-    var self=this;
-    origText = origText.replace(/(\r\n|\n|\r)/gm,"");
-    var re = /(.*[^<])<pb(.*)\/><(.*)/;
-    var newText=origText.replace(re, '$1<pb $2/>\r<lb/>Continuing text. (Select a different element in the "From Previous Page" menu to change what is continuing)\r<$3')
-      //include specimen text in page after page break; then commit it
-    context.contentText=newText;
-    this.closeModalCMLC();
-    //need to save the version as a revision too...
-    this.revisions=this.context.revisions;
-    this._docService.addRevision({
-      doc: page.getId(),
-      text: newText,
-      user: meta.user,
-      community: this.community,
-      committed: meta.committed,
-      status: 'CONTINUEPAGE',
-    }).subscribe(function(revision) {
-      //propogate on parent page
-      self.context.revisions=self.revisions;
-      self.context.revisions.unshift(revision);
-      self.context.revision=self.revision=revision;
-      self._uiService.sendCommand$.emit("commitTranscript");
-    });
+  continuePrev: function(document, page, prevpage, context) {
+      //this can only be called after clicking on new text button from viewer...
+      //requires some subtle gymnastics: ie remove this page and then add it back in using docService
+      var self=this;
+      var docService=this._docService;
+      //either: we are adding in a multipage document, in which case we need to delete the page and add it back
+      //or.. not
+      if (!page) {
+        //summons rewrite and save of continuing text
+        this._uiService.sendCommand$.emit("ContinuingTranscript");
+        self.closeModalCMLC();
+      } else {
+        if (page.attrs.facs && page.attrs.image) {
+          var myDoc={name: page.attrs.name, label: "pb", image: page.attrs.image, facs: page.attrs.facs, children:[],}
+        } else if (page.attrs.facs) {
+          var myDoc={name: page.attrs.name, label: "pb", facs: page.attrs.facs, children:[],}
+        } else if (page.attrs.image) {
+          var myDoc={name: page.attrs.name, label: "pb", image: page.attrs.image, children:[],}
+        } else {
+        var myDoc={name: page.attrs.name, label: "pb", children:[],}
+        }
+        var afterPage=document.attrs.children.filter(function (obj){return String(obj.attrs.name) == String(prevpage);})[0]
+        var options = {after: afterPage}
+        //ok, got to eliminate this page from db then add it right back again
+        $.post(config.BACKEND_URL+'deletePage?'+'docid='+document._id+'&pageid='+page._id, function(res) {
+          docService.commit({
+            doc: myDoc,
+          }, options).subscribe(function(page) {
+            context.state.isNewContinuingText=true;
+            self.closeModalCMLC();
+            //call new page id here...
+          })
+        });
+      }
   },
   confirmDeleteDocument: function() {
     var self=this;
@@ -127,9 +135,8 @@ var ConfirmMessageComponent = ng.core.Component({
     var self=this;
     $.post(config.BACKEND_URL+'deleteDocumentText?'+'id='+this.docname+'&community='+this.state.community.attrs.abbr, function(res) {
       //write a happy message
-      self.warning=" Text removed from containing "+res.npages+" pages, "+res.nodocels+" document structural elements (lines, etc.), "+res.nentels+" entity elements, "+res.nallels+" total document elements, and " +res.npagetrans+" page transcripts";
+      self.warning=" Text removed from document containing "+res.npages+" pages, "+res.nodocels+" document structural elements (lines, etc.), "+res.nentels+" entity elements, "+res.nallels+" total document elements, and " +res.npagetrans+" page transcripts";
       self.showButtons=false;
-      self.reload=true;
     });
   },
   confirmDelete: function() {
