@@ -1,5 +1,5 @@
 <div>
-  <div modal-draggable class="modalHeader">{{title}} document for Community "{{community.attrs.name}}"
+  <div modal-draggable class="modalHeader">{{title}} document for community "{{community.attrs.name}}"
     <button type="button" (click)="closeModalUPLC()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
   </div>
   <div id="ECSuccess"><div *ngIf="success" class="alert alert-success">
@@ -15,9 +15,9 @@
     </textarea>
   </div>
   <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; margin-left: 20px; margin-right: 20px">
-    <tc-filereader (filechange)="filechange($event)"></tc-filereader>
+    <tc-filereader *ngIf="filetype!='teiHeader'"  (filechange)="filechange($event)"></tc-filereader>
     <div style="text-align: center; margin-top: 10px">
-      <button type="button" class="btn btn-primary" (click)="default()">Default</button>&nbsp;&nbsp;&nbsp;&nbsp;
+      <button type="button" *ngIf="filetype!='teiHeader'" class="btn btn-primary" (click)="default()">Default</button>&nbsp;&nbsp;&nbsp;&nbsp;
       <button type="button" class="btn btn-primary" (click)="submit()">Save</button>
     </div>
   </div>

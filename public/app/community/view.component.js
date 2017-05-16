@@ -291,13 +291,18 @@ var ViewComponent = ng.core.Component({
        action: 'deleteDocumentText'
      });
   },
+  editTEIHeader: function(doc) {
+    this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.state.community, document: doc, filetype:"teiHeader"});
+  },
   extractXML: function($event, doc) {
     var self=this;
     var docService = this._docService;
     self._uiService.manageModal$.emit({type: "extract-xml-doc", document: doc});
     docService.getTextTree(doc).subscribe(function(teiRoot) {
 //      console.log(teiRoot);
-      self._uiService.sendXMLData$.emit(docService.json2xml(prettyTei(teiRoot)));
+      var teiText=docService.json2xml(prettyTei(teiRoot));
+      teiText="<TEI>\r"+doc.attrs.teiHeader+"\r"+teiText+"\r</TEI>";
+      self._uiService.sendXMLData$.emit(teiText);
     });
   }
 });

@@ -58,7 +58,7 @@ var EditCollationComponent = ng.core.Component({
       var self=this;
       if (this.action=='chooseBase') {
         var jsoncall='[{"abbr":"'+this._communityService._docService.state.community.attrs.abbr+'"},{"$set":{"ceconfig.base_text":"'+this.base+'"}}]';
-        UpdateDbService("Community", jsoncall, function(result){
+          UpdateDbService("Community", jsoncall, function(result){
           if (result=="success") self.success='"'+self.base+'" chosen as the base text.';
           else self.message="The save failed. Maybe you have lost your internet connection.";
          });

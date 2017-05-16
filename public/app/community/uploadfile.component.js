@@ -11,7 +11,7 @@ var UploadFileComponent = ng.core.Component({
     require('../directives/filereader'),
   ],
   inputs: [
-    'community','filetype', 'text',
+    'community','filetype', 'text', 'doc',
   ],
 }).Class({
   constructor: [
@@ -35,7 +35,7 @@ var UploadFileComponent = ng.core.Component({
       this.title="Collation editor configuration";
       this.text=JSON.stringify(this.text);
     }
-    this.initEdit(this.community);
+    if (this.filetype=="teiHeader") this.title="teiHeader";
   },
   initEdit: function(community) {
       this.edit = _.clone(community.toJSON());
@@ -71,7 +71,10 @@ var UploadFileComponent = ng.core.Component({
     if (this.filetype=="js") this.edit.js=this.text;
     if (this.filetype=="dtd") this.edit.dtd=this.text;
     var jsontxt=this.text;
-    console.log(jsontxt);
+//    console.log(jsontxt);
+    if (this.filetype=="teiHeader") {
+      return; //do nothing yet
+    }
     if (this.filetype=="json")  {
       var stringConstructor = "test".constructor;
       this.edit.ceconfig=JSON.parse(jsontxt);

@@ -116,6 +116,10 @@ var ManageModalComponent = ng.core.Component({
                 self.text=ceconfigfile._body;});
             } else self.text=JSON.stringify(event.community.attrs.ceconfig);
         }
+        if (event.filetype=="teiHeader") {
+            self.text=event.document.attrs.teiHeader;
+            self.doc=event.document;
+        }
       }  else if (event.type === 'preview-page') {
           self.choice = event.type;
           self.page = event.page;

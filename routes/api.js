@@ -1076,11 +1076,17 @@ router.post('/statusTranscript', function(req, res, next) {
         //possibly, this could be out of sync and return null
         TEI.findOne({name:"pb", docs: ObjectId(document.children[foundN-1])}, function (err, pbTei){
 //          console.log("got the pbtei "+pbTei)
-          var prevPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
-          if (prevPbInText) isPrevPageText=false;
-          else isPrevPageText=true;
-          i=document.children.length;
-          cb(null, document);
+          if (!globalTextEl) {
+                //how can this happpen? dunno
+            isPrevPageText=isThisPageText=isMultiPages=false;
+            cb("no global", []);
+          } else {
+            var prevPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
+            if (prevPbInText) isPrevPageText=false;
+            else isPrevPageText=true;
+            i=document.children.length;
+            cb(null, document);
+          }
         });
       }
   },  //ok, settled prev page status. What about this page? Again: if direct child of the text element, no text
@@ -1386,11 +1392,28 @@ function hasPageTranscript (page, callback) {
 
 router.post('/updateDbJson', function(req, res, next) {
   var collection=req.query.collection;
+  console.log("changing json1")
   var param1=req.body[0];
   var param2=req.body[1];
-    if (collection=="Community") {
-    var myarray=["0","1"];
-    Community.collection.update(param1, param2, function(err, result){
+  console.log("changing json")
+  console.log(param1._id);
+  if (param1.hasOwnProperty('_id')) {
+    console.log("updating");
+//    param1={_id:}
+    param1._id=ObjectId(param1._id);
+    console.log(param1);
+  }
+  if (collection=="Community") {
+      Community.collection.update(param1, param2, function(err, result){
+        if (err) res.json("fail");
+        else res.json("success");
+      })
+  }
+  if (collection=="Document") {
+    Doc.collection.update(param1, param2, function(err, result){
+      console.log(param1);
+      console.log(param2);
+      console.log(result);
       if (err) res.json("fail");
       else res.json("success");
     })

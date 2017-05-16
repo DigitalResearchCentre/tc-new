@@ -4,6 +4,7 @@ var URI = require('urijs')
   , CommunityService = require('./services/community')
   , DocService = require('./services/doc')
   , config = require('./config')
+  , UpdateDbService = require('./services/updatedb')
 ;
 
 
@@ -81,8 +82,14 @@ var AddDocumentXMLComponent = ng.core.Component({
     self.message="";
     self.success="Parsing XML document "+self.doc.name+".";
     $('#manageModal').height("225px");
+    //hence, we have the tei header to deal with also
+    var startText=text.indexOf("<text");
+    var endText=text.indexOf("</text");
+    var startTeiHeader=text.indexOf("<teiHeader");
+    var teiHeader=text.slice(startTeiHeader, startText);
     $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
-      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+text+"</TEI>",
+//      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+text+"</TEI>",
+        xml: text,
     }, function(res) {
       if (res.error.length>0) {
         //check that error line exists
@@ -94,13 +101,15 @@ var AddDocumentXMLComponent = ng.core.Component({
           });
         return;
       } else {
+        //remove teiheader and store separately: get everything contained in text and process it
+        text=text.slice(startText,endText); //cut out header etc
         self.success="XML document "+self.doc.name+" parsed successfully. Now loading.";
         self.doc.community=self.state.community.attrs.abbr;
         docService.commit({
           doc: self.doc,
           res: res,
           text: text,
-        }, {
+          }, {
           community: self.state.community.getId(),
         }).subscribe(function(res) {
           self.success="XML document "+self.doc.name+" loaded successfully";
@@ -111,6 +120,18 @@ var AddDocumentXMLComponent = ng.core.Component({
           //load this one into the viewer
           mydoc=self.state.document;
           mypage=self.state.page;
+          //add teiheader to document
+          teiHeader=teiHeader.trim();
+          teiHeader=teiHeader.replace(/(\r\n|\n|\r)/gm,"");
+          teiHeader=teiHeader.replace(/"/g, '\\"');
+          teiHeader=teiHeader.replace(/'/g, "\\'");
+          var jsoncall='[{"_id":"'+mydoc.attrs._id+'"},{"$set": {"teiHeader":"'+teiHeader+'"}}]';
+          UpdateDbService("Document", jsoncall, function(result){
+            if (result!="success") {
+              self.message="The save failed. Maybe you have lost your internet connection.";
+              self.success="";
+            }
+          });
           setTimeout(function(){self.uiService.showDocument$.emit({doc: mydoc, page:mypage})}, 1000);
   //        self.closeModalADX();
         }, function(err) {
