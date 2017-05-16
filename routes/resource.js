@@ -18,6 +18,7 @@ var Resource = function(model, opts) {
       create: isAuthenticated,
       update: isAuthenticated,
       delete: isAuthenticated,
+      detail: isAuthenticated,
     }
   }, opts);
 };
@@ -29,11 +30,18 @@ _.assign(Resource.prototype, {
     if (name !== '') {
       name = '/' + name;
     }
-
-    router.route(name)
-      .get(this.list())
-      .post(options.auth.create, this.create())
-    ;
+    if(name == '/users') {
+      router.route(name)
+        .get(options.auth.detail, this.list())
+        .post(options.auth.create, this.create())
+      ;
+    }
+    else {
+      router.route(name)
+        .get(this.list())
+        .post(options.auth.create, this.create())
+      ;
+    }
 
     router.route(name + '/:' + options.id)
       .get(this.detail())

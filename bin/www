@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-
+/*
 var stdio = require('stdio')
   , env = process.env
   , ops
@@ -12,6 +12,9 @@ ops = stdio.getopt({
   env: {args: 1, description: 'ex. dev, prod, test'}
 });
 env.TC_ENV = (ops.env || env.TC_ENV || 'dev');
+*/
+var config = require('../config');
+console.log(config.port);
 
 var app = require('../app');
 var debug = require('debug')('tc:server');
@@ -23,7 +26,7 @@ var enableHttps = false;
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(config.port || '3000');
 app.set('port', port);
 
 /**
