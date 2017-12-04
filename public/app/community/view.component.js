@@ -75,6 +75,7 @@ var ViewComponent = ng.core.Component({
     else return false;
   },
   docLacksImages: function(document) {
+    if (document.attrs.children.length==0) return(true);
     for (var i = 0; i < document.attrs.children.length; i++) {
       if (!document.attrs.children[i].attrs.image) return(true);
     }
@@ -89,6 +90,12 @@ var ViewComponent = ng.core.Component({
   selectDocPage: function(doc, page) {
     this._docService.selectDocument(doc);
     this._docService.selectPage(page);
+  },
+  addZipImages: function(doc) {
+    this._uiService.manageModal$.emit({
+      type: 'add-zip',
+      document: doc,
+    });
   },
   addFirstPage: function(doc) {
     this._uiService.manageModal$.emit({
@@ -152,6 +159,10 @@ var ViewComponent = ng.core.Component({
     var self=this;
     this.collationEditor=true;
     var pages=this.state.community.attrs.documents.map(function(page){return(page.attrs.name)});
+    if (!this.state.community.attrs.ceconfig.base_text)  {
+      this._uiService.manageModal$.emit({type: 'info-message', message: "You have not chosen a base text for collation in community \""+this.state.community.attrs.abbr+"\". Choose a base text from the Manage>Collation menu.", header:"Base text not chosen in collation", source: "CollationBase"});
+      return;
+    }
     var isBaseDoc=this.state.community.attrs.documents.filter(function (obj){return obj.attrs.name==this.state.community.attrs.ceconfig.base_text})[0];
     if (!isBaseDoc) {
       this._uiService.manageModal$.emit({type: 'info-message', message: "The chosen base text \""+this.state.community.attrs.ceconfig.base_text+"\" in community \""+this.state.community.attrs.abbr+"\" is not a document in this community. Either supply this document or choose a different base text from the Manage>Collation menu.", header:"Base text error in collation", source: "CollationBase"});
@@ -262,6 +273,9 @@ var ViewComponent = ng.core.Component({
       $('#pageTabHead').removeClass('active');$('#itemTabHead').addClass('active');
       this.showByPage=false;
     }
+  },
+  entityHasCollation: function(entity) {
+    return(true);
   },
   reorderDocument: function(doc) {
     this._uiService.manageModal$.emit({

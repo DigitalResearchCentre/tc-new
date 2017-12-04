@@ -6,6 +6,8 @@
     </tc-managemodal-adddocument-choice>
     <tc-managemodal-editpage *ngSwitchWhen="'edit-page'" [page]="page">
     </tc-managemodal-editpage>
+    <tc-managemodal-addzip *ngSwitchWhen="'add-zip'" [document]="document">
+    </tc-managemodal-addzip>
     <tc-managemodal-addbulkimages *ngSwitchWhen="'add-bulk-images'" [document]="document">
     </tc-managemodal-addbulkimages>
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'" [community]="community">

@@ -9,7 +9,7 @@ var CreateCommunityComponent = ng.core.Component({
   directives: [
     ng.router.ROUTER_DIRECTIVES,
     require('./editcommunity.component'),
-  ],
+],
 }).Class({
   constructor: [CommunityService, UIService, function(
     communityService, uiService
@@ -17,9 +17,11 @@ var CreateCommunityComponent = ng.core.Component({
     this._uiService = uiService;
     this._communityService = communityService;
     this.state = uiService.state;
+    this.state.addedDoc=false;
   }],
   ngOnInit: function() {
     this._uiService.loginRequired();
+    this.state.addedDoc=false;
   },
 });
 

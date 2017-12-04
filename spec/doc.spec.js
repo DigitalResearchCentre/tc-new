@@ -272,7 +272,7 @@ describe('Doc test', function() {
                 },
                 children: [],
               }, {
-                name: '#text', 
+                name: '#text',
                 doc: pb1v._id,
                 attrs: {testId: 'test-1-9'},
                 text: 'continue text'
@@ -333,6 +333,3 @@ describe('Doc test', function() {
   });
 
 });
-
-
-

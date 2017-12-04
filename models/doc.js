@@ -55,7 +55,8 @@ var DocSchema = extendNodeSchema('Doc', {
       }
       globalDoc=docRoot;
       globalCommAbbr=communityAbbr;
-
+//      console.log("teiroot")
+//      console.log(teiRoot);
       if (_.isEmpty(teiRoot)) {
         let loop = true;
 
@@ -113,6 +114,7 @@ var DocSchema = extendNodeSchema('Doc', {
           cur.docs = docsMap[el.doc].ancestors.concat(new ObjectId(el.doc));
         }
         cur.children = TEI._loadChildren(cur);
+//        console.log("teichildren: "+cur.children);
         if (el._bound) {
           let item = boundsMap[el._id.toString()];
           if (item.el) {
@@ -147,6 +149,8 @@ var DocSchema = extendNodeSchema('Doc', {
       var fromVFile=false;
       //this one to pick up bug in routine for identifying teis-- when doc has only one page
       //deleteTeis is always blank, but everything has to go!
+//      console.log("our teis")
+//      console.log(insertTeis)
       if (_.isEmpty(deleteTeis) && String(docRoot.label)=="pb") {
         fromVFile=true;
         }
@@ -523,7 +527,7 @@ var DocSchema = extendNodeSchema('Doc', {
     clean: function(data) {
       const nodeData = _.defaults(
         {}, _.pick(data, [
-          '_id', 'name', 'label', 'image', 'children', 'ancestors', 'facs', 'image'
+          '_id', 'name', 'label', 'image', 'children', 'community', 'ancestors', 'facs', 'image'
         ]), {
           ancestors: [],
           children: [],
@@ -910,7 +914,7 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
           elInfo.curPath.push({"tei_id": sourceTeis[i].ancestors[0], "index":i,  "entName": "text" });
           elInfo.currAncestor=inInsUpsAncs(sourceTeis[i].ancestors[0],sourceTeis, updateTeiEls, updateAncestors);
           for (i; i<sourceTeis.length; i++) {
-            if (i % 1000 == 0) console.log("processing TEI "+i);
+  //          if (i % 1000 == 0) console.log("processing TEI "+i);
             processTei(elInfo, sourceTeis[i], sourceTeis, updateTeiEls, updateAncestors, i, community);
           }
           cb1(null, updateTeiEls);
@@ -927,7 +931,7 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
         childEl.isEntity= true;
         childEl.entityChildren=[];
         for (++i; i<sourceTeis.length; i++) {
-          if (i % 1000 == 0) console.log("processing TEI "+i);
+//          if (i % 1000 == 0) console.log("processing TEI "+i);
           processTei(elInfo, sourceTeis[i], sourceTeis, [], [], i, community);
         }
         callback(updateTeiEls);

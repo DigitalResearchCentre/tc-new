@@ -165,7 +165,7 @@ var DocService = ng.core.Injectable().Class({
       , teiRoot = {}
     ;
     if (text) {
-//      console.log("text is "+text);
+      console.log("PRtext is "+text);
       var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
         , docQueue = []
@@ -253,6 +253,7 @@ var DocService = ng.core.Injectable().Class({
       });
     } else {
 //      console.log("add options "+opts)
+      var TCstate=this._uiService.state;
       return this.create(_.assign(opts, {
         tei: teiRoot,
         doc: docRoot,
@@ -261,6 +262,7 @@ var DocService = ng.core.Injectable().Class({
       })).map(function(doc, err) {
 //        console.log("after commit create"); console.log(doc);
         self._uiService.createDocument(doc);
+        TCstate.lastDocCreated=doc;  //put it all here? necessary because we do NOT return the doc
       });
     }
   },
@@ -511,6 +513,7 @@ function xpath(xmlDoc, expr) {
 
 function parseTEI(text) {
   var xmlDoc = parseXML(text);
+  /*
   _.each([
     '//tei:body/tei:div[@n]',
     '//tei:body/tei:div[@n]/tei:head[@n]',
@@ -524,7 +527,8 @@ function parseTEI(text) {
       cur.entity = cur.getAttribute('n');
       cur = iter.iterateNext();
     }
-  });
+  }); */
+  console.log("xmldoc"); console.log(xmlDoc);
   return xmlDoc;
 }
 

@@ -18,6 +18,7 @@ var _ = require('lodash')
   , Action = models.Action
   , User = models.User
   , Doc = models.Doc
+  , Collation = models.Collation
   , Entity = models.Entity
   , Revision = models.Revision
   , TEI = models.TEI
@@ -134,15 +135,21 @@ var RevisionResource = _.inherit(Resource, function(opts) {
 var revisionResource = new RevisionResource({id: 'revision'});
 revisionResource.serve(router, 'revisions');
 
+var collationResource = new Resource(Collation, {id: 'collation'});
+collationResource.serve(router, 'collations');
 
+
+
+//console.log("collation"); console.log(Collation);
+//console.log("collation resource"); console.log(collationResource);
 
 var EntityResource = _.inherit(Resource, function(opts) {
   Resource.call(this, Entity, opts);
 });
 
-
 var entityResource = new EntityResource({id: 'entity'});
 entityResource.serve(router, 'entities');
+
 router.get('/entities/:id/docs/:docId', function(req, res, next) {
   var docId = req.params.docId
     , entityId = req.params.id
@@ -158,6 +165,8 @@ router.get('/entities/:id/docs/:docId', function(req, res, next) {
 var userResource = new Resource(User, {id: 'user'});
 userResource.serve(router, 'users');
 
+//console.log("user"); console.log(User);
+//console.log("user resource"); console.log(userResource);
 
 function confirmMembership(action) {
   var payload = action.payload
@@ -234,7 +243,7 @@ function validateAction(action) {
 }
 
 router.get('/actions/:id', function(req, res, next) {
-  console.log("lets save here")
+//  console.log("lets save here")
   Action.findOne({_id: req.params.id}, function(err, action) {
     var payload = action.payload
       , role = payload.role
@@ -448,6 +457,16 @@ function loadTEIContent(version, content) {
         content.content+=version.text;
       } else {
         //no content, but an element -- pb or lb or similar, ignore
+        //problem! if it is reading, we need this
+        if (version.name=="rdg") {
+          var attrs="";
+          if (version.attrs) {
+            for (var key in version.attrs) {
+              attrs+=" "+key+"=\""+version.attrs[key]+"\"";
+            }
+          }
+          content.content="<rdg"+attrs+"></rdg>";
+        }
       }
       deferred.resolve();
   }
@@ -574,7 +593,7 @@ router.post('/deleteDocumentText', function(req, res, next) {
       function(argument, cb) {
         //get all the teis in this document
         TEI.find({docs: {$in: pages}}, function(err, teis) {
-          console.log("number of teis "+teis.length)
+//          console.log("number of teis "+teis.length)
           nTeis=teis.length;
           if (nTeis<3000) {
             teis.forEach(function(teiEl){
@@ -640,9 +659,9 @@ router.post('/deleteDocumentText', function(req, res, next) {
           globalDeleteEntities=[];
           Community.findOne({'abbr': globalCommAbbr}, function(err, myCommunity){
             async.map(myCommunity.entities, topDownDeleteEntity, function (err, results){
-              console.log("getting rid of "+globalNentels);
+  //            console.log("getting rid of "+globalNentels);
               Entity.collection.remove({_id: {$in: globalDeleteEntities}}, function(err, result){
-                console.log("done removal")
+  //              console.log("done removal")
                 cb(err, []);
               });
             })
@@ -668,10 +687,10 @@ router.post('/deleteDocumentText', function(req, res, next) {
       },   //missing and important! add all teis for pages as children for text element, and make each pb a child of text
       function reshufflePbs (argument, cb) {
         async.map(pages, getTeiEl, function (err, allTeiPbs) {
-          console.log("the docs "+pages);
-          console.log("got the pbs now "+allTeiPbs);
+  //        console.log("the docs "+pages);
+  //        console.log("got the pbs now "+allTeiPbs);
           //now get the text element..
-          console.log(allTeiPbs[0]);
+  //        console.log(allTeiPbs[0]);
           TEI.findOne({_id: ObjectId(allTeiPbs[0].ancestors[0])}, function (err, textEl){
             async.forEachOf(allTeiPbs, function(thisPb) {
               const cb2 = _.last(arguments);
@@ -746,7 +765,7 @@ router.post('/deleteDocument', function(req, res, next) {
         //get all the entities in this document
         TEI.find({docs: {$in: pages}}, function(err, teis) {
           nTeis=teis.length;
-          console.log("about to delete document teis "+nTeis)
+  //        console.log("about to delete document teis "+nTeis)
           if (nTeis<3000) {
             teis.forEach(function(teiEl){
               if (teiEl.isEntity) {
@@ -766,7 +785,7 @@ router.post('/deleteDocument', function(req, res, next) {
           if (deleteTeiEntities.length>0) {
             async.map(deleteTeiEntities, getEntityPaths, function (err, results){
               deleteTeiEntities=results;
-              console.log("delete with paths"); console.log(deleteTeiEntities);
+//              console.log("delete with paths"); console.log(deleteTeiEntities);
               cb(null, []);
             });
           } else {
@@ -836,9 +855,9 @@ router.post('/deleteDocument', function(req, res, next) {
           globalDeleteEntities=[];
           Community.findOne({'abbr': globalCommAbbr}, function(err, myCommunity){
             async.map(myCommunity.entities, topDownDeleteEntity, function (err, results){
-              console.log("getting rid of "+globalNentels);
+//              console.log("getting rid of "+globalNentels);
               Entity.collection.remove({_id: {$in: globalDeleteEntities}}, function(err, result){
-                console.log("done removal")
+//                console.log("done removal")
                 cb(err, []);
               });
             })
@@ -867,9 +886,9 @@ function topDownDeleteEntity(thisEntity, callback) {
 //      Entity.collection.remove({entityName:thisEntity.entityName}, function(err, result){
         globalDeleteEntities.push(ObjectId(thisEntity._id));
         globalNentels+=1;
-        if (globalNentels % 1000 == 0) console.log("deleting entities "+globalNentels+" this one "+thisEntity.entityName);
+//        if (globalNentels % 1000 == 0) console.log("deleting entities "+globalNentels+" this one "+thisEntity.entityName);
         if (!thisEntity.ancestorName) {
-          console.log("about to remove "+thisEntity.entityName);
+//          console.log("about to remove "+thisEntity.entityName);
           Community.update({abbr:globalCommAbbr},{$pull: {entities:  {entityName:thisEntity.entityName}}}, function (err, result) {
             if (!thisEntity.isTerminal) {
               Entity.find({ancestorName: thisEntity.entityName}, function(err, results){
@@ -1047,7 +1066,7 @@ router.post('/statusTranscript', function(req, res, next) {
             if (err) cb(err, []);
             else {
               globalTextEl=textEl;
-              if (!globalTextEl) console.log("no text el???");
+//              if (!globalTextEl) console.log("no text el???");
 //              console.log("got text el "+globalTextEl)
               cb(null, document);
             }
@@ -1392,16 +1411,16 @@ function hasPageTranscript (page, callback) {
 
 router.post('/updateDbJson', function(req, res, next) {
   var collection=req.query.collection;
-  console.log("changing json1")
+//  console.log("changing json1")
   var param1=req.body[0];
   var param2=req.body[1];
-  console.log("changing json")
-  console.log(param1._id);
+//  console.log("changing json")
+//  console.log(param1._id);
   if (param1.hasOwnProperty('_id')) {
-    console.log("updating");
+//    console.log("updating");
 //    param1={_id:}
     param1._id=ObjectId(param1._id);
-    console.log(param1);
+//    console.log(param1);
   }
   if (collection=="Community") {
       Community.collection.update(param1, param2, function(err, result){
@@ -1411,9 +1430,9 @@ router.post('/updateDbJson', function(req, res, next) {
   }
   if (collection=="Document") {
     Doc.collection.update(param1, param2, function(err, result){
-      console.log(param1);
-      console.log(param2);
-      console.log(result);
+//      console.log(param1);
+//      console.log(param2);
+//      console.log(result);
       if (err) res.json("fail");
       else res.json("success");
     })
@@ -1488,6 +1507,9 @@ router.get('/cewitness', function(req, res, next) {
     },
     function (myDoc, cb) {
       //check for more tnan one instance...
+//        console.log(req.query.witness);
+//        console.log("looking for wit");
+//        console.log(myDoc);
         TEI.find({docs: myDoc._id, entityName: req.query.entity}, function(err, teis){
           if (err) cb(err, []);
           else {  //have to deal with case where this entity is absent from the document
@@ -1497,10 +1519,12 @@ router.get('/cewitness', function(req, res, next) {
               var content='{"transcription_id": "'+req.query.witness+'","transcription_siglum": "'+req.query.witness+'","siglum": "'+req.query.witness+'"';
               var teiContent={"content":""}; //make this a loop if more than one wit here
               loadTEIContent(teis[0], teiContent).then(function (){
+//                console.log("loadTEIContent wit "+req.query.witness+": "+teiContent.content)
                 if (teiContent.content!="") {
                   content+=',"witnesses":['
                   content+=makeJsonList(teiContent.content, req.query.witness);
                   content+=']}'
+//                  console.log(content);
                   cb(null, content);
                 }
                 else cb(null, content);
@@ -1510,59 +1534,283 @@ router.get('/cewitness', function(req, res, next) {
         });
     },
   ], function(err, result) {
-    if (err=="no witness") {
+    if (err=="no witness" || err) {
         res.sendStatus(404); //this feels like a hack but it gives the desired result
       }  else {
-//      console.log(result);
-      res.json(JSON.parse(result));                                                                                                                                                                                                                                          res.json(JSON.parse(result));
+      console.log("ms is"+result);
+      //save it to the tei for this entity in this ms...
+      console.log("to save it we need ms "+req.query.witness+" community "+req.query.community+" entity "+req.query.entity)
+      res.json(JSON.parse(result));
     }
   });
 });
 
 //turns our content string into collation editor ready json
 function makeJsonList(content, witness) {
-  var thistext='{"id":"'+witness+'","tokens":[';
+  var thistext="";
   //remove line breaks,tabs, etc
 //  thistext+=content.replace(/(\r\n|\n|\r)/gm,"");
   content=content.replace(/(\r\n|\n|\r)/gm,"");
+  content=content.replace(/<note(.*?)<\/note>/gm,"");
+  content=content.replace(/(\t)/gm," ");
   content=content.replace(/  +/g, ' ');
   content=content.replace(/"/g, '\\"');
   content=content.replace(/'/g, "\\'");
   content=content.trim();
-  //ok, process into an array with word and expanword elements
-  var myWords=FunctionService.makeCeArray(content);
-//  console.log(myWords);
-//  var myWords=content.split(" ");
-  for (var i = 0; i < myWords.length; i++) {
-    var index=(i+1)*2;
-    var rule_match='"rule_match":["'+myWords[i].word+'"]';
-    var token = '"t":"'+myWords[i].word+'"';
-    var original='"original":"'+myWords[i].word+'"';
-    var expanded="";
-    //test: is there an expansion for this word? does this word contain <am>/<ex>?
-    if (myWords[i].expanword!="") {
-      var expanword=myWords[i].expanword;
-      var origword=myWords[i].word
-      token='"t":"'+expanword+'"';
-      rule_match='"rule_match":["'+expanword+'","'+origword+'"]';
-      original='"original":"'+origword+'"';
-      expanded=',"expanded":"'+expanword+'"';
-    }
-    thistext+='{"index":"'+index+'",'+token+","+rule_match+',"reading":"'+witness+'",'+original+expanded+'}';
-    if (i<myWords.length-1) thistext+=',';
+//  console.log("let's start here "+content);
+  var myWitRdgs=[];
+  //is there an app here..
+  if (content.indexOf("<app>")!=-1) {
+    //ok we got app elements
+//    console.log("got some apps");
+     var myRdgTypes=FunctionService.getRdgTypes(content);
+     //myRdgTypes);
+     var myWitRdgs=FunctionService.createRdgContent(content, myRdgTypes, witness);
+//     console.log("back in api "); console.log(myWitRdgs);
+     //now, manufacture a string for each app
   }
-  thistext+=']}'
+  if (myWitRdgs.length==0)
+     myWitRdgs.push({witness: witness, content: content})
+  else {
+    for (var j=0; j<myWitRdgs.length; j++) {
+      myWitRdgs[j].witness=witness+"-"+myWitRdgs[j].type;
+    }
+  }
+//  console.log(myWitRdgs);
+  //ok, process into an array with word and  elements
+  for (var j=0; j<myWitRdgs.length; j++) {
+    thistext+='{"id":"'+myWitRdgs[j].witness+'","tokens":[';
+//    console.log("about to call CE array :"+thistext);
+    var myWords=FunctionService.makeCeArray(myWitRdgs[j].content);
+//    console.log(thistext);
+//    console.log(myWords);
+  //  var myWords=content.split(" ");
+    for (var i = 0; i < myWords.length; i++) {
+      var index=(i+1)*2;
+      //also put uncap version of word in rule match too
+      var rule_match_cap="";
+      if (myWords[i].word!=(myWords[i].word.toLowerCase()))
+        rule_match_cap=',"'+myWords[i].word.toLowerCase()+'"';
+      var rule_match='"rule_match":["'+myWords[i].word+'"'+rule_match_cap+']';
+      var token = '"t":"'+myWords[i].word+'"';
+      if (myWords[i].origword=="") var original='"original":"'+myWords[i].word+'"';
+      else var original='"original":"'+myWords[i].origword+'"';
+      if (myWords[i].expanword=="") var expanded="";
+      else var expanded=',"expanded":"'+myWords[i].expanword+'"';
+      if (myWords[i].xmlword=="") var xmlWordStr="";
+      else var xmlWordStr=',"fullxml":"'+myWords[i].xmlword.replace(" ","&nbsp;")+'"';
+      if (myWords[i].punctbefore=="") var punctbeforeStr="";
+      else var punctbeforeStr=',"pc_before":"'+myWords[i].punctbefore.replace(" ","&nbsp;")+'"';
+      if (myWords[i].punctafter=="") var punctafterStr="";
+      else var punctafterStr=',"pc_after":"'+myWords[i].punctafter.replace(" ","&nbsp;")+'"';
+      //test: are there expansions for this word? does this word contain <am>/<ex>? look for xml forms too
+
+      if (myWords[i].expanword!="" && myWords[i].xmlword!="") {
+        var rmExword="";
+        var rmExmlword="";
+        var expanword=myWords[i].expanword;
+        var xmlword=myWords[i].xmlword;
+        if (expanword!=expanword.toLowerCase()) rmExword=',"'+expanword.toLowerCase()+'"';
+        if (xmlword!=xmlword.toLowerCase()) rmExmlword=',"'+xmlword.toLowerCase()+'"';
+        token='"t":"'+myWords[i].origword+'"';
+        rule_match='"rule_match":["'+expanword+'","'+myWords[i].origword+'","'+xmlword+'"'+rmExword+rmExmlword+']';
+      }
+      else if (myWords[i].xmlword!="") {
+        var rmExmlword="";
+        if (myWords[i].word!=myWords[i].word.toLowerCase()) rmExmlword=',"'+myWords[i].word.toLowerCase()+'"';
+        token='"t":"'+myWords[i].word+'"';
+        rule_match='"rule_match":["'+myWords[i].word+'","'+myWords[i].xmlword+'"'+rmExmlword+']';
+      }
+      else if (myWords[i].expanword!="") {
+        var rmExword="";
+        var expanword=myWords[i].expanword;
+        if (expanword!=expanword.toLowerCase()) rmExword=',"'+expanword.toLowerCase()+'"';
+        token='"t":"'+myWords[i].origword+'"';
+        rule_match='"rule_match":["'+myWords[i].expanword+'","'+myWords[i].word+'","'+myWords[i].origword+'"'+rmExword+']';
+      }
+      thistext+='{"index":"'+index+'",'+token+","+rule_match+',"reading":"'+myWitRdgs[j].witness+'",'+original+expanded+xmlWordStr+punctbeforeStr+punctafterStr+'}';
+      if (i<myWords.length-1) thistext+=',';
+    }
+    thistext+=']}'
+    if (j<myWitRdgs.length-1) thistext+=',';
+  }
 //  console.log(thistext);
   return(thistext);
 }
 
+router.post('/isAlreadyCommunity', function(req, res, next) {
+  Community.findOne({$or: [{abbr: req.query.abbr}, {name: req.query.name}]}, function(err, community) {
+//    console.log("checking for community")
+    if (!community) {
+      res.json({success: 1});
+    } else {
+//        console.log(community);
+        var message="There is already a community with the name \""+req.query.name+"\" and/or abbreviation \""+req.query.abbr+"\"."
+        res.json({success:0, message: message});
+      }
+  });
+});
+
 router.post('/baseHasEntity', function(req, res, next) {
   TEI.findOne({docs: ObjectId(req.query.docid), entityName: req.query.entityName}, function(err, tei){
-    console.log(tei);
+//    console.log(tei);
     if (!tei) res.json({success: 0})
     else res.json({success: 1})
   });
 });
+
+router.post('/markEntityCollated', function(req, res, next){
+  console.log("mark collation for "+req.query.entity);
+  Entity.update({entityName:req.query.entity, isTerminal:true}, {$set:{hasCollation:true}}, function (err, result){
+    console.log(err);
+    res.json({status:true});
+  })
+})
+
+router.post('/putCollation', function(req, res, next){
+  //if there is one already, updates, if not, insertedI
+  console.log("saving the collation now");
+  console.log(req.body);
+  Collation.update({community:req.query.community, entity:req.query.entity, id:req.query.community+'/'+req.query.entity+'/'+req.query.status, model:"collation", status:req.query.status}, {$set: {ce: req.body.collation.ce}}, {upsert: true}, function(err) {
+    console.log(err);
+    if (!err) res.json({success:true}) ;
+    else res.json({success:false});
+  });
+});
+
+router.post('/getRulesByIds', function(req, res, next){
+  Collation.find({community: req.query.community, id: {$in: req.body.findByIds}}, function(err, rules){
+    if (rules.length) {
+      var rulesByIds=[];
+      rules.forEach(function(rule) {
+        rulesByIds.push(JSON.parse(rule.ce));
+      });
+      res.json(rulesByIds);
+    } else res.json([]);
+  })
+});
+
+
+router.get('/isAlreadyCollation', function(req, res, next) {
+  console.log("entity "+req.query.entity+" status "+req.query.status+" commiunity "+req.query.community);
+  Collation.find({entity:req.query.entity, model:"collation", status: req.query.status, community: req.query.community}, function(err, found){
+    console.log(err);
+    if (found.length>0) res.json({status:true});
+    else res.json({status:false});
+  })
+});
+
+//for this verse, pull everu case of an exception in the global rules..ie find all globals, check if this verse is an exception
+router.get('/getRuleExceptions', function(req, res, next){
+  Collation.find({community:req.query.community, scope: 'always'}, function(err, rules) {
+    if (rules.length) {
+      var ruleExceptions=[];;
+      rules.forEach(function(rule) {
+          //is there an exception for this verse here...
+          console.log("rule exceptions");
+          console.log(rule);
+          var thisRule = JSON.parse(rule.ce);
+          console.log(thisRule)
+			    if (thisRule.exceptions && thisRule.exceptions.indexOf(req.query.entity) !== -1) {
+						ruleExceptions.push(thisRule);
+			    }
+      });
+      console.log(ruleExceptions);
+      res.json(ruleExceptions);
+    }
+    else res.json([]);
+  })
+});
+
+router.get('/loadSavedCollation', function(req, res, next) {
+  Collation.findOne({id:req.query.id}, function(err, result) {
+    if (!err) res.json({"status": true, "result": result.ce});
+    else res.json({"status":false});
+  });
+});
+
+router.get('/getRegularizationRules', function(req, res, next){
+    //we don't want to get
+    var rulesFound=[];
+    Collation.find({community:req.query.community, model:"regularization",$or:  [ { entity: req.query.entity }, { scope: 'always' } ]}, function(err, rules){
+      if (rules.length) {
+         rules.forEach(function(rule) {
+           // exceptions handled back in calling function (coould do here; might slightly reduce network traffic)
+           rulesFound.push(rule.ce)
+        });
+      }
+      res.json(rulesFound);
+    });
+});
+
+
+// this removes BOTH global and local regularization rules
+
+router.post('/deleteRules', function (req, res, next) {
+  Collation.remove({id: {$in:req.body.delete}, community:req.query.community, model:"regularization"}, function(result){
+    res.json({success:0});
+  })
+});
+
+router.post('/addCEGlobalExceptions', function (req, res, next) {
+  console.log(req.body);
+  Collation.find({id:{$in: req.body.exceptions}, model:"regularization"}, function(err, exceptions){
+    console.log(exceptions.length);
+//    res.json({success:0})
+    async.each(exceptions,
+      function(exception, callback) {
+        var ce=JSON.parse(exception.ce);
+        console.log(ce);
+        if (ce.hasOwnProperty('exceptions')) {
+                if (ce.exceptions.indexOf(req.query.entity) === -1 && req.query.entity) {
+                  ce.exceptions.push(req.query.entity);
+                }
+            } else {
+                ce.exceptions = [req.query.entity];
+            }
+        Collation.updateOne({id:exception.id, scope:'always', model:"regularization"}, {$set: {ce: JSON.stringify(ce)}}, function (err, result){
+          callback(err)
+        })
+      },
+      function(err) {
+        res.json({success:0})
+      });
+  });
+});
+
+//pass in the entire addition array to do this with one internet call
+//bit of a wrinkle here... could be we are trying to update an exception to a global rule
+//in that case: delete the existing global rule then add the new one with its new ce
+router.post('/putCERuleSet', function(req, res, next) {
+  //so let's check -- only affects removal of exceptions to always rules.
+  //in these cases, we need to remove the old version of the always rule before adding the new one
+  console.log('add these')
+  console.log(req.body.ruleSet);
+  var deleteRules=[];
+  for (var i=0; i<req.body.ruleSet.length; i++) {
+    if (req.body.ruleSet[i].scope=="always") deleteRules.push(req.body.ruleSet[i].id);
+  }
+  console.log(deleteRules);
+  if (deleteRules.length>0) {
+    Collation.remove({id: {$in: deleteRules}, model:"regularization"}, function(result){
+      Collation.insertMany(req.body.ruleSet, function(result){
+        res.json({success: 0});
+      });
+    });
+  } else {
+    Collation.insertMany(req.body.ruleSet, function(result){
+      res.json({success: 0});
+    });
+  }
+  //how about just this-- remove all records which have same globalid...? that should work...
+
+
+  //let's make an entry in the collation table...
+//  Collation.update({'entity':req.query.entity, 'id':req.query.id}, {$set: {ce: req.body.resource, community: req.query.community, 'scope':req.query.scope}}, { upsert: true }, function (err, result){
+//      res.json({success: 0})
+//  })
+});
+
 // wrinkle: populate witnesses field from documents array...
 //now: use what is in ceconfig witnesses
 router.get('/ceconfig', function(req, res, next) {
@@ -1570,7 +1818,7 @@ router.get('/ceconfig', function(req, res, next) {
     //now get the witnesses
 //    console.log("looking for ce "+community)
 //  if ceconfig.witnesses is not empty -- use it!!!
-    if (community.ceconfig.witnesses.length>0) res.json(community.ceconfig);
+    if (community.ceconfig.witnesses && community.ceconfig.witnesses.length>0) res.json(community.ceconfig);
     else {
       async.mapSeries(community.documents, function(document, callback) {
         Doc.findOne({_id: ObjectId(document)}, function(err, myDoc){

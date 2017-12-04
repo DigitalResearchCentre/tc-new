@@ -9,6 +9,7 @@ var mongoose = require('mongoose')
   , TEI = require('./tei')
   , Revision = require('./revision')
   , Entity = require('./entity')
+  , Collation = require('./collation')
 ;
 
 Doc.Entity = Entity;
@@ -36,7 +37,7 @@ var InvitationSchema = new Schema({
 
 
 
-
+//guys: this is the boss which determines what collections get set up in the database
 module.exports = {
   Community: Community,
   User:  require('./user'),
@@ -44,5 +45,6 @@ module.exports = {
   Entity: Entity,
   TEI: TEI,
   Revision: Revision,
+  Collation: Collation,
   Action: mongoose.model('Action', ActionSchema),
 };

@@ -21,8 +21,8 @@ var AddDocumentXMLComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    CommunityService, UIService, DocService, function(
-      communityService, uiService, docService
+     CommunityService, UIService, DocService, function(
+        communityService, uiService, docService
     ) {
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
@@ -122,19 +122,19 @@ var AddDocumentXMLComponent = ng.core.Component({
           mypage=self.state.page;
           //add teiheader to document
           teiHeader=teiHeader.trim();
-          teiHeader=teiHeader.replace(/(\r\n|\n|\r)/gm,"");
+          teiHeader=teiHeader.replace(/(\r\n|\n\r|\r|\n)/gm,"\\r");
+          teiHeader=teiHeader.replace(/(\t)/gm,"\\t");
           teiHeader=teiHeader.replace(/"/g, '\\"');
           teiHeader=teiHeader.replace(/'/g, "\\'");
-          var jsoncall='[{"_id":"'+mydoc.attrs._id+'"},{"$set": {"teiHeader":"'+teiHeader+'"}}]';
+          var jsoncall=JSON.parse(JSON.stringify('[{"_id":"'+mydoc.attrs._id+'"},{"$set": {"teiHeader":"'+teiHeader+'"}}]'));
           UpdateDbService("Document", jsoncall, function(result){
             if (result!="success") {
               self.message="The save failed. Maybe you have lost your internet connection.";
               self.success="";
             }
           });
-          setTimeout(function(){self.uiService.showDocument$.emit({doc: mydoc, page:mypage})}, 1000);
-  //        self.closeModalADX();
-        }, function(err) {
+          //is this community visible...
+          }, function(err) {
           var errbody=JSON.parse(err._body)
           self.message = errbody.message;
         });

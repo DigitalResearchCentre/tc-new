@@ -1,6 +1,7 @@
 var CommunityService = require('./services/community')
   , UIService = require('./services/ui')
   , RESTService = require('./services/rest')
+  , config = require('./config')
 ;
 
 
@@ -63,12 +64,12 @@ var EditCommunityComponent = ng.core.Component({
         haspicture: false,
         image: "",
       };
-      //load ceconfig
-       this._restService.http.get('/app/data/CollEditorConfig.json').subscribe(function(colledfile) {
+      //load ceconfig. We don't do this now.
+    /*   this._restService.http.get('/app/data/CollEditorConfig.json').subscribe(function(colledfile) {
          var dummy="";
          dummy=colledfile._body;
          self.edit.ceconfig=JSON.parse(dummy);  //also kind of hacky
-       });
+       }); */
     }
   },
   fileTooBig: function(){
@@ -132,19 +133,40 @@ var EditCommunityComponent = ng.core.Component({
   reader.readAsDataURL(file);
   },
   submit: function() {
-    //is there a community with this name?
+    //is there a community with this name? check before we do any more validation!
     var communityService = this._communityService
       , self=this
     ;
     this.message=this.success="";
-    communityService.createCommunity(this.edit).subscribe(function(community) {
-      self.success='Community "'+self.edit.name+'" saved';
-      if ($('#PreviewImg')) $('#PreviewImg').remove();
-      self.initEdit(community);
-      document.getElementById("ECSuccess").scrollIntoView(true);
-    }, function(err) {
-      self.message = err.json().message;
-      document.getElementById("ECMessage").scrollIntoView(true);
+    //is it a new community? or update to existing community?
+    //if editing existing: state community will be identical to this one. else it will be new
+    if (this.community && (this.community._id==this._uiService.state.community._id)) {
+      var bill=1;
+      communityService.createCommunity(this.edit).subscribe(function(community) {
+        self.success='Community "'+self.edit.name+'" saved';
+//        if ($('#PreviewImg')) $('#PreviewImg').remove();
+//        self.initEdit(community);
+        document.getElementById("ECSuccess").scrollIntoView(true);
+      });
+    }
+    else $.post(config.BACKEND_URL+'isAlreadyCommunity?'+'abbr='+this.edit.abbr+'&name='+this.edit.name, function(res) {
+      if (res.success=="1")   {
+          communityService.createCommunity(self.edit).subscribe(function(community) {
+            self.success='Community "'+self.edit.name+'" saved';
+            if ($('#PreviewImg')) $('#PreviewImg').remove();
+            self.initEdit(community);
+            document.getElementById("ECSuccess").scrollIntoView(true);
+            //change to view this Community
+            window.location="/app/community/?id="+community._id+"&route=view"
+            //switch to view community
+          }, function(err) {
+            self.message = err.json().message;
+            document.getElementById("ECMessage").scrollIntoView(true);
+          });
+      } else {
+        self.message = res.message;
+        document.getElementById("ECMessage").scrollIntoView(true);
+      }
     });
   },
   upload: function (file) {

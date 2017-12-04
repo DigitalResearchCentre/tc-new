@@ -30,6 +30,7 @@ var ManageModalComponent = ng.core.Component({
     require('./reorderdocument.component'),
     require('./addbulkimages.component'),
     require('./editcollation.component'),
+    require('./addzip.component'),
   ],
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -74,7 +75,10 @@ var ManageModalComponent = ng.core.Component({
       } else if (event.type === 'edit-page') {
         self.choice = event.type;
         self.page = event.page;
-      } else if (event.type === 'edit-new-page') {
+      } else if (event.type === 'add-zip') {
+        self.choice = event.type;
+        self.document = event.document;
+      }else if (event.type === 'edit-new-page') {
         self.choice = event.type;
         self.page = event.page;
         self.context = event.context;

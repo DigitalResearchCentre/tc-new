@@ -1,0 +1,23 @@
+<div style="font-size: 110%; height:100%; position: fixed; width: 580px">
+  <div modal-draggable class="modalHeader">Add images in zip file to document "{{document.attrs.name}}"
+    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+    <form>
+      <div *ngIf="message.length>0"  style="margin: 15px; height: 120px; overflow-y: auto;" [innerHTML]="message">
+      </div>
+      <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 3px; margin-top: 3px">
+        {{success}}
+      </div>
+      </form>
+    <!-- div id="MMADXTdiv" class="form-group" style="width: 100%; margin-top: 8px; margin-left: 20px; margin-right: 20px">
+      <label style="display: inline-block; vertical-align: top">XML&nbsp;&nbsp;</label>
+      <textarea [(ngModel)]="text" rows="11" cols="40">
+      </textarea>
+    </div-->
+    <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; width:100%; text-align: center;">
+      <tc-zipfilereader (filechange)="filechange($event)" style="margin-top: 5px; width:100%; text-align: center;"></tc-zipfilereader>
+      <div style="margin-top: 10px">
+        <button type="button" class="btn btn-primary" (click)="submit()">Load</button>
+      </div>
+    </div>
+  </div>

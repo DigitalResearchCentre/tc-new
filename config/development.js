@@ -5,7 +5,7 @@ module.exports = {
     username: '',
     password:''
   },
-  port: 8080,
+  port: 3000,
   BACKEND_URL: 'http://localhost:3000/api/',
   logFormat: 'dev',
 };

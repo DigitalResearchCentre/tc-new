@@ -1,7 +1,7 @@
 var mongoose = require('mongoose')
   , bcrypt = require('bcrypt')
   , Schema = mongoose.Schema
-  , ObjectId = Schema.Types.ObjectId   
+  , ObjectId = Schema.Types.ObjectId
 ;
 
 // define the schema for our user model.

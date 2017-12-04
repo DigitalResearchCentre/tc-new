@@ -11,7 +11,7 @@ const MultipleRootError = Error.extend('MultipleRootError');
 const ParentNotFound = Error.extend('ParentNotFound');
 
 function _idEqual(id1, id2) {
-  return ObjectId.isValid(id1) && ObjectId.isValid(id2) && 
+  return ObjectId.isValid(id1) && ObjectId.isValid(id2) &&
     (new ObjectId(id1)).equals(id2);
 }
 
@@ -164,6 +164,7 @@ const _statics = {
     return nodes;
   },
   _loadChildren(nodeData) {
+    console.log("node data: "); console.log(nodeData);
     const cls = this;
     return _.map(nodeData.children, function(childData) {
       cls._assignId(childData);
@@ -379,7 +380,7 @@ const _statics = {
 function extendNodeSchema(modelName, schema, options) {
   const nodeSchema = new Schema(_.assign({
     ancestors: {
-      type: [{type: Schema.Types.ObjectId, ref: modelName}], 
+      type: [{type: Schema.Types.ObjectId, ref: modelName}],
       index: true,
     },
     children: {
@@ -396,4 +397,3 @@ function extendNodeSchema(modelName, schema, options) {
 };
 
 module.exports = extendNodeSchema;
-

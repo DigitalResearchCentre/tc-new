@@ -20,14 +20,17 @@
             <a (click)="selectDoc(doc)">
               {{doc.attrs.name}}
             </a>&nbsp;
-            <a target="_blank" (click)="editTEIHeader(doc)" data-toggle="tooltip" title="Edit TEI header">
-              <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/teiheader.png">
+            <a target="_blank" (click)="addZipImages(doc)" data-toggle="tooltip" title="Add images in zip file">
+              <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/zip-file-load.png">
             </a>
             <a *ngIf="docLacksImages(doc)" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
               <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/camera-multiple-missing.png">
             </a>
             <a *ngIf="!docLacksImages(doc)" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
               <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/camera-multiple.png">
+            </a>
+            <a target="_blank" (click)="editTEIHeader(doc)" data-toggle="tooltip" title="Edit TEI header">
+              <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/teiheader.png">
             </a>
             <a target="_blank" (click)="reorderDocument(doc)" data-toggle="tooltip" title="Reorder or rename pages">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/reorderdoc.png">
@@ -143,7 +146,7 @@
             </span>
             <span *ngIf="entity.isTerminal">
             <a (click)="selectEntity(entity)">
-              {{entity.attrs.name}}
+              {{entity.attrs.name}} X
             </a></span>
           </div>
           <ul>
@@ -156,7 +159,7 @@
                 </span>
                 <span *ngIf="subEntity.isTerminal">
                 <a (click)="selectEntity(subEntity)">
-                  {{subEntity.name}}
+                  {{subEntity.name}} XX
                 </a></span>
               </div>
               <ul>
@@ -170,7 +173,7 @@
                     <span *ngIf="subSubEntity.isTerminal">
                     <a (click)="selectEntity(subSubEntity)">
                       {{subSubEntity.name}}
-                    </a></span>
+                    </a></span><span data-toggle="tooltip" title="Collation recorded" style="font-weight: bold; color: red" *ngIf="subSubEntity.hasCollation">C</span>
                   </div>
                   <ul>
                     <li *ngFor="#subSubSubEntity of subSubEntity.entities"
@@ -182,7 +185,7 @@
                         </span>
                         <span *ngIf="subSubSubEntity.isTerminal">
                         <a (click)="selectEntity(subSubSubEntity)">
-                          {{subSubSubEntity.name}}
+                          {{subSubSubEntity.name}} XXXX
                         </a></span>
                       </div>
                     </li>

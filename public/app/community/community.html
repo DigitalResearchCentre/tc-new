@@ -1,4 +1,4 @@
-<nav class="community-header navbar navbar-default">
+<nav class="community-header navbar navbar-default" *ngIf="state.community">
   <div class="navbar-header">
     <button type="button" class="navbar-toggle collapsed"
       data-toggle="collapse" data-target="#header-navbar-collapse-1"
@@ -25,7 +25,7 @@
   </div>
 </nav>
 <tc-manage-community *ngIf="state.community" [community]="state.community"></tc-manage-community>
-<div [ngSwitch]="route">
+<div *ngIf="state.community" [ngSwitch]="route">
   <tc-community-home *ngSwitchWhen="'home'"></tc-community-home>
   <tc-community-about *ngSwitchWhen="'about'"></tc-community-about>
   <tc-community-view *ngSwitchWhen="'view'"></tc-community-view>
@@ -37,3 +37,4 @@
      id="tc-edit-community" [community]="state.community"></tc-edit-community>
   <tc-community-home *ngSwitchDefault ></tc-community-home>
 </div>
+<tc-home *ngIf="state.community==null"></tc-home>

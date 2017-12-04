@@ -16,6 +16,7 @@ var CommunityComponent = ng.core.Component({
     require('./view.component'),
     require('./manage.component'),
     require('../editcommunity.component'),
+    require('../home.component'),
   ],
 }).Class({
   constructor: [
@@ -41,7 +42,11 @@ var CommunityComponent = ng.core.Component({
       , uiService = this._uiService
     ;
     this.route = route;
-    this._communityService.selectCommunity(id);
+    //now, could be refresh after we deleted a community. in that case...don't try and select it!
+    if (this._uiService.state.myCommunities[this._uiService.state.myCommunities.findIndex(x => x._id == id)]
+      || this._uiService.state.publicCommunities[this._uiService.state.publicCommunities.findIndex(x => x._id == id)])
+      this._communityService.selectCommunity(id);
+    //else: leave community at null
   },
   navigate: function(route) {
     var community = this.state.community;

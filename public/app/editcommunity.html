@@ -6,18 +6,18 @@
       {{message}}</div>
   </div>
     <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
-    <input type="text" style="display: inline-block" placeholder="(20 characters maximum)"
+    <input type="text" style="display: inline-block; border-color:#FF8C00; border-width: 3px; border-style: solid;" placeholder="(20 characters maximum)ds"
     [(ngModel)]="edit.name">
-    <seg *ngIf="!community">
+    <seg *ngIf="!community" class="">
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <label>Abbreviation</label>
       <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;">
       </span>
-      <input type="text" placeholder="(4 characters maximum)"
+      <input type="text" style="display: inline-block; border-color:#FF8C00; border-width: 3px; border-style: solid;" placeholder="(4 characters maximum)"
       [(ngModel)]="edit.abbr">
     </seg>
   </div>
-  <hr style="border: 1px solid #8c8b8b;">
+  <hr style="border: 1px solid #8c8b8b; margin-top: 12px; margin-bottom:12px">
   <div class="form-group" *ngIf="community" style="margin-right:15px; margin-left: 15px">
     <label>Abbreviation</label> <span> {{edit.abbr}}  (cannot alter)</span>
   </div>
@@ -28,7 +28,7 @@
   </div>
   <div class="form-group" style="margin-right:15px; margin-left: 15px">
     <label>Description</label>
-    <textarea class="form-control" rows="8" cols="50" placeholder="Description (you can include HTML)"
+    <textarea class="form-control" rows="4" cols="50" placeholder="Description (you can include HTML)"
       [(ngModel)]="edit.description"></textarea>
   </div>
   <div class="form-group" style="margin-right:15px; margin-left: 15px">

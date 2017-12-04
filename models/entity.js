@@ -9,6 +9,7 @@ const EntitySchema = extendNodeSchema('Entity', {
   entityName: String,
   ancestorName: String,
   isTerminal: Boolean,
+  hasCollation: Boolean,
   childOrder: [],
 }, {
   statics: {

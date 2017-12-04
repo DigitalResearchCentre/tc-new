@@ -374,14 +374,14 @@ var ViewerComponent = ng.core.Component({
         });
     });
   },
-  commit: function(text) {
-    this._uiService.requestEditorText$.emit("commit");
+  commit: function() { //no fucking about. Just put the editor into state each time it changes and there we are
+/*    this._uiService.requestEditorText$.emit("commit");
   },
-  commitSend: function(text) {
+  commitSend: function(text) { */
     var docService = this._docService
       , page = this.page
       , revision = this.revision
-      , contentText = text
+      , contentText = this.state.editor.getValue()
       , community = this.community
       , state = this.state
     ;
