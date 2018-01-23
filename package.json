@@ -32,6 +32,7 @@
     "font-awesome": "^4.6.1",
     "gridfs-stream": "^1.1.1",
     "jquery": "^2.2.2",
+    "jszip": "^3.1.5",
     "libxmljs": "^0.18.0",
     "lodash": "^4.9.0",
     "mongodb": "^2.1.16",
