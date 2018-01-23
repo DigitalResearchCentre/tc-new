@@ -3,27 +3,28 @@
 
 <h4>Member Profile for {{authUser.attrs.local.name}}</h4>
   <p style="margin:3px">This account is associated with the email address {{authUser.attrs.local.email}}</p>
+  <p *ngIf="authUser.attrs.facebook || authUser.attrs.google || authUser.attrs.twitter " style="margin:3px">You can log in by <span *ngIf="authUser.attrs.facebook" class="fa fa-facebook"><img height="32" src="../images/facebook.png"> Facebook</span> <span *ngIf="authUser.attrs.google"><img height="32" src="../images/google.png"> Google</span> <span *ngIf="authUser.attrs.twitter"><img height="32" src="../images/twitter.png"> Twitter</span></p>
   <div *ngIf="nmemberships">
     <p>You belong to {{nmemberships}} <span *ngIf="nmemberships>1">communities:</span><span *ngIf="nmemberships==1">community:</span></p>
     <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
       <thead>
         <tr>
-          <th style="border-bottom-width:0px" class="col-md-1">Name</th>
-          <th style="border-bottom-width:0px" class="col-md-1">Long name</th>
+          <th style="border-bottom-width:0px" class="col-md-1">Abbrev</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Name</th>
           <th style="border-bottom-width:0px" class="col-md-5">Description</th>
           <th style="border-bottom-width:0px" class="col-md-1">Role</th>
-          <th style="border-bottom-width:0px" class="col-md-2">Joined</th>
+          <th style="border-bottom-width:0px" class="col-md-1">Joined</th>
           <th style="border-bottom-width:0px" class="col-md-2">&nbsp;</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="#membership of memberships" class="commMembership">
-          <td  style="border-top-width:0px">{{membership.community.attrs.name}}</td>
-          <td style="border-top-width:0px">{{membership.community.attrs.longName}}</td>
+          <td  style="border-top-width:0px">{{membership.community.attrs.abbr}}</td>
+          <td style="border-top-width:0px">{{membership.community.attrs.name}}</td>
           <td style="border-top-width:0px"><p [innerHTML]="membership.community.attrs.description"></p></td>
           <td style="border-top-width:0px">{{membership.role}}</td>
           <td style="border-top-width:0px">{{formatDate(membership.created)}}</td>
-          <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="isLeader(membership.community)" type="button" class="btn btn-primary btn-sm"
+          <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="membership.role=='CREATOR' || membership.role=='LEADER'" type="button" class="btn btn-primary btn-sm"
               (click)="navigate(membership.community, 'edit')">Edit</button>&nbsp;<button type="button" class="btn btn-primary btn-sm"
                   (click)="navigate(membership.community,'view')">View</button></td>
         <!-- td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td -->
@@ -35,17 +36,17 @@
     <p>You can join these communities:</p>
     <table class="table" style="border-spacing: 10px 2px; border-collapse: separate; width: 100%">
       <thead>
-        <tr><th style="border-bottom-width:0px" class="col-md-1">Name</th>
-          <th style="border-bottom-width:0px" class="col-md-2">Long name</th>
+        <tr><th style="border-bottom-width:0px" class="col-md-1">Abbrev</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Name</th>
           <th style="border-bottom-width:0px" class="col-md-6">Description</th>
           <th style="border-bottom-width:0px" class="col-md-2">Join status</th>
           <th style="border-bottom-width:0px" class="col-md-1">&nbsp;</th></tr>
       </thead>
       <tbody>
-        <tr *ngFor="#community of joinableCommunities()"
+        <tr *ngFor="#community of joinableCommunities"
           class="commMembership">
-          <td style="border-top-width:0px">{{community.attrs.name}}</td>
-          <td  style="border-top-width:0px">{{community.attrs.longName}}</td>
+          <td style="border-top-width:0px">{{community.attrs.abbr}}</td>
+          <td  style="border-top-width:0px">{{community.attrs.name}}</td>
           <td  style="border-top-width:0px"><p [innerHTML]="community.attrs.description"></p></td>
           <td  style="border-top-width:0px">
               <span *ngIf="!community.attrs.autoaccept">Membership must be approved</span>

@@ -37,6 +37,7 @@ var userSchema = Schema({
     community: {type: ObjectId, ref: 'Community'},
     role: String,
     created: {type: Date, default: Date.now},
+    pages:{}
   }],
 });
 

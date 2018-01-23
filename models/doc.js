@@ -53,6 +53,9 @@ var DocSchema = extendNodeSchema('Doc', {
       } else {
         docEl = {name: self.label, attrs: {n: self.name}};
       }
+//      console.log("we are putting a doc in here");
+//      console.log(communityAbbr);
+//      console.log(docEl)
       globalDoc=docRoot;
       globalCommAbbr=communityAbbr;
 //      console.log("teiroot")
@@ -77,6 +80,7 @@ var DocSchema = extendNodeSchema('Doc', {
             let tei = new TEI({
               name: self.label,
               docs: self.ancestors.concat(self._id),
+              community: communityAbbr
             });
             if (!_.isEmpty(leftBound)) { //Xiaohan did not spot this one. Aren't I clever!
               if (self.facs) {
@@ -137,7 +141,6 @@ var DocSchema = extendNodeSchema('Doc', {
       deleteTeis = deleteTeis.concat(results.deleteTeis);
       updateTeis = results.updateTeis;
       origUpdateTeis=updateTeis;
-
       if (errors.length > 0) {
         return callback(new CheckLinkError(errors.join('<br/>')));
       }
@@ -295,6 +298,9 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(argument, cb1) {
           if (docs.length > 0) {
+  //          console.log("all our docs"); console.log(docs);
+            //add community to each one
+            docs.forEach(function(eachDoc){eachDoc.community=globalCommAbbr})
             Doc.collection.insert(docs, function(err) {
               cb1(null, []);
             });
@@ -441,6 +447,7 @@ var DocSchema = extendNodeSchema('Doc', {
           },
           function(argument, cb1) {
             if (insertTeis.length > 0) {
+      //        insertTeis.forEach(function(eachTEI){eachTEI.community=globalCommAbbr})
               TEI.collection.insert(insertTeis, function(err) {
                 cb1(err, self);
               });
@@ -527,7 +534,7 @@ var DocSchema = extendNodeSchema('Doc', {
     clean: function(data) {
       const nodeData = _.defaults(
         {}, _.pick(data, [
-          '_id', 'name', 'label', 'image', 'children', 'community', 'ancestors', 'facs', 'image'
+          '_id', 'name', 'label', 'image', 'children', 'community', 'ancestors', 'facs', 'image', 'teiHeader'
         ]), {
           ancestors: [],
           children: [],

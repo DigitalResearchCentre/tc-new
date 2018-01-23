@@ -63,6 +63,7 @@ var ViewerComponent = ng.core.Component({
     var self=this;
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
       self.isText=res.isThisPageText;
+//      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
     });
     var self = this
       , community = this.community
@@ -130,9 +131,6 @@ var ViewerComponent = ng.core.Component({
       , page = this.page
       , self = this
     ;
-/*    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.document._id+'&pageid='+this.page._id, function(res) {
-      this.isText=res.isThisPageText;
-    }); */
     if (page) {
       this.contentText = '';
       docService.getLinks(page).subscribe(function(links) {
@@ -148,10 +146,15 @@ var ViewerComponent = ng.core.Component({
         });
       });
     }
+    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
+      self.isText=res.isThisPageText;
+      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
+    });
     this.onImageChange();
   },
   isPrevPage: function(page, document) {
-    //could be just created the doc, so no pages yet...
+    //could be just created the doc, so no pages yet...e
+    if (!document) return(false);
     if (!document.attrs.children) return(false);
     if (document.attrs.children.length==0) return(false);
     if (page._id==document.attrs.children[0]._id) return(false);
@@ -182,6 +185,7 @@ var ViewerComponent = ng.core.Component({
       }
   },
   isNextPage: function(page, document) {
+    if (!document) return(false);
     if (!document.attrs.children) return(false);
     if (document.attrs.children.length==0) return(false);
     if (page._id==document.attrs.children[document.attrs.children.length-1]._id) return(false);

@@ -9,7 +9,7 @@ var auth = {
 };
 
 
-exports.nodemailerMailgun = nodemailer.createTransport(mg(auth));
+exports.localmailer = nodemailer.createTransport(mg(auth));
 
 exports.addresses = {
 	from: 'peter@sd-editions.com',

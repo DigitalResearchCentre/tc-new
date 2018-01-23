@@ -46,11 +46,16 @@ var AddDocumentComponent = ng.core.Component({
         self.message='Document "'+self.doc.name+' "already exists';
         return;
     } else {
+        var now = new Date();
+        var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        var teiHeader='<teiHeader>\r<fileDesc>\r<titleStmt>\r<title>A transcription of document '+this.doc.name+'\r</title>\r</titleStmt>\r<publicationStmt>\r<p>Prepared within the Textual Communities system</p>\r</publicationStmt>\r<sourceDesc>\r<p>Created as a new document within community '+community.attrs.abbr+'</p>\r</sourceDesc>\r</fileDesc>\r<revisionDesc>\r<change when="'+now+'">Created on '+days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear()+' by '+state.authUser.attrs.local.name+' ('+state.authUser.attrs.local.email+')</change>\r</revisionDesc>\r</teiHeader>';
+        this.doc.teiHeader=teiHeader;
         this.doc.community=community.attrs.abbr;
         this._docService.commit({
           doc: this.doc,
         }, {
-          community: community.getId(),
+          community: community.getId()
         }).subscribe(function(doc) {
           $('#MMADdiv').css("margin-top", "0px");
           $('#MMADbutton').css("margin-top", "10px");

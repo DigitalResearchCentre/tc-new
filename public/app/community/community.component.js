@@ -16,7 +16,7 @@ var CommunityComponent = ng.core.Component({
     require('./view.component'),
     require('./manage.component'),
     require('../editcommunity.component'),
-    require('../home.component'),
+    require('./members.component'),
   ],
 }).Class({
   constructor: [

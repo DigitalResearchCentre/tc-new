@@ -165,7 +165,7 @@ var DocService = ng.core.Injectable().Class({
       , teiRoot = {}
     ;
     if (text) {
-      console.log("PRtext is "+text);
+//      console.log("PRtext is "+text);
       var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
         , docQueue = []
@@ -479,7 +479,9 @@ function checkPagePrevLinks(teiRoot, prevs) {
   _.dfs([teiRoot], function(el) {
     if (el.name === 'pb') {
       return false;
-    } else if (el.name !== '#text' || (el.text || '').trim() !== '') {
+    } else if (el.name !== '#text' || (el.text || '').trim() !== '') {  
+    //seems to be a bug here.. prevs[i] can go out of scope in cases of pages being added
+      if (!prevs[i]) return false;
       if (teiElementEqual(prevs[i], el)) {
         prev = prevs[i]
         i += 1;
@@ -528,7 +530,7 @@ function parseTEI(text) {
       cur = iter.iterateNext();
     }
   }); */
-  console.log("xmldoc"); console.log(xmlDoc);
+//  console.log("xmldoc"); console.log(xmlDoc);
   return xmlDoc;
 }
 

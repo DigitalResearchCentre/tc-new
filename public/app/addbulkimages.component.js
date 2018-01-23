@@ -128,10 +128,6 @@ var AddBulkImagesComponent = ng.core.Component({
 					if (self.document.attrs.children.length==0 && !state.lastDocCreated) options.parent=self.document;
 					else if (self.document.attrs.children.length>0 && !state.lastDocCreated) options.after=self.document.attrs.children[self.document.attrs.children.length];
 					else if (state.lastDocCreated) options.after=state.lastDocCreated;
-					if (options=={}) {
-						alert("something wrong here");
-						return;
-					}
 					var myDoc={name: splitname, image: image, label: "pb", children:[],}
 					docService.commit({
 						doc: myDoc,
