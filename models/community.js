@@ -25,6 +25,7 @@ var CommunitySchema = new Schema({
   css: String,
   js: String,
   dtd: String,
+  members: [{type: ObjectId, ref: 'User'}],
   ceconfig: {},
   documents: [{type: ObjectId, ref: 'Doc'}],
   entities: [],

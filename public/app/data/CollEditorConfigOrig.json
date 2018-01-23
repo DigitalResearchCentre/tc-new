@@ -1,0 +1,190 @@
+{
+    "_id": "default",
+    "project": "My Community",
+    "V_for_supplied": true,
+    "book_name": "John",
+    "language": "grc",
+    "book": 4,
+    "base_text": "Base",
+    "managing_editor": "default",
+    "editors": ["default"],
+    "local_python_implementations": {
+        "prepare_t": {
+            "python_file": "collation.greek_implementations",
+            "class_name": "PrepareData",
+            "function": "prepare_t"
+        },
+        "set_rule_string": {
+            "python_file": "collation.greek_implementations",
+            "class_name": "PrepareData",
+            "function": "set_rule_string"
+        }
+    },
+    "rule_conditions": {
+        "python_file": "collation.greek_implementations",
+        "class_name": "RuleConditions",
+        "configs": [
+            {
+                "id": "ignore_supplied",
+                "label": "Ignore supplied markers",
+                "linked_to_settings": true,
+                "setting_id": "view_supplied",
+                "function": "ignore_supplied",
+                "apply_when": true,
+                "check_by_default": false,
+                "type": "string_application"
+            },
+            {
+                "id": "ignore_unclear",
+                "label": "Ignore unclear markers",
+                "linked_to_settings": true,
+                "setting_id": "view_unclear",
+                "function": "ignore_unclear",
+                "apply_when": true,
+                "check_by_default": false,
+                "type": "string_application"
+            },
+            {
+                "id": "only_nomsac",
+                "label": "Only apply to Nomina Sacra",
+                "linked_to_settings": false,
+                "function": "match_nomsac",
+                "apply_when": true,
+                "check_by_default": false,
+                "type": "boolean"
+            }
+        ]
+    },
+    "display_settings_config": {
+        "python_file": "collation.greek_implementations",
+        "class_name": "ApplySettings",
+        "configs": [
+            {
+                "id": "view_supplied",
+                "label": "view supplied text",
+                "function": "hide_supplied_text",
+                "menu_pos": 1,
+                "execution_pos": 2,
+                "check_by_default": true,
+                "apply_when": false
+            },
+            {
+                "id": "view_unclear",
+                "label": "view unclear text",
+                "function": "hide_unclear_text",
+                "menu_pos": 2,
+                "execution_pos": 4,
+                "check_by_default": true,
+                "apply_when": false
+            },
+            {
+                "id": "view_capitalisation",
+                "label": "view capitalisation",
+                "function": "lower_case_greek",
+                "menu_pos": 4,
+                "execution_pos": 2,
+                "check_by_default": true,
+                "apply_when": false
+            },
+            {
+                "id": "use_lemma",
+                "function": "select_lemma",
+                "menu_pos": null,
+                "execution_pos": 1,
+                "check_by_default": true,
+                "apply_when": true
+            },
+            {
+                "id": "expand_abbreviations",
+                "label": "expand abbreviations",
+                "function": "expand_abbreviations",
+                "menu_pos": 5,
+                "execution_pos": 1,
+                "check_by_default": true,
+                "apply_when": true
+            },
+            {
+              "id": "show_punctuation",
+              "label": "show punctuation",
+              "function": "show_punctuation",
+              "menu_pos": 6,
+              "execution_pos": 8,
+              "check_by_default": false,
+              "apply_when": true
+          }
+        ]
+    },
+    "regularisation_classes": [
+        {
+            "name": "None",
+            "linked_appendix": false,
+            "keep_as_main_reading": false,
+            "create_in_SV": false,
+            "suffixed_label": false,
+            "value": "none",
+            "suffixed_reading": false,
+            "create_in_RG": true,
+            "create_in_OR": true,
+            "subreading": false,
+            "suffixed_sigla": false
+        },
+        {
+            "name": "Reconstructed",
+            "linked_appendix": false,
+            "keep_as_main_reading": false,
+            "create_in_SV": true,
+            "suffixed_label": false,
+            "value": "reconstructed",
+            "suffixed_reading": false,
+            "create_in_RG": false,
+            "create_in_OR": true,
+            "subreading": false,
+            "identifier": "V",
+            "suffixed_sigla": true
+        },
+        {
+            "name": "Orthographic",
+            "linked_appendix": false,
+            "keep_as_main_reading": false,
+            "create_in_SV": true,
+            "suffixed_label": true,
+            "value": "orthographic",
+            "suffixed_reading": false,
+            "create_in_RG": true,
+            "create_in_OR": true,
+            "subreading": true,
+            "identifier": "o",
+            "suffixed_sigla": false
+        },
+        {
+            "name": "Regularised",
+            "linked_appendix": false,
+            "keep_as_main_reading": false,
+            "create_in_SV": true,
+            "RG_default": true,
+            "value": "regularised",
+            "suffixed_reading": false,
+            "create_in_RG": true,
+            "suffixed_label": false,
+            "subreading": false,
+            "create_in_OR": true,
+            "identifier": "r",
+            "suffixed_sigla": true
+        },
+        {
+            "name": "Abbreviation",
+            "linked_appendix": false,
+            "keep_as_main_reading": false,
+            "create_in_SV": true,
+            "suffixed_label": false,
+            "value": "abbreviation",
+            "suffixed_reading": false,
+            "create_in_RG": true,
+            "create_in_OR": true,
+            "subreading": false,
+            "suffixed_sigla": false
+        }
+    ],
+    "witnesses": [
+     ]
+}

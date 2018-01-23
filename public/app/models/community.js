@@ -27,8 +27,9 @@ var Community = _.inherit(Model, {
     dtd: '',
     ceconfig:{},
   },
-  verify: function(obj) {
-    var message = [];
+  verify: function(obj) {  //cut out;error in observable processing of
+    return null;
+  /*  var message = [];
     if (!obj.name) {
       message.push("Community name cannot be blank");
     } else if (obj.name.length>19) {
@@ -47,11 +48,12 @@ var Community = _.inherit(Model, {
     }
     if (message.length > 0) {
       return {
-        message: message.join(','),
+  //      message: message.join(', ')
+        message: "Bill"
       };
     } else {
       return null;
-    }
+    } */
   }
 });
 

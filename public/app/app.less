@@ -78,7 +78,20 @@ html, body, tc-app {
             .navbar-toggle {top:-8px; background-color: #D0D0D0;}
         }
     }
-
+    tc-member-profile {
+        .flex(1, 1, 0);
+        overflow: auto;
+        width: 800px;
+        margin: auto;
+        background-color: white;
+    }
+    tc-community-members {
+        .flex(1, 1, 0);
+        overflow: auto;
+        width: 900px;
+        margin: auto;
+        background-color: white;
+    }
     tc-create-community {
         .flex(1, 1, 0);
         overflow: auto;
@@ -360,4 +373,31 @@ span.collationMenu {
 }
 .TCsortableItemDiv3 {
   float: right; text-align: center; width: 270px;
+}
+
+tc-managemodal-assign-pages {
+  ul.tree {
+    list-style-type: none;
+    padding-left: 5px;
+    overflow: auto;
+    li {
+        padding-left: 5px;
+        list-style-type: none;
+        >div>.icon {
+            .glyphicon;
+            .glyphicon-triangle-bottom;
+            cursor: pointer;
+        }
+    }
+    li.collapse-node {
+        >div>.icon {
+            .glyphicon-triangle-right;
+        }
+        >ul {
+            list-style-type: none;
+            padding-left: 5px;
+            display: none;
+        }
+    }
+ }
 }

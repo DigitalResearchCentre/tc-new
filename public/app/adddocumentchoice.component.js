@@ -21,7 +21,7 @@ var AddDocumentChoiceComponent = ng.core.Component({
     var self=this;
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:"", label: 'text'};
-    $('#manageModal').width("350px");
+    $('#manageModal').width("480px");
     $('#manageModal').height("140px");
     this.message="";
     this.success="";

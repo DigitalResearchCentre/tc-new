@@ -14,6 +14,9 @@ var TCAddresses=TCMailer.addresses;
 var User = require('./models/user');
 var config = require('./config');
 var configAuth = config.auth;
+
+if (config.localDevel) TCMailer = require('./TCMailer');
+
 // expose this function to our app using module.exports
 
   // =========================================================================

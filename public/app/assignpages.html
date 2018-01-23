@@ -1,0 +1,35 @@
+
+<div style="font-size: 110%; height:100%;">
+<div modal-draggable class="modalHeader">Assign Pages to {{user.local.name}} in "{{community.attrs.name}}"
+  <button type="button" (click)="closeModalAP()" class="close"
+  data-dismiss="modal"
+  style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;
+</button>
+</div>
+<div style="width:100%; height:520px; overflow:scroll; position:absolute">
+  <div id="APSuccess">
+    <div *ngIf="success" class="alert alert-success" style="margin-bottom: 10px">
+      {{success}}
+    </div>
+  </div>
+  <ul class="tree">
+    <li *ngFor="#doc of community.attrs.documents"
+      [class.collapse-node]="!doc.expand">
+      <div>
+        <span class="icon" aria-hidden="true"
+          (click)="toggleDoc(doc)"></span>
+            {{doc.attrs.name}}&nbsp;
+      </div>
+      <ul style="padding-left: 20px">
+        <li *ngFor="#page of doc.attrs.children">
+            <input type="checkbox" [(ngModel)]="page.selected">  {{page.attrs.name}} <span *ngIf="page.selected" style="font-style: italic">{{user.local.name}}</span>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+<hr style="border: 1px solid #8c8b8b; margin-bottom: 5px; margin-top:0px; position: relative; top: 522px ">
+  <div class="form-group" style="text-align: center; height: 18px; position: relative; top: 524px">
+    <button type="button" class="btn btn-primary" (click)="submit()">Assign</button>
+  </div>
+</div>

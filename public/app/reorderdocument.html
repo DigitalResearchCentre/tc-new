@@ -10,7 +10,7 @@
       {{success}}
     </div>
     <ul id="TCreorderpages" (ngModel)="pages" class="TCsortableContainer">
-      <li class="ui-state-default TCsortableItem"  *ngFor="#page of pages" data-id="{{page.id}}">
+      <li class="ui-state-default TCsortableItem"  (mousedown)="nullSuccess()" *ngFor="#page of pages" data-id="{{page.id}}">
         <input type="hidden" class="name" name="{{page.name}}"> <input class="facs" type="hidden" name="{{page.facs}}">
         <div *ngIf="!isDocText" class="ui-icon ui-icon-arrowthick-2-n-s TCsortableItemDiv1"></div>
         <div class="TCsortableItemDiv2"><span style="width: 250px"><input type="text" style="display: inline-block;" size="8" [(ngModel)]="page.name"/></span></div>

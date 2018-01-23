@@ -56,8 +56,15 @@ var ConfirmMessageComponent = ng.core.Component({
     this._uiService.sendCommand$.emit("newTranscript");
   },
   transcribePage: function(document, page, context) {
-    this.reload=false;
-    this._uiService.sendCommand$.emit("newTranscript");
+    var self=this;
+    //could already be text on this page, coz we have continued previous page. In that case, just close the window, it's all there for us already
+    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+page.attrs.ancestors[0]+'&pageid='+page._id, function(res) {
+      if (res.isThisPageText) self.closeModalCMLC();
+      else {
+        this.reload=false;
+        this._uiService.sendCommand$.emit("newTranscript");
+      }
+    });
   },
   addPage: function(document, page, context) {
     this._uiService.manageModal$.emit({
@@ -96,6 +103,7 @@ var ConfirmMessageComponent = ng.core.Component({
       //or.. not
       if (!page) {
         //summons rewrite and save of continuing text
+        //we are not changing page?
         this._uiService.sendCommand$.emit("ContinuingTranscript");
         self.closeModalCMLC();
       } else {
@@ -143,7 +151,7 @@ var ConfirmMessageComponent = ng.core.Component({
     //ok, go get rid of all the documents, etc
     var self=this;
     $.post(config.BACKEND_URL+'deleteAllDocs?'+'id='+this.state.community.getId(), function(res) {
-      self.warning=res.ndocs+" documents removed containing "+res.npages+" pages, "+res.ndocels+" document structural elements (lines, etc.), "+res.nentels+" entity elements, "+res.nallels+" total document elements, and " +res.npagetrans+" page transcripts";
+      self.warning=res.ndocs+" documents removed containing "+res.ndocels+" document structural elements (lines, etc.), "+res.nentels+" entity elements, "+res.nTEIels+" total TEI elements, "+res.ncollels+" collation elements, and " +res.npagetrans+" page transcripts";
       self.showButtons=false;
       self.reload=true;
     })

@@ -17,6 +17,7 @@
       <!--><li><a (click)="navigate('wiki')">Wiki</a></li>
       <li><a (click)="navigate('blog')">Blog</a></li>
       <li><a (click)="navigate('bulletin-board')">Bulletin Board</a></li></-->
+      <li *ngIf="isLeader()"><a (click)="navigate('members')">Members</a></li>
       <li *ngIf="isLeader()"><a (click)="navigate('edit')">Edit</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
@@ -29,10 +30,7 @@
   <tc-community-home *ngSwitchWhen="'home'"></tc-community-home>
   <tc-community-about *ngSwitchWhen="'about'"></tc-community-about>
   <tc-community-view *ngSwitchWhen="'view'"></tc-community-view>
-  <tc-community-wiki *ngSwitchWhen="'wiki'" ></tc-community-wiki>
-  <tc-community-blog *ngSwitchWhen="'blog'" ></tc-community-blog>
-  <tc-community-bulletin-board *ngSwitchWhen="'bulletin-board'"
-    ></tc-community-bulletin-board>
+  <tc-community-members [community]="state.community" *ngSwitchWhen="'members'"></tc-community-members>
   <tc-edit-community *ngSwitchWhen="'edit'" style="overflow:auto"
      id="tc-edit-community" [community]="state.community"></tc-edit-community>
   <tc-community-home *ngSwitchDefault ></tc-community-home>

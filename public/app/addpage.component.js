@@ -75,6 +75,12 @@ var AddPageComponent = ng.core.Component({
   },
   ngOnChanges: function() {
   },
+  addZipImages: function(doc) {
+    this.uiService.manageModal$.emit({
+      type: 'add-zip',
+      document: doc,
+    });
+  },
   showSingle: function() {
     var dropzone = this.dropzone
       , files = dropzone.getQueuedFiles()
@@ -160,47 +166,68 @@ var AddPageComponent = ng.core.Component({
       //get name of file, if we have One
       if (this.oneormany=="ManyPages" && image && this.dropzone) {
         var facsel=this.dropzone.files.filter(function (obj){return obj.name.split('.')[0]== pageName;})[0];
-        var myDoc={name: pageName, image: image, label: "pb", facs: facsel.name, children:[],}
-      } else var myDoc={name: pageName, image: image, label: "pb", children:[],}
-      docService.commit({
-        doc: myDoc,
-      }, options).subscribe(function(page) {
-        //if this is first page -- then call new text Page
-        //if not: call choose continue or add new text depending on what prevs tells us
-  //        self.page = page;
-          router.navigate(['Community', {
-            id: state.community.getId(), route: 'view'
-          }]);
-          state.newTranscript=false;  //this triggers continue or new transcript for this page -- moved to confirm page now
-          self.success="Page "+pageName+" added";
-          self.isCancel=true;
-          self.isAdd=false;
-          //now ask: do you want to make a transcription? or add another page?
-          //if this is the very first page of the document..
-          if (!self.state.document.expand)
-            self.uiService.choosePage$.emit(self.state.document);
-          if (self.oneormany === "OnePage") {
-            var header="Add a page after "+self.pageName+" in "+self.state.document.attrs.name+", or transcribe "+self.pageName;
-            var warning="";
-            var action="continueAddPage";
-          } else {
-            var warning="Either: <ul><li>Add more pages in "+self.state.document.attrs.name+"</li><li>Reorder and rename the pages</li><li>Start transcribing</li></ul>Once you have started transcribing, you cannot reorder the document pages (you can rename them)";
-            var header="Add, reorder/rename or transcribe pages in "+self.state.document.attrs.name;
-            var action="continueAddPages";
-          }
-          self.uiService.manageModal$.emit ({
-            type: 'confirm-message',
-            page: state.page,
-            docname:self.pageName,
-            header: header,
-            warning: warning,
-            action: action,
-            document: self.document,
-          })
-          self.pageName="";
-          cb(null, page);
-      });
+        var myDoc={name: pageName, image: image, label: "pb", facs: facsel.name, children:[], community: this.state.community.attrs.abbr}
+      } else var myDoc={name: pageName, image: image, label: "pb", children:[], community: this.state.community.attrs.abbr}
+      //ok -- if this page is being added after a page with text we want the page not to continue the previous text page, as is the default
+      //Xiaohan set the page to start off
+      //so: test if there is a page before, and if there is, does it have text
+      if (!this.parent && this.after) {
+        $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.after._id, function(res) {
+          self.isText=res.isThisPageText;  //if there is a page with text before, then we make sure we don't add that following Xiahan's routine
+          if (self.isText) self.commitAddPage(myDoc, options, true);  //if we are adding a page following a page with text, we continue the transcript on this page
+          else self.commitAddPage(myDoc, options, false, cb)
+
+    //      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
+        });
+      }
+      else this.commitAddPage(myDoc, options, false, cb);
     }
+  },
+  commitAddPage: function(myDoc, options, isTextPrev, cb) {
+    var self = this
+      , docService = this._docService
+      , router = this._router
+      , state = this.state
+    ;
+    docService.commit({
+      doc: myDoc,
+    }, options).subscribe(function(page) {
+      //if this is first page -- then call new text Page
+      //if not: call choose continue or add new text depending on what prevs tells us
+    //        self.page = page;
+        router.navigate(['Community', {
+          id: state.community.getId(), route: 'view'
+        }]);
+        state.newTranscript=true;  //this triggers continue or new transcript for this page -- moved to confirm page now
+        self.success="Page "+self.pageName+" added";
+        self.isCancel=true;
+        self.isAdd=false;
+        //now ask: do you want to make a transcription? or add another page?
+        //if this is the very first page of the document..
+        if (!self.state.document.expand)
+          self.uiService.choosePage$.emit(self.state.document);
+        if (self.oneormany === "OnePage") {
+          if (isTextPrev) var header="Transcription continued from "+options.after.attrs.name+". Add page after "+self.pageName;
+          else var header="Add a page after "+self.pageName+" in "+self.state.document.attrs.name+", or transcribe "+self.pageName;
+          var warning="";
+          var action="continueAddPage";
+        } else {
+          var warning="Either: <ul><li>Add more pages in "+self.state.document.attrs.name+"</li><li>Reorder and rename the pages</li><li>Start transcribing</li></ul>Once you have started transcribing, you cannot reorder the document pages (you can rename them)";
+          var header="Add, reorder/rename or transcribe pages in "+self.state.document.attrs.name;
+          var action="continueAddPages";
+        }
+        self.uiService.manageModal$.emit ({
+          type: 'confirm-message',
+          page: state.page,
+          docname:self.pageName,
+          header: header,
+          warning: warning,
+          action: action,
+          document: self.document,
+        })
+        self.pageName="";
+  //      cb(null, page);  don't think we need this
+    });
   },
   submit: function() {
     if (this.oneormany=="ManyPages" && this.dropzone.getQueuedFiles().length==0) {

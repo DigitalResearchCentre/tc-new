@@ -36,28 +36,26 @@ var MemberProfileComponent = ng.core.Component({
     this.uiService=uiService;
     this.restService=restService;
     this.state = uiService.state;
-
+    this.authUser = this.state.authUser;
+  }],
+  ngOnInit: function() {
+    var publicCommunities = state.publicCommunities
+    , communityService = this.communityService
+    , authUser = this.state.authUser;
+    this.nmemberships=authUser.attrs.memberships.length;
+    this.memberships=authUser.attrs.memberships;
     this.communityleader = {
       email:"peter.robinson@usask.ca", name:"Peter Robinson"
     };
-  }],
-  joinCommunity: function(community) {
-    return joinCommunity(
-      community, this.state.authUser, 
-      this.communityService, this.uiService, this.restService
-    );
-  },
-  joinableCommunities: function() {
-    var communityService = this.communityService
-      , state = this.state
-      , authUser = state.authUser
-      , publicCommunities = state.publicCommunities
-      , memberships = _.get(authUser, 'attrs.memberships', [])
-      , nmemberships = memberships.length
-    ;
     this.joinableCommunities = _.filter(publicCommunities, function(community) {
       return communityService.canJoin(community, authUser);
     });
+  },
+  joinCommunity: function(community) {
+    return joinCommunity(
+      community, this.state.authUser,
+      this.communityService, this.uiService, this.restService
+    );
   },
   formatDate: function(rawdate) {
     var date = new Date(rawdate)
@@ -70,7 +68,7 @@ var MemberProfileComponent = ng.core.Component({
     var instruction = this._router.generate([
       'Community', {id: community.getId(), route: route}
     ]);
-    this._location.go(instruction.toRootUrl());
+    window.location=instruction.toRootUrl();
   },
 });
 

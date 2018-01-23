@@ -5,10 +5,9 @@ var express = require('express')
   , TCMailer=require('../localmailer')
   , TCAddresses=TCMailer.addresses
   , config=require('../config')
-
-
 ;
 
+if (config.localDevel) TCMailer = require('../TCMailer');
 var TCModalState = {state:0};
 // =====================================
 // HOME PAGE (with login links) ========
@@ -49,7 +48,11 @@ router.post('/login', function(req, res, next) {
       }
       //are we authenticated? if not...send email and return message
       if (!isValidProfile(user)) {
-        authenticateUser (user.local.email, user, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
+        console.log("inside authentication local")
+        console.log("config.host_url "+config.host_url);
+        console.log("req.protocol "+req.protocol);
+        console.log("req.get('host') "+req.get('host'));
+        authenticateUser (user.local.email, user, req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: user});
         req.logout();
         return;
@@ -113,7 +116,8 @@ router.post('/signup', function(req, res) {
       newUser.local.authenticated= "0";
       newUser.save(function(err) {
         if (err) {}
-        authenticateUser (newUser.local.email, newUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
+        console.log("inside authentication local 2")
+        authenticateUser (newUser.local.email, newUser, req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: newUser})
         req.logout();
         return;
@@ -128,6 +132,7 @@ router.post('/signup', function(req, res) {
 // called from /profile, if this user is not authenticated
 router.get('/sendauthenticate', function(req, res) {
   var user=req.user;
+  console.log("inside authentication local 3")
   authenticateUser (req.user.local.email, req.user, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
   // render the page and pass in any flash data if it exists
   res.render('authenticate.ejs', {user: user, context: req.query.context} );
@@ -418,6 +423,7 @@ router.post('/facebooklinkemail', function(req, res) {
           existingUser.save(); //in case of synchrony -- we don't need the separate one we just made
         });
         if (!isValidProfile(existingUser)) {
+          console.log("inside authentication local 4")
           authenticateUser (existingUser.local.email, existingUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
           res.render('authenticate.ejs', {context:"email", user: existingUser})
           req.logout();
@@ -465,6 +471,7 @@ router.get('/facebooknew', function(req, res) {
   thisUser.local.authenticated= "0";
   thisUser.save(function(err) {
     if (err) {}
+    console.log("inside authentication local 5")
     authenticateUser (thisUser.local.email, thisUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
     res.render('authenticate.ejs', {context:"facebook", user: thisUser});
     req.logout();
@@ -540,6 +547,7 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
     if (!req.user.local.email) res.redirect('/app?prompt=twitteremail');
     else {
       if (req.user.local.authenticated=="0") {
+        console.log("inside authentication local 6")
         authenticateUser (req.user.local.email, req.user, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         res.redirect('/app?prompt=sendauthenticate&context=twitter');
       }
@@ -572,6 +580,7 @@ router.post('/twitterlinklocal', function(req, res) {
       });
       existingUser.save();
       if (existingUser.local.authenticated=="0") {
+        console.log("inside authentication local 7")
         authenticateUser (existingUser.local.email, existingUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
         res.render('authenticate.ejs', {user: existingUser, context: "twitter"} );
         req.logout();
@@ -756,6 +765,7 @@ router.post('/googlelinkemail', function(req, res) {
           existingUser.save(); //in case of synchrony -- we don't need the separate one we just made
         });
         if (!isValidProfile(existingUser)) {
+          console.log("inside authentication local 8")
           authenticateUser (existingUser.local.email, existingUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
           res.render('authenticate.ejs', {context:"google", user: existingUser})
           req.logout();
@@ -878,6 +888,7 @@ router.get('/googlenew', function(req, res) {
   thisUser.local.authenticated= "0";
   thisUser.save(function(err) {
     if (err) {}
+    console.log("inside authentication local 9")
     authenticateUser (thisUser.local.email, thisUser, config.host_url!= ''? config.host_url : req.protocol + '://' + req.get('host'));
     res.render('authenticate.ejs', {context:"google", user: thisUser});
     req.logout();
@@ -1003,6 +1014,7 @@ function randomStringAsBase64Url(size) {
 function authenticateUser (email, user, thisUrl) {
   var ejs = require('ejs'), fs = require('fs'), str = fs.readFileSync(__dirname + '/../views/authenticatemail.ejs', 'utf8');
   var hash=randomStringAsBase64Url(20);
+  console.log("url "+thisUrl)
   var rendered = ejs.render(str, {email:email, hash:hash, username:user.local.name, url: thisUrl});
   //console.log( TCAddresses.replyto+" "+TCAddresses.from);
 //  console.log("here 2 "+user)

@@ -52,7 +52,9 @@
 </div>
 <hr style="border: 1px solid #8c8b8b; margin-bottom: 5px; margin-top:0px">
   <div class="form-group" style="text-align: center; height: 18px;">
-    <button *ngIf="isAdd" type="button" class="btn btn-primary" (click)="submit()">Add Page</button>
+    <button *ngIf="oneormany=='ManyPages'" style="margin-right: 10px" type="button" class="btn btn-primary" (click)="addZipImages(document)">Add Images from Zip File</button>
+    <button *ngIf="isAdd && oneormany=='ManyPages'" type="button" class="btn btn-primary" (click)="submit()">Add Pages</button>
+    <button *ngIf="isAdd && oneormany=='OnePage'" type="button" class="btn btn-primary" (click)="submit()">Add Page</button>
     <button *ngIf="isCancel" type="button" class="btn btn-primary" (click)="closeModalAP()">Close</button>
   </div>
 </div>

@@ -1,4 +1,4 @@
-var $ = require('jquery');
+;var $ = require('jquery');
 var URI = require('urijs')
   , UIService = require('./services/ui')
   , CommunityService = require('./services/community')
@@ -31,6 +31,7 @@ var ManageModalComponent = ng.core.Component({
     require('./addbulkimages.component'),
     require('./editcollation.component'),
     require('./addzip.component'),
+    require('./assignpages.component'),
   ],
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -157,6 +158,12 @@ var ManageModalComponent = ng.core.Component({
           self.choice = 'choosebase-community';  //let's be economical!
           self.community=event.community;
           self.action='chooseWitnesses';
+      } else if (event.type ==='assign-pages'){
+          self.choice = 'assign-pages';  //let's be economical!
+          self.user=event.user;
+          self.community=event.community;
+          self.source=event.source;
+          self.memberId=event.memberId;
       } else if (event.type ==='confirm-message'){
           self.choice = event.type;
           self.page=event.page;

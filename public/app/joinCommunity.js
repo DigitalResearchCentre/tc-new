@@ -1,4 +1,6 @@
-var  config = require('./config');
+var  config = require('./config')
+,  $ = require('jquery')
+;
 
 
  function joinCommunity (
@@ -25,33 +27,35 @@ var  config = require('./config');
       }
       if (community.attrs.accept && community.attrs.autoaccept) {
         joinstatus="autoaccept";
-        communityService.addMember(community, authUser, 'MEMBER');
-        restService.http.get('/app/joinnotifyauto.ejs')
-          .subscribe(function(result) {
-            var tpl=_.template(result._body);
-            var messagetext=tpl({
-              username: authUser.attrs.local.name,
-              useremail: authUser.attrs.local.email,
-              communityname: community.attrs.name,
-              communityowner: communityleader.name,
-              communityemail: communityleader.name
+        $.post(config.BACKEND_URL+'communities/'+community._id+'/add-member/', {user:authUser._id, role:'MEMBER'}, function(res) {
+  //        communityService.addMember(community, authUser, 'MEMBER');
+          restService.http.get('/app/joinnotifyauto.ejs')
+            .subscribe(function(result) {
+              var tpl=_.template(result._body);
+              var messagetext=tpl({
+                username: authUser.attrs.local.name,
+                useremail: authUser.attrs.local.email,
+                communityname: community.attrs.name,
+                communityowner: communityleader.name,
+                communityemail: communityleader.email
+              });
+              restService.http.post(
+                config.BACKEND_URL + 'sendmail',
+                JSON.stringify({
+                  from: "noreply@textualcommunities.usask.ca",
+                  to: communityleader.email,
+                  subject: authUser.attrs.local.name+' has joined Textual Community "'+community.attrs.name+'"',
+                  html: messagetext,
+                  text: messagetext.replace(/<[^>]*>/g, '')
+                }),
+                restService.prepareOptions({})
+              ).subscribe(function(res) {
+                console.log('send mail success');
+                uiService.manageModal$.emit({type:'join-community', community: community, communityleader: communityleader, status:joinstatus});
+              });
+            }, function(err) {
+              console.log(err);
             });
-            restService.http.post(
-              config.BACKEND_URL + 'sendmail',
-              JSON.stringify({
-                from: "noreply@textualcommunities.usask.ca",
-                to: communityleader.email,
-                subject: authUser.attrs.local.name+' has joined Textual Community "'+community.attrs.name+'"',
-                html: messagetext,
-                text: messagetext.replace(/<[^>]*>/g, '')
-              }),
-              restService.prepareOptions({})
-            ).subscribe(function(res) {
-              console.log('send mail success');
-              uiService.manageModal$.emit({type:'join-community', community: community, communityleader: communityleader, status:joinstatus});
-            });
-          }, function(err) {
-            console.log(err);
           });
       }
       if (community.attrs.accept && !community.attrs.autoaccept) {

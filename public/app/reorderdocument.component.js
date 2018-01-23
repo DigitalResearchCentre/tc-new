@@ -32,6 +32,13 @@ var ReorderDocumentComponent = ng.core.Component({
     this.state = uiService.state;
 //    this.pages = [{'name':'1r', 'id': 'xxx', 'facs':'yyy'},{'name':'2v', 'id':'xxx2'},{'name':'1v', 'id':'xxx3', 'facs':'aa1'},{'name':'2r', 'id':'aaax'},{'name':'2v', 'id':'xxx2'},{'name':'1v', 'id':'xxx3', 'facs':'aa1'},{'name':'2r', 'id':'aaax'},{'name':'2v', 'id':'xxx2'},{'name':'1v', 'id':'xxx3', 'facs':'aa1'},{'name':'12r', 'id':'aaax'},{'name':'12v', 'id':'xxx2'},{'name':'11v', 'id':'xxx3', 'facs':'aa1'},{'name':'22r', 'id':'aaax'},{'name':'22v', 'id':'aaax'}, {'name':'26r', 'id':'aaax'}];
   }],
+  ngOnInit: function(){
+    this.origpagesids=this.document.attrs.children.map(function(page) {return(page.attrs._id)});
+  },
+  nullSuccess: function(){
+    if (this.success=="Changes saved") this.success="(Changes not saved)"
+    else this.success="";
+  },
   ngOnChanges: function() {
     $("#TCreorderpages" ).sortable({});
 //    $( "#TCreorderpages" ).sortable({});
@@ -73,10 +80,7 @@ var ReorderDocumentComponent = ng.core.Component({
     $('#MMADbutton').css("margin-top", "20px");
     this.doc = {name:"", label: 'text'};
     $('#manageModal').modal('hide');
-    if (this.reload) {
-      this.reload=false;
-      location.reload(true);
-    }
+  //     location.reload(true); //don't reload whole window. That's ugly
   },
   submit: function() {
     var self=this, reordered=[];
@@ -108,21 +112,24 @@ var ReorderDocumentComponent = ng.core.Component({
       for (var i = 0; i < differences.length; i++) {
         if (differences[i]=="") differences.splice(i--, 1);
       }
-      var origpagesids=origpages.map(function(page){return(page.id)});
-      if (differences.length>0 || JSON.stringify(reordered)!=JSON.stringify(origpagesids)) {
-          if (JSON.stringify(reordered)==JSON.stringify(origpagesids)) reordered=[];
+      if (differences.length>0 || JSON.stringify(reordered)!=JSON.stringify(this.origpagesids)) {
+          if (JSON.stringify(reordered)==JSON.stringify(this.origpagesids)) reordered=[];
         //post this off to save to server. standard jquery post does not work with json data in string
           $.ajax({
           url: config.BACKEND_URL+'saveDocPages?'+'document='+self.document._id,
           type: 'POST',
-          data:  JSON.stringify({replace:differences,order:reordered,origorder:origpagesids}),
+          data:  JSON.stringify({replace:differences,order:reordered,origorder:this.origpagesids}),
           accepts: 'application/json',
           contentType: 'application/json; charset=utf-8',
           dataType: 'json'
         })
          .done(function( data ) {
            self.success="Changes saved";
-           self.reload=true;
+           self.uiService.docService$.emit({
+             type: 'refreshDocument',
+             payload: self.document,
+           });
+           self.origpagesids=reordered;
           })
          .fail(function( jqXHR, textStatus, errorThrown) {
           alert( "error" + errorThrown );

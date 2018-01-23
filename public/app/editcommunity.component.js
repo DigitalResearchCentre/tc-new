@@ -2,6 +2,8 @@ var CommunityService = require('./services/community')
   , UIService = require('./services/ui')
   , RESTService = require('./services/rest')
   , config = require('./config')
+  , Mongoose = require('mongoose')
+  , ObjectId = mongoose.Types.ObjectId
 ;
 
 
@@ -60,6 +62,7 @@ var EditCommunityComponent = ng.core.Component({
         accept: false,
         autoaccept: false,
         alldolead: false,
+        members: [this._uiService.state.authUser._id],
         alltranscribeall: false,
         haspicture: false,
         image: "",
@@ -138,6 +141,33 @@ var EditCommunityComponent = ng.core.Component({
       , self=this
     ;
     this.message=this.success="";
+    var message=[];
+    //verify
+    if (!this.edit.name) {
+      message.push("Community name cannot be blank");
+    } else if (this.edit.name.length>19) {
+      message.push(
+        "Community name "+this.edit.name+" must be less than 20 characters");
+    }
+    if (!this.edit.abbr) {
+      message.push("Community abbreviation cannot be blank");
+    } else if (this.edit.abbr.length>4)  {
+      message.push(
+        "Community abbreviation "+this.edit.abbr+" must be less than 5 characters");
+    }
+    if (this.edit.longName && this.edit.longName.length>80) {
+      message.push(
+        "Community long name "+this.edit.longName+" must be less than 80 characters");
+    }
+    if (message.length > 0) {
+      for (var i=0; i<message.length; i++) {
+        if (i>0) this.message+=", ";
+        this.message+=message[i];
+      }
+      document.getElementById("ECMessage").scrollIntoView(true);
+      return;
+    }
+
     //is it a new community? or update to existing community?
     //if editing existing: state community will be identical to this one. else it will be new
     if (this.community && (this.community._id==this._uiService.state.community._id)) {

@@ -27,6 +27,11 @@ var _ = require('lodash')
   , FunctionService = require('../services/functions')
 ;
 
+//to handle emails when not on the server
+
+if (config.localDevel) TCMailer = require('../TCMailer');
+
+
 router.use(function(req, res, next) {
   res.set({
     'Access-Control-Allow-Origin': '*',
@@ -57,6 +62,7 @@ var CommunityResource = _.inherit(Resource, function(opts) {
       user.memberships.push({
         community: community._id,
         role: User.CREATOR,
+        pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0}
       });
       user.save(function(err, user) {
         cb(err, community);
@@ -79,7 +85,26 @@ router.get('/communities/:id/memberships/', function(req, res, next) {
   });
 });
 
-router.put('/communities/:id/add-member', function(req, res, next) {
+router.post('/community/:id/members/', function(req, res, next) {
+  console.log("in getting members "+req.params.id)
+  var communityId = req.params.id;
+  Community.findOne({_id: ObjectId(communityId)}, function(err, community) {
+    console.log(community.members)
+    async.mapSeries(community.members, function(member, callback) {
+
+      User.findOne({_id: member                                                                                                                                                 }, function(err, user){
+          console.log(user)
+        return callback(err, user);
+      });
+    }, function(err, results) {
+      console.log(results);
+      res.json(results);
+    });
+  });
+});
+
+//ok -- also add to members array
+router.post('/communities/:id/add-member', function(req, res, next) {
   var communityId = req.params.id
     , userId = req.body.user
     , role = req.body.role
@@ -99,15 +124,22 @@ router.put('/communities/:id/add-member', function(req, res, next) {
       var community = results[0]
         , user = results[1]
       ;
+      community.members.push(user._id);
       user.memberships.push({
         community: community._id,
         role: role,
+        pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0}
       });
       user.save(function(err, user) {
         if (err) {
           return next(err);
-        }
-        res.json(user);
+        };
+        community.save(function(err, community){
+          if (err) {
+            return next(err);
+          };
+          res.json(user);
+        })
       });
     }
   });
@@ -137,6 +169,9 @@ revisionResource.serve(router, 'revisions');
 
 var collationResource = new Resource(Collation, {id: 'collation'});
 collationResource.serve(router, 'collations');
+
+var actionResource = new Resource(Action, {id: 'action'});
+actionResource.serve(router, 'tcactions');
 
 
 
@@ -182,6 +217,7 @@ function requestMembership(action, callback) {
     , payload = action.payload
   ;
   payload.hash = buf.toString('hex');
+  console.log("jere")
   async.parallel([
     function(cb) {
       User.findOne({_id: payload.user}, cb);
@@ -208,6 +244,7 @@ function requestMembership(action, callback) {
       , message
     ;
     if (!err) {
+//      console.log("config"); console.log(config);
       message = ejs.render(
       fs.readFileSync(
         __dirname + '/../views/joinletternotifyleader.ejs', 'utf8'),
@@ -243,7 +280,9 @@ function validateAction(action) {
 }
 
 router.get('/actions/:id', function(req, res, next) {
-//  console.log("lets save here")
+  console.log("lets save here")
+  console.log(req.params.id)
+  console.log(req.query.hash)
   Action.findOne({_id: req.params.id}, function(err, action) {
     var payload = action.payload
       , role = payload.role
@@ -260,13 +299,20 @@ router.get('/actions/:id', function(req, res, next) {
         var user = results[0]
           , community = results[1]
         ;
+        community.members.push(user._id);
         user.memberships.push({
           community: community._id,
           role: role,
+          pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0}
         });
         async.parallel([
           function(cb) {
             user.save(function(err, obj) {
+              cb(err, obj);
+            });
+          },
+          function(cb) {
+            community.save(function(err, obj) {
               cb(err, obj);
             });
           },
@@ -291,11 +337,13 @@ router.get('/actions/:id', function(req, res, next) {
 });
 
 router.post('/actions', function(req, res, next) {
+  console.log("we should be in here");
   var action = req.body;
-//  console.log(action);
   if (!validateAction(action)) {
     return next({error: 'Action format error'});
   }
+  console.log("we should be in here");
+//  console.log(action);
   switch (action.type) {
     case 'request-membership':
       requestMembership(action, function(err, _action) {
@@ -1142,6 +1190,25 @@ router.post('/getDocPages', function(req, res, next){
   });
 });
 
+router.post('/saveAssignPages', function(req, res, next) {
+  var selected=req.body.selected;
+  var membership=selected[0].record.memberId;
+  var user=selected[0].record.userId;
+  console.log(selected.length+" user "+user+" membership "+membership);
+  async.map(selected, saveAP, function (err) {
+    User.collection.update({_id: ObjectId(user), "memberships._id": ObjectId(membership)}, {$inc: {"memberships.$.pages.assigned":selected.length}}, function (err, result){
+      console.log(result);
+      res.json({error: err});
+    })
+  });
+});
+
+function saveAP (addAP, callback) {
+  Doc.collection.update({_id: ObjectId(addAP.pageId)},{$push:{"tasks":{userId:addAP.record.userId, name: addAP.record.name, status: addAP.record.status, memberId: addAP.record.memberId, date:Date.now()}}}, function (err) {
+    callback(err)
+  });
+}
+
 router.post('/saveDocPages', function(req, res, next) {
   var replace=req.body.replace;
   var order=req.body.order;
@@ -1217,92 +1284,59 @@ function replaceVals(replace, callback) {
     });
 };
 
+function removeAllDocs(req, res, deleteCommunity) {
+    var ndocs=0, ndocels=0, nentels=0, cAbbrev="", nTEIels=0, ncollels=0, npagetrans=0;
+    //delete all docs all entitiees all revisions...
+    Community.findOne({_id: req.query.id}, function(err, community) {
+      cAbbrev=community.abbr;
+      ndocs=community.documents.length;
+      async.parallel([
+        function(cb1) {
+          Doc.collection.remove({community: cAbbrev}, function (err, result){
+            ndocels+=result.result.n;
+            cb1(err);
+          });
+        },
+        function(cb1) {
+          TEI.collection.remove( {community: cAbbrev}, function (err, result){
+            nTEIels=result.result.n;
+            cb1(err);
+          });
+        },
+        function(cb1) {
+          Entity.collection.remove({community: cAbbrev}, function (err, result){
+            nentels=result.result.n;
+            cb1(err);
+          });
+        },
+        function(cb1) {
+          Collation.remove({community: cAbbrev}, function (err, result){
+            ncollels=result.result.n;
+            cb1(err);
+          });
+        },
+        function(cb1) {
+          Revision.remove({community: req.query.id}, function (err, result){
+            npagetrans=result.result.n;
+            cb1(err);
+          });
+        },
+        function(cb1) {
+          if (!deleteCommunity) Community.update({_id:req.query.id}, {$set: {documents:[], entities:[]}}, cb1);
+        },
+      ], function(err) {
+        if (!deleteCommunity)
+          res.json({"ndocs":ndocs, "ndocels": ndocels, "nentels": nentels, "nTEIels": nTEIels, "npagetrans": npagetrans, "ncollels": ncollels});
+      });
+    });
+}
 
+//this we now simplify drastically. Just remove all elements with community:CTP field
+//this will get rid of all docs, teis. revisions: have to use community id instead
 router.post('/deleteAllDocs', function(req, res, next) {
-    var ndocs=0, npages=0, ndocels=0, nentels=0, cAbbrev="", nallels=0, npagetrans=0;
-  //delete all docs all entitiees all revisions...
-    async.waterfall([
-      function(cb) {
-          Community.findOne({_id: req.query.id}, function(err, community) {
-            cAbbrev=community.abbr;
-            cb(err, community.documents);
-          });
-      },
-      function(documents, cb) {
-        ndocs=documents.length;
-        async.map(documents, getPagesInDocs, function (err, allPages){
-          for (var i = 0; i < allPages.length; i++) {
-            npages+=allPages[i].length;
-          }
-          cb(err, allPages, documents);
-        });
-      },
-      function (allPages, documents, cb) {
-//          console.log(documents);
-//          console.log(allPages)
-          //now we can delete
-          async.parallel([
-            function(cb1) {
-              Community.update({_id:req.query.id}, {$set: {documents:[], entities:[]}}, cb1);
-            },
-            function(cb1) {
-              Doc.collection.remove({$or: [{_id: {$in: documents}}, {ancestors: {$in: documents}},]}, function (err, result){
-                ndocels=result.result.n;
-                cb1(err);
-              });
-            },
-            function(cb1) {
-              TEI.collection.remove( {docs: {$in: documents}}, function (err, result){
-                nallels=result.result.n;
-                cb1(err);
-              });
-            },
-            function(cb1) {
-              Doc.collection.remove({community: cAbbrev}, function (err, result){
-                  ndocels+=result.result.n;
-                cb1(err);
-              });
-            },
-            function(cb1) {
-//              console.log("allpages"+allPages);
-              async.forEachOf(allPages, function(thisPage) {
-                  const cb2 = _.last(arguments);
-                  if (thisPage) {
-                    Revision.collection.remove({$or: [{doc:thisPage}, {doc: {$in: thisPage}},]}, function (err, result){
-                        npagetrans+=result.result.n;
-                        cb2(err);
-                    });
-                  } else {cb2(err)}
-                }, function(err){
-                  cb1(err);
-                });
-            },
-            function(cb1) {
-              Revision.collection.remove({community: cAbbrev}, function (err, result){
-                npagetrans+=result.result.n;
-                cb1(err);
-              });
-            },
-            function(cb1) {
-              Entity.collection.remove({community: cAbbrev}, function (err, result){
-                nentels=result.result.n;
-                cb1(err);
-              });
-            },
-            function(cb1) {
-              TEI.collection.remove({community: cAbbrev}, function (err, result){
-                  nallels+=result.result.n;
-                cb1(err);
-              });
-            },
-          ], function(err, results) {
-            cb(null);
-          });
-      }
-    ], function(err, results) {
-      res.json({"ndocs":ndocs, "npages":npages, "ndocels": ndocels, "nentels": nentels, "nallels": nallels, "npagetrans": npagetrans});
-    })
-  });
+    removeAllDocs(req, res, false);
+});
+
 
 function getPagesInDocs (pageID, callback) {
   Doc.findOne({_id: ObjectId(pageID)}, function(err, page) {
@@ -1355,36 +1389,47 @@ router.post('/isDocTranscript', function(req, res, next) {
   //short cut: if all pages are children of text element, then we have no transcripts
   var nPageTranscripts=0;
   globalTextEl=null;
+  //maybe no children! then just say no
   async.waterfall([
     function (cb) {
       Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, thisdoc) {
+        console.log(thisdoc);
         if (err || ! thisdoc) cb("error", []);
+        if (thisdoc.children.length==0) {
+           cb(null, null);
+        }
         else cb(null, thisdoc.children);
       })
     },
     function(children, cb) {  //get the text element. If no textel with these children -- then must have transcripts
       //first, find any pb descended from this doc
-      TEI.findOne({name:"pb", docs: ObjectId(req.query.docid)}, function (err, pbEl){
-        //top level ancestor of pbEl by definition will be the text elements
-        if (err) cb(err, []);
-        else {
-          TEI.findOne({_id: ObjectId(pbEl.ancestors[0]), name:"text"}, function (err, textEl) {
-            if (err) cb(err, []);
-            else {
-              globalTextEl=textEl;
-              cb(null, children);
-            }
-          });
-        }
-      })
+      if (!children)  cb(null, null);
+      else {
+        TEI.findOne({name:"pb", docs: ObjectId(req.query.docid)}, function (err, pbEl){
+          //top level ancestor of pbEl by definition will be the text elements
+          if (err) cb(err, []);
+          else {
+            TEI.findOne({_id: ObjectId(pbEl.ancestors[0]), name:"text"}, function (err, textEl) {
+              if (err) cb(err, []);
+              else {
+                globalTextEl=textEl;
+                cb(null, children);
+              }
+            });
+          }
+        });
+      }
     },
     function(children, cb) {
       //
-      var newchildren=children.map(function(page){return ObjectId(page)});
-      async.mapSeries(newchildren, hasPageTranscript, function (err, results){
-        results.map(function(page){if (page==1) nPageTranscripts+=1; return})
-        cb(null,[]);
-      });
+      if (!children)  cb(null, null);
+      else {
+        var newchildren=children.map(function(page){return ObjectId(page)});
+        async.mapSeries(newchildren, hasPageTranscript, function (err, results){
+          results.map(function(page){if (page==1) nPageTranscripts+=1; return})
+          cb(null,[]);
+        });
+      }
     }
   ], function (err){
     if (err) res.json({"error": true});

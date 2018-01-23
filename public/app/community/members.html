@@ -1,0 +1,31 @@
+<p style="margin: 20px; text-align: center; font-weight: bold; margin-top: 10px; margin-bottom:10px">
+  Community {{community.attrs.name}} has {{community.attrs.members.length}} <span *ngIf="community.attrs.members.length==1">member</span> <span *ngIf="community.attrs.members.length>1">members</span>
+</p>
+<table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
+  <thead>
+    <tr>
+      <th style="border-bottom-width:0px" class="col-md-3">Name (Email)</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Role</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Joined</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Assigned</th>
+      <th style="border-bottom-width:0px" class="col-md-1">In&nbsp;Progress</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Submitted</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Committed</th>
+      <th style="border-bottom-width:0px" class="col-md-3">&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="#member of members" class="commMembership">
+      <td  style="border-top-width:0px">{{member.name}} ({{member.email}})</td>
+      <td style="border-top-width:0px; text-align:center">{{member.role}}</td>
+      <td style="border-top-width:0px; text-align:center">{{formatDate(member.date)}}</td>
+      <td style="border-top-width:0px; text-align:center">{{member.assigned}}</td>
+      <td style="border-top-width:0px; text-align:center">{{member.inprogress}}</td>
+      <td style="border-top-width:0px; text-align:center">{{member.submitted}}</td>
+      <td style="border-top-width:0px; text-align:center">{{member.committed}}</td>
+      <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
+          (click)="assignPages(member._id, member.user)" style="margin-top:5px">Assign Pages</button> <span  *ngIf="!community.attrs.documents.length">[No documents in community]</span> </td>
+    <!-- td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td -->
+    </tr>
+  </tbody>
+</table>
