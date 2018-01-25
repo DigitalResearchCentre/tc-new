@@ -25,7 +25,6 @@
       <td style="border-top-width:0px; text-align:center">{{member.committed}}</td>
       <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
           (click)="assignPages(member._id, member.user)" style="margin-top:5px">Assign Pages</button> <span  *ngIf="!community.attrs.documents.length">[No documents in community]</span> </td>
-    <!-- td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td -->
     </tr>
   </tbody>
 </table>

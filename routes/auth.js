@@ -52,7 +52,7 @@ router.post('/login', function(req, res, next) {
         console.log("config.host_url "+config.host_url);
         console.log("req.protocol "+req.protocol);
         console.log("req.get('host') "+req.get('host'));
-        authenticateUser (user.local.email, user, req.protocol + '://' + req.get('host'));
+        authenticateUser (user.local.email, user, config.host_url + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: user});
         req.logout();
         return;
@@ -116,8 +116,8 @@ router.post('/signup', function(req, res) {
       newUser.local.authenticated= "0";
       newUser.save(function(err) {
         if (err) {}
-        console.log("inside authentication local 2")
-        authenticateUser (newUser.local.email, newUser, req.protocol + '://' + req.get('host'));
+        console.log("inside authentication local 2 "+config.host_url);
+        authenticateUser (newUser.local.email, newUser, config.host_url!= ''? config.host_url : req.protocol + '://' + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: newUser})
         req.logout();
         return;

@@ -8,6 +8,7 @@ var CommunityService = require('./services/community')
   , Router = ng.router.Router
   , Location = ng.router.Location
   , joinCommunity = require('./joinCommunity')
+  , async = require('async')
 ;
     /* function example(communityService, community, user) {
       communityService.addMember(community, user, 'MEMBER')
@@ -47,6 +48,11 @@ var MemberProfileComponent = ng.core.Component({
     this.communityleader = {
       email:"peter.robinson@usask.ca", name:"Peter Robinson"
     };
+    //get list of all pages assigned to this user, for every membership (is this the best way to do this..?
+    //use this to create
+    async.map(authUser.attrs.memberships, getMemberTasks, function (err, results){
+      var bill=0;
+    })
     this.joinableCommunities = _.filter(publicCommunities, function(community) {
       return communityService.canJoin(community, authUser);
     });
@@ -71,5 +77,12 @@ var MemberProfileComponent = ng.core.Component({
     window.location=instruction.toRootUrl();
   },
 });
+
+function getMemberTasks (member, callback) {
+  $.post(config.BACKEND_URL+'getMemberTasks?'+'id='+member._id, function(res) {
+      var bill=res;
+      callback(null, res);
+    });
+}
 
 module.exports = MemberProfileComponent;

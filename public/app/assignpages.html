@@ -22,7 +22,17 @@
       </div>
       <ul style="padding-left: 20px">
         <li *ngFor="#page of doc.attrs.children">
-            <input type="checkbox" [(ngModel)]="page.selected">  {{page.attrs.name}} <span *ngIf="page.selected" style="font-style: italic">{{user.local.name}}</span>
+            <input type="checkbox" [(ngModel)]="page.selected">  {{page.attrs.name}}
+              <span *ngIf="page.attrs.tasks">
+                <span *ngIf="page.isOther">(</span><span *ngFor="#task of page.attrs.tasks">
+                  <span *ngIf="task.userId!=user._id">{{task.name}}</span>
+               </span><span *ngIf="page.isOther">)</span>
+               <span *ngFor="#task of page.attrs.tasks">
+                 <span *ngIf="task.userId==user._id && !page.selected"><b>{{task.name}}</b></span>
+                 <span *ngIf="task.userId==user._id && page.selected"><del><b>{{task.name}}</b></del></span>
+               </span>
+             </span>
+              <span *ngIf="page.selected && !page.isAssigned" style="font-style: italic">{{user.local.name}}</span>
         </li>
       </ul>
     </li>

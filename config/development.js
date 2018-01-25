@@ -8,5 +8,6 @@ module.exports = {
   port: 3000,
   BACKEND_URL: 'http://localhost:3000/api/',
   logFormat: 'dev',
-  localDevel: true
+  localDevel: true,
+  host_url: 'http://localhost:3000'
 };

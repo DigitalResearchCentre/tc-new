@@ -62,7 +62,7 @@ var CommunityResource = _.inherit(Resource, function(opts) {
       user.memberships.push({
         community: community._id,
         role: User.CREATOR,
-        pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0}
+        pages: {"assigned":0,"inprogress":0,"submitted":0, "approved":0, "committed":0}
       });
       user.save(function(err, user) {
         cb(err, community);
@@ -86,18 +86,18 @@ router.get('/communities/:id/memberships/', function(req, res, next) {
 });
 
 router.post('/community/:id/members/', function(req, res, next) {
-  console.log("in getting members "+req.params.id)
+//  console.log("in getting members "+req.params.id)
   var communityId = req.params.id;
   Community.findOne({_id: ObjectId(communityId)}, function(err, community) {
-    console.log(community.members)
+//    console.log(community.members)
     async.mapSeries(community.members, function(member, callback) {
 
       User.findOne({_id: member                                                                                                                                                 }, function(err, user){
-          console.log(user)
+//          console.log(user)
         return callback(err, user);
       });
     }, function(err, results) {
-      console.log(results);
+//      console.log(results);
       res.json(results);
     });
   });
@@ -128,7 +128,7 @@ router.post('/communities/:id/add-member', function(req, res, next) {
       user.memberships.push({
         community: community._id,
         role: role,
-        pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0}
+        pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0, "approved":0}
       });
       user.save(function(err, user) {
         if (err) {
@@ -303,7 +303,7 @@ router.get('/actions/:id', function(req, res, next) {
         user.memberships.push({
           community: community._id,
           role: role,
-          pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0}
+          pages: {"assigned":0,"inprogress":0,"submitted":0,"committed":0, "approved":0}
         });
         async.parallel([
           function(cb) {
@@ -521,6 +521,18 @@ function loadTEIContent(version, content) {
   return deferred.promise;
 }
 
+//get all pages with tasks for this id, return info so we can create links to each page
+router.post('/getMemberTasks', function(req, res, next) {
+  Doc.find({"tasks.memberId":req.query.id}, function (err, docs){
+    console.log("tasks found: "+docs.length)
+    if (docs.length) {
+      docs.forEach(function(doc){
+        console.log(doc);
+      })
+    }
+    res.json({ndocs: docs.length})
+  })
+});
 
 router.post('/getSubDocEntities', function(req, res, next) {
 //    console.log("looking for "+req.query.id);
@@ -1190,14 +1202,29 @@ router.post('/getDocPages', function(req, res, next){
   });
 });
 
+router.post('/deleteAssignPages', function(req, res, next) {
+  var deselected=req.body.deselected;
+  var membership=deselected[0].record.memberId;
+  var user=deselected[0].record.userId;
+  async.map(deselected, deleteAP, function (err) {
+    User.collection.update({_id: ObjectId(user), "memberships._id": ObjectId(membership)}, {$inc: {"memberships.$.pages.assigned":-deselected.length}}, function (err, result){
+      res.json({error: err});
+    })
+  });
+});
+
+function deleteAP (deleteAP, callback) {
+  Doc.collection.update({_id: ObjectId(deleteAP.pageId)},{$pull: {"tasks":{userId:deleteAP.record.userId}}}, function (err) {
+    callback(err)
+  });
+}
+
 router.post('/saveAssignPages', function(req, res, next) {
   var selected=req.body.selected;
   var membership=selected[0].record.memberId;
   var user=selected[0].record.userId;
-  console.log(selected.length+" user "+user+" membership "+membership);
   async.map(selected, saveAP, function (err) {
     User.collection.update({_id: ObjectId(user), "memberships._id": ObjectId(membership)}, {$inc: {"memberships.$.pages.assigned":selected.length}}, function (err, result){
-      console.log(result);
       res.json({error: err});
     })
   });
@@ -1320,6 +1347,9 @@ function removeAllDocs(req, res, deleteCommunity) {
             npagetrans=result.result.n;
             cb1(err);
           });
+        },
+        function(cb1) {
+          User.collection.update({"memberships.community":ObjectId(req.query.id)}, {$set: {"memberships.$.pages.assigned":0, "memberships.$.pages.committed":0, "memberships.$.pages.approved":0, "memberships.$.pages.submitted":0, "memberships.$.pages.inprogress":0}}, {multi: true}, cb1);
         },
         function(cb1) {
           if (!deleteCommunity) Community.update({_id:req.query.id}, {$set: {documents:[], entities:[]}}, cb1);
