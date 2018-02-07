@@ -140,6 +140,7 @@ var EditCommunityComponent = ng.core.Component({
     var communityService = this._communityService
       , self=this
     ;
+    var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
     this.message=this.success="";
     var message=[];
     //verify
@@ -154,6 +155,8 @@ var EditCommunityComponent = ng.core.Component({
     } else if (this.edit.abbr.length>4)  {
       message.push(
         "Community abbreviation "+this.edit.abbr+" must be less than 5 characters");
+    } else if (format.test(this.edit.abbr)) {
+      message.push("Community abbreviation "+this.edit.abbr+" cannot contain the characters !!@#$%^&*()_+=[]{};':\"|,.<>/?");
     }
     if (this.edit.longName && this.edit.longName.length>80) {
       message.push(

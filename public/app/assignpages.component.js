@@ -53,7 +53,20 @@ var AssignPagesComponent = ng.core.Component({
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;
     if (doc.expand) {
+      var self=this;
+      //this document may need expanding -- refresh it
       this._docService.selectDocument(doc);
+      this._docService.refreshDocument(doc).subscribe(function(mydoc) {
+        for (var j=0; j<mydoc.attrs.children.length; j++) {
+          if (mydoc.attrs.children[j].attrs.tasks) {
+            for (var k=0; k<mydoc.attrs.children[j].attrs.tasks.length; k++) {
+              if (mydoc.attrs.children[j].attrs.tasks[k].userId==self.user._id)
+                mydoc.attrs.children[j].isAssigned=true;
+              else mydoc.attrs.children[j].isOther=true;
+            }
+          }
+        }
+      });
     }
   },
   submit: function() {
@@ -76,7 +89,7 @@ var AssignPagesComponent = ng.core.Component({
             }
           }
           else {
-            selected.push({pageId:this.community.attrs.documents[i].attrs.children[j]._id, record:{userId:this.user._id, name: this.user.local.name, status: "ASSIGNED", memberId:this.memberId}});
+            selected.push({pageId:this.community.attrs.documents[i].attrs.children[j]._id, record:{userId:this.user._id, name: this.user.local.name, status: "ASSIGNED", memberId:this.memberId, witname: this.community.attrs.documents[i].attrs.name}});
             this.community.attrs.documents[i].attrs.children[j].isAssigned=true;
             if (!this.community.attrs.documents[i].attrs.children[j].attrs.tasks)
               this.community.attrs.documents[i].attrs.children[j].attrs.tasks=[];

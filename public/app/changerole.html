@@ -1,0 +1,22 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Change role in community "{{community}}"
+    <button type="button" (click)="closeModalCR()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 1px">
+    {{success}}
+  </div>
+  <p *ngIf="role=='MEMBER'||role=='LEADER'||role=='createObjTree'" style="margin-left:20px; margin-right:20px;  margin-top:10px">{{user.local.name}} is currently a {{origrole}} of community {{community}}.
+    <p *ngIf="role=='APPROVER'" style="margin-left:20px; margin-right:20px;  margin-top:10px">{{user.local.name}} is currently an {{origrole}} of community {{community}}.
+  <p style="margin-left:20px; margin-right:20px;" *ngIf="role=='MEMBER'">A MEMBER: can view any pages in the community; may edit and save transcription pages; but cannot commit transcripts to the database, or add documents and images to the community.</p>
+  <p style="margin-left:20px; margin-right:20px" *ngIf="role=='APPROVER'">An APPROVER: can do all that a MEMBER can do; and may approve transcriptions submitted by members and pass them to a leader for committal to the database.</p>
+  <p style="margin-left:20px; margin-right:20px" *ngIf="role=='LEADER'">A LEADER: can edit any pages in the community and commit them to the database; add, edit and delete documents and images.</p>
+<form action="" style="margin-left: 200px; margin-top:10px">
+            <input type="radio" name="changerole" [checked]="role=='MEMBER'" (click)="choose('MEMBER')">MEMBER<br>
+            <input type="radio" name="changerole" [checked]="role=='APPROVER'" (click)="choose('APPROVER')">APPROVER<br>
+            <input type="radio" name="changerole" [checked]="role=='LEADER'" (click)="choose('LEADER')">LEADER
+  </form>
+  <hr style="border: 1px solid #8c8b8b; margin-bottom: 15px; margin-top:15px; ">
+    <div class="form-group" style="text-align: center; height: 18px;">
+      <button type="button" class="btn btn-primary" (click)="submit()">Save</button>
+    </div>
+</div>

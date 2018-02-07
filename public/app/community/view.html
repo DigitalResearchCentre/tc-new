@@ -17,29 +17,29 @@
           <div>
             <span class="icon" aria-hidden="true"
               (click)="toggleDoc(doc)"></span>
-            <a (click)="selectDoc(doc)">
+            <a (click)="toggleDoc(doc)">
               {{doc.attrs.name}}
             </a>&nbsp;
-            <a target="_blank" (click)="addZipImages(doc)" data-toggle="tooltip" title="Add images in zip file">
+            <a *ngIf="role=='LEADER'||role=='CREATOR'" target="_blank" (click)="addZipImages(doc)" data-toggle="tooltip" title="Add images in zip file">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/zip-file-load.png">
             </a>
-            <a *ngIf="docLacksImages(doc)" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
+            <a *ngIf="docLacksImages(doc)&&(role=='LEADER'||role=='CREATOR')" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
               <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/camera-multiple-missing.png">
             </a>
-            <a *ngIf="!docLacksImages(doc)" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
+            <a *ngIf="!docLacksImages(doc)&&(role=='LEADER'||role=='CREATOR')" target="_blank" (click)="addBulkImages(doc)" data-toggle="tooltip" title="Add multiple images">
               <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/camera-multiple.png">
             </a>
-            <a target="_blank" (click)="editTEIHeader(doc)" data-toggle="tooltip" title="Edit TEI header">
+            <a target="_blank" *ngIf="role=='LEADER'||role=='CREATOR'" (click)="editTEIHeader(doc)" data-toggle="tooltip" title="Edit TEI header">
               <img onmouseover="this.width='24';this.height='36'" onmouseout="this.width='12'; this.height='18'" class="menuimg" height="18" width="12" src="../../images/teiheader.png">
             </a>
-            <a target="_blank" (click)="reorderDocument(doc)" data-toggle="tooltip" title="Reorder or rename pages">
+            <a target="_blank" *ngIf="role=='LEADER'||role=='CREATOR'" (click)="reorderDocument(doc)" data-toggle="tooltip" title="Reorder or rename pages">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/reorderdoc.png">
             </a>
-            <a target="_blank" data-toggle="tooltip" title="Remove document text"
+            <a target="_blank" *ngIf="role=='LEADER'||role=='CREATOR'" data-toggle="tooltip" title="Remove document text"
               (click)="removeDocumentText(doc)">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/deletedoctext.png">
             </a>
-            <a target="_blank" data-toggle="tooltip" title="Delete document"
+            <a target="_blank" *ngIf="role=='LEADER'||role=='CREATOR'" data-toggle="tooltip" title="Delete document"
               (click)="deleteDocument(doc)">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/deletedoc.png">
             </a>
@@ -47,29 +47,29 @@
               (click)="extractXML($event, doc)">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/getdocxml.png">
             </a>
-            <span *ngIf="showAddFirstPage(doc)" (click)="addFirstPage(doc)"
+            <span *ngIf="showAddFirstPage(doc)&&(role=='LEADER'||role=='CREATOR')" (click)="addFirstPage(doc)"
               class="add-page-after"></span>
           </div>
           <ul>
-            <li *ngFor="#page of doc.attrs.children">
-              <a (click)="selectPage(page)">
-                {{page.attrs.name}}
-              </a>
-              <a *ngIf="pageHasImage(page)" target="_blank" data-toggle="tooltip" title="Change Image"
-                (click)="editPageImage(page)">
-                <img onmouseover="this.width='22';this.height='19'" onmouseout="this.width='15'; this.height='12'" class="menuimg" height="12" width="15" src="../../images/camera-black.png">
-              </a>
-              <a *ngIf="!pageHasImage(page)" target="_blank" data-toggle="tooltip" title="No image present. Add image."
-                (click)="editPageImage(page)">
-                <img onmouseover="this.width='22';this.height='19'" onmouseout="this.width='15'; this.height='12'" class="menuimg" height="12" width="15" src="../../images/camera-red.png">
-              </a>
-              <span *ngIf="showAddPage(page, doc)" (click)="addPageAfter(page, doc)"
-                class="add-page-after"></span>
+            <li *ngFor="#page of doc.attrs.children" [ngClass]="{'selected':page.attrs.selected}">
+                <a (click)="selectPage(page)">
+                  {{page.attrs.name}}
+                </a>
+                <a *ngIf="pageHasImage(page)&&(role=='LEADER'||role=='CREATOR')" target="_blank" data-toggle="tooltip" title="Change Image"
+                  (click)="editPageImage(page)">
+                  <img onmouseover="this.width='22';this.height='19'" onmouseout="this.width='15'; this.height='12'" class="menuimg" height="12" width="15" src="../../images/camera-black.png">
+                </a>
+                <a *ngIf="!pageHasImage(page)&&(role=='LEADER'||role=='CREATOR')" target="_blank" data-toggle="tooltip" title="No image present. Add image."
+                  (click)="editPageImage(page)">
+                  <img onmouseover="this.width='22';this.height='19'" onmouseout="this.width='15'; this.height='12'" class="menuimg" height="12" width="15" src="../../images/camera-red.png">
+                </a>
+                <span *ngIf="showAddPage(page, doc)&&(role=='LEADER'||role=='CREATOR')" (click)="addPageAfter(page, doc)"
+                  class="add-page-after"></span>
             </li>
           </ul>
         </li>
       </ul>
-        <span data-toggle="tooltip" title="Add document" (click)="addDocument()" class="add-document">
+        <span data-toggle="tooltip" *ngIf="role=='LEADER'||role=='CREATOR'" title="Add document" (click)="addDocument()" class="add-document">
           <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='24'; this.height='24'" class="menuimg" height="24" width="24" src="../../images/adddocument.png">
         </span>
     </div>
@@ -146,7 +146,7 @@
             </span>
             <span *ngIf="entity.isTerminal">
             <a (click)="selectEntity(entity)">
-              {{entity.attrs.name}} X
+              {{entity.attrs.name}}
             </a></span>
           </div>
           <ul>
@@ -159,7 +159,7 @@
                 </span>
                 <span *ngIf="subEntity.isTerminal">
                 <a (click)="selectEntity(subEntity)">
-                  {{subEntity.name}} XX
+                  {{subEntity.name}}
                 </a></span>
               </div>
               <ul>
@@ -185,7 +185,7 @@
                         </span>
                         <span *ngIf="subSubSubEntity.isTerminal">
                         <a (click)="selectEntity(subSubSubEntity)">
-                          {{subSubSubEntity.name}} XXXX
+                          {{subSubSubEntity.name}}
                         </a></span>
                       </div>
                     </li>

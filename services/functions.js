@@ -345,4 +345,6 @@ var FunctionService = {
   }
 }
 
+//used when we need to parse the query string
+
 module.exports = FunctionService;

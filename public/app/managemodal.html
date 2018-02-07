@@ -41,5 +41,9 @@
     </tc-managemodal-reorder-document>
     <tc-managemodal-assign-pages *ngSwitchWhen="'assign-pages'" [community]="community" [user]="user" [memberId]="memberId" [source]="source">
     </tc-managemodal-assign-pages>
+    <tc-managemodal-change-role *ngSwitchWhen="'change-role'" [member]="member" [user]="user" [role]="role" [community]="community">
+    </tc-managemodal-change-role>
+    <tc-managemodal-assign-approver *ngSwitchWhen="'assign-approver'" [member]="member" [user]="user">
+    </tc-managemodal-assign-approver>
   </div>
 </div>

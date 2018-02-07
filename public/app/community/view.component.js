@@ -49,6 +49,18 @@ var ViewComponent = ng.core.Component({
       $('#tcVersions').height(tcHeight);
     });
   }],
+  ngOnInit: function() {
+    if (this.state.authUser._id) {
+      for (var i=0; i<this.state.authUser.attrs.memberships.length; i++) {
+        if (this.state.authUser.attrs.memberships[i].community.attrs._id==this.state.community.attrs._id)
+          this.role=this.state.authUser.attrs.memberships[i].role;
+      }
+    } else this.role="NONE";
+  },
+  ngOnChanges: function() {
+    var docEl=document.getElementsByClassName("selected")[0];
+    if (docEl) docEl.scrollIntoView(true);
+  },
   onResize: function($event) {
     var tcWidth=$('#tcPaneViewer').width();
     var tcHeight=$('#tcPaneViewer').height();
@@ -63,6 +75,12 @@ var ViewComponent = ng.core.Component({
     if (doc.expand) {
       this._docService.selectDocument(doc);
     }
+/*    if (doc.expand) {
+      removeAllSelected(this, this.state.document.attrs.children[0]);
+      this._docService.selectDocument(doc);
+//      this._docService.selectPage(doc.attrs.children[0]);
+      this.state.document.attrs.children[0].attrs.selected=true;
+    } */
   },
   showAddFirstPage: function(doc) {
     return doc &&  _.isEmpty(_.get(doc, 'attrs.children'));
@@ -82,14 +100,20 @@ var ViewComponent = ng.core.Component({
     return(false);
   },
   selectDoc: function(doc) {
+    removeAllSelected(this, this.state.document.attrs.children[0]);
     this._docService.selectDocument(doc);
+    this.state.document.attrs.children[0].attrs.selected=true;
   },
   selectPage: function(page) {
+    removeAllSelected(this, page);
+    page.attrs.selected=true;
     this._docService.selectPage(page);
   },
   selectDocPage: function(doc, page) {
     this._docService.selectDocument(doc);
     this._docService.selectPage(page);
+    removeAllSelected(this, page);
+    page.attrs.selected=true;
   },
   addZipImages: function(doc) {
     this._uiService.manageModal$.emit({
@@ -320,6 +344,11 @@ var ViewComponent = ng.core.Component({
     });
   }
 });
+
+function removeAllSelected(self, page) {
+  if (this.state.pageSelected) this.state.pageSelected.attrs.selected=false;
+  this.state.pageSelected=page;
+}
 
 function prettyTei(teiRoot) {
   _.dfs([teiRoot], function(el) {

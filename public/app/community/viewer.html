@@ -1,6 +1,12 @@
   <tc-splitter class="horizontal" (resize)="onResize($event)" id="viewerSplitter">
   <tc-pane class="image-viewer">
-    <div id="imageMap" class="image_map"></div>
+    <div [ngClass]="{'nodisplay':!image}" id="imageMap" class="image_map"></div>
+    <div [ngClass]="{'nodisplay':image}" style="margin:auto; position: relative; top: -40%;;">
+      <p>No image associated with this page<br/><br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <button *ngIf="role=='LEADER'||role=='CREATOR'" type="button" class="btn btn-primary" (click)="addPageImage(page)">Add Image</button>
+    </p>
+    </div>
   </tc-pane>
   <tc-pane class="text-viewer">
     <div class="transcript-header">
@@ -11,7 +17,7 @@
         </option>
       </select>
 
-      <select [ngModel]="revision?.getId()" (change)="revisionChange($event)">
+      <select *ngIf="revisions.length" [ngModel]="revision?.getId()" (change)="revisionChange($event)">
         <option *ngFor="#r of revisions"
           [value]="r.getId()" >
           {{r.attrs.user.local.name}}
@@ -35,32 +41,36 @@
     </tc-codemirror>
     <div class="container" style="width:100%">
       <div class="row" style="width:100%">
-        <div class="col-md-5" *ngIf="page">
+        <div class="col-sm-5" *ngIf="page">
           <div class="buttons" style="float:left; margin-top: 4px">
-            <button type="button" class="btn btn-default btn-xs"
+            <button *ngIf="role=='LEADER'||role=='CREATOR'||(role=='MEMBER'&&pageStatus.access=='ASSIGNED')||(role=='APPROVER'&&pageStatus.access=='ASSIGNED')" type="button" class="btn btn-default btn-xs"
               (click)="save()">Save</button>
-            <button type="button" class="btn btn-default btn-xs"
+              <button  *ngIf="role=='MEMBER'&&pageStatus.access=='ASSIGNED'&&pageStatus.status=='IN_PROGRESS'" type="button" class="btn btn-default btn-xs"
+                (click)="submitTranscript()">Submit</button>
+              <button  *ngIf="(role=='LEADER'||role=='CREATOR'||role=='APPROVER')&&pageStatus.access=='ASSIGNED'" type="button" class="btn btn-default btn-xs"
+                (click)="approve()">Approve</button>
+              <button  *ngIf="role=='LEADER'||role=='CREATOR'" type="button" class="btn btn-default btn-xs"
               (click)="commit()">Commit</button>
             <button type="button" class="btn btn-default btn-xs"
               (click)="preview()">Preview</button>
-            <button *ngIf="!isText" type="button" class="btn btn-default btn-xs"
+            <button *ngIf="!isText&&(role=='LEADER'||role=='CREATOR')" type="button" class="btn btn-default btn-xs"
                 (click)="newText(page, document)">New text</button>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-sm-2">
           <div style="text-align: center; margin:auto" *ngIf="!isVerticalSplit">
             <span data-toggle="tooltip" title="Split screen vertically" (click)="splitVertical()" style="text-align: center; margin-top: 4px" class="split-horizontal"></span>
           </div>
           <div style="text-align: center; margin:auto" *ngIf="isVerticalSplit">
-            <span data-toggle="tooltip" title="Split screen horizontally" (click)="splitHorizontal()" style="text-align: center; margin-top: 4px" class="split-vertical"></span>
+            <span data-toggle="tooltip" title="Split screen horizontallky" (click)="splitHorizontal()" style="text-align: center; margin-top: 4px" class="split-vertical"></span>
           </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-sm-5">
           <div style="float:right; margin-top: 4px">
-            <button *ngIf="isPrevPage(page, document)" type="button" class="btn btn-default btn-xs"
+            <button *ngIf="isPrevPage" type="button" class="btn btn-default btn-xs"
               (click)="showPrev(page, document)"><{{prevPage}}</button>
             {{page.attrs.name}} in {{document.attrs.name}}
-            <button *ngIf="isNextPage(page, document)" type="button" class="btn btn-default btn-xs"
+            <button *ngIf="isNextPage" type="button" class="btn btn-default btn-xs"
               (click)="showNext(page, document)">{{nextPage}}></button>&nbsp;&nbsp;&nbsp;&nbsp;
           </div>
         </div>

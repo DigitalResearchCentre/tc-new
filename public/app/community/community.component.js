@@ -41,6 +41,13 @@ var CommunityComponent = ng.core.Component({
       , route = this._routeParams.get('route')
       , uiService = this._uiService
     ;
+    //but we might not be logged in at all
+    if (this.state.authUser._id) {
+      for (var i=0; i<this.state.authUser.attrs.memberships.length; i++) {
+        if (this.state.authUser.attrs.memberships[i].community.attrs._id==id)
+          this.role=this.state.authUser.attrs.memberships[i].role;
+      }
+    } else this.role="NONE";
     this.route = route;
     //now, could be refresh after we deleted a community. in that case...don't try and select it!
     if (this._uiService.state.myCommunities[this._uiService.state.myCommunities.findIndex(x => x._id == id)]
@@ -54,12 +61,10 @@ var CommunityComponent = ng.core.Component({
     var instruction = this._router.generate([
       'Community', {id: id, route: route}
     ]);
-    this._location.go(instruction.toRootUrl());
+    var urlCall=instruction.toRootUrl()
+    this._location.go(urlCall);
     this.route = route;
   },
-  isLeader: function() {
-    return (this._communityService.canAddDocument(this.state.community, this.state.authUser));
-  }
 });
 
 module.exports = CommunityComponent;

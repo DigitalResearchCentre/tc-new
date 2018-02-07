@@ -1,0 +1,19 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Assign approver for {{user.local.name}} in community "{{community.attrs.name}}"
+    <button type="button" (click)="closeModalCR()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 1px">
+    {{success}}
+  </div>
+    <p *ngIf="member.approvername" style="margin-left:20px; margin-right:20px; margin-top:15px">Approver {{member.approvername}} ({{member.approvermail}}) is assigned to community {{community.attrs.name}} member {{member.name}}.</p>
+    <p *ngIf="!member.approvername" style="margin-left:20px; margin-right:20px;  margin-top:15px">No approver has been assigned to community {{community.attrs.name}} member {{member.name}}. Choose an approver:</p>
+    <form action="" style="margin-left: 20px; margin-top:10px; height: 120px; overflow: scroll">
+    <ul style="list-style: none">
+      <li *ngFor="#approver of approvers"><input type="radio" name="assignapprover" [checked]="member.approvername==approver.name" (click)="choose(approver)"> {{approver.name}} ({{approver.role}}; {{approver.email}})</li>
+    </ul>
+    </form>
+  <hr style="border: 1px solid #8c8b8b; margin-bottom: 15px; margin-top:15px; ">
+  <div class="form-group" style="text-align: center; height: 18px;">
+    <button type="button" class="btn btn-primary" (click)="submit()">Save</button>
+  </div>
+</div>

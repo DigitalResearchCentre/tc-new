@@ -25,20 +25,43 @@
         <tr *ngFor="#membership of memberships" class="commMembership">
           <td  style="border-top-width:0px">{{membership.community.attrs.abbr}}</td>
           <td style="border-top-width:0px">{{membership.community.attrs.name}}</td>
-          <td style="border-top-width:0px">{{membership.role}}</td>
+          <td style="border-top-width:0px">{{membership.role}}
+            <span *ngIf="membership.approvername"><br>Approver: {{membership.approvername}} ({{membership.approvermail}})</span>
+          </td>
           <td style="border-top-width:0px">{{formatDate(membership.created)}}</td>
           <td style="border-top-width:0px; text-align:center">
-                  {{membership.pages.assigned}} {{membership.pages.assignedPages}}
+                  ({{membership.pageinstances.assigned.length}})
+                  <ul *ngIf="membership.pageinstances.assigned.length">
+                    <li *ngFor="#instance of membership.pageinstances.assigned" style="text-align:left">
+                      <a (click)="showPage(membership.community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+                  </ul>
           </td>
-          <td style="border-top-width:0px; text-align:center">{{membership.pages.inprogress}}
-            <br/>
+          <td style="border-top-width:0px; text-align:center">{{membership.pageinstances.inprogress.length}}
+            <ul *ngIf="membership.pageinstances.inprogress.length">
+              <li *ngFor="#instance of membership.pageinstances.inprogress" style="text-align:left">
+                <a (click)="showPage(membership.community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+            </ul>
           </td>
-          <td style="border-top-width:0px; text-align:center">{{membership.pages.submitted}}</td>
-          <td style="border-top-width:0px; text-align:center">{{membership.pages.approved}}</td>
-          <td style="border-top-width:0px; text-align:center">{{membership.pages.committed}}</td>
+          <td style="border-top-width:0px; text-align:center">{{membership.pageinstances.submitted.length}}
+            <ul *ngIf="membership.pageinstances.submitted.length">
+              <li *ngFor="#instance of membership.pageinstances.submitted" style="text-align:left">
+                <a (click)="showPage(membership.community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+            </ul>
+          </td>
+          <td style="border-top-width:0px; text-align:center">{{membership.pageinstances.approved.length}}
+            <ul *ngIf="membership.pageinstances.approved.length">
+              <li *ngFor="#instance of membership.pageinstances.approved" style="text-align:left">
+                <a (click)="showPage(membership.community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+            </ul></td>
+          <td style="border-top-width:0px; text-align:center">{{membership.pages.committed}}
+            <ul *ngIf="membership.pageinstances.committed.length">
+              <li *ngFor="#instance of membership.pageinstances.committed" style="text-align:left">
+                <a (click)="showPage(membership.community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+            </ul>
+          </td>
           <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="membership.role=='CREATOR' || membership.role=='LEADER'" type="button" class="btn btn-primary btn-sm"
-              (click)="navigate(membership.community, 'edit')">Edit</button>&nbsp;<button type="button" class="btn btn-primary btn-sm"
-                  (click)="navigate(membership.community,'view')">View</button></td>
+              (click)="navigate(membership.community, 'edit')">Edit</button>&nbsp;
+              <button type="button" class="btn btn-primary btn-sm" (click)="navigate(membership.community,'view')">View</button></td>
         <!-- td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td -->
         </tr>
       </tbody>

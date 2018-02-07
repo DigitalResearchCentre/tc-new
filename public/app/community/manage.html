@@ -3,7 +3,7 @@
     <nav class="navbar navbar-default">
       <ul class="nav navbar-nav navbar-left">
         <li><span class="hmbrand">Manage ></span></li>
-        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
+        <!--li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a (click)="loadModal('add-document-choice')">
                 Add Document</a></li>
@@ -22,7 +22,7 @@
             <li><a href="#">Generic Entity Parts</a></li>
             <li><a href="#">Single Document Parts</a></li>
           </ul>
-        </li>
+        </li-->
         <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Auxiliary Files<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a (click)="loadModal('uploaddtd-community')">DTD</a></li>
@@ -30,20 +30,20 @@
             <li><a (click)="loadModal('uploadjs-community')">Viewer Javascript</a></li>
           </ul>
         </li>
-        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Collation<span class="caret"></span></a>
+        <li class="dropdown" *ngIf="state.community.attrs.documents.length"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Collation<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a (click)="loadModal('collationeditor-choosebase')">Choose Base</a></li>
             <li><a (click)="loadModal('collationeditor-choosewitnesses')">Choose Witnesses</a></li>
-            <li><a (click)="loadModal('collationeditor-community')">Configure Collation Editor</a></li>
+            <!--li><a (click)="loadModal('collationeditor-community')">Configure Collation Editor</a></li-->
           </ul>
         </li>
-        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Members<span class="caret"></span></a>
+        <!--li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Members<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a (click)="loadModal('view-members')">Members</a></li>
             <li><a href="#">Assign Transcriptions</a></li>
             <li><a href="#">Invite Members</a></li>
           </ul>
-        </li>
+        </li-->
         <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Management<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li ng-show="isCreator()===true"><a (click)="deleteAllDocs()">Delete All Documents</a></li>

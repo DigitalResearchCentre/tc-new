@@ -5,8 +5,8 @@ var HomeComponent = ng.core.Component({
   selector: 'tc-home',
   templateUrl: '/app/home.html',
 }).Class({
-  constructor: [UIService, function( uiService) { 
-    console.log('Home');
+  constructor: [UIService, function( uiService) {
+//    console.log('Home');
     this._uiService = uiService;
   }],
   getUserStatus: function() {
@@ -18,7 +18,7 @@ var HomeComponent = ng.core.Component({
       if (_.isEmpty(authUser.memberships)) {
         status = 1;
       } else if (
-        authUser.memberships.length === 1 && 
+        authUser.memberships.length === 1 &&
         (authUser.memberships[0].role=="CREATOR" || authUser.memberships[0].role=="LEADER") &&!$scope.community.documents.length
       ) {
         //user, one community, but no documents
@@ -46,4 +46,3 @@ var HomeComponent = ng.core.Component({
 });
 
 module.exports = HomeComponent;
-

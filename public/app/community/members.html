@@ -4,26 +4,85 @@
 <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
   <thead>
     <tr>
-      <th style="border-bottom-width:0px" class="col-md-3">Name (Email)</th>
-      <th style="border-bottom-width:0px" class="col-md-1">Role</th>
-      <th style="border-bottom-width:0px" class="col-md-1">Joined</th>
+      <th style="border-bottom-width:0px; text-align:center" class="col-md-2">Name (Email)</th>
+      <th style="border-bottom-width:0px; text-align:center" class="col-md-2">Role</th>
+      <th style="border-bottom-width:0px; text-align:center" class="col-md-1">Joined</th>
       <th style="border-bottom-width:0px" class="col-md-1">Assigned</th>
       <th style="border-bottom-width:0px" class="col-md-1">In&nbsp;Progress</th>
       <th style="border-bottom-width:0px" class="col-md-1">Submitted</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Approved</th>
       <th style="border-bottom-width:0px" class="col-md-1">Committed</th>
-      <th style="border-bottom-width:0px" class="col-md-3">&nbsp;</th>
+      <th style="border-bottom-width:0px" class="col-md-2">&nbsp;</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="#member of members" class="commMembership">
       <td  style="border-top-width:0px">{{member.name}} ({{member.email}})</td>
-      <td style="border-top-width:0px; text-align:center">{{member.role}}</td>
+      <td style="border-top-width:0px; text-align:center">{{member.role}}
+        <span *ngIf="!member.expand&&member.role!='CREATOR'" class="glyphicon glyphicon-triangle-right" (click)="toggleInstance(member)"></span>
+        <span *ngIf="member.expand" class="glyphicon glyphicon-triangle-bottom" (click)="toggleInstance(member)"></span>
+        <span *ngIf="member.expand">
+          <br/><button type="button" class="btn btn-primary btn-sm"
+              (click)="changeRole(member, member.user, member.role)" style="margin-top:5px">Change Role</button>
+          <br/>
+          <span *ngIf="member.approvername">Approver {{member.approvername}} ({{member.approvermail}})</span>
+          <button *ngIf="member.role=='MEMBER'" type="button" class="btn btn-primary btn-sm"
+                      (click)="assignApprover(member, member.user)" style="margin-top:5px">Assign Approver</button>
+        </span>
+      </td>
       <td style="border-top-width:0px; text-align:center">{{formatDate(member.date)}}</td>
-      <td style="border-top-width:0px; text-align:center">{{member.assigned}}</td>
-      <td style="border-top-width:0px; text-align:center">{{member.inprogress}}</td>
-      <td style="border-top-width:0px; text-align:center">{{member.submitted}}</td>
-      <td style="border-top-width:0px; text-align:center">{{member.committed}}</td>
-      <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
+      <td style="border-top-width:0px; text-align:center">({{member.assigned}})
+        <span *ngIf="member.pageinstances.assigned.length  && !member.pageinstances.assigned.expand" (click)="toggleInstance(member.pageinstances.assigned)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="member.pageinstances.assigned.length  && member.pageinstances.assigned.expand" (click)="toggleInstance(member.pageinstances.assigned)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="member.pageinstances.assigned.length && member.pageinstances.assigned.expand">
+          <li *ngFor="#instance of member.pageinstances.assigned" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{member.inprogress}}
+        <span *ngIf="member.pageinstances.inprogress.length  && !member.pageinstances.inprogress.expand" (click)="toggleInstance(member.pageinstances.inprogress)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="member.pageinstances.inprogress.length  && member.pageinstances.inprogress.expand" (click)="toggleInstance(member.pageinstances.inprogress)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="member.pageinstances.inprogress.length && member.pageinstances.inprogress.expand">
+          <li *ngFor="#instance of member.pageinstances.inprogress" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{member.submitted}}
+        <span *ngIf="member.pageinstances.submitted.length  && !member.pageinstances.submitted.expand" (click)="toggleInstance(member.pageinstances.submitted)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="member.pageinstances.submitted.length  && member.pageinstances.submitted.expand" (click)="toggleInstance(member.pageinstances.submitted)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="member.pageinstances.submitted.length && member.pageinstances.submitted.expand">
+          <li *ngFor="#instance of member.pageinstances.submitted" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{member.approved}}
+        <span *ngIf="member.pageinstances.approved.length  && !member.pageinstances.approved.expand" (click)="toggleInstance(member.pageinstances.approved)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="member.pageinstances.approved.length  && member.pageinstances.approved.expand" (click)="toggleInstance(member.pageinstances.approved)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="member.pageinstances.approved.length && member.pageinstances.approved.expand">
+          <li *ngFor="#instance of member.pageinstances.approved" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{member.committed}}
+        <span *ngIf="member.pageinstances.committed.length  && !member.pageinstances.committed.expand" (click)="toggleInstance(member.pageinstances.committed)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="member.pageinstances.committed.length  && member.pageinstances.committed.expand" (click)="toggleInstance(member.pageinstances.committed)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="member.pageinstances.committed.length && member.pageinstances.committed.expand">
+          <li *ngFor="#instance of member.pageinstances.committed" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td  style="border-top-width:0px; padding: 0px; text-align: center">
+        <button *ngIf="community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
           (click)="assignPages(member._id, member.user)" style="margin-top:5px">Assign Pages</button> <span  *ngIf="!community.attrs.documents.length">[No documents in community]</span> </td>
     </tr>
   </tbody>

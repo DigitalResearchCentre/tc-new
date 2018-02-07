@@ -50,11 +50,11 @@ var  config = require('./config')
                 }),
                 restService.prepareOptions({})
               ).subscribe(function(res) {
-                console.log('send mail success');
+    //            console.log('send mail success');
                 uiService.manageModal$.emit({type:'join-community', community: community, communityleader: communityleader, status:joinstatus});
               });
             }, function(err) {
-              console.log(err);
+  //            console.log(err);
             });
           });
       }
@@ -76,10 +76,10 @@ var  config = require('./config')
                 }),
                 restService.prepareOptions({})
               ).subscribe(function(res) {
-                console.log('send mail success');
+  //              console.log('send mail success');
               });
             }, function(err) {
-              console.log(err);
+  //            console.log(err);
             });
         restService.http.post(
           config.BACKEND_URL + 'actions',

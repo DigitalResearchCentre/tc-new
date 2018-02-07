@@ -73,7 +73,18 @@ var DocService = ng.core.Injectable().Class({
     }
     if (doc && state.document !== doc) {
       self.refreshDocument(doc).subscribe(function(doc) {
-        var page = doc.getFirstChild();
+        var thispage=getParameterByName('page', document.location.href);
+        if (thispage) {
+          var pagen=0;
+          for (var i=0; i<doc.attrs.children.length; i++) {
+            if (doc.attrs.children[i].attrs._id==thispage) pagen=i;
+          }
+          var page = doc.attrs.children[pagen];
+        }
+        else var page = doc.getFirstChild();
+        if (state.pageSelected) state.pageSelected.attrs.selected=false;
+        state.pageSelected=page;
+        page.attrs.selected=true;
         if (page && (!state.page || state.page.getParent() !== doc)) {
           self.selectPage(page);
         }
@@ -479,7 +490,7 @@ function checkPagePrevLinks(teiRoot, prevs) {
   _.dfs([teiRoot], function(el) {
     if (el.name === 'pb') {
       return false;
-    } else if (el.name !== '#text' || (el.text || '').trim() !== '') {  
+    } else if (el.name !== '#text' || (el.text || '').trim() !== '') {
     //seems to be a bug here.. prevs[i] can go out of scope in cases of pages being added
       if (!prevs[i]) return false;
       if (teiElementEqual(prevs[i], el)) {
@@ -532,6 +543,16 @@ function parseTEI(text) {
   }); */
 //  console.log("xmldoc"); console.log(xmlDoc);
   return xmlDoc;
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
 

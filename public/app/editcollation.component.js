@@ -96,7 +96,7 @@ var EditCollationComponent = ng.core.Component({
           }
           else self.message="The save failed. Maybe you have lost your internet connection.";
         });
-        console.log(witnesses);
+    //    console.log(witnesses);
       }
   },
   selectAll: function (document) {

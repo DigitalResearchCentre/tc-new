@@ -164,7 +164,7 @@ const _statics = {
     return nodes;
   },
   _loadChildren(nodeData) {
-    console.log("node data: "); console.log(nodeData);
+  //  console.log("node data: "); console.log(nodeData);
     const cls = this;
     return _.map(nodeData.children, function(childData) {
       cls._assignId(childData);

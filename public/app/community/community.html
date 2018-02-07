@@ -17,8 +17,8 @@
       <!--><li><a (click)="navigate('wiki')">Wiki</a></li>
       <li><a (click)="navigate('blog')">Blog</a></li>
       <li><a (click)="navigate('bulletin-board')">Bulletin Board</a></li></-->
-      <li *ngIf="isLeader()"><a (click)="navigate('members')">Members</a></li>
-      <li *ngIf="isLeader()"><a (click)="navigate('edit')">Edit</a></li>
+      <li *ngIf="role=='LEADER'||role=='CREATOR'"><a (click)="navigate('members')">Members</a></li>
+      <li *ngIf="role=='LEADER'||role=='CREATOR'"><a (click)="navigate('edit')">Edit</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
       <li><a href="#" *ngIf="state.community?.attrs.haspicture" style="padding:0; top:-6px; left:-1px"><img  height="35px" width="300px" src="{{state.community?.attrs.image}}"/></a></li>

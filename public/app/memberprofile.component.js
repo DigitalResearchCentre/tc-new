@@ -9,6 +9,7 @@ var CommunityService = require('./services/community')
   , Location = ng.router.Location
   , joinCommunity = require('./joinCommunity')
   , async = require('async')
+  , sortBy = require('sort-array')
 ;
     /* function example(communityService, community, user) {
       communityService.addMember(community, user, 'MEMBER')
@@ -42,16 +43,32 @@ var MemberProfileComponent = ng.core.Component({
   ngOnInit: function() {
     var publicCommunities = state.publicCommunities
     , communityService = this.communityService
-    , authUser = this.state.authUser;
+    , authUser = this.state.authUser, self=this;
     this.nmemberships=authUser.attrs.memberships.length;
     this.memberships=authUser.attrs.memberships;
+    for (var i=0; i<this.memberships.length; i++) {
+      this.memberships[i].pageinstances={assigned:[], inprogress:[], submitted:[], approved:[], committed:[]}
+    }
     this.communityleader = {
       email:"peter.robinson@usask.ca", name:"Peter Robinson"
     };
     //get list of all pages assigned to this user, for every membership (is this the best way to do this..?
     //use this to create
     async.map(authUser.attrs.memberships, getMemberTasks, function (err, results){
-      var bill=0;
+      for (var i=0; i<self.memberships.length;i++) {
+        for (var j=0; j<results.length; j++) {
+          if (String(self.memberships[i]._id)==results[j].memberId) {
+        //    adjustNumbers((results[j].assigned));
+      //      var bill=sortBy(results[j].assigned, ['docName', 'sortable']);
+            if (results[j].assigned.length) {adjustNumbers((results[j].assigned)); sortBy(results[j].assigned, ['docName', 'sortable']);}
+            if (results[j].approved.length) {adjustNumbers((results[j].approved)); sortBy(results[j].approved, ['docName', 'sortable']);}
+            if (results[j].inprogress.length) {adjustNumbers((results[j].inprogress)); sortBy(results[j].inprogress, ['docName', 'sortable']);}
+            if (results[j].submitted.length) {adjustNumbers((results[j].submitted)); sortBy(results[j].submitted, ['docName', 'sortable']);}
+            if (results[j].committed.length) {adjustNumbers((results[j].committed)); sortBy(results[j].committed, ['docName', 'sortable']);}
+            self.memberships[i].pageinstances=results[j];
+          }
+        }
+      }
     })
     this.joinableCommunities = _.filter(publicCommunities, function(community) {
       return communityService.canJoin(community, authUser);
@@ -76,13 +93,31 @@ var MemberProfileComponent = ng.core.Component({
     ]);
     window.location=instruction.toRootUrl();
   },
+  showPage: function(community, document, page) {
+    var instruction = this._router.generate([
+      'Community', {id: community.getId(), route: 'view', document:document, page:page}
+    ]);
+    window.location=instruction.toRootUrl();
+  }
 });
 
 function getMemberTasks (member, callback) {
   $.post(config.BACKEND_URL+'getMemberTasks?'+'id='+member._id, function(res) {
-      var bill=res;
       callback(null, res);
     });
+}
+
+function adjustNumbers(sourceArray) {
+  for (var i=0; i<sourceArray.length; i++) {
+    var nlen=0;
+    if (!isNaN(sourceArray[i].name[0])) {
+      var nlen=0, newName=sourceArray[i].name;
+      while (!isNaN(sourceArray[i].name[nlen])) nlen++;
+      nlen=6-nlen;
+      while (nlen> 0 ) {newName = "0" + newName; nlen--}
+      sourceArray[i].sortable=newName;
+    } else sourceArray[i].sortable=sourceArray[i].name;
+  }
 }
 
 module.exports = MemberProfileComponent;

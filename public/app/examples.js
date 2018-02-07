@@ -24,11 +24,11 @@ var xmlValide =  '<?xml version="1.0" encoding="UTF-8"?>' +
 $.post('/api/validate', {
   xml: xmlValide,
 }, function(res) {
-  console.log(res);
+//  console.log(res);
 });
 
 $.post('/api/validate', {
   xml: '<TEI></TEI>', // invalid
 }, function(res) {
-  console.log(res);
+//  console.log(res);
 });

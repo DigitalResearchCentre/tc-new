@@ -32,19 +32,19 @@ var AppComponent = ng.core.Component({
       autoProcessQueue: false,
       uploadMultiple: true,
       addRemoveLinks: true,
-      dictDefaultMessage: 
+      dictDefaultMessage:
         "Click here to upload a file, or drop image file or files here",
     });
     this.$dropzone = $dropzone;
     this.dropzone = $dropzone[0].dropzone;
     this.dropzone.on('success', function(file, res) {
-      console.log(file, res);
+//      console.log(file, res);
     });
     this.dropzone.on('addedfile', function(file) {
       var files = this.getQueuedFiles()
         , dropzone = this
       ;
-      console.log(files);
+//      console.log(files);
       _.each(files, function(f) {
         dropzone.removeFile(f)
       });

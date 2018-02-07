@@ -1,5 +1,5 @@
 //note: due to synchronization problems, include another javascript file in this file using the routine here given
-console.log("loading")
+//console.log("loading")
 var prepareMe = function(){
 
  //if we contain <abbr> or <expan> tags: lets toggle between views.. no longer support mirror tags
@@ -104,7 +104,7 @@ function makeAppReadingsMenu(){
 		});
 		$(this).attr('title', titletip);
 	});
-  console.log(rdgs);
+//  console.log(rdgs);
 	var select=document.createElement('select');
 	 select.onchange=new Function("chooseReadings()");
 	 select.id="selectrdg";
@@ -136,7 +136,7 @@ function makeAppReadingsMenu(){
  	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) rightonly=1;
  	else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) leftonly=1;
   else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) leftandright=1;
-  console.log("rightonly "+rightonly+" leftonly "+leftonly+" rightandleft "+leftandright)
+//  console.log("rightonly "+rightonly+" leftonly "+leftonly+" rightandleft "+leftandright)
     var origwidth=$('#previewdiv').contents().find('body').width();
     $('#previewdiv').contents().find('body').css({"width":"3000px"});
     $('#previewdiv').contents().find('#TCPContainer').css({"float":"left"});
@@ -239,11 +239,11 @@ function makeAppReadingsMenu(){
  	var notenum=0;
  	//in older tei: we used rend.  Now, we use place
   	$('#previewdiv').contents().find('note').each (function (i) {
-      console.log(this);
+//      console.log(this);
   	// here is the logic.  simple rend=marg or marg-right: put it in the right margin, aligned at same height as original
   		if ($(this).attr('place')=='margin' || $(this).attr('place')=='margin-right' ) {
   			var top=$(this).position().top;
-        console.log("top1 "+top);
+//        console.log("top1 "+top);
         if ($('#previewdiv').contents().find('#TCrm').length==0) {
   				rmdiv=document.createElement('div');
   				rmdiv.id="TCrm";
@@ -255,9 +255,9 @@ function makeAppReadingsMenu(){
 			newnote.style.position='absolute';
 			newnote.id='TCnote'+i;
 			$(this).attr('data-id','TCnote'+i);
-      console.log("top2 "+top);
+//      console.log("top2 "+top);
 			newnote.style.top=""+top+'px';
-      console.log(newnote);
+  //    console.log(newnote);
 			$('#previewdiv').contents().find('#TCrm').append(newnote);
 			$(this).hide();
 
@@ -297,7 +297,7 @@ function makeAppReadingsMenu(){
 
 function doFrame() {
 	$('#previewdiv').contents().find('fw').each (function (i) {
-    console.log("got a fw")
+//    console.log("got a fw")
 		var rendval=$(this).attr('place');
 		createTBMNote(rendval, $(this));
 	});
@@ -374,7 +374,7 @@ function doFrame() {
 	selectdiv.appendChild(btn);
     var $body=$('#previewdiv').contents().find('body')
     $body.prepend(selectdiv);
-    console.log(selectdiv)
+//    console.log(selectdiv)
  }
 
  function chooseReadings(){

@@ -32,7 +32,8 @@ var ManageModalComponent = ng.core.Component({
     require('./editcollation.component'),
     require('./addzip.component'),
     require('./assignpages.component'),
-  ],
+    require('./changerole.component'),
+    require('./assignapprover.component')]
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
     this._uiService = uiService;
@@ -174,6 +175,16 @@ var ManageModalComponent = ng.core.Component({
           self.action=event.action;
           self.document=event.document;
           self.context=event.context;
+      } else if (event.type ==='change-role'){
+        self.choice=event.type,
+        self.member=event.member,
+        self.user=event.user,
+        self.role=event.role,
+        self.community=event.community
+      } else if (event.type ==='assign-approver'){
+        self.choice=event.type,
+        self.member=event.member,
+        self.user=event.user
       }
       $('#manageModal').modal('show');
     });

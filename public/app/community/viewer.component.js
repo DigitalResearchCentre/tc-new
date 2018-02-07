@@ -33,6 +33,13 @@ var ViewerComponent = ng.core.Component({
     this.state=uiService.state;
     this.state.doNotParse=false;
     this.isVerticalSplit=true;
+    this.pageStatus={status:"NONE",access:"NONE"};
+    if (this.state.authUser._id) {
+      for (var i=0; i<this.state.authUser.attrs.memberships.length; i++) {
+        if (this.state.authUser.attrs.memberships[i].community.attrs._id==this.state.community.attrs._id)
+          this.role=this.state.authUser.attrs.memberships[i].role;
+      }
+    } else this.role="NONE";
     this._uiService.sendEditorText$.subscribe(function(data) {
       self.contentText = data.text;
       if (data.choice=="save") {self.saveSend(data.text)}
@@ -52,6 +59,9 @@ var ViewerComponent = ng.core.Component({
           self.state.isNewContinuingText=true;
           self.setContentText(self.contentText);
       }
+      if (chosen==="submitTranscript") {
+          self.doSubmitTranscript();
+      }
     });
     this._uiService.changeMessage$.subscribe(function(message){
 //      console.log(message);
@@ -60,17 +70,27 @@ var ViewerComponent = ng.core.Component({
     });
   }],
   ngOnInit: function() {
-    var self=this;
+    var el = this._elementRef.nativeElement
+      , $el = $(el)
+      , self=this
+    ;
+    if (this.state.authUser._id) {
+      for (var i=0; i<this.state.authUser.attrs.memberships.length; i++) {
+        if (this.state.authUser.attrs.memberships[i].community.attrs._id==this.state.community.attrs._id)
+          this.role=this.state.authUser.attrs.memberships[i].role;
+      }
+    } else this.role="NONE";
+    this.isPrevPage=this.testIsPrevPage(this.page, this.document);
+    this.isNextPage=this.testIsNextPage(this.page, this.document);
+    //need to check if document is loaded...
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
       self.isText=res.isThisPageText;
 //      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
     });
-    var self = this
-      , community = this.community
-      , $el = $(this._elementRef.nativeElement)
+    var community = this.community
       , width = $el.width()
       , height = $el.height()
-    ;
+    ;  //at this point .. if there is no image we can add an image
     var viewer = OpenSeadragon({
       id: 'imageMap',
       prefixUrl: '/images/',
@@ -106,6 +126,12 @@ var ViewerComponent = ng.core.Component({
       if (viewer) viewer.open([]);
     }
   },
+  addPageImage: function(page) {
+    this._uiService.manageModal$.emit({
+      type: 'edit-page',
+      page: page,
+    });
+  },
   splitHorizontal: function() {
     $('#viewerSplitter').removeClass("horizontal");
     $('#viewerSplitter').addClass("vertical");
@@ -131,28 +157,28 @@ var ViewerComponent = ng.core.Component({
       , page = this.page
       , self = this
     ;
-    if (page) {
-      this.contentText = '';
-      docService.getLinks(page).subscribe(function(links) {
-        self.prevs = links.prevs.slice(0, links.prevs.length-1);
-        docService.getRevisions(page).subscribe(function(revisions) {
-          self.revisions = revisions;
-          if (_.isEmpty(revisions)) {
-            //here is where we choose.. either make it an empty page i
-            self.createDefaultRevisionFromDB();
-          } else {
-            self.revisionChange({target: {value: _.first(revisions).getId()}});
-          }
-        });
-      });
+    //there can be a problem of synchronicity: we could have loaded the document, then changed doc in view.html. BUT
+    //call to load pages of document might not have finished, so the state.page points to a page in the previously chosen
+    //document. So I think .. we have to do test if this page is among the document pages and delay until it is...
+
+    var foundPage=false;
+    for (var i=0; i<this.document.attrs.children.length && !foundPage; i++) {
+      if (this.document.attrs.children[i].attrs._id==this._uiService.state.page.attrs._id) foundPage=true;
     }
-    $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
-      self.isText=res.isThisPageText;
-      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
-    });
-    this.onImageChange();
+    if (!foundPage) {  //this is a hack...we are still waiting for document pages to load so do it here
+      docService.refreshDocument(this.document).subscribe(function(doc) {
+        page = doc.getFirstChild();
+        if (self._uiService.state.pageSelected) self._uiService.state.pageSelected.attrs.selected=false;
+        self._uiService.state.pageSelected=page;
+        page.attrs.selected=true;
+        docService.selectPage(page);
+        processChanges(docService, page,self)
+      });
+    } else {
+      processChanges(docService, page,self);
+    }
   },
-  isPrevPage: function(page, document) {
+  testIsPrevPage: function(page, document) {
     //could be just created the doc, so no pages yet...e
     if (!document) return(false);
     if (!document.attrs.children) return(false);
@@ -184,7 +210,7 @@ var ViewerComponent = ng.core.Component({
         }
       }
   },
-  isNextPage: function(page, document) {
+  testIsNextPage: function(page, document) {
     if (!document) return(false);
     if (!document.attrs.children) return(false);
     if (document.attrs.children.length==0) return(false);
@@ -203,7 +229,7 @@ var ViewerComponent = ng.core.Component({
     var docService = this._docService
       , self = this
       , page = this.page
-      , community = this.community
+      , community = this.community.attrs.abbr
       , meta = _.get(
         page, 'attrs.meta',
         _.get(page.getParent(), 'attrs.meta')
@@ -214,41 +240,47 @@ var ViewerComponent = ng.core.Component({
       docService.getTextTree(page).subscribe(function(teiRoot) {
         var isDefault=false;
         var dbRevision = self.json2xml(prettyTei(teiRoot));
-        //edit this to turn it to valid empty texts
-        var newtext=dbRevision.replace(/(?:\r\n|\r|\n)/g, '');
-        var blankpage='<text><pb n="'+self.page.attrs.name+'"/></text>'
-          docService.addRevision({
-          doc: page.getId(),
-          text: dbRevision,
-          user: meta.user,
-          community: community,
-          committed: meta.committed,
-          status: 'COMMITTED',
-        }).subscribe(function(revision) {
-          self.revisions.unshift(revision);
-          if (newtext==blankpage) {
-            dbRevision='<text>\r<body>\r<pb n="'+self.page.attrs.name+'"/>\r\t<div>\r\t</div>\r</body></text>'
+        //now, we only add this to the revision database if we are a leader or CREATOR or member. Else, just throw it in the window and carry on
+        if (self.role=="NONE")
+          self.setContentText(dbRevision);
+        else {
+          //we cannot save
+          //edit this to turn it to valid empty texts
+          var newtext=dbRevision.replace(/(?:\r\n|\r|\n)/g, '');
+          var blankpage='<text><pb n="'+self.page.attrs.name+'"/></text>'
             docService.addRevision({
-              doc: page.getId(),
-              text: dbRevision,
-              user: meta.user,
-              community: community,
-              committed: meta.committed,
-              status: 'IN_PROGRESS',
-            }).subscribe(function(revision) {
-              self.revisions.unshift(revision);
+            doc: page.getId(),
+            text: dbRevision,
+            user: meta.user,
+            community: community,
+            committed: meta.committed,
+            status: 'COMMITTED',
+          }).subscribe(function(revision) {
+            self.revisions.unshift(revision);
+            if (newtext==blankpage) {
+              dbRevision='<text>\r<body>\r<pb n="'+self.page.attrs.name+'"/>\r\t<div>\r\t</div>\r</body></text>'
+              docService.addRevision({
+                doc: page.getId(),
+                text: dbRevision,
+                user: meta.user,
+                community: community,
+                committed: meta.committed,
+                status: 'IN_PROGRESS',
+              }).subscribe(function(revision) {
+                self.revisions.unshift(revision);
+                self.setContentText(dbRevision);
+                self.revisionChange({
+                  target: {value: revision.getId()}
+                });
+              });
+            }  else {
               self.setContentText(dbRevision);
               self.revisionChange({
                 target: {value: revision.getId()}
               });
-            });
-          }  else {
-            self.setContentText(dbRevision);
-            self.revisionChange({
-              target: {value: revision.getId()}
-            });
-          }
-        });
+            }
+          });
+        }
       });
     }
   },
@@ -264,6 +296,7 @@ var ViewerComponent = ng.core.Component({
   setContentText: function(contentText) {
     //shifted test for new pages, etc, over to
     var self=this, docService=this._docService, page=this.page;
+    var community=this.community.attrs.abbr;
     if (this.state.isNewContinuingText) {
       //we have just reset the text to continue from previous page. Here we catch the change, fiddle with it, add the text to revisions and commit
       this.state.isNewContinuingText=false;
@@ -280,7 +313,7 @@ var ViewerComponent = ng.core.Component({
         doc: page.getId(),
         text: newText,
         user: meta.user,
-        community: this.community,
+        community: community,
         committed: meta.committed,
         status: 'CONTINUEPAGE',
       }).subscribe(function(revision) {
@@ -337,34 +370,40 @@ var ViewerComponent = ng.core.Component({
     //this.contentText = revision.attrs.text;
   },
   save: function() {
-    //get content from codemirror...
-    this._uiService.requestEditorText$.emit("save");
-  },
-  saveSend: function(text) {
-    var page = this.page
+      var page = this.page
       , docService = this._docService
       , self = this
+      , status =""
+      , revision = this.revision
+      , text=this.state.editor.getValue()
       , community = this._uiService.state.community.attrs.abbr;
     ;
+    //ok..what status do we have? change it if it needs changing
+    if (this.role=='MEMBER'&&this.pageStatus.status=="ASSIGNED"&&this.pageStatus.access=="ASSIGNED") { //change status in this transcription if
+      status="IN_PROGRESS";
+      for (var i=0; i<page.attrs.tasks.length; i++) {
+        if (page.attrs.tasks[i].userId==this.state.authUser.attrs._id) page.attrs.tasks[i].status=status;
+      }
+      $.post(config.BACKEND_URL+'changeTranscriptStatus?'+'pageId='+page.attrs._id+'&status='+status+'&userId='+this.state.authUser.attrs._id+'&communityId='+this.community.attrs._id+'&docId='+this.document.attrs._id, function(res) {
+        if (res.error!="none") alert ("Error in changing transcript status: "+error);
+        self.pageStatus.status="IN_PROGRESS"
+      });
+    } else status="IN_PROGRESS";
+  //  revision.set('status', status);
     docService.addRevision({
       doc: page.getId(),
       text: text,
       community: community,
-      status: 'IN_PROGRESS',
+      status: status,
     }).subscribe(function(revision) {
       self.revisions.unshift(revision);
       self.revision = revision;
     });
   },
-  preview: function() {
-    //get content from codemirror...
-    this._uiService.requestEditorText$.emit("preview");
-  },
-  previewSend: function(text) {
-    //parse first!
+  preview: function() {     //parse first!
     var self = this
       , page = this.page
-      , contentText = text;
+      , contentText = this.state.editor.getValue();
     ;
     $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
       xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
@@ -378,11 +417,115 @@ var ViewerComponent = ng.core.Component({
         });
     });
   },
-  commit: function() { //no fucking about. Just put the editor into state each time it changes and there we are
-/*    this._uiService.requestEditorText$.emit("commit");
+  submitTranscript() {
+    var self=this;
+    self._uiService.manageModal$.emit({
+       type: 'confirm-message',
+       header:   "Submitting page "+this.page.attrs.name+" in document "+self.state.document.attrs.name,
+       page: this.page,
+       docname: self.state.document.attrs.name,
+       warning: "You are about to submit this page for approval. You will not be able to edit this page after submitting it.",
+       action: "submitTranscript",
+       document: self.state.document
+     });
   },
-  commitSend: function(text) { */
-    var docService = this._docService
+  doSubmitTranscript(){
+    var self = this
+      , docService = this._docService
+      , page = this.page
+      , community = this._uiService.state.community.attrs.abbr
+      , contentText = this.state.editor.getValue();
+    ;
+    $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
+      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
+    }, function(res) {
+      if (res.error.length) {
+        self._uiService.manageModal$.emit({
+            type: 'preview-page', page: page, error: res.error, content: contentText, lines: contentText.split("\n")
+        });
+      } else {
+        var status="SUBMITTED";
+        for (var i=0; i<page.attrs.tasks.length; i++) {
+          if (page.attrs.tasks[i].userId==self.state.authUser.attrs._id) page.attrs.tasks[i].status=status;
+        }
+        $.post(config.BACKEND_URL+'changeTranscriptStatus?'+'pageId='+page.attrs._id+'&status='+status+'&userId='+self.state.authUser.attrs._id+'&communityId='+self.community.attrs._id+'&docId='+self.document.attrs._id, function(res) {
+          if (res.error!="none") alert ("Error in changing transcript status: "+error);
+          self.pageStatus.status="SUBMITTED";
+          self.pageStatus.access="NONE";
+        });
+        //if we have an approver -- tell him/her, and add a task for that person
+        var myMembership=self.state.authUser.attrs.memberships.filter(function (obj){return obj.community.attrs._id==self.community.attrs._id;})[0];
+        if (myMembership && myMembership.approvermail) {
+          $.post(config.BACKEND_URL+'notifyTranscriptApprover?pageId='+page.attrs._id+'&userId='+self.state.authUser.attrs._id+'&approverId='+myMembership.approverid+'&communityId='+self.community.attrs._id+'&documentId='+self.document.attrs._id+'&memberId='+myMembership._id, function(res) {
+            if (res.error!="none") alert ("Error in notifying approver: "+error);
+            self.pageStatus.status="SUBMITTED";
+            self._uiService.manageModal$.emit({
+               type: 'info-message',
+               header:   "Submitting page "+page.attrs.name+" in document "+self.state.document.attrs.name+" for approval",
+               message: "Page "+page.attrs.name+" in document "+self.state.document.attrs.name+" submitted. An email notifying this submission has been sent to your nominated approver "+myMembership.approvername+" ("+myMembership.approvermail+")."
+             });
+          });
+        }
+        docService.addRevision({
+          doc: page.getId(),
+          text: contentText,
+          community: community,
+          status: status,
+        }).subscribe(function(revision) {
+          self.revisions.unshift(revision);
+          self.revision = revision;
+          self._uiService.manageModal$.emit({
+             type: 'info-message',
+             header:   "Page "+page.attrs.name+" in document "+self.state.document.attrs.name+" submitted.",
+             message: "Page validated and submitted."
+           });
+        });
+      }
+    })
+  },
+  approve: function(){
+    var self = this
+      , docService = this._docService
+      , page = this.page
+      , community = this._uiService.state.community.attrs.abbr
+      , contentText = this.state.editor.getValue();
+    ;
+    $.post(config.BACKEND_URL+'validate?'+'id='+this.state.community.getId(), {
+      xml: "<TEI><teiHeader><fileDesc><titleStmt><title>dummy</title></titleStmt><publicationStmt><p>dummy</p></publicationStmt><sourceDesc><p>dummy</p></sourceDesc></fileDesc></teiHeader>\r"+contentText+"</TEI>",
+    }, function(res) {
+      if (res.error.length) {
+        self._uiService.manageModal$.emit({
+            type: 'preview-page', page: page, error: res.error, content: contentText, lines: contentText.split("\n")
+        });
+      } else {
+        var status="APPROVED";
+        for (var i=0; i<page.attrs.tasks.length; i++) {
+          if (page.attrs.tasks[i].userId==self.state.authUser.attrs._id) page.attrs.tasks[i].status=status;
+        }
+        $.post(config.BACKEND_URL+'changeTranscriptStatus?'+'pageId='+page.attrs._id+'&status='+status+'&userId='+self.state.authUser.attrs._id+'&communityId='+self.community.attrs._id+'&docId='+self.document.attrs._id, function(res) {
+          if (res.error!="none") alert ("Error in changing transcript status: "+error);
+          self.pageStatus.status="APPROVED";
+          self.pageStatus.access="NONE";
+        });
+        docService.addRevision({
+          doc: page.getId(),
+          text: contentText,
+          community: community,
+          status: status,
+        }).subscribe(function(revision) {
+          self.revisions.unshift(revision);
+          self.revision = revision;
+          self._uiService.manageModal$.emit({
+             type: 'info-message',
+             header:   "Page "+page.attrs.name+" in document "+self.state.document.attrs.name+" approved.",
+             message: "Page validated and approved."
+           });
+        });
+      }
+    });
+  },
+  commit: function() {
+      var docService = this._docService
       , page = this.page
       , revision = this.revision
       , contentText = this.state.editor.getValue()
@@ -420,7 +563,7 @@ var ViewerComponent = ng.core.Component({
             name: page.attrs.name,
             community: self.state.community.attrs.abbr,
           },
-          text: self.contentText,
+          text: contentText,
         } ).subscribe(function(res) {
           //go get these from the db
           if (!state.doNotParse) {
@@ -441,6 +584,10 @@ var ViewerComponent = ng.core.Component({
           });
           $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
             self.isText=res.isThisPageText;
+          });
+          $.post(config.BACKEND_URL+'changeTranscriptStatus?'+'pageId='+self.page.attrs._id+'&status=COMMITTED&userId='+self.state.authUser.attrs._id+'&communityId='+self.community.attrs._id+'&docId='+self.document.attrs._id, function(res) {
+            if (res.error!="none") alert ("Error in changing transcript status: "+res.error);
+            self.pageStatus.status="COMMITTED";
           });
         });
       }
@@ -472,6 +619,43 @@ var ViewerComponent = ng.core.Component({
     });
   },
 });
+
+function processChanges(docService, page,self) {
+  self.isPrevPage=self.testIsPrevPage(self.page, self.document);
+  self.isNextPage=self.testIsNextPage(self.page, self.document);
+  self.contentText = '';
+  self.pageStatus=isPageAssigned(page,self.state.authUser, self.role);
+  docService.getLinks(page).subscribe(function(links) {
+    self.prevs = links.prevs.slice(0, links.prevs.length-1);
+    docService.getRevisions(page).subscribe(function(revisions) {
+      self.revisions = revisions;
+      if (_.isEmpty(revisions)) {
+        //here is where we choose.. either make it an empty page i
+        self.createDefaultRevisionFromDB();
+      } else {
+        self.revisionChange({target: {value: _.first(revisions).getId()}});
+      }
+    });
+  });
+  $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
+    self.isText=res.isThisPageText;
+    if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
+  });
+  self.onImageChange();
+}
+
+function isPageAssigned(page, user, role) {
+  if (!page.attrs.tasks || !page.attrs.tasks.length) return({status: "NONE", access: "NONE"});
+  for (var i=0; i<page.attrs.tasks.length; i++) {
+    if (page.attrs.tasks[i].userId=user.attrs._id) {
+      //ok, task is addressed at this member. But depending on where it is in the cycle -- may not be assigned
+      if (page.attrs.tasks[i].status=="ASSIGNED" && role=="MEMBER") return({status: "ASSIGNED", access: "ASSIGNED"});
+      if (page.attrs.tasks[i].status=="IN_PROGRESS" && role=="MEMBER") return({status: "IN_PROGRESS", access: "ASSIGNED"});
+      if (page.attrs.tasks[i].status=="SUBMITTED" && role=="APPROVER") return({status: "SUBMITTED", access: "ASSIGNED"});
+    }
+  }
+  return({status: "NONE", access: "NONE"});  //default...nothing
+}
 
 function prettyTei(teiRoot) {
   _.dfs([teiRoot], function(el) {

@@ -12,7 +12,7 @@ var CommunityHomeComponent = ng.core.Component({
   constructor: [RouteParams, CommunityService, UIService, RESTService, function(
     routeParams, communityService, uiService, restService
   ) {
-    console.log('community home');
+//    console.log('community home');
     this._communityService = communityService;
     this._uiService = uiService;
     this._restService = restService;
@@ -21,7 +21,7 @@ var CommunityHomeComponent = ng.core.Component({
   }],
   joinCommunity: function(community) {
     return joinCommunity(
-      community, this.state.authUser, 
+      community, this.state.authUser,
       this._communityService, this._uiService, this._restService
     );
   },

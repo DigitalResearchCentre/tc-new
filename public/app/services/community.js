@@ -62,8 +62,16 @@ var CommunityService = ng.core.Injectable().Class({
     }
     if (community && (uiService.state.community !== community)) {
       this.refreshCommunity(community).subscribe(function(community) {
+        var thisdoc=getParameterByName('document', document.location.href);
         uiService.setState('community', community);
-        docService.selectDocument(_.get(community, 'attrs.documents.0', null));
+        if (thisdoc) {
+          var docn=0;
+          for (var i=0; i<community.attrs.documents.length; i++) {
+            if (community.attrs.documents[i].attrs._id==thisdoc) docn=i;
+          }
+          docService.selectDocument(_.get(community, 'attrs.documents.'+docn, null));
+        }
+        else docService.selectDocument(_.get(community, 'attrs.documents.0', null));
       });
     }
     uiService.setState('community', community);
@@ -147,5 +155,16 @@ var CommunityService = ng.core.Injectable().Class({
     });
   },
 });
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 
 module.exports = CommunityService;

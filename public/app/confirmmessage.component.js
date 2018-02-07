@@ -50,6 +50,9 @@ var ConfirmMessageComponent = ng.core.Component({
       context: this.context,
     });
   },
+  submitTranscript: function() {
+    this._uiService.sendCommand$.emit("submitTranscript");
+  },
   transcribeFirstPage: function(document, page, context) {
     this.reload=false;
     this._uiService.showDocument$.emit({doc: document, page:document.attrs.children[0]});
@@ -61,8 +64,8 @@ var ConfirmMessageComponent = ng.core.Component({
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+page.attrs.ancestors[0]+'&pageid='+page._id, function(res) {
       if (res.isThisPageText) self.closeModalCMLC();
       else {
-        this.reload=false;
-        this._uiService.sendCommand$.emit("newTranscript");
+        self.reload=false;
+        self._uiService.sendCommand$.emit("newTranscript");
       }
     });
   },

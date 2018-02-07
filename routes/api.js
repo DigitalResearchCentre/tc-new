@@ -89,15 +89,11 @@ router.post('/community/:id/members/', function(req, res, next) {
 //  console.log("in getting members "+req.params.id)
   var communityId = req.params.id;
   Community.findOne({_id: ObjectId(communityId)}, function(err, community) {
-//    console.log(community.members)
     async.mapSeries(community.members, function(member, callback) {
-
-      User.findOne({_id: member                                                                                                                                                 }, function(err, user){
-//          console.log(user)
-        return callback(err, user);
+      User.findOne({ _id: member}, function(err, user){
+        callback(err, user);
       });
     }, function(err, results) {
-//      console.log(results);
       res.json(results);
     });
   });
@@ -280,9 +276,6 @@ function validateAction(action) {
 }
 
 router.get('/actions/:id', function(req, res, next) {
-  console.log("lets save here")
-  console.log(req.params.id)
-  console.log(req.query.hash)
   Action.findOne({_id: req.params.id}, function(err, action) {
     var payload = action.payload
       , role = payload.role
@@ -524,13 +517,25 @@ function loadTEIContent(version, content) {
 //get all pages with tasks for this id, return info so we can create links to each page
 router.post('/getMemberTasks', function(req, res, next) {
   Doc.find({"tasks.memberId":req.query.id}, function (err, docs){
-    console.log("tasks found: "+docs.length)
+//    console.log("tasks found: "+docs.length)
+    var assigned=[], inprogress=[], submitted=[], approved=[], committed=[];
     if (docs.length) {
       docs.forEach(function(doc){
-        console.log(doc);
+        for (var i=0; i<doc.tasks.length; i++) {
+          if (doc.tasks[i].memberId==req.query.id) {
+            if (doc.tasks[i].status=="ASSIGNED") assigned.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+            if (doc.tasks[i].status=="IN_PROGRESS") inprogress.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+            if (doc.tasks[i].status=="SUBMITTED") submitted.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+            if (doc.tasks[i].status=="APPROVED") approved.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+            if (doc.tasks[i].status=="COMMITTED") committed.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+          }
+        }
       })
     }
-    res.json({ndocs: docs.length})
+    //update count of lengths in memberships pages
+    User.collection.update({ "memberships._id":ObjectId(req.query.id)}, {$set:{"memberships.$.pages.inprogress":inprogress.length, "memberships.$.pages.submitted":submitted.length, "memberships.$.pages.approved":approved.length, "memberships.$.pages.committed":committed.length}}, function(err, result){
+      res.json({memberId:req.query.id, assigned:assigned, inprogress:inprogress, submitted:submitted, approved:approved, committed:committed});
+    })
   })
 });
 
@@ -619,6 +624,7 @@ router.post('/zeroDocument', function(req, res, next) {
     }
   });
 });
+
 
 function savePbInfs(pageInf, callback) {
 //  console.log("pbel "+pageInf.pbid+" textel "+pageInf.textEl);
@@ -1100,6 +1106,123 @@ function getEntityPaths  (entityTEI, callback) {
     }
 }
 
+router.post('/changeTranscriptStatus', function(req, res, next) {
+  var communityId=req.query.communityId;
+  var userId=req.query.userId;
+  var pageId=req.query.pageId;
+  var docId=req.query.docId;
+  var status=req.query.status;
+//  console.log("community "+communityId+" user "+userId+" page "+pageId);
+  async.parallel([
+        function(cb1) {
+          Doc.collection.update({_id:ObjectId(pageId), "tasks.userId":userId}, {$set: {"tasks.$.status":status}}, function(err, result){
+            cb1(err);
+         });
+       },
+      function(cb1){
+        if (status=="IN_PROGRESS") {
+          //decrement assigned, increment IN_PROGRESS
+          User.collection.update({_id:ObjectId(userId), "memberships.community":ObjectId(communityId)}, {$inc: {"memberships.$.pages.inprogress":1}}, function(err, result){
+            cb1(err);
+          });
+       } else cb1(null);
+     },
+     function(cb1){
+       if (status=="SUBMITTED") {
+         //decrement assigned, increment IN_PROGRESS
+         User.collection.update({_id:ObjectId(userId), "memberships.community":ObjectId(communityId)}, {$inc: {"memberships.$.pages.inprogress":-1, "memberships.$.pages.submitted":1}}, function(err, result){
+           cb1(err);
+         });
+       } else cb1(null);
+      },
+      function(cb1){
+        if (status=="APPROVED") {
+          //this one is more complex. We need to update page status for the original transcriber, and update page counts for him/her too
+          var assignedUser="";
+          User.collection.update({_id:ObjectId(userId), "memberships.community":ObjectId(communityId)}, {$inc: {"memberships.$.pages.approved":1}}, function(err, result){
+            //locate the page and the original user...
+            //the original user: will be the whose approverid == current user id
+            //so: go through tasks, check each membership
+            if (!err) {
+              Doc.findOne({_id: ObjectId(pageId)}, function(err, myDoc){
+                async.map(myDoc.tasks, function(task, callback){
+                  if (task.userId!=userId) {
+                    //find the user for this task
+                    User.findOne({_id:ObjectId(task.userId)}, function(err, myUser){
+                      //is there a membership for this user which has the current user as approver?
+                      for (var i=0; i<myUser.memberships.length; i++) {
+                        if (myUser.memberships[i].approverid==userId) assignedUser=task.userId;
+                      }
+                      callback(err,[]);
+                    });
+                  } else callback(null, []);
+                }, function(err, results){
+                  //got the assignedUser... so write appropriate values to the page task for assigned user and update numbers for approver and User
+                  async.waterfall([
+                    function(cb2){
+                      Doc.collection.update({_id:ObjectId(pageId), "tasks.userId":assignedUser}, {$set: {"tasks.$.status":status}}, function(err, result){
+                        cb2(err);
+                      });
+                    },
+                    function(cb2){
+                      User.collection.update({_id:ObjectId(assignedUser), "memberships.community":ObjectId(communityId)}, {$inc: {"memberships.$.pages.submitted":-1, "memberships.$.pages.approved":1}}, function(err, result){
+                        cb2(err);
+                      });
+                    }
+                  ], function(err, results){
+                    cb1(err);
+                  })
+                });
+              });
+            }
+            else cb1(err);
+          });
+       } else cb1(null);
+     },
+     function(cb1){
+       if (status=="COMMITTED") {
+         console.log("page to commit "+pageId);  //also add
+         var witname, username, memberid;
+         async.waterfall([
+           function(cb3){
+             Doc.findOne({_id:ObjectId(docId)}, function(err, thisDoc){
+               witname=thisDoc.name;
+               cb3(err);
+             })
+           },
+           function(cb3){
+             User.findOne({_id:ObjectId(userId)}, function(err, thisUser){
+               username=thisUser.local.name;
+               for (var i=0; i<thisUser.memberships.length; i++) {
+                 if (String(thisUser.memberships[i].community)==communityId) memberid=String(thisUser.memberships[i]._id);
+               }
+               cb3(err);
+             })
+           }
+         ], function (err, results) {
+           Doc.findOne({_id: ObjectId(pageId)}, function (err, thisDoc){
+             var tasks=[];
+             var foundCommitter=false;
+             for (var i=0; i<thisDoc.tasks.length; i++) {
+               if (thisDoc.tasks[i].userId==userId) foundCommitter=true;
+               tasks.push(thisDoc.tasks[i]);
+               tasks[tasks.length-1].status="COMMITTED";
+             }
+             //if there is no task for this user.. add one
+             if (!foundCommitter) tasks.push({userId:userId, name:username, status:"COMMITTED", memberId:memberid, date:Date.now(), witname:witname});
+             Doc.collection.update({_id:ObjectId(pageId)}, {$set: {tasks: tasks}}, function (err, result){
+               cb1(err);
+             })
+           });
+         });
+       } else cb1(null);
+    }
+  ], function(err){
+    if (err)  res.json({error: err});
+    else res.json({error:"none"});
+  })
+});
+
 router.post('/statusTranscript', function(req, res, next) {
   var isPrevPageText=false, isThisPageText=false, isMultiPages=false;
   globalTextEl=null;
@@ -1186,6 +1309,20 @@ router.post('/statusTranscript', function(req, res, next) {
   });
 });
 
+router.post('/getDocumentPage', function(req, res, next){
+  Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, document) {
+    if (!err) {
+      console.log(document);
+      Doc.findOne({_id: ObjectId(req.query.pageid)}, function(err, page) {
+        console.log(page)
+        if (!err) {
+          res.json({document: document, page:page});
+        } else res.json({error: err});
+      });
+    } else res.json({error: err});
+  });
+});
+
 router.post('/getDocPages', function(req, res, next){
   var myPagesOrder;
 //  console.log("starting search"+req.query.document);
@@ -1201,6 +1338,107 @@ router.post('/getDocPages', function(req, res, next){
       res.json({children: results[0].children, pages: results[1]});
   });
 });
+
+router.post('/getApprovers', function(req, res, next) {
+  console.log("community ", req.query.community);
+  User.find({"memberships.community": ObjectId(req.query.community), "memberships.role": {$in:['LEADER', 'CREATOR', 'APPROVER']}}, function(err, approvers){
+    console.log(err);
+    console.log(approvers.length);
+    res.json(approvers);
+  });
+});
+
+router.post('/changeRole', function(req, res, next) {
+  User.collection.update({"memberships._id": ObjectId(req.query.id)}, {$set: {"memberships.$.role":req.query.role}}, function(err, result){
+    res.json({error: err});
+  });
+});
+
+//adjust page tasks; adjust various numbers; send an email to our friendly approver
+router.post('/notifyTranscriptApprover', function(req, res, next) {
+  var pageId=req.query.pageId, userId=req.query.userId, approverId=req.query.approverId, communityId=req.query.communityId, documentId=req.query.documentId, memberId=req.query.memberId;
+  var myUser, myApprover, myDocument, myPage, myCommunity, myApproverMembershipId;
+  //use waterfall to bring back the info we need to make the page
+  //we need to create a task for the page for the approver
+  async.waterfall([
+    function(cb){
+      User.findOne({_id:ObjectId(userId)}, function(err, user){
+        myUser=user;
+        cb(err);
+      })
+    },
+    function(cb){
+      User.findOne({_id:ObjectId(approverId)}, function(err, approver){
+        myApprover=approver;
+        var myApproverMembership=myApprover.memberships.filter(function (obj){return String(obj.community)==communityId;})[0];
+        myApproverMembershipId=String(myApproverMembership._id);
+        cb(err);
+      })
+    },
+    function(cb){
+      Community.findOne({_id:ObjectId(communityId)}, function(err, community){
+        myCommunity=community;
+        cb(err);
+      })
+    },
+    function(cb){
+      Doc.findOne({_id:ObjectId(documentId)}, function(err, doc){
+        myDocument=doc;
+        cb(err);
+      })
+    },
+    function(cb){
+      Doc.findOne({_id:ObjectId(pageId)}, function(err, page){
+        myPage=page;
+        cb(err);
+      })
+    },
+    function(cb){
+      User.collection.update({_id:ObjectId(approverId), "memberships.community":ObjectId(communityId)}, {$inc: {"memberships.$.pages.submitted":1}}, function(err, result) {
+        cb(err);
+      })
+    }
+  ], function(err) {
+      if (err) {res.json({"error":err})}
+      else {
+//        console.log("pageId="+myPage._id+" userId="+myUser._id+" name="+myUser.local.name+" memberId="+memberId+" witname="+myDocument.name+" approverName="+myApprover.local.name);
+        Doc.collection.update({_id: ObjectId(myPage._id)},{$push:{"tasks":{userId:approverId, name: myApprover.local.name, status: "SUBMITTED", memberId: myApproverMembershipId, date:Date.now(), witname:myDocument.name}}}, function (err) {
+          if (err) {res.json({"error":err})} else {
+            var message = ejs.render(
+            fs.readFileSync(
+              __dirname + '/../views/notifyapprover.ejs', 'utf8'),
+              {
+                approvername: myApprover.local.name,
+                approvermail: myApprover.local.email,
+                url: config.host_url+'/app/community/?id'+communityId+'&route=view&document='+documentId+'&page='+pageId,
+                username: myUser.local.name,
+                useremail: myUser.local.email,
+                pagename: myPage.name,
+                docname: myDocument.name
+              }
+            );
+            TCMailer.localmailer.sendMail({
+              from: TCMailer.addresses.from,
+              to: myApprover.local.email,
+              subject: 'Page submitted for approval',
+              html: message,
+              text: message.replace(/<[^>]*>/g, '')
+            });
+            res.json({error: "none"});
+          }
+        });
+      }
+  });
+});
+
+router.post('/changeApprover', function(req, res, next) {
+  User.findOne({_id:ObjectId(req.query.userId)}, function (err, user) {
+    User.collection.update({"memberships._id": ObjectId(req.query.memberId)}, {$set: {"memberships.$.approvername":user.local.name, "memberships.$.approvermail":user.local.email, "memberships.$.approverid": user._id}}, function(err, result){
+      res.json({error: err});
+    });
+  });
+});
+
 
 router.post('/deleteAssignPages', function(req, res, next) {
   var deselected=req.body.deselected;
@@ -1231,7 +1469,7 @@ router.post('/saveAssignPages', function(req, res, next) {
 });
 
 function saveAP (addAP, callback) {
-  Doc.collection.update({_id: ObjectId(addAP.pageId)},{$push:{"tasks":{userId:addAP.record.userId, name: addAP.record.name, status: addAP.record.status, memberId: addAP.record.memberId, date:Date.now()}}}, function (err) {
+  Doc.collection.update({_id: ObjectId(addAP.pageId)},{$push:{"tasks":{userId:addAP.record.userId, name: addAP.record.name, status: addAP.record.status, memberId: addAP.record.memberId, date:Date.now(), witname:addAP.record.witname}}}, function (err) {
     callback(err)
   });
 }
@@ -1413,76 +1651,17 @@ router.post('/deletePage', function(req, res, next) {
   });
 });
 
-var globalTextEl=null;
+//just find a text element in this document
 router.post('/isDocTranscript', function(req, res, next) {
-  //need to check every page...
-  //short cut: if all pages are children of text element, then we have no transcripts
-  var nPageTranscripts=0;
-  globalTextEl=null;
-  //maybe no children! then just say no
-  async.waterfall([
-    function (cb) {
-      Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, thisdoc) {
-        console.log(thisdoc);
-        if (err || ! thisdoc) cb("error", []);
-        if (thisdoc.children.length==0) {
-           cb(null, null);
-        }
-        else cb(null, thisdoc.children);
-      })
-    },
-    function(children, cb) {  //get the text element. If no textel with these children -- then must have transcripts
-      //first, find any pb descended from this doc
-      if (!children)  cb(null, null);
-      else {
-        TEI.findOne({name:"pb", docs: ObjectId(req.query.docid)}, function (err, pbEl){
-          //top level ancestor of pbEl by definition will be the text elements
-          if (err) cb(err, []);
-          else {
-            TEI.findOne({_id: ObjectId(pbEl.ancestors[0]), name:"text"}, function (err, textEl) {
-              if (err) cb(err, []);
-              else {
-                globalTextEl=textEl;
-                cb(null, children);
-              }
-            });
-          }
-        });
-      }
-    },
-    function(children, cb) {
-      //
-      if (!children)  cb(null, null);
-      else {
-        var newchildren=children.map(function(page){return ObjectId(page)});
-        async.mapSeries(newchildren, hasPageTranscript, function (err, results){
-          results.map(function(page){if (page==1) nPageTranscripts+=1; return})
-          cb(null,[]);
-        });
-      }
-    }
-  ], function (err){
-    if (err) res.json({"error": true});
-    if (!nPageTranscripts) res.json({"isDocText": false});
-    else res.json({"isDocText": true});
+  TEI.findOne({name:"#text", "docs.0": ObjectId(req.query.docid)}, function(err, thistei) {
+    console.log(thistei);
+    if (thistei) res.json({"isDocText": true});
+    else res.json({"isDocText": false});
   });
 });
 
-//if this pb is a first level child of the text element.. then it can't have any text, fullstop
-function hasPageTranscript (page, callback) {
-  if (!globalTextEl) {
-    callback(null, 0);
-  } else {
-    TEI.findOne({docs: page, name:"pb"}, function (err, thistei) {
-      if (err) callback(err);
-      else {
-        var inTextEl=globalTextEl.children.filter(function(obj){return String(obj) == String(thistei._id);})[0];
-        if (inTextEl) callback(null, 0);
-        else callback(null, 1);
-      }
-    });
-  }
-}
+var globalTextEl=null;
+
 
 router.post('/updateDbJson', function(req, res, next) {
   var collection=req.query.collection;

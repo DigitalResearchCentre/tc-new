@@ -48,7 +48,7 @@ var AddZipComponent = ng.core.Component({
     this.pageName = _.get(this.page, 'attrs.name');
     this.state.lastDocCreated = null;
     $('#manageModal').width("580px");
-    $('#manageModal').height("275px");
+    $('#manageModal').height("575px");
     if (config.env !== 'production') {
       url += '?env=' + config.env;
     }
@@ -62,43 +62,59 @@ var AddZipComponent = ng.core.Component({
     var matchedFiles="";
     var unMatchedFiles="";
     self.zip=zip;
-    for (var key in zip.files) {
-       var myFile=zip.files[key];
-       //make a catalog of the imaage files here; check for types .jpg .tif .png
-       //check against doc for matches with facs and page names
-       //if document has no pages -- add all these using the file names as page names
-       if (!myFile.dir && myFile.name.indexOf("/.")==-1) {
-         var fname=myFile.name.slice(myFile.name.lastIndexOf('/')+1);
-         var pname=fname.split('.')[0];
-         var facsDoc=self.document.attrs.children.filter(function (obj){return (obj.attrs.facs && obj.attrs.facs.toLowerCase()== fname.toLowerCase());})[0];
-         if (facsDoc) {
-           if (matchedFiles!="") matchedFiles+=", ";
-           matchedFiles+=facsDoc.attrs.name+ " ("+fname+")";
-           self.fileNames.push({"key": key, "file":fname, "page": facsDoc.attrs.name, "id":facsDoc.attrs._id});
-         } else {
-           var nameDoc=self.document.attrs.children.filter(function (obj){return obj.attrs.name.toLowerCase()== pname.toLowerCase();})[0];
-           if (nameDoc) {
-             if (matchedFiles!="") matchedFiles+=", ";
-             matchedFiles+=nameDoc.attrs.name+ " ("+fname+")";
-             self.fileNames.push({"key": key, "file":fname, "page": nameDoc.attrs.name, "id":nameDoc.attrs._id});
-           } else {  //did not match this page, ho ho
-             if (unMatchedFiles!="") unMatchedFiles+=", ";
-             unMatchedFiles+=fname;
-             self.unmatchedFileNames.push({"key":key, "file":fname, "page": pname})
+    var docService = this._docService
+    //we need to be sure the document is fully loaded before we do this...
+    self.message="Starting processing now"
+    docService.refreshDocument(this.document).subscribe(function(doc) {
+      self.message="";
+      for (var key in zip.files) {
+         var myFile=zip.files[key];
+         //make a catalog of the imaage files here; check for types .jpg .tif .png
+         //check against doc for matches with facs and page names
+         //if document has no pages -- add all these using the file names as page names
+         if (!myFile.dir && myFile.name.indexOf("/.")==-1) {
+           var fname=myFile.name.slice(myFile.name.lastIndexOf('/')+1);
+           var pname=fname.split('.')[0];
+           //there could be several facs docs!! same image shared in several places say
+           var facsDoc=self.document.attrs.children.filter(function (obj){return (obj.attrs.facs && obj.attrs.facs.toLowerCase()== fname.toLowerCase());});
+           if (facsDoc[0]) {
+             for (var i=0; i<facsDoc.length; i++) {
+               if (self.message!="") self.message+=", ";
+               if (matchedFiles!="") matchedFiles+=", ";
+               self.message+=facsDoc[i].attrs.name+ " ("+fname+")";
+               matchedFiles+=facsDoc[i].attrs.name+ " ("+fname+")";
+               self.fileNames.push({"key": key, "file":fname, "page": facsDoc[i].attrs.name, "id":facsDoc[i].attrs._id});
+             }
+           } else {
+             var nameDoc=self.document.attrs.children.filter(function (obj){return obj.attrs.name.toLowerCase()== pname.toLowerCase();})[0];
+             if (nameDoc) {
+               if (matchedFiles!="") matchedFiles+=", ";
+               if (self.message!="") self.message+=", ";
+               matchedFiles+=nameDoc.attrs.name+ " ("+fname+")";
+               self.message+=nameDoc.attrs.name+ " ("+fname+")";
+               self.fileNames.push({"key": key, "file":fname, "page": nameDoc.attrs.name, "id":nameDoc.attrs._id});
+             } else {  //did not match this page, ho ho
+               if (unMatchedFiles!="") unMatchedFiles+=", ";
+               if (self.message!="") self.message+=", ";
+               unMatchedFiles+=fname;
+               self.message+=fname+" (unmatched)";
+               self.unmatchedFileNames.push({"key":key, "file":fname, "page": pname})
+             }
            }
          }
-       }
-    }
-    $.post(config.BACKEND_URL+'isDocTranscript?'+'docid='+self.document._id, function(res) {
-      if (!res.isDocText) {
-        //we have no text in this document
-        self.isDocTranscript=false;
-        var message="<p>This document has no text. TC will create a page for each image file in this zip file: "+unMatchedFiles+". </p><p>Click the <span style='background-color:#337ab7; color:white'>Load</span> button below to add these pages. (You can reorder the document's pages after they are added)</p>";
-      } else {
-        var message="<p>TC will add images for these pages in this document: "+matchedFiles+". </p><p>Click the <span style='background-color:#337ab7; color:white'>Load</span> button below to add these images.</p>";
-        if (unMatchedFiles!="") message+="<p>These images do not match any page or facs attribute in this document: "+unMatchedFiles+". TC will ignore them.</p>";
       }
-      self.message=message;
+      self.message+="<br/>Processed the files. Now checking the document for text. This may take a few moments."
+      $.post(config.BACKEND_URL+'isDocTranscript?'+'docid='+self.document._id, function(res) {
+        if (!res.isDocText) {
+          //we have no text in this document
+          self.isDocTranscript=false;
+          var message="<p>This document has no text. TC will create a page for each image file in this zip file: "+unMatchedFiles+". </p><p>Click the <span style='background-color:#337ab7; color:white'>Load</span> button below to add these pages. (You can reorder the document's pages after they are added)</p>";
+        } else {
+          var message="<p>Click the <span style='background-color:#337ab7; color:white'>Load</span> button below to add these images.</p>";
+          if (unMatchedFiles!="") message+="<p>These images do not match any page or facs attribute in this document: "+unMatchedFiles+". TC will ignore them.</p>";
+        }
+        self.message+=message;
+      });
     });
   },
   ngOnChanges: function() {
