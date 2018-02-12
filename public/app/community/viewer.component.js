@@ -328,6 +328,12 @@ var ViewerComponent = ng.core.Component({
     } else {
       this.contentText = contentText;
     }
+    //here we check the links
+    try {
+      this.prevLink = docService.checkPagePrevLinks(this.contentText, this.prevs);
+    } catch (e) {
+      this.prevLink = null;
+    }
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.page._id, function(res) {
       self.isText=res.isThisPageText;
     });
@@ -358,11 +364,12 @@ var ViewerComponent = ng.core.Component({
     });
     var contentText = _.get(revision, 'attrs.text', '');
     this.revision = revision;
-    try {
+    //this is what sets the page link..problem here, if there is no revision this is not called when the page loads!
+/*    try {
       this.prevLink = docService.checkPagePrevLinks(contentText, this.prevs);
     } catch (e) {
       this.prevLink = null;
-    }
+    } */
     this.setContentText(contentText);
   },
   revisionCompareChange: function($event) {
@@ -379,16 +386,15 @@ var ViewerComponent = ng.core.Component({
       , community = this._uiService.state.community.attrs.abbr;
     ;
     //ok..what status do we have? change it if it needs changing
-    if (this.role=='MEMBER'&&this.pageStatus.status=="ASSIGNED"&&this.pageStatus.access=="ASSIGNED") { //change status in this transcription if
-      status="IN_PROGRESS";
-      for (var i=0; i<page.attrs.tasks.length; i++) {
-        if (page.attrs.tasks[i].userId==this.state.authUser.attrs._id) page.attrs.tasks[i].status=status;
-      }
-      $.post(config.BACKEND_URL+'changeTranscriptStatus?'+'pageId='+page.attrs._id+'&status='+status+'&userId='+this.state.authUser.attrs._id+'&communityId='+this.community.attrs._id+'&docId='+this.document.attrs._id, function(res) {
-        if (res.error!="none") alert ("Error in changing transcript status: "+error);
-        self.pageStatus.status="IN_PROGRESS"
-      });
-    } else status="IN_PROGRESS";
+    //let's always change it
+    status="IN_PROGRESS";
+    for (var i=0; i<page.attrs.tasks.length; i++) {
+      if (page.attrs.tasks[i].userId==this.state.authUser.attrs._id) page.attrs.tasks[i].status=status;
+    }
+    $.post(config.BACKEND_URL+'changeTranscriptStatus?'+'pageId='+page.attrs._id+'&status='+status+'&userId='+this.state.authUser.attrs._id+'&communityId='+this.community.attrs._id+'&docId='+this.document.attrs._id, function(res) {
+      if (res.error!="none") alert ("Error in changing transcript status: "+error);
+      self.pageStatus.status="IN_PROGRESS"
+    });
   //  revision.set('status', status);
     docService.addRevision({
       doc: page.getId(),

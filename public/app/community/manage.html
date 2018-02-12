@@ -1,4 +1,4 @@
-<div x-auto-height class="manage" style="position:relative; top:-5px" >
+<div x-auto-height class="manage" style="position:relative; top:-5px" *ngIf="show">
   <div class="headerManage" *ngIf="isLeader() || isCreator()">
     <nav class="navbar navbar-default">
       <ul class="nav navbar-nav navbar-left">
@@ -48,6 +48,11 @@
           <ul class="dropdown-menu">
             <li ng-show="isCreator()===true"><a (click)="deleteAllDocs()">Delete All Documents</a></li>
             <li ng-show="isCreator()===true"><a href="#">Delete Community</a></li>
+          </ul>
+        </li>
+        <li class="dropdown" *ngIf="state.authUser.attrs.local.email=='peter.robinson@usask.ca'"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Import from TC<span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li ng-show="isCreator()===true"><a (click)="importFromTC()">Import Stuff</a></li>
           </ul>
         </li>
       </ul>

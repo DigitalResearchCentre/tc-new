@@ -10,7 +10,7 @@
       <thead>
         <tr>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Abbrev</th>
-          <th style="border-bottom-width:0px; font-size:80%" class="col-md-2">Name</th>
+          <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Name</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Role</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Joined</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Assigned</th>
@@ -18,7 +18,7 @@
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Submitted</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Approved</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Committed</th>
-          <th style="border-bottom-width:0px;" class="col-md-2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+          <th style="border-bottom-width:0px;" class="col-md-3">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
         </tr>
       </thead>
       <tbody>
@@ -59,9 +59,12 @@
                 <a (click)="showPage(membership.community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
             </ul>
           </td>
-          <td  style="border-top-width:0px; padding: 0px; text-align: center"><button *ngIf="membership.role=='CREATOR' || membership.role=='LEADER'" type="button" class="btn btn-primary btn-sm"
+          <td  style="border-top-width:0px; padding: 0px; text-align: center">
+              <button *ngIf="membership.role=='CREATOR' || membership.role=='LEADER'" type="button" class="btn btn-primary btn-sm"
               (click)="navigate(membership.community, 'edit')">Edit</button>&nbsp;
-              <button type="button" class="btn btn-primary btn-sm" (click)="navigate(membership.community,'view')">View</button></td>
+              <button type="button" class="btn btn-primary btn-sm" (click)="navigate(membership.community,'view')">View</button>&nbsp;
+              <button *ngIf="membership.role=='CREATOR' || membership.role=='LEADER'" type="button" class="btn btn-primary btn-sm" (click)="invite(membership.community)">Invite</button></td>
+
         <!-- td><a href="#/community/{{membership.community._id}}/view">View</a></td><td><a href="#/community/{{membership.community._id}}/home">Home</a></td -->
         </tr>
       </tbody>

@@ -1,4 +1,4 @@
-<div class="headerTC">
+<div class="headerTC" *ngIf="show">
   <nav class="navbar navbar-default">
     <div class="container-fluid">
       <div class="collapse navbar-collapse"
@@ -72,7 +72,7 @@
     </div>
   </nav>
 </div>
-<div style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
+<div *ngIf="show" style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
   <p style="font-size:200%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">Textual Communities</p>
   <p *ngIf="state.authUser" style=" text-align: center; margin-bottom: 5px; padding-bottom:0px;" class="wizardp">
     <seg *ngIf="showCreateOrJoin()">
@@ -86,7 +86,7 @@
       <!--><seg>Make the edition you want</seg></-->
   </p>
 </div>
-<div *ngIf="showNoUser()" class="wizard">
+<div *ngIf="showNoUser()&&show" class="wizard">
   <p class="wizardp">Make the edition you want</p>
     <a data-toggle="modal" data-target="#myModal">
     <button class="btn btn-lg wizardbutton"
@@ -95,7 +95,7 @@
       style="width: 100px;">Start</button>
   </a>
 </div>
-<div *ngIf="state.authUser" class="wizard">
+<div *ngIf="state.authUser&&show" class="wizard">
   <p *ngIf="showCreateOrJoin()" class="wizardp">
     <a *ngIf="createNotChosenF()" [routerLink]="['CreateCommunity']">
       <button class="btn btn-lg wizardbutton"

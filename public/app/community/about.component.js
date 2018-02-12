@@ -9,6 +9,7 @@ var CommunityAboutComponent = ng.core.Component({
 }).Class({
   constructor: [UIService, function(uiService) {
     this.state = uiService.state;
+    
   }],
 });
 

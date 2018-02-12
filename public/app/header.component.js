@@ -25,6 +25,7 @@ var HeaderComponent = ng.core.Component({
     this.loginFrame = '/auth?url=/index.html';
 
     this.source="default";
+    this.show=true;
     this.state = uiService.state;
   }],
   ngOnInit: function() {

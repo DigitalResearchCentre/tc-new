@@ -84,6 +84,13 @@ var MemberProfileComponent = ng.core.Component({
     var date = new Date(rawdate)
     return date.toDateString()
   },
+  invite: function(community) { //let's invite someone!
+    this.uiService.manageModal$.emit({
+      type: 'invite-member',
+      community:   community,
+      inviter: this.authUser
+    });
+  },
   loadModal: function(which) {
     this.uiService.manageModal$.emit(which);
   },

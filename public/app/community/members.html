@@ -1,5 +1,9 @@
-<p style="margin: 20px; text-align: center; font-weight: bold; margin-top: 10px; margin-bottom:10px">
+<p style="margin: 20px; text-align: center; font-weight: bold; margin-top: 10px; font-size: 120%; margin-bottom:10px">
   Community {{community.attrs.name}} has {{community.attrs.members.length}} <span *ngIf="community.attrs.members.length==1">member</span> <span *ngIf="community.attrs.members.length>1">members</span>
+</p>
+<p style="margin: 20px; text-align: center; margin-top: 10px; margin-bottom:10px">
+  <button type="button" class="btn btn-primary btn-md"
+    (click)="invite(community)" style="margin-top:5px">Invite</button> someone to join this community
 </p>
 <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
   <thead>

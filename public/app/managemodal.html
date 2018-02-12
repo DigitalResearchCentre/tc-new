@@ -45,5 +45,8 @@
     </tc-managemodal-change-role>
     <tc-managemodal-assign-approver *ngSwitchWhen="'assign-approver'" [member]="member" [user]="user">
     </tc-managemodal-assign-approver>
+    <tc-managemodal-invite-member *ngSwitchWhen="'invite-member'" [community]="community" [inviter]="inviter">
+    </tc-managemodal-invite-member>
+
   </div>
 </div>

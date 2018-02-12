@@ -61,6 +61,13 @@ var CommunityMembersComponent = ng.core.Component({
   changeRole: function(member, user, role) {
     this.uiService.manageModal$.emit({type:'change-role', member: member, user: user, role: role, community:this.community.attrs.name});
   },
+  invite: function(community) { //let's invite someone!
+    this.uiService.manageModal$.emit({
+      type: 'invite-member',
+      community:   community,
+      inviter: this.state.authUser
+    });
+  },
   toggleInstance: function(instance) {
     instance.expand = !instance.expand;
   }

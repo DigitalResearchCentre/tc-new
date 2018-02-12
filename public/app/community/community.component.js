@@ -34,6 +34,7 @@ var CommunityComponent = ng.core.Component({
       , route = this._routeParams.get('route')
     ;
     this.state = uiService.state;
+    this.show=true;
   }],
   ngOnInit: function() {
     var self = this

@@ -42,8 +42,10 @@ var EditCommunityComponent = ng.core.Component({
     if (community) {
       this.edit = _.clone(community.toJSON());
       this.community = community;
+      this.edit.entities=community.attrs.entities;
       this.origname=community.attrs.name;
-      if (community.attrs.haspicture) {
+      var myPreview=$("#PreviewImg")[0];
+      if (community.attrs.haspicture && !myPreview) {
         this.picFile.valid=true;
         var image  = document.createElement("IMG");
         image.setAttribute("id", "PreviewImg");

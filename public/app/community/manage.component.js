@@ -17,6 +17,7 @@ var ManageCommunityComponent = ng.core.Component({
     this._uiService = uiService;
     this._communityService = communityService;
     this.state = uiService.state;
+    this.show = true;
   }],
   loadModal: function(which) {
     if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "css"});

@@ -1116,7 +1116,29 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
   async.parallel([
         function(cb1) {
           Doc.collection.update({_id:ObjectId(pageId), "tasks.userId":userId}, {$set: {"tasks.$.status":status}}, function(err, result){
-            cb1(err);
+            if (result.result.n==0) { //no page task.. page not assigned, changed by leader eg.. make a task
+              var witname, username, memberid;
+              async.waterfall([
+                function(cb3){
+                  Doc.findOne({_id:ObjectId(docId)}, function(err, thisDoc) {witname=thisDoc.name;
+                    cb3(err);})
+                },
+                function(cb3){User.findOne({_id:ObjectId(userId)}, function(err, thisUser){ username=thisUser.local.name;
+                    for (var i=0; i<thisUser.memberships.length; i++) { if (String(thisUser.memberships[i].community)==communityId) memberid=String(thisUser.memberships[i]._id);}
+                    cb3(err);})
+                }
+              ], function (err, result){
+                  if (!err) {
+                    Doc.collection.update({_id:ObjectId(pageId)}, {$push: {tasks: {userId:userId, name:username, status:"IN_PROGRESS", memberId:memberid, date:Date.now(), witname:witname}}}, function (err, result){
+                      if (!err) res.json({error:"none"})
+                      else res.json({error:err});
+                    })
+                  } else {
+                     res.json({error: err});
+                  }
+              }
+            )
+          } else {cb1(err)}
          });
        },
       function(cb1){
@@ -1181,7 +1203,6 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
      },
      function(cb1){
        if (status=="COMMITTED") {
-         console.log("page to commit "+pageId);  //also add
          var witname, username, memberid;
          async.waterfall([
            function(cb3){
@@ -1473,6 +1494,69 @@ function saveAP (addAP, callback) {
     callback(err)
   });
 }
+
+router.post('/sendInvitation', function(req, res, next) {
+  var email=req.body.email;
+  var name=req.body.name;
+  var communityId=req.query.community;
+  var letter=req.body.letter;
+  var communityName=req.body.communityName;
+  var leaderEmail=req.body.leaderEmail;
+  var leaderName=req.body.leaderName;
+  console.log("email "+email+" name "+name+" community "+communityId+" letter "+letter+" communityName "+communityName+" leaderEmail "+leaderEmail+" leaderName "+leaderName);
+  //first, we check: is there a member with this name??
+  User.findOne({"local.email":email}, function(err, user){
+    if (user) {
+      //already member of this community?
+      var is_member=user.memberships.filter(function(obj){return String(obj.community) == communityId;})[0];
+      if (is_member) res.json({result: name+" is registered with the email "+email+" and is already a member of this community."})
+      else {
+        //add membership to user, and member to community
+        User.collection.update({_id: user._id}, {$push: {memberships:{community:ObjectId(communityId), role: "MEMBER", pages: {"assigned":0,"inprogress":0,"submitted":0, "approved":0, "committed":0}, created: new Date(), _id: ObjectId()}}}, function(err, result){
+          if (!err) {
+              Community.collection.update({_id:ObjectId(communityId)}, {$push:{members:user._id}}, function(err, result){
+                if (!err) {
+                  res.json({result: name+" is already registered in Textual Communities with the email "+email+", and has been added to the membership of this community"})
+                } else {res.json({error:err})}
+              })
+          } else {res.json({error: err})}
+        })
+      }
+    } else {
+      //make a new user, then send an email
+      var newUser= new User();
+      newUser.local.email = email;
+      newUser._id=ObjectId();
+      newUser.local.name =  name;
+      newUser.local.password = newUser.generateHash("default");
+      newUser.memberships.push({community:ObjectId(communityId), role: "MEMBER", pages: {"assigned":0,"inprogress":0,"submitted":0, "approved":0, "committed":0}, created: new Date(), _id: ObjectId()})
+      newUser.local.authenticated= "1";
+      newUser.save(function(err) {
+        if (!err) {
+          Community.collection.update({_id:ObjectId(communityId)}, {$push:{members:newUser._id}}, function(err, result){
+            if (!err) {
+              //right. Do the emailCMailer.localmailer.sendMail
+              TCMailer.localmailer.sendMail({
+                from: TCMailer.addresses.from,
+                to: email,
+                replyTo: leaderEmail,
+                cc: leaderEmail,
+                subject: "Invitation from "+leaderName+" to join the "+communityName+" Textual Community",
+                html: letter,
+                text: letter.replace(/<[^>]*>/g, '')
+              }, function (err, info) {
+                if (!err) {
+                  res.json({result: "An email has been sent to "+name+", who is now registered in Textual Communities with the email "+email+", and added to the membership of this community"});
+                } else {res.json({error: err})};
+              }
+            );
+           } else {res.json({error: err})};
+         });
+       } else {res.json({error: err})}
+      })
+    }
+  });
+});
 
 router.post('/saveDocPages', function(req, res, next) {
   var replace=req.body.replace;

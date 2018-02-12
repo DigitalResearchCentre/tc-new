@@ -1,0 +1,31 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Invite someone to join community "{{community.attrs.name}}"
+    <button type="button" (click)="closeModalIM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div style="height:645px; overflow:scroll; position:absolute">
+    <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 1px">
+      {{success}}
+    </div>
+    <p style="margin: 15px">Name of the person to invite:
+      <input type="text" style="display: inline-block; border-width: 1px; border-style: solid;" [(ngModel)]="invitee.name">
+    </p>
+    <p style="margin: 15px">Email of the person to invite:
+      <input type="text" style="display: inline-block; border-width: 1px; border-style: solid; height: 30px; width: 300px" [(ngModel)]="invitee.email">
+    </p>
+    <div class="form-group" style="margin-right:15px; margin-left: 15px">
+      <label>Letter to invitee (you can include HTML)</label>
+      <textarea class="form-control" rows="6" cols="50" placeholder="Your letter (you can include HTML)"
+        [(ngModel)]="letter"></textarea>
+        <label style="margin-top: 10px;">Preview Letter</label>
+        <div id="InviteText">
+          <p style="margin-left: 15px; font-size: 120%; margin-right: 15px; margin-bottom:5px">Dear {{invitee.name}} ({{invitee.email}}),<br/><span [innerHTML]="letter"></span></p>
+          <p style="margin-left: 15px; font-size: 120%; margin-right: 15px; margin-top:3px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{inviter.attrs.local.name}} (<a href="mailto:{{inviter.attrs.local.email}}">{{inviter.attrs.local.email}}</a>)</p>
+          <p style="margin-left: 30px; font-size: 120%; margin-right: 15px; margin-top:3px">Leader, {{community.attrs.name}} community</p>
+        </div>
+    </div>
+  </div>
+  <hr style="border: 1px solid #8c8b8b; margin-bottom: 15px; margin-top:15px; position: relative; top: 637px">
+    <div class="form-group" style="text-align: center; height: 18px; position: relative; top: 639px">
+      <button type="button" class="btn btn-primary" (click)="submit()">Send Invitation</button>
+    </div>
+</div>

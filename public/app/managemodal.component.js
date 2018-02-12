@@ -33,7 +33,9 @@ var ManageModalComponent = ng.core.Component({
     require('./addzip.component'),
     require('./assignpages.component'),
     require('./changerole.component'),
-    require('./assignapprover.component')]
+    require('./assignapprover.component'),
+    require('./invitemember.component')
+  ]
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
     this._uiService = uiService;
@@ -185,6 +187,10 @@ var ManageModalComponent = ng.core.Component({
         self.choice=event.type,
         self.member=event.member,
         self.user=event.user
+      } else if (event.type ==='invite-member'){
+        self.choice=event.type,
+        self.community=event.community,
+        self.inviter=event.inviter
       }
       $('#manageModal').modal('show');
     });

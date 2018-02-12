@@ -28,7 +28,7 @@ var CommunitySchema = new Schema({
   members: [{type: ObjectId, ref: 'User'}],
   ceconfig: {},
   documents: [{type: ObjectId, ref: 'Doc'}],
-  entities: [],
+  entities: [{entityName: String, isTerminal: Boolean, name: String}],
 });
 
 _.assign(CommunitySchema.methods, {
