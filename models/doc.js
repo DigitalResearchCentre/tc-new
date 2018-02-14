@@ -439,8 +439,15 @@ var DocSchema = extendNodeSchema('Doc', {
             if (topEntities.length) {
               async.forEachOf(topEntities, function(up) {
                 const cb2 = _.last(arguments);
-                Community.update({'abbr': communityAbbr}, {$addToSet: {"entities": {"entityName":up.entityName, "isTerminal": up.isTerminal, "name": up.name} } },
-                  cb2);
+                console.log(topEntities);
+                //do this differently. Check if we have an entityName in the entities array. If we do, no need to do anythiing. Else, add it
+                Community.findOne({'abbr': communityAbbr, "entities.entityName":up.entityName}, function(err,myComm){
+                  console.log(myComm);
+                  if (!myComm) {
+                    Community.update({'abbr': communityAbbr}, {$addToSet: {"entities": {"entityName":up.entityName, "isTerminal": up.isTerminal, "name": up.name} } },
+                      cb2);
+                  } else cb2(null);
+                })
               }, function(err) {
                 cb1(err, self);
               });

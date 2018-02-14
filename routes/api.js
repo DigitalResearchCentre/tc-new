@@ -1875,9 +1875,9 @@ router.get('/cewitness', function(req, res, next) {
     if (err=="no witness" || err) {
         res.sendStatus(404); //this feels like a hack but it gives the desired result
       }  else {
-      console.log("ms is"+result);
+//      console.log("ms is"+result);
       //save it to the tei for this entity in this ms...
-      console.log("to save it we need ms "+req.query.witness+" community "+req.query.community+" entity "+req.query.entity)
+//      console.log("to save it we need ms "+req.query.witness+" community "+req.query.community+" entity "+req.query.entity)
       res.json(JSON.parse(result));
     }
   });

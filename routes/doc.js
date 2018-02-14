@@ -149,7 +149,7 @@ var DocResource = _.inherit(Resource, function(opts) {
       };
     }
     return function(obj, callback) {
-        console.log("about to commit?")
+  //      console.log("about to commit?")
         return async.waterfall([
         function(cb) {
             obj.commit({
