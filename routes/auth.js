@@ -99,6 +99,7 @@ router.post('/signup', function(req, res) {
       user.local.email    = email;
       user.local.password = user.generateHash(password);
       user.local.name = req.body.name;
+      user.local.created=Date.now();
       user.local.authenticated= "0";
       user.save(function(err) {
         if (err)
@@ -114,9 +115,10 @@ router.post('/signup', function(req, res) {
       newUser.local.name =  req.body.name;
       newUser.local.password = newUser.generateHash(req.body.password);
       newUser.local.authenticated= "0";
+      newUser.local.created=Date.now();
       newUser.save(function(err) {
         if (err) {}
-        console.log("inside authentication local 2 "+config.host_url);
+//        console.log("inside authentication local 2 "+config.host_url);
         authenticateUser (newUser.local.email, newUser, config.host_url!= ''? config.host_url : req.protocol + '://' + '://' + req.get('host'));
         res.render('authenticate.ejs', {context:"email", user: newUser})
         req.logout();
@@ -303,6 +305,7 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
           req.user.local.name= req.user.facebook.name;
           req.user.local.authenticated="1";
           req.user.local.password = req.user.generateHash("default");
+          req.user.local.created=Date.now();
           req.user.save();
           res.redirect('/app');
         } else { //got one.. link the google account to this already and tell the user
@@ -649,6 +652,7 @@ router.post('/twitteremail', function(req, res) {
       req.user.local.name=req.user.twitter.displayName;
       req.user.local.password=req.user.generateHash("X"); //place holder
       req.user.local.authenticated= "1";
+      req.user.local.created=Date.now();
       req.user.save();   //we don't bother authenticating now
       req.logIn(req.user, function (err){
         res.redirect('/app?prompt=twitterassocemail');
@@ -694,6 +698,7 @@ router.get('/google/callback', passport.authenticate('google', {
           req.user.local.email= req.user.google.email;
           req.user.local.name= req.user.google.name;
           req.user.local.authenticated="1";
+          req.user.local.created=Date.now();
           req.user.local.password = req.user.generateHash("default");
           req.user.save();
           res.redirect('/app');
@@ -884,7 +889,8 @@ router.get('/googlenew', function(req, res) {
   console.log("before "+thisUser);
   thisUser.local.email=thisUser.google.email;
   thisUser.local.name=thisUser.google.name;
-  thisUser.local.password=thisUser.generateHash("X"); //place holder
+  thisUser.local.password=thisUser.generateHash("default"); //place holder
+  thisUser.local.created=Date.now();
   thisUser.local.authenticated= "0";
   thisUser.save(function(err) {
     if (err) {}

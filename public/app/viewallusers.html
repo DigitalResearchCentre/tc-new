@@ -1,0 +1,47 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">View All Users
+    <button type="button" (click)="closeModalVM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+<div style="margin: 10px">
+  <h4>{{users.length}} users</h4>
+  <p style="text-align:center">
+    <button type="button" class="btn btn-danger btn-md" (click)="deleteAllUsers()">Delete All Users</button>&nbsp;
+    <span style="color:red; fomt-weight:bold">Careful! this is the nuclear option...</span>
+  </p>
+  <div>
+    <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
+      <thead>
+        <tr>
+          <th style="border-bottom-width:0px" class="col-md-2">Name</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Email</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Created</th>
+          <th style="border-bottom-width:0px" class="col-md-5">Communities</th>
+          <th style="border-bottom-width:0px" class="col-md-1">&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="#user of users" class="commMembership">
+          <td  style="border-top-width:0px">{{user.username}}</td>
+          <td style="border-top-width:0px">{{user.useremail}}</td>
+          <td style="border-top-width:0px">{{formatDate(user.created)}}</td>
+          <td style="border-top-width:0px; padding-top:0px">
+            <table  *ngIf="user.communities.length>0" style="border-top-width:0px; margin-top:0px; border-collapse: separate; width:100%" class="table">
+              <tr *ngFor="#community of user.communities">
+                <td style="border-top-width:0px" class="col-md-4">{{community.name}}</td>
+                <td style="border-top-width:0px" class="col-md-3">{{community.userdocs}} <span *ngIf="community.userdocs!=1">docs</span><span *ngIf="community.userdocs==1">doc</span></td>
+                <td style="border-top-width:0px" class="col-md-3">{{community.role}}</td>
+                <td style="border-top-width:0px" class="col-md-2">
+                  <button type="button" class="btn btn-primary btn-sm" (click)="navigate(community._id,'view')">View</button>
+                </td>
+              </tr>
+            </table>
+          </td>
+         <td style="border-top-width:0px">
+           <button type="button" class="btn btn-danger btn-sm" (click)="deleteUser(user._id)">Delete</button>
+         </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>

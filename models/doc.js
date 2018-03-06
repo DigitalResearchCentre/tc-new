@@ -29,7 +29,7 @@ var DocSchema = extendNodeSchema('Doc', {
   community: String,
   entities: [],
   tasks:[],
-  image: Schema.Types.ObjectId,
+  image: String,
   meta: Schema.Types.Mixed,
   teiHeader: String,
 }, {

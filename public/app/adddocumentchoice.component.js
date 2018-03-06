@@ -22,7 +22,7 @@ var AddDocumentChoiceComponent = ng.core.Component({
 //    var Doc = TCService.Doc, doc = new Doc();
     this.doc = {name:"", label: 'text'};
     $('#manageModal').width("480px");
-    $('#manageModal').height("140px");
+    $('#manageModal').height("170px");
     this.message="";
     this.success="";
     this._uiService = uiService;
@@ -40,6 +40,9 @@ var AddDocumentChoiceComponent = ng.core.Component({
   },
   byPage: function() {
     this._uiService.manageModal$.emit({type: "add-document"});
+  },
+  fromIIIF: function() {
+    this._uiService.manageModal$.emit({type: "add-IIIF-document", community: this.community});
   },
   xmlFile: function() {
     this._uiService.manageModal$.emit({type: "add-xml-document", community: this.community});

@@ -5,6 +5,7 @@ var URI = require('urijs')
   , DocService = require('./services/doc')
   , config = require('./config')
   , UpdateDbService = require('./services/updatedb')
+  , async = require('async')
 ;
 
 
@@ -112,7 +113,7 @@ var AddDocumentXMLComponent = ng.core.Component({
           }, {
           community: self.state.community.getId(),
         }).subscribe(function(res) {
-          self.success="XML document "+self.doc.name+" loaded successfully";
+          self.success="XML document "+self.doc.name+" loaded successfully.";
           self.text="";
           $('#FRinput').val("");
           self.doc = {name:"", text:""};
@@ -125,12 +126,36 @@ var AddDocumentXMLComponent = ng.core.Component({
           teiHeader=teiHeader.replace(/(\r\n|\n\r|\r|\n)/gm,"\\r");
           teiHeader=teiHeader.replace(/(\t)/gm,"\\t");
           teiHeader=teiHeader.replace(/"/g, '\\"');
-          teiHeader=teiHeader.replace(/'/g, "\\'");
+    //      teiHeader=teiHeader.replace(/'/g, "\\'");
           var jsoncall=JSON.parse(JSON.stringify('[{"_id":"'+mydoc.attrs._id+'"},{"$set": {"teiHeader":"'+teiHeader+'"}}]'));
           UpdateDbService("Document", jsoncall, function(result){
             if (result!="success") {
               self.message="The save failed. Maybe you have lost your internet connection.";
               self.success="";
+            } else if (self.state.community.attrs.abbr=="CTP2")
+            {  //make a revision page for each page. We need this when importing transcripts so let's have it anyway
+              self.success+=" Now making default revisions. "
+              var counter=0;
+              async.mapSeries(mydoc.attrs.children, function(page, callback){
+                counter++;
+                if (counter%5==0) self.success+=counter+" ";
+                docService.getTextTree(page).subscribe(function(teiRoot) {
+                  var isDefault=false;
+                  var dbRevision = self.json2xml(prettyTei(teiRoot));
+                    docService.addRevision({
+                    doc: page.getId(),
+                    text: dbRevision,
+                    user: self.state.authUser._id,
+                    community: self.state.community.attrs.abbr,
+                    committed: new Date(),
+                    status: 'COMMITTED',
+                  }).subscribe(function(revision){
+                    callback(null);
+                  })
+                })
+              }, function(err){
+                self.success="Document loaded, default page revisions written."
+              });
             }
           });
           //is this community visible...
@@ -140,6 +165,9 @@ var AddDocumentXMLComponent = ng.core.Component({
         });
       }
     })
+  },
+  json2xml: function(data) {
+    return this._docService.json2xml(data);
   },
   closeModalADX: function() {
     this.message=this.success=this.doc.name=this.text="";
@@ -153,5 +181,22 @@ var AddDocumentXMLComponent = ng.core.Component({
     $('#FRinput').val("");
   }
 });
+
+function prettyTei(teiRoot) {
+  _.dfs([teiRoot], function(el) {
+    var children = [];
+    _.each(el.children, function(childEl) {
+      if (['pb', 'cb', 'lb', 'div','body', '/div'].indexOf(childEl.name) !== -1) {
+        children.push({
+          name: '#text',
+          text: '\n',
+        });
+      }
+      children.push(childEl);
+    });
+    el.children = children;
+  });
+  return teiRoot;
+}
 
 module.exports = AddDocumentXMLComponent;

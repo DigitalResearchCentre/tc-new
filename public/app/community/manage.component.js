@@ -17,7 +17,6 @@ var ManageCommunityComponent = ng.core.Component({
     this._uiService = uiService;
     this._communityService = communityService;
     this.state = uiService.state;
-    this.show = true;
   }],
   loadModal: function(which) {
     if (which=='uploadcss-community') this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.community, filetype: "css"});
@@ -37,6 +36,16 @@ var ManageCommunityComponent = ng.core.Component({
     var state = this.state;
     return this._communityService.isCreator(state.community, state.authUser);
   },
+  deleteCommunity: function(){
+    this._uiService.manageModal$.emit({
+       type: 'confirm-message',
+       page: "",
+       docname: "",
+       header: "Delete community "+this.community.attrs.name,
+       warning: "Are you sure? This will delete the community and all documents, transcripts, encodings, and images. It cannot be undone.",
+       action: 'deleteCommunity'
+     });
+  },
   deleteAllDocs: function(){
     this._uiService.manageModal$.emit({
        type: 'confirm-message',
@@ -47,6 +56,26 @@ var ManageCommunityComponent = ng.core.Component({
        action: 'deleteAllDocs'
      });
   },
+  viewAllCommunities: function(){  //superuser function. Only available to nominated superuser
+    this._uiService.manageModal$.emit({
+       type: 'view-allcommunities',
+     });
+  },
+  viewAllUsers: function(){  //superuser function. Only available to nominated superuser
+    this._uiService.manageModal$.emit({
+       type: 'view-allusers',
+     });
+  },
+  exportTranscriptsFromTC1: function(){
+    this._uiService.manageModal$.emit({
+       type: 'export-tc1transcripts',
+     });
+  },
+  exportUsersFromTC1: function(){
+    this._uiService.manageModal$.emit({
+       type: 'export-tc1users',
+     });
+  }
 });
 
 module.exports = ManageCommunityComponent;

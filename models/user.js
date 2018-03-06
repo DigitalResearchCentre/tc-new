@@ -13,7 +13,8 @@ var userSchema = Schema({
     name	 : String,
     hash         : String,
     timestamp	 : String,
-    authenticated : String
+    authenticated : String,
+    created: {type: Date}
   },
   facebook         : {
     id           : String,

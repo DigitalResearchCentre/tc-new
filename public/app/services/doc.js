@@ -81,12 +81,14 @@ var DocService = ng.core.Injectable().Class({
           }
           var page = doc.attrs.children[pagen];
         }
-        else var page = doc.getFirstChild();
-        if (state.pageSelected) state.pageSelected.attrs.selected=false;
-        state.pageSelected=page;
-        page.attrs.selected=true;
-        if (page && (!state.page || state.page.getParent() !== doc)) {
-          self.selectPage(page);
+        else var page = doc.getFirstChild();   //but ... doc might have no children
+        if (page) {
+          if (state.pageSelected) state.pageSelected.attrs.selected=false;
+          state.pageSelected=page;
+          page.attrs.selected=true;
+          if (page && (!state.page || state.page.getParent() !== doc)) {
+            self.selectPage(page);
+          }
         }
       });
     }

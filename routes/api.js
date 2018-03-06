@@ -398,6 +398,48 @@ router.post('/sendmail', function(req, res, next) {
   });
 });
 
+router.post('/SUgetAllCommunities', function (req, res, next){
+  if (req.user.local.email!="peter.robinson@usask.ca") res.json({error:"Not superuser"});
+  Community.find({}, function(err, communities) {
+    async.mapSeries(communities, function(community, callback){
+      //get info on each membership..could be no members!
+        async.map(community.members, function (member, cb1) {
+          if (!member) cb1(null, {user: "none", role: "none"})
+          User.findOne({_id:member}, function(err, myUser){
+            //find membership matching this communitu] -- if it is the leader or creator, say so, else move on
+           var thisMember=myUser.memberships.filter(function (obj){return String(obj.community)== String(community._id);})[0];
+            cb1(err, {user: myUser.local.email, role: thisMember.role})
+          })
+        }, function (err, members) {
+              callback(err, {name:community.name, abbr:community.abbr, public: community.public, ndocs: community.documents.length, nmembers: community.members.length, created: community.created, members: members, _id:community._id});
+        })
+      }, function (err, results) {
+        if (err) res.json({error:err})
+        else res.json(results);
+      });
+   });
+});
+
+router.post('/SUgetAllUsers', function(req, res, next){
+  //verify that this is the superuser
+//  console.log("I am "); console.log(req.user);
+  //ok, let's deal with every user...
+  User.find({}, function(err, users){
+     async.mapSeries(users, function(user, callback){
+       async.map(user.memberships, function(membership, cb1){
+         Community.findOne({_id: membership.community}, function (err, myCommunity) {
+             cb1(err, {name: myCommunity.name, role:membership.role, userdocs: myCommunity.documents.length, _id: myCommunity._id});
+         });
+       }, function (err, communities){
+         callback(err, {username:user.local.name, useremail:user.local.email, communities: communities, created: user.local.created, _id:user._id});
+       })
+     }, function (err, results) {
+       if (err) res.json({error:err})
+       else res.json(results);
+     })
+   });
+});
+
 router.post('/getSubEntities', function(req, res, next) {
 //  console.log("looking for entities with ancestor "+req.query.ancestor)
   var foundEntities=[];
@@ -845,7 +887,7 @@ router.post('/deleteDocument', function(req, res, next) {
           cb(err, []);
         });
       },
-      function getDeleteEntityPaths (argument, cb) {
+/*      function getDeleteEntityPaths (argument, cb) {
         //delete all revisions, teis and doc elements
         if (nTeis<3000) {
           if (deleteTeiEntities.length>0) {
@@ -858,7 +900,7 @@ router.post('/deleteDocument', function(req, res, next) {
             cb(null, []);
           }
         } else {cb(null, []);}
-      },
+      }, */
       function deleteTEIs (argument, cb) {
   //      console.log("about to delete"+deleteTeis)
         if (deleteTeis.length > 0) {
@@ -886,7 +928,7 @@ router.post('/deleteDocument', function(req, res, next) {
             cb(err, []);
           });
       },
-      function deleteDeadEntities (argument, cb) {
+/*      function deleteDeadEntities (argument, cb) {  //this routine is very destructive of performance. Skip it. Let's make a separate tool for doing this
 //         console.log("about to keill entities" + deleteTeiEntities.length);
 //         console.log("here is where we will kill the entities ");  for (var i = 0; i < deleteTeiEntities.length; i++) { console.log(deleteTeiEntities[i])};
         if (nTeis<3000) {
@@ -896,7 +938,7 @@ router.post('/deleteDocument', function(req, res, next) {
             });
           } else {cb(null, []);}
         } else {cb(null, []);}
-      },
+      }, */
       function deleteRevisions (argument, cb) {
   //      console.log(pages);
         async.forEachOf(pages, function(thisPage) {
@@ -914,7 +956,7 @@ router.post('/deleteDocument', function(req, res, next) {
             cb(err, []);
           });
       },
-      function updateDeleteEntities (argument, cb) {
+/*      function updateDeleteEntities (argument, cb) {
         if (nTeis>=3000) {
           //ok, check every entity and delete all those for which we have no TEI
           globalNentels=0;
@@ -929,7 +971,7 @@ router.post('/deleteDocument', function(req, res, next) {
             })
           })
         } else {cb(null, [])}
-      },
+      }, */
       function updateDocCommunity(argument, cb) {
 //        console.log(globalCommAbbr);
 //        console.log(docroot)
@@ -1318,10 +1360,16 @@ router.post('/statusTranscript', function(req, res, next) {
     //find the TEI for this pb
     TEI.findOne({name:"pb", docs:ObjectId(req.query.pageid)}, function (err, pbTei){
       //note...there might be no children of the
-      var thisPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
-      if (thisPbInText) isThisPageText=false;
-      else isThisPageText=true;
-      cb(null, []);
+      if (!globalTextEl) {
+            //how can this happpen? dunno
+            isThisPageText=true;
+            cb(null,[]);
+      } else {
+        var thisPbInText=globalTextEl.children.filter(function(obj){return String(obj) == String(pbTei._id);})[0];
+        if (thisPbInText) isThisPageText=false;
+        else isThisPageText=true;
+        cb(null, []);
+      }
     });
   }
  ], function(err, results) {
@@ -1558,6 +1606,243 @@ router.post('/sendInvitation', function(req, res, next) {
   });
 });
 
+router.post('/getPbTEIs', function(req, res, next){
+  var docid=req.query.docid;
+  console.log(docid);
+  var pages=[];
+  TEI.find({name:"pb", "docs.0":ObjectId(docid)}, function(err, teis){
+    console.log(teis.length);
+    teis.forEach(function(teiEl){
+      pages.push({attrs: teiEl.attrs, name:teiEl.attrs.n})
+    });
+    res.json(pages);
+  });
+});
+
+router.post('/moveTC1Transcripts', function(req, res, next){
+  var pages=req.body;
+  var cAbbrev=req.query.community;
+  var communityid=req.query.communityid;
+  var revisions=[];  //gather them all up and write in one operation
+  var users=[];  //so we only need search once for any user
+  var memberships=[]; //the same for members
+  async.map(pages, function(page, cb1){
+    async.map(page.revisions, function(revision, cb2) {
+      var myUser=users.filter(function (obj){return (obj.email==revision.email);})[0]
+      if (!myUser) {
+        User.findOne({"local.email":revision.email}, function(err, user){
+          if (user) {
+            users.push({email:revision.email, _id: user._id});
+            revisions.push({doc: ObjectId(revision.doc), community: cAbbrev, text: revision.text, user: user._id, committed: testNull(revision.committed), created: new Date(revision.created), status: revision.status});
+            cb2(null);
+          } else {
+            myUser=users.filter(function (obj){return (obj.email=="peter.robinson@usask.ca");})[0]
+            if (!myUser) {
+              User.findOne({"local.email":"peter.robinson@usask.ca"}, function(err, user){
+                users.push({email:"peter.robinson@usask.ca", _id: user._id});
+                revisions.push({doc: ObjectId(revision.doc), community: cAbbrev, text: revision.text, user: user._id, committed: testNull(revision.committed), created: new Date(revision.created), status: revision.status});
+                cb2(null);
+              });
+            } else {
+              revisions.push({doc: ObjectId(revision.doc), community: cAbbrev, text: revision.text, user: myUser._id, committed: testNull(revision.committed), created: new Date(revision.created), status: revision.status});
+              cb2(null);
+            }
+          }
+        })
+      } else {
+        revisions.push({doc: ObjectId(revision.doc), community: cAbbrev, text: revision.text, user: myUser._id, committed: testNull(revision.committed), created: new Date(revision.created), status: revision.status});
+        cb2(null);
+      }
+    }, function(err){
+      var tasks=[];
+      async.map(page.tasks, function(task, cb3){
+        var taskUser=users.filter(function (obj){return (obj.email==task.email);})[0]
+        if (!taskUser) {
+          User.findOne({"local.email":task.email}, function(err, thisuser){
+            if (thisuser) {
+              users.push({email: task.email, _id: thisuser._id})
+              var taskMember=memberships.filter(function (obj){return (obj.email==task.email);})[0];
+              if (!taskMember) {
+                taskMember=thisuser.memberships.filter(function (obj){return (String(obj.community)==String(communityid));})[0];
+                memberships.push({email: task.email, _id:taskMember._id});
+              }
+              tasks.push({name:task.name, status: task.status, date: new Date(), memberId: String(taskMember._id), witname: task.witname, userId: String(thisuser._id)});
+              cb3(null);
+            } else {
+              taskUser=users.filter(function (obj){return (obj.email=="peter.robinson@usask.ca");})[0];
+              if (!taskUser)  {
+                User.findOne({"local.email":"peter.robinson@usask.ca"}, function(err, thisuser){
+                  users.push({email: "peter.robinson@usask.ca", _id: thisuser._id})
+                  var taskMember=memberships.filter(function (obj){return (obj.email=="peter.robinson@usask.ca");})[0];
+                  if (!taskMember) {
+                    taskMember=thisuser.memberships.filter(function (obj){return (String(obj.community)==String(communityid));})[0];
+                    memberships.push({email: task.email, _id:taskMember._id});
+                  }
+                  tasks.push({name:task.name, status: task.status, date: new Date(), memberId:String(taskMember._id), witname: task.witname, userId: String(thisuser._id)});
+                  cb3(null);
+                });
+              }
+            }
+          })
+        } else {  //we have a user for this task. Need a memberid please..
+          var taskMember=memberships.filter(function (obj){return (obj.email==task.email);})[0];
+          if (!taskMember) { //ok -- but we have a taskUser, so load her up
+              User.findOne({_id: taskUser._id}, function(err, thisuser){
+                taskMember=thisuser.memberships.filter(function (obj){return (String(obj.community)==String(communityid));})[0];
+                memberships.push({email: task.email, _id:taskMember._id});
+                tasks.push({name:task.name, status: task.status, date: new Date(), memberId:String(taskMember._id), witname: task.witname, userId: String(taskUser._id)});
+                cb3(null);
+              });
+          } else {
+            tasks.push({name:task.name, status: task.status, date: new Date(), memberId: String(taskMember._id), witname: task.witname, userId: String(taskUser._id)});
+            cb3(null);
+          }
+        }
+      }, function(err){
+        //dealt with all tasks for this page. Insert them on the current page
+        Doc.update({_id: ObjectId(page.doc)}, {$push: {tasks:{$each: tasks}}}, function(err){
+          cb1(err)
+        });
+      });
+    });
+  }, function(err){
+//    console.log(revisions);
+    //add them All
+    Revision.insertMany(revisions, function(result){
+      res.json({success: "yes"});
+    })
+  });
+});
+
+function testNull(date) {
+  if (date==null || date==undefined || date=="") return(null);
+  else return(new Date(date));
+}
+
+router.post('/importTC1Users', function(req, res, next){
+  var users=req.body;
+//  console.log(users);
+  var cAbbrev=req.query.community;
+  var nusers=0;
+  var importedusers=[];
+  Community.findOne({abbr:cAbbrev}, function(err, community){
+    async.map(users, function(user, callback) {
+      User.findOne({"local.email": user.email}, function(err, myUser) {
+        if (myUser) {
+          //assume we are already a member of this community and do nothing
+//        console.log(myUser);
+          callback(err);
+        } else {
+            var newUser = new User();
+            newUser._id=ObjectId();
+            newUser.local.email = user.email;
+            newUser.local.name = user.name;
+            newUser.local.authenticated = 1;
+            newUser.local.password=newUser.generateHash("default");
+            newUser.local.created=new Date(user.created);
+            //make them all members, change later
+            newUser.memberships=[{community:community._id, role:'MEMBER', created: new Date(user.created), pages:{committed:0, approved:0, submitted:0,inprogress:0, assigned:0}}];
+            newUser.save(function(err){
+              nusers+=1;
+              importedusers.push(newUser._id)
+              callback(err);
+            })
+        }
+      })
+    }, function(err) { //add all the new users to the community
+      if (err) res.json({error:err});
+      else {
+        Community.update({abbr:cAbbrev}, {$push:{members:{$each:importedusers}}}, function(err){
+          if (!err) res.json({nusers:nusers, error:"none"});
+          else res.json({error:err})
+        });
+      }
+    });
+  })
+});
+
+router.post('/saveIIIFDoc', function(req, res, next){
+  var pages=req.body;
+  var doc_id=req.query.document;
+  var community=req.query.community;
+  var myDoc={};
+  var nPages=0;
+  //just save them all
+  async.map(pages, function(page, callback) {
+    Doc.update({_id:ObjectId(page._id)}, {$set: {image:page.image}}, function(err, doc){
+      nPages+=1;
+      callback(err);
+    })
+  }, function(err) {
+    Doc.findOne({_id:ObjectId(doc_id)}, function(err, doc){
+      res.json({npages:nPages,document:doc});
+    })
+  });
+});
+
+router.post('/saveManyPagesDoc', function(req, res, next) {
+   var pages=req.body;
+   var doc_id=req.query.document;
+   var community=req.query.community;
+   var user=req.user;
+   var myDoc={};
+   async.waterfall([
+     function(cb) {
+       var page_ids=[];
+       for (var i=0; i<pages.length; i++) {
+         var p_id=ObjectId();
+         pages[i]._id=p_id;
+         page_ids.push(p_id);
+       };
+       Doc.update({_id:ObjectId(doc_id)}, {$set: {children: page_ids}}, function(err, doc){
+           cb(err);
+       });
+     },
+     function(cb) {
+       for (var i=0; i<pages.length; i++) {
+         pages[i]._id=ObjectId(pages[i]._id);
+         pages[i].tasks=pages[i].entities=pages[i].children=[];
+         pages[i].ancestors=[ObjectId(doc_id)];
+         pages[i].meta={user:ObjectId(user._id), committed: new Date()};
+       }
+       Doc.insertMany(pages, function(result){
+         cb(null);
+       })
+     },
+     function(cb) {  //find parent tei
+       TEI.findOne({"docs.0": ObjectId(doc_id), name:"text"}, function(err, tei){
+           cb(err, tei._id);
+       });
+     },
+     function(text_id, cb) { //create the teis for this Document
+       var teis=[];
+       var tei_ids=[];
+       for (var i=0; i<pages.length; i++) {
+         var tei_id=ObjectId();
+         teis.push({_id:tei_id, name:"pb", attrs:{n: pages[i].name}, community:community, docs:[ObjectId(doc_id), pages[i]._id], entityChildren:[], children:[], ancestors:[text_id]});
+         tei_ids.push(tei_id);
+       }
+       TEI.insertMany(teis, function(result) {
+         cb(null,tei_ids);
+       })
+     },
+     function(tei_ids, cb) {
+       TEI.update({"docs.0": ObjectId(doc_id), name:"text"}, {$set: {children: tei_ids}}, function(err, doc){
+           cb(err);
+       });
+     },
+     function(cb) {
+       Doc.findOne({_id:ObjectId(doc_id)}, function(err, doc){
+         myDoc=doc;
+         cb(err);
+       });
+     }
+   ], function (err) {
+     if (err) res.json({"success":false, error:err});
+     else res.json({document:myDoc, npages: pages.length});
+   });
+});
+
 router.post('/saveDocPages', function(req, res, next) {
   var replace=req.body.replace;
   var order=req.body.order;
@@ -1647,10 +1932,10 @@ function removeAllDocs(req, res, deleteCommunity) {
           });
         },
         function(cb1) {
-          TEI.collection.remove( {community: cAbbrev}, function (err, result){
-            nTEIels=result.result.n;
-            cb1(err);
-          });
+            TEI.collection.remove( {community: cAbbrev}, function (err, result){
+              nTEIels=result.result.n;
+              cb1(err);
+            });
         },
         function(cb1) {
           Entity.collection.remove({community: cAbbrev}, function (err, result){
@@ -1665,7 +1950,7 @@ function removeAllDocs(req, res, deleteCommunity) {
           });
         },
         function(cb1) {
-          Revision.remove({community: req.query.id}, function (err, result){
+          Revision.remove({community: cAbbrev}, function (err, result){
             npagetrans=result.result.n;
             cb1(err);
           });
@@ -1675,18 +1960,43 @@ function removeAllDocs(req, res, deleteCommunity) {
         },
         function(cb1) {
           if (!deleteCommunity) Community.update({_id:req.query.id}, {$set: {documents:[], entities:[]}}, cb1);
+          else {  //delete the community, and all membership references to it
+            Community.remove({_id: ObjectId(req.query.id)}, function (err, result){
+              console.log("result "+result.result.n)
+              User.collection.update({"memberships.community":ObjectId(req.query.id)}, {$pull:{'memberships':{'community':ObjectId(req.query.id)}}}, {multi: true}, cb1);
+             })
+          }
         },
       ], function(err) {
-        if (!deleteCommunity)
           res.json({"ndocs":ndocs, "ndocels": ndocels, "nentels": nentels, "nTEIels": nTEIels, "npagetrans": npagetrans, "ncollels": ncollels});
       });
     });
 }
 
+router.post('/deleteUser', function(req, res,next){
+  User.findOne({_id:ObjectId(req.query.id)}, function(err, user){
+    //remove from all communities..
+    async.map(user.memberships, function(membership, callback) {
+      Community.collection.update({_id:membership.community}, {$pull:{members:user._id}}, function(err, result){
+        callback(err);
+      });
+    }, function (err){
+      //remove the user here
+      User.collection.remove({_id:ObjectId(req.query.id)}, function(err, result){
+        res.json({result:err})
+      });
+    });
+  });
+});
+
 //this we now simplify drastically. Just remove all elements with community:CTP field
 //this will get rid of all docs, teis. revisions: have to use community id instead
 router.post('/deleteAllDocs', function(req, res, next) {
+  if (req.query.deleteComm=="false")
     removeAllDocs(req, res, false);
+  else if (req.query.deleteComm=="true")
+    removeAllDocs(req, res, true);
+  else res.json({"error":"Something wrong in call "})
 });
 
 
@@ -1768,9 +2078,9 @@ router.post('/updateDbJson', function(req, res, next) {
   }
   if (collection=="Document") {
     Doc.collection.update(param1, param2, function(err, result){
-//      console.log(param1);
-//      console.log(param2);
-//      console.log(result);
+      console.log(param1);
+      console.log(param2);
+      console.log(result);
       if (err) res.json("fail");
       else res.json("success");
     })
@@ -2151,6 +2461,7 @@ router.post('/putCERuleSet', function(req, res, next) {
 
 // wrinkle: populate witnesses field from documents array...
 //now: use what is in ceconfig witnesses
+//NOTE if we get an error here it is because there is a document in the witness list which no longer exists
 router.get('/ceconfig', function(req, res, next) {
   Community.findOne({abbr: req.query.community}, function(err, community) {
     //now get the witnesses
@@ -2158,8 +2469,10 @@ router.get('/ceconfig', function(req, res, next) {
 //  if ceconfig.witnesses is not empty -- use it!!!
     if (community.ceconfig.witnesses && community.ceconfig.witnesses.length>0) res.json(community.ceconfig);
     else {
-      async.mapSeries(community.documents, function(document, callback) {
-        Doc.findOne({_id: ObjectId(document)}, function(err, myDoc){
+      async.mapSeries(community.documents, function(mydocument, callback) {
+//        console.log(mydocument)
+        Doc.findOne({_id: ObjectId(mydocument)}, function(err, myDoc){
+  //        console.log(myDoc.name)
           return callback(err, myDoc.name)
         })
       }, function(err, results) {

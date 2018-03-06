@@ -8,10 +8,14 @@
     </tc-managemodal-editpage>
     <tc-managemodal-addzip *ngSwitchWhen="'add-zip'" [document]="document">
     </tc-managemodal-addzip>
+    <tc-managemodal-addiiif *ngSwitchWhen="'add-iiif'" [document]="document">
+    </tc-managemodal-addiiif>
     <tc-managemodal-addbulkimages *ngSwitchWhen="'add-bulk-images'" [document]="document">
     </tc-managemodal-addbulkimages>
     <tc-managemodal-adddocument-xml *ngSwitchWhen="'add-xml-document'" [community]="community">
     </tc-managemodal-adddocument-xml>
+    <tc-managemodal-adddocument-IIIF *ngSwitchWhen="'add-IIIF-document'" [community]="community">
+    </tc-managemodal-adddocument-IIIF>
     <tc-managemodal-addpage *ngSwitchWhen="'add-document-page'"
       [document]="document" [page]="page" [afterPage]="afterPage" [parent]="docParent" [after]="docAfter" [multiple]="multiple">
     </tc-managemodal-addpage>
@@ -47,6 +51,13 @@
     </tc-managemodal-assign-approver>
     <tc-managemodal-invite-member *ngSwitchWhen="'invite-member'" [community]="community" [inviter]="inviter">
     </tc-managemodal-invite-member>
-
+    <tc-managemodal-view-allusers *ngSwitchWhen="'view-allusers'">
+    </tc-managemodal-view-allusers>
+    <tc-managemodal-view-allcommunities *ngSwitchWhen="'view-allcommunities'">
+    </tc-managemodal-view-allcommunities>
+    <tc-managemodal-export-tc1users *ngSwitchWhen="'export-tc1users'">
+    </tc-managemodal-export-tc1users>
+    <tc-managemodal-export-tc1transcripts *ngSwitchWhen="'export-tc1transcripts'">
+    </tc-managemodal-export-tc1transcripts>
   </div>
 </div>

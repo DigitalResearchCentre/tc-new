@@ -14,12 +14,14 @@
     <button *ngIf="action=='addPage'" type="button" class="btn btn-primary btn-md" (click)="continuePrev(document, page, prevpage, context)">Continue</button>
     <button *ngIf="action=='deleteDocument'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteDocument()">Delete document</button>
     <button *ngIf="action=='deleteDocumentText'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteDocumentText()">Delete document text</button>
+    <button *ngIf="action=='deleteCommunity'" type="button" class="btn btn-primary btn-md" (click)="confirmDeleteCommunity()">Delete Community</button>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <button *ngIf="action=='continueAddPages'" type="button" class="btn btn-primary btn-md" (click)="transcribeFirstPage(document, page, context)">Transcribe </button>
     <button *ngIf="action=='continueAddPage'" type="button" class="btn btn-primary btn-md" (click)="transcribePage(document, page, context)">Transcribe {{docname}}</button>
     <button *ngIf="action=='deleteAllDocs'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
     <button *ngIf="action=='deleteDocument'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
     <button *ngIf="action=='deleteDocumentText'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
+    <button *ngIf="action=='deleteCommunity'" type="button" class="btn btn-primary btn-md" (click)="closeModalCMLC()">Cancel</button>
     <button *ngIf="action=='addPage'" type="button" class="btn btn-primary btn-md" (click)="newPage()">New</button>
     <button *ngIf="action=='submitTranscript'" style="margin-top: 20px" type="button" class="btn btn-primary btn-md" (click)="submitTranscript()">Submit Transcript</button>
 </div>

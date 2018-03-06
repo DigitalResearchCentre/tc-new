@@ -58,7 +58,7 @@ var UIService = ng.core.Class({
     } else {
       state.page = doc;
     }
-    this.docService$.emit({
+   this.docService$.emit({   //causes sync problems on bulk update
       type: 'refreshDocument',
       payload: state.document,
     });

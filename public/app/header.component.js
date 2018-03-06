@@ -27,6 +27,7 @@ var HeaderComponent = ng.core.Component({
     this.source="default";
     this.show=true;
     this.state = uiService.state;
+    this.state.showTop=true;
   }],
   ngOnInit: function() {
     var self = this;
@@ -70,7 +71,11 @@ var HeaderComponent = ng.core.Component({
       _.isEmpty(_.get(community, 'attrs.documents', []));
   },
   showAddPage: function() {
+    var community = this.state.community
+      , authUser = this.state.authUser
+    ;
     var doc = this.state.document;
+    if (!this._communityService.canAddDocument(community, authUser)) return(false);
     return doc && _.isEmpty(_.get(doc, 'attrs.children'));
   },
   showLoginModal: function() {

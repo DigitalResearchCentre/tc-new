@@ -40,6 +40,7 @@ var ViewerComponent = ng.core.Component({
           this.role=this.state.authUser.attrs.memberships[i].role;
       }
     } else this.role="NONE";
+    if (this.state.authUser.attrs.local && this.state.authUser.attrs.local.email=="peter.robinson@usask.ca") this.role="LEADER";
     this._uiService.sendEditorText$.subscribe(function(data) {
       self.contentText = data.text;
       if (data.choice=="save") {self.saveSend(data.text)}
@@ -105,6 +106,8 @@ var ViewerComponent = ng.core.Component({
     this.viewer = viewer;
     this.onResize();
     this.commitFailed=false;  //reset elsewhere in a very messy piece of programming
+    //cqll the image!
+    if (this.image) this.onImageChange();
     //var $imageMap = $('.image_map');
     //var options = {zoom: 2 , minZoom: 1, maxZoom: 5};
   },
@@ -119,7 +122,11 @@ var ViewerComponent = ng.core.Component({
   onImageChange: function() {
     var viewer = this.viewer;
     if (this.image) {
-      $.get(config.IIIF_URL + this.image + '/info.json', function(source) {
+      //could be a iiif reference, or a reference to our own iiif server. If the first, begins http...
+      if (this.image.startsWith("http")) var url=this.image;
+      else var url=config.IIIF_URL + this.image;
+      url=url+'/info.json';    //let's hope all iiif follow the standard
+      $.get(url, function(source) {
         if (viewer) viewer.open([source]);
       });
     } else {
@@ -166,8 +173,14 @@ var ViewerComponent = ng.core.Component({
       if (this.document.attrs.children[i].attrs._id==this._uiService.state.page.attrs._id) foundPage=true;
     }
     if (!foundPage) {  //this is a hack...we are still waiting for document pages to load so do it here
+      //we might also have added a page, which we have not picked up...
       docService.refreshDocument(this.document).subscribe(function(doc) {
-        page = doc.getFirstChild();
+        //look for the page again! if not found...
+        for (var i=0; i<doc.attrs.children.length && !foundPage; i++) {
+          if (doc.attrs.children[i].attrs._id==self._uiService.state.page.attrs._id) foundPage=true;
+        }
+        if (foundPage) page=self._uiService.state.page;
+        else page = doc.getFirstChild();
         if (self._uiService.state.pageSelected) self._uiService.state.pageSelected.attrs.selected=false;
         self._uiService.state.pageSelected=page;
         page.attrs.selected=true;
@@ -598,6 +611,12 @@ var ViewerComponent = ng.core.Component({
         });
       }
     });
+  },
+  toggleTop: function() {
+    this.state.showTop=!this.state.showTop;
+  },
+  toggleSide: function() {
+    this.state.showSide=!this.state.showSide;
   },
   newText: function(page, document) {
     var self=this;

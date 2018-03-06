@@ -1,4 +1,4 @@
-<div class="headerTC" *ngIf="show">
+<div class="headerTC" *ngIf="state.showTop">
   <nav class="navbar navbar-default">
     <div class="container-fluid">
       <div class="collapse navbar-collapse"
@@ -13,7 +13,7 @@
             <ul class="dropdown-menu">
               <li *ngFor="#community of state.publicCommunities">
                 <a [routerLink]="['Community',
-                  {id: community.getId(), route: 'home'}]">
+                  {id: community.getId(), route: 'view'}]">
                   {{community.attrs.name}}</a>
               </li>
             </ul>
@@ -50,11 +50,11 @@
               </a>
               <ul class="dropdown-menu">
                 <li><a (click)="logout()">Log Out</a></li>
-                <li><a (click)="showLoginProf()">Login Profile</a></li>
-                <li><a [routerLink]="['MemberProfile']">Member Profile</a></li>
               </ul>
             </li>
           </template>
+          <li *ngIf="isAuthenticated()"><a (click)="showLoginProf()">Login Profile</a></li>
+          <li *ngIf="isAuthenticated()"><a [routerLink]="['MemberProfile']">Member Profile</a></li>
         </ul>
       </div>
       <div class="navbar-header navbar-right">
@@ -72,7 +72,7 @@
     </div>
   </nav>
 </div>
-<div *ngIf="show" style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
+<div *ngIf="state.showTop" style="margin-right:auto; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; margin-left:auto; width:100%; padding-top: 10px;   padding-bottom: 1px; background-color: #00446d">
   <p style="font-size:200%; text-align: center; margin-bottom: 5px; padding-bottom:0px; color: white">Textual Communities</p>
   <p *ngIf="state.authUser" style=" text-align: center; margin-bottom: 5px; padding-bottom:0px;" class="wizardp">
     <seg *ngIf="showCreateOrJoin()">
@@ -83,10 +83,9 @@
     <seg *ngIf="showAddPage()">
       You have a community ("{{state.community?.attrs.name}}") with a document ("{{state.document?.attrs.name}}"),
       but there are no pages in it</seg>
-      <!--><seg>Make the edition you want</seg></-->
   </p>
 </div>
-<div *ngIf="showNoUser()&&show" class="wizard">
+<div *ngIf="showNoUser()&&state.showTop" class="wizard">
   <p class="wizardp">Make the edition you want</p>
     <a data-toggle="modal" data-target="#myModal">
     <button class="btn btn-lg wizardbutton"
@@ -95,7 +94,7 @@
       style="width: 100px;">Start</button>
   </a>
 </div>
-<div *ngIf="state.authUser&&show" class="wizard">
+<div *ngIf="state.authUser&&state.showTop" class="wizard">
   <p *ngIf="showCreateOrJoin()" class="wizardp">
     <a *ngIf="createNotChosenF()" [routerLink]="['CreateCommunity']">
       <button class="btn btn-lg wizardbutton"

@@ -1,0 +1,25 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Export Users from a Community
+    <button type="button" (click)="closeModalVM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <p style='text-align: left; margin-top: 15px; margin-bottom: 15px; margin-left:10px; margin-right:10px'>Enter the abbreviation for the community whose members you want to export from TC1. This must be the same as the abbreviation for the community you are importing to.
+  </p>
+  <div *ngIf="message.length>0" class="alert alert-danger" style="overflow-y: auto; height: 30px; margin-top: 3px; margin-left:0px ">{{message}}
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="overflow-y: auto; height: 30px; margin-bottom: 3px; margin-top: 3px">
+    {{success}}
+  </div>
+  <div style="text-align: center">
+  <input type="text"
+  style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="cAbbrev">
+</div>
+  <div style="margin-top: 10px; text-align: center">
+    <button type="button" class="btn btn-primary" (click)="exportUsers()">Export Users</button>
+  </div>
+  <div id="MMADXFdiv" class="form-group" style="margin-top: 5px;">
+    <tc-filereader (filechange)="filechange($event)"></tc-filereader>
+    <div style="text-align: center; margin-top: 10px">
+      <button type="button" class="btn btn-primary" (click)="importUsers()">Import Users</button>
+    </div>
+  </div>
+</div>

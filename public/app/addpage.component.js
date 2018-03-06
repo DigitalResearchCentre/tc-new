@@ -42,7 +42,7 @@ var AddPageComponent = ng.core.Component({
       , url = config.IMAGE_UPLOAD_URL
       , $dropzone = $('.dropzone', $el)
     ;
-    $('#manageModal').width("530px");
+    $('#manageModal').width("580px");
     $('#manageModal').height("420px");
     this.isCancel=false;
     this.isAdd=true;
@@ -126,7 +126,10 @@ var AddPageComponent = ng.core.Component({
         return !_.isEmpty(images);
       }, function(cb) {
         var image = images.shift();
-        self.addPage(image.filename.split('.')[0], image._id, cb);
+        //test..is this last page in images? if so, we need to call back to here later
+        if (images.length==0) var isLastPage=true;
+        else var isLastPage=false;
+        self.addPage(image.filename.split('.')[0], image._id, isLastPage, cb);
       }, function(err, n) {
         _.each(files, function(f) {
           dropzone.removeFile(f);
@@ -136,7 +139,7 @@ var AddPageComponent = ng.core.Component({
       });
     }
   },
-  addPage: function(pageName, image, cb) {
+  addPage: function(pageName, image, isLastPage, cb) {
     var self = this
       , docService = this._docService
       , router = this._router
@@ -174,16 +177,16 @@ var AddPageComponent = ng.core.Component({
       if (!this.parent && this.after) {
         $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+this.page.attrs.ancestors[0]+'&pageid='+this.after._id, function(res) {
           self.isText=res.isThisPageText;  //if there is a page with text before, then we make sure we don't add that following Xiahan's routine
-          if (self.isText) self.commitAddPage(myDoc, options, true);  //if we are adding a page following a page with text, we continue the transcript on this page
-          else self.commitAddPage(myDoc, options, false, cb)
+          if (self.isText) self.commitAddPage(myDoc, options, true, isLastPage, cb);  //if we are adding a page following a page with text, we continue the transcript on this page
+          else self.commitAddPage(myDoc, options, false, isLastPage, cb)
 
     //      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
         });
       }
-      else this.commitAddPage(myDoc, options, false, cb);
+      else this.commitAddPage(myDoc, options, false, isLastPage, cb);
     }
   },
-  commitAddPage: function(myDoc, options, isTextPrev, cb) {
+  commitAddPage: function(myDoc, options, isTextPrev, isLastPage, cb) {
     var self = this
       , docService = this._docService
       , router = this._router
@@ -212,6 +215,9 @@ var AddPageComponent = ng.core.Component({
           var warning="";
           var action="continueAddPage";
         } else {
+          //only invoke this if this is the last image to be processed.. else call back
+          //check: is this the last image;
+          if (!isLastPage) cb(null, page);
           var warning="Either: <ul><li>Add more pages in "+self.state.document.attrs.name+"</li><li>Reorder and rename the pages</li><li>Start transcribing</li></ul>Once you have started transcribing, you cannot reorder the document pages (you can rename them)";
           var header="Add, reorder/rename or transcribe pages in "+self.state.document.attrs.name;
           var action="continueAddPages";
@@ -226,7 +232,7 @@ var AddPageComponent = ng.core.Component({
           document: self.document,
         })
         self.pageName="";
-  //      cb(null, page);  don't think we need this
+  //      cb(null, page);  don't think we need this .. we do if we are adding multiple pages and we have more...
     });
   },
   submit: function() {

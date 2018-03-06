@@ -1,28 +1,8 @@
-<div x-auto-height class="manage" style="position:relative; top:-5px" *ngIf="show">
+<div x-auto-height class="manage" style="position:relative; top:-5px" *ngIf="state.showTop">
   <div class="headerManage" *ngIf="isLeader() || isCreator()">
     <nav class="navbar navbar-default">
       <ul class="nav navbar-nav navbar-left">
         <li><span class="hmbrand">Manage ></span></li>
-        <!--li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a (click)="loadModal('add-document-choice')">
-                Add Document</a></li>
-            <li><a (click)="loadModal('add-xml-document')">
-                Load XML Document</a></li>
-            <li><a href="#">Add Image Zip</a></li>
-            <li><a href="#">Delete Document</a></li>
-            <li><a href="#">Edit Document Pages</a></li>
-            <li><a href="#">Rename Document</a></li>
-            <li><a ng-click="loadModal('get-xml-document')">Get Document XML</a></li>
-          </ul>
-        </li>
-        <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Segmenting<span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="#">Generic Document Parts</a></li>
-            <li><a href="#">Generic Entity Parts</a></li>
-            <li><a href="#">Single Document Parts</a></li>
-          </ul>
-        </li-->
         <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Auxiliary Files<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a (click)="loadModal('uploaddtd-community')">DTD</a></li>
@@ -34,25 +14,20 @@
           <ul class="dropdown-menu">
             <li><a (click)="loadModal('collationeditor-choosebase')">Choose Base</a></li>
             <li><a (click)="loadModal('collationeditor-choosewitnesses')">Choose Witnesses</a></li>
-            <!--li><a (click)="loadModal('collationeditor-community')">Configure Collation Editor</a></li-->
           </ul>
         </li>
-        <!--li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Members<span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a (click)="loadModal('view-members')">Members</a></li>
-            <li><a href="#">Assign Transcriptions</a></li>
-            <li><a href="#">Invite Members</a></li>
-          </ul>
-        </li-->
         <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Community Management<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li ng-show="isCreator()===true"><a (click)="deleteAllDocs()">Delete All Documents</a></li>
-            <li ng-show="isCreator()===true"><a href="#">Delete Community</a></li>
+            <li ng-show="isCreator()===true||isLeader()===true"><a (click)="deleteAllDocs()">Delete All Documents</a></li>
+            <li ng-show="isCreator()===true||isLeader()===true"><a (click)="deleteCommunity()">Delete Community</a></li>
           </ul>
         </li>
-        <li class="dropdown" *ngIf="state.authUser.attrs.local.email=='peter.robinson@usask.ca'"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Import from TC<span class="caret"></span></a>
+        <li class="dropdown" *ngIf="state.authUser.attrs.local.email=='peter.robinson@usask.ca'"><a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Super User<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li ng-show="isCreator()===true"><a (click)="importFromTC()">Import Stuff</a></li>
+            <li ng-show="isCreator()===true"><a (click)="viewAllUsers()">View All Users</a></li>
+            <li ng-show="isCreator()===true"><a (click)="viewAllCommunities()">View All Communities</a></li>
+            <li ng-show="isCreator()===true"><a (click)="exportUsersFromTC1()">Export/Import Users from TC1 Community</a></li>
+            <li ng-show="isCreator()===true"><a (click)="exportTranscriptsFromTC1()">Move Transcripts from TC1 to TC2</a></li>
           </ul>
         </li>
       </ul>

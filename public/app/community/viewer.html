@@ -1,12 +1,33 @@
   <tc-splitter class="horizontal" (resize)="onResize($event)" id="viewerSplitter">
-  <tc-pane class="image-viewer">
-    <div [ngClass]="{'nodisplay':!image}" id="imageMap" class="image_map"></div>
-    <div [ngClass]="{'nodisplay':image}" style="margin:auto; position: relative; top: -40%;;">
-      <p>No image associated with this page<br/><br/>
+  <tc-pane class="image-viewer" style="position:relative">
+    <div [ngClass]="{'nodisplay':!image}" id="imageMap" class="image_map">
+    </div>
+    <div [ngClass]="{'nodisplay':image}" >
+      <p style="position: absolute; top: 40%; left: 40%;">No image associated with this page<br/><br/>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <button *ngIf="role=='LEADER'||role=='CREATOR'" type="button" class="btn btn-primary" (click)="addPageImage(page)">Add Image</button>
     </p>
     </div>
+    <div *ngIf="state.showSide" style="position: absolute; top:50%; left:0px; z-index:10; border: 0.5px solid #888; height: 36px; width: 14px;
+    background-color: #DFDFDF; text-align: center; border-left-style: none" data-toggle="tooltip" title="Collapse side panel">
+    <a style="color: black;" class="center" (click)="toggleSide()">
+      <span class="center glyphicon glyphicon-triangle-left" style="position: relative; font-size: 8px; top: 7px"></span></a>
+    </div>
+    <div *ngIf="!state.showSide" style="position: absolute; top:50%; left:0px; z-index:10; border: 0.5px solid #888; height: 36px; width: 14px;
+    background-color: #DFDFDF; text-align: center; border-left-style: none" data-toggle="tooltip" title="Expand side panel">
+    <a style="color: black;" class="center" (click)="toggleSide()">
+      <span class="center glyphicon glyphicon-triangle-right" style="position: relative; font-size: 8px; top: 7px"></span></a>
+    </div>
+    <div *ngIf="state.showTop" style="position: absolute; top:0px; left:50%; z-index:10; border: 0.5px solid #888; height: 14px; width: 36px;
+    background-color: #DFDFDF; text-align: center; border-top-style: none" data-toggle="tooltip" title="Collapse top panel">
+    <a  style="color: black;" class="center"  (click)="toggleTop()">
+     <span class="center glyphicon glyphicon-triangle-top" style="font-size: 8px; position: relative; top:-5px"></span></a>
+   </div>
+   <div *ngIf="!state.showTop" style="position: absolute; top:0px; left:50%; z-index:10; border: 0.5px solid #888; height: 14px; width: 36px;
+   background-color: #DFDFDF; text-align: center; border-top-style: none" data-toggle="tooltip" title="Expand top panel">
+   <a  style="color: black;" class="center"  (click)="toggleTop()">
+    <span class="center glyphicon glyphicon-triangle-bottom" style="font-size: 8px; position: relative; top:-5px"></span></a>
+  </div>
   </tc-pane>
   <tc-pane class="text-viewer">
     <div class="transcript-header">
@@ -69,7 +90,7 @@
           <div style="float:right; margin-top: 4px">
             <button *ngIf="isPrevPage" type="button" class="btn btn-default btn-xs"
               (click)="showPrev(page, document)"><{{prevPage}}</button>
-            {{page.attrs.name}} in {{document.attrs.name}}
+            <span *ngIf="page">{{page.attrs.name}} in {{document.attrs.name}}</span>
             <button *ngIf="isNextPage" type="button" class="btn btn-default btn-xs"
               (click)="showNext(page, document)">{{nextPage}}></button>&nbsp;&nbsp;&nbsp;&nbsp;
           </div>

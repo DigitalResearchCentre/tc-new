@@ -32,6 +32,7 @@ var ViewComponent = ng.core.Component({
     this._docService = docService;
     this._restService = restService
     this.state = uiService.state;
+    this.state.showSide=true;
     this.showByPage=true;
     this.versions=[];
     this._uiService.choosePage$.subscribe(function (doc) {
@@ -56,6 +57,7 @@ var ViewComponent = ng.core.Component({
           this.role=this.state.authUser.attrs.memberships[i].role;
       }
     } else this.role="NONE";
+    if (this.state.authUser.attrs.local && this.state.authUser.attrs.local.email=="peter.robinson@usask.ca") this.role="LEADER";
   },
   ngOnChanges: function() {
     var docEl=document.getElementsByClassName("selected")[0];
@@ -114,6 +116,12 @@ var ViewComponent = ng.core.Component({
     this._docService.selectPage(page);
     removeAllSelected(this, page);
     page.attrs.selected=true;
+  },
+  addIIIFImages: function(doc) {
+    this._uiService.manageModal$.emit({
+      type: 'add-iiif',
+      document: doc,
+    });
   },
   addZipImages: function(doc) {
     this._uiService.manageModal$.emit({

@@ -1,5 +1,5 @@
 <tc-splitter class="content" (resize)="onResize($event)" *ngIf="state.community">
-  <tc-pane class="sidebar">
+  <tc-pane [ngClass]="{true:'sidebar', false:'nodisplay'}[state.showSide]">
     <ul class="nav nav-tabs">
       <li id="docTabHead" class="center active" (click)="active('Documents')"><a>Documents</a></li>
       <li id="collationTabHead" class="center" (click)="active('Collation')"><a>Collation</a></li>
@@ -20,6 +20,9 @@
             <a (click)="toggleDoc(doc)">
               {{doc.attrs.name}}
             </a>&nbsp;
+            <a *ngIf="role=='LEADER'||role=='CREATOR'" target="_blank" (click)="addIIIFImages(doc)" data-toggle="tooltip" title="Add images from IIIF manifest">
+              <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/logo-iiif-34x30.png">
+            </a>
             <a *ngIf="role=='LEADER'||role=='CREATOR'" target="_blank" (click)="addZipImages(doc)" data-toggle="tooltip" title="Add images in zip file">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/zip-file-load.png">
             </a>

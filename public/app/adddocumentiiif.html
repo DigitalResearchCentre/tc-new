@@ -1,5 +1,5 @@
-<div *ngIf="state.community">
-  <div modal-draggable class="modalHeader">Add Document by Page/from Images to Community "{{state.community.attrs.name}}"
+<div *ngIf="community">
+  <div modal-draggable class="modalHeader">Add Document from IIIF manifest to "{{community.attrs.name}}"
     <button type="button" (click)="closeModalAD()" class="close"
     data-dismiss="modal"
     style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;
@@ -13,10 +13,15 @@
     {{success}}
   </div>
   <div id="MMADdiv" class="form-group"
-   style="margin-top: 30px; margin-left: 170px; margin-right: 20px">
-    <label>Document Name&nbsp;&nbsp;</label>
+   style="margin-top: 15px; margin-left: 20px; margin-right: 20px">
+    <label>Document name&nbsp;&nbsp;</label>
     <input type="text"
     style="width: 170px; display: inline-block" class="form-control"  placeholder="Name" [(ngModel)]="doc.name">
+    <br/><br/>
+    <label>Drop or paste IIIF manifest address here</label>
+    <textarea class="form-control" rows="2" cols="50" placeholder="IIIF manifest address"
+      [(ngModel)]="doc.iiif"></textarea>
+    <p style="margin-top: 15px">Hint: this is the address next to the <img height="18" src="../images/logo-iiif-34x30.png"> logo on a IIIF manuscript (for example, at <a href="https://www.e-codices.unifr.ch/en/searchresult/list/one/fmb/cb-0048">https://www.e-codices.unifr.ch/en/searchresult/list/one/fmb/cb-0048</a>)</p>
   </div>
   <div id="MMADbutton" style="text-align: center; margin-top: 20px">
     <button type="button" class="btn btn-primary" (click)="submit()">Add Document</button>

@@ -1,0 +1,51 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">View All Communities
+    <button type="button" (click)="closeModalVM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+<div style="margin: 10px">
+  <h4>{{communities.length}} communities</h4>
+  <p style="text-align:center">
+    <button type="button" class="btn btn-danger btn-md" (click)="deleteAllCommunities()">Delete All Communities</button>&nbsp;
+    <span style="color:red; fomt-weight:bold">Careful! this is the nuclear option...</span>
+  </p>
+  <div>
+    <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
+      <thead>
+        <tr>
+          <th style="border-bottom-width:0px" class="col-md-2">Name</th>
+          <th style="border-bottom-width:0px" class="col-md-1">Abbrev.</th>
+          <th style="border-bottom-width:0px" class="col-md-1">Visible</th>
+          <th style="border-bottom-width:0px" class="col-md-1">Docs</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Members</th>
+          <th style="border-bottom-width:0px" class="col-md-1">Created</th>
+          <th style="border-bottom-width:0px" class="col-md-2">Creator</th>
+          <th style="border-bottom-width:0px" class="col-md-2">&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="#community of communities" class="commMembership">
+          <td style="border-top-width:0px">{{community.name}}</td>
+          <td style="border-top-width:0px">{{community.abbr}}</td>
+          <td style="border-top-width:0px"><span *ngIf="community.public">Public</span><span *ngIf="!community.public">Private</span></td>
+          <td style="border-top-width:0px">{{community.ndocs}}</td>
+          <td style="border-top-width:0px">{{community.nmembers}}
+            <span *ngIf="!community.expand" class="glyphicon glyphicon-triangle-right" (click)="toggleInstance(community)"></span>
+            <span *ngIf="community.expand" class="glyphicon glyphicon-triangle-bottom" (click)="toggleInstance(community)"></span>
+            <span *ngIf="community.expand">
+              <ul>
+                <li *ngFor="#member of community.members">{{member.user}} <span *ngIf="member.role!='MEMBER'">{{member.role}}</span></li>
+              </ul>
+            </span>
+          </td>
+          <td style="border-top-width:0px">{{formatDate(community.created)}}</td>
+          <td style="border-top-width:0px">{{community.creator}}</td>
+          <td style="border-top-width:0px">
+             <button type="button" class="btn btn-primary btn-sm" (click)="navigate(community._id,'view')">View</button>&nbsp;
+             <button type="button" class="btn btn-danger btn-sm" (click)="deleteCommunity(community._id)">Delete</button>&nbsp;
+        </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>

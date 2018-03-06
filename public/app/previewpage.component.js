@@ -12,6 +12,7 @@ var PreviewPageComponent = ng.core.Component({
   templateUrl: '/app/previewpage.html',
   directives: [
     require('./directives/modaldraggable'),
+    require('./directives/modalresizable'),
   ],
   inputs: [
     'page', 'error', 'lines', 'content',

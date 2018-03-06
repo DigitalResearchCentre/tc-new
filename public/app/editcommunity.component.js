@@ -39,11 +39,12 @@ var EditCommunityComponent = ng.core.Component({
   },
   initEdit: function(community) {
     this._uiService.sendCommand$.emit("createChosen");
-    if (community) {
+    if (community && community.attrs.abbr) {
       this.edit = _.clone(community.toJSON());
       this.community = community;
       this.edit.entities=community.attrs.entities;
       this.origname=community.attrs.name;
+      this.created=community.attrs.created;
       var myPreview=$("#PreviewImg")[0];
       if (community.attrs.haspicture && !myPreview) {
         this.picFile.valid=true;
@@ -67,6 +68,7 @@ var EditCommunityComponent = ng.core.Component({
         members: [this._uiService.state.authUser._id],
         alltranscribeall: false,
         haspicture: false,
+        created:Date.now(),
         image: "",
       };
       //load ceconfig. We don't do this now.

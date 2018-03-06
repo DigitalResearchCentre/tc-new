@@ -34,7 +34,6 @@ var CommunityComponent = ng.core.Component({
       , route = this._routeParams.get('route')
     ;
     this.state = uiService.state;
-    this.show=true;
   }],
   ngOnInit: function() {
     var self = this
@@ -48,12 +47,22 @@ var CommunityComponent = ng.core.Component({
         if (this.state.authUser.attrs.memberships[i].community.attrs._id==id)
           this.role=this.state.authUser.attrs.memberships[i].role;
       }
-    } else this.role="NONE";
+    } else {
+      this.role="NONE";
+    }
+    //so superuser can see it and edit it too
+
+    if (this.state.authUser.attrs.local && this.state.authUser.attrs.local.email=="peter.robinson@usask.ca") this.role="LEADER";
     this.route = route;
     //now, could be refresh after we deleted a community. in that case...don't try and select it!
-    if (this._uiService.state.myCommunities[this._uiService.state.myCommunities.findIndex(x => x._id == id)]
-      || this._uiService.state.publicCommunities[this._uiService.state.publicCommunities.findIndex(x => x._id == id)])
+    //this one causes a problem when superuser wants to look at any community...
+    if (this.state.authUser.attrs.local && this.state.authUser.attrs.local.email=="peter.robinson@usask.ca") {
       this._communityService.selectCommunity(id);
+    } else {
+      if (this._uiService.state.myCommunities[this._uiService.state.myCommunities.findIndex(x => x._id == id)]
+        || this._uiService.state.publicCommunities[this._uiService.state.publicCommunities.findIndex(x => x._id == id)])
+        this._communityService.selectCommunity(id);
+    }
     //else: leave community at null
   },
   navigate: function(route) {

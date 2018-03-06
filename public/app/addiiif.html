@@ -1,0 +1,25 @@
+<div style="font-size: 110%; height:100%; position: fixed; width: 580px">
+  <div modal-draggable class="modalHeader">Add images from IIIF manifest to document "{{document.attrs.name}}"
+    <button type="button" (click)="closeModalAP()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+    <form style="margin-left: 30px; margin-right: 30px; height:350; overflow: auto">
+      <p style='text-align: left; margin-top: 15px; margin-bottom: 15px'>TC will first attempt to match each image by its IIIF label to the facs attribute on each &lt;pb> element.
+          <br>If it cannot match IIIF labels to facs attributes, it will try  to match the 'n' value on each &lt;pb> element.
+          <br>If there are no pages in the document, each image will be a page.
+        </p>
+      <label>Drop or paste a IIIF manifest address here.</label>
+      <div *ngIf="success.length>0" class="alert alert-success" style="overflow-y: auto; height: 90px; margin-bottom: 3px; margin-top: 3px">
+        {{success}}
+      </div>
+      <div *ngIf="message.length>0" class="alert alert-danger" style="overflow-y: auto; height: 90px; margin-top: 3px; margin-left:0px ">{{message}}
+      </div>
+      <textarea class="form-control" rows="2" cols="20" placeholder="IIIF manifest address"
+        [(ngModel)]="doc.iiif"></textarea>
+      <p style="margin-top:10px">Hint: this is the address next to the <img height='18' src='../images/logo-iiif-34x30.png'> logo on a IIIF manuscript (for example, at <a target='new' href='https://www.e-codices.unifr.ch/en/searchresult/list/one/fmb/cb-0048'>https://www.e-codices.unifr.ch/en/searchresult/list/one/fmb/cb-0048</a>)</p>
+    </form>
+    <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; width:100%; text-align: center;">
+      <div style="margin-top: 10px">
+        <button type="button" class="btn btn-primary" (click)="submit()">Load Manifest</button>
+      </div>
+    </div>
+  </div>
