@@ -141,6 +141,7 @@ var ExportTC1TranscriptsComponent = ng.core.Component({
                           writepages.push({doc: mypages[i].tc2_id, tasks: mypages[i].tasks, revisions: mypages[i].revisions, name:mypages[i].name })
                         }
                         self.success+=" All pages processed. Writing to the database now. "
+        //              download(JSON.stringify(writepages), self.docName+".json", "application/json");  //write a record
                         $.ajax({
                           url:config.BACKEND_URL+'moveTC1Transcripts?community='+self.cAbbrev+"&communityid="+self.uiService.state.community._id,
                           type: 'POST',
@@ -176,12 +177,16 @@ function transformTC1Transcript(source, mypage) {
   //put it in a xml dom
   var myXMLDOM = new DOMParser().parseFromString(source, "text/xml");
   var firstDiv = myXMLDOM.getElementsByTagName('div')[0];  //not here guessing that body or text etc will have n, must be div of similar
-  var firstParent = firstDiv.parentElement;
-  while (firstDiv && firstDiv.getAttribute("prev")) {
-    //remove the prev attribute.. get the next childElement with a n attribute. In this architecture
-    firstDiv.removeAttribute("prev")
-    firstParent=firstDiv;
-    firstDiv=firstDiv.firstElementChild;
+  if (!firstDiv) { //empty page, no div
+    var firstParent=myXMLDOM.getElementsByTagName('body')[0]
+  } else {
+    var firstParent = firstDiv.parentElement;
+    while (firstDiv && firstDiv.getAttribute("prev")) {
+      //remove the prev attribute.. get the next childElement with a n attribute. In this architecture
+      firstDiv.removeAttribute("prev")
+      firstParent=firstDiv;
+      firstDiv=firstDiv.firstElementChild;
+    }
   }
   //no prev attribute on firstDiv .. stick the page break in before it and carry on
   //adjust this.. child element may actually follow some textContent. So we have to make the text content the next element, or whatever follows IMMEDIATELY

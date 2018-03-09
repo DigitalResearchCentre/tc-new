@@ -132,9 +132,9 @@ var AddDocumentXMLComponent = ng.core.Component({
             if (result!="success") {
               self.message="The save failed. Maybe you have lost your internet connection.";
               self.success="";
-            } else if (self.state.community.attrs.abbr=="CTP2")
+            } else if (self.state.community.attrs.abbr=="CTP2" && (mydoc.attrs.name=="Ad1"||mydoc.attrs.name=="Ad2"||mydoc.attrs.name=="Ad3"||mydoc.attrs.name=="Ar"||mydoc.attrs.name=="Bo1"||mydoc.attrs.name=="Bo2"||mydoc.attrs.name=="Bw"||mydoc.attrs.name=="Ch"||mydoc.attrs.name=="Cp"||mydoc.attrs.name=="Cx2"||mydoc.attrs.name=="Dd"||mydoc.attrs.name=="Dl"||mydoc.attrs.name=="El"||mydoc.attrs.name=="En2"||mydoc.attrs.name=="Fi"||mydoc.attrs.name=="Gg"||mydoc.attrs.name=="Ha2"||mydoc.attrs.name=="Ha3"||mydoc.attrs.name=="Ha4"||mydoc.attrs.name=="Hk"||mydoc.attrs.name=="Ht"||mydoc.attrs.name=="Ii"||mydoc.attrs.name=="Kk"||mydoc.attrs.name=="La"||mydoc.attrs.name=="Py"))
             {  //make a revision page for each page. We need this when importing transcripts so let's have it anyway
-              self.success+=" Now making default revisions. "
+              self.success+=" Now making default revisions for "+mydoc.attrs.children.length+" pages: "
               var counter=0;
               async.mapSeries(mydoc.attrs.children, function(page, callback){
                 counter++;
