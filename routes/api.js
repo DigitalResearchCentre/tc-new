@@ -2157,6 +2157,132 @@ router.use(function(err, req, res, next) {
   }
 });
 
+//load all the witnesses in one operation
+router.post('/getCEWitnesses', function(req, res, next) {
+  console.log(req.query.community);
+  console.log(req.body.witnesses);
+  console.log(req.body.base);
+  console.log(req.body.entity);
+  var witnesses=req.body.witnesses;
+  var community=req.query.community;
+  var base=req.body.base;
+  var entity=req.body.entity;
+  async.mapSeries(witnesses, function(witness, callback){
+/*    getCEWitness(witness, community, entity, function (err, result){
+      if (result=={}) console.log(witness+" empty");
+      callback(err, result)
+    }) */
+//    console.log("looking for witness "+witness);
+    async.waterfall([
+      function(cb) {
+        Doc.findOne({community: community, name: witness, ancestors:{$size:0}}, function (err, myDoc) {
+          if (err) {
+//            console.log("can't find witness "+witness)
+            cb(err, {});
+          }
+          else {
+            cb(null, myDoc);
+          }
+        });
+      },
+      function (myDoc, cb) {
+        TEI.find({docs: myDoc._id, entityName: entity}, function(err, teis){
+          if (err) cb(err, []);
+          else {  //have to deal with case where this entity is absent from the document
+            if (teis.length==0) {
+              cb("no witness", {});
+            } else {  //we have to deal with multiple texts for this witness
+//              console.log("number versions "+teis.length)
+              var content='{"_id": "'+witness+'_'+entity+'", "context": "'+entity+'","tei":"", "transcription_id": "'+witness+'","transcription_siglum": "'+witness+'","siglum": "'+witness+'"';
+              var teiContent={"content":""}; //make this a loop if more than one wit here
+              content+=',"witnesses":['
+              var counter=0;
+              async.mapSeries(teis, function(thisTei){
+                const cb2 = _.last(arguments);
+                teiContent={"content":""};
+                loadTEIContent(thisTei, teiContent).then(function (){
+                  if (teiContent.content!="") {
+                    if (counter>0) {
+                      content+=","+makeJsonList(teiContent.content, witness+"("+counter+")")
+                    }
+                    else content+=makeJsonList(teiContent.content, witness);
+                    counter++;
+                    cb2(null);
+                  } else cb2(null);
+                });
+              }, function(err) {
+                content+=']}';
+                cb(null, content);
+              })
+            }
+          }
+        });
+      }
+    ], function (err, result){
+      if (err=="no witness") {
+//        console.log("no text found for "+witness)
+        callback(null, {})
+      }
+      else callback(err, result);
+    })
+  }, function(err, results) {
+//    console.log(results);
+    if (err) res.json({baseHasText: true, result: [], success:false})
+    else res.json({baseHasText: true, result: results, success:true})
+  });
+});
+
+function getCEWitness(witness, community, entity, callback) {
+    async.waterfall([
+      function(cb) {
+        Doc.findOne({community: community, name: witness, ancestors:{$size:0}}, function (err, myDoc) {
+          if (err) cb(err, {});
+          else {
+            cb(null, myDoc);
+          }
+        });
+      },
+      function (myDoc, cb) {
+        TEI.find({docs: myDoc._id, entityName: entity}, function(err, teis){
+          if (err) cb(err, []);
+          else {  //have to deal with case where this entity is absent from the document
+            if (teis.length==0) {
+              cb("no witness", {});
+            } else {  //we have to deal with multiple texts for this witness
+//              console.log("number versions "+teis.length)
+              var content='{"_id": "'+witness+'_'+entity+'", "context": "'+entity+'","tei":"", "transcription_id": "'+witness+'","transcription_siglum": "'+witness+'","siglum": "'+witness+'"';
+              var teiContent={"content":""}; //make this a loop if more than one wit here
+              content+=',"witnesses":['
+              var counter=0;
+              async.mapSeries(teis, function(thisTei){
+                const cb2 = _.last(arguments);
+                teiContent={"content":""};
+                loadTEIContent(thisTei, teiContent).then(function (){
+                  if (teiContent.content!="") {
+                    if (counter>0) {
+                      content+=","+makeJsonList(teiContent.content, witness+"("+counter+")")
+                    }
+                    else content+=makeJsonList(teiContent.content, witness);
+                    counter++;
+                    cb2(null);
+                  } else cb2(null);
+                });
+              }, function(err) {
+                content+=']}';
+                cb(null, content);
+              })
+            }
+          }
+        });
+      }
+    ], function (err, result){
+      if (err=="no witness") {
+        console.log("no text found for "+witness)
+        callback(null, {})
+      }
+      else callback(err, result);
+    })
+}
 //hereon: collation editor calls
 router.get('/cewitness', function(req, res, next) {
 //  console.log(req.query.witness);
@@ -2188,20 +2314,30 @@ router.get('/cewitness', function(req, res, next) {
           else {  //have to deal with case where this entity is absent from the document
             if (teis.length==0) {
               cb("no witness", []);
-            } else {
-              var content='{"transcription_id": "'+req.query.witness+'","transcription_siglum": "'+req.query.witness+'","siglum": "'+req.query.witness+'"';
+            } else {  //we have to deal with multiple texts for this witness
+//              console.log("number versions "+teis.length)
+              var content='{"_id": "'+req.query.witness+'_'+req.query.entity+'", "context": "'+req.query.entity+'","tei":"", "transcription_id": "'+req.query.witness+'","transcription_siglum": "'+req.query.witness+'","siglum": "'+req.query.witness+'"';
               var teiContent={"content":""}; //make this a loop if more than one wit here
-              loadTEIContent(teis[0], teiContent).then(function (){
-//                console.log("loadTEIContent wit "+req.query.witness+": "+teiContent.content)
-                if (teiContent.content!="") {
-                  content+=',"witnesses":['
-                  content+=makeJsonList(teiContent.content, req.query.witness);
-                  content+=']}'
-//                  console.log(content);
-                  cb(null, content);
-                }
-                else cb(null, content);
-              });
+              content+=',"witnesses":['
+              var counter=0;
+              async.mapSeries(teis, function(thisTei){
+                const cb2 = _.last(arguments);
+//                console.log(counter+" "+thisTei)
+                teiContent={"content":""};
+                loadTEIContent(thisTei, teiContent).then(function (){
+                  if (teiContent.content!="") {
+                    if (counter>0) {
+                      content+=","+makeJsonList(teiContent.content, req.query.witness+"("+counter+")")
+                    }
+                    else content+=makeJsonList(teiContent.content, req.query.witness);
+                    counter++;
+                    cb2(null);
+                  } else cb2(null);
+                });
+              }, function(err) {
+                content+=']}';
+                cb(null, content);
+              })
             }
           }
         });
@@ -2223,12 +2359,14 @@ function makeJsonList(content, witness) {
   var thistext="";
   //remove line breaks,tabs, etc
 //  thistext+=content.replace(/(\r\n|\n|\r)/gm,"");
+//  console.log("before "+content)
   content=content.replace(/(\r\n|\n|\r)/gm,"");
   content=content.replace(/<note(.*?)<\/note>/gm,"");
   content=content.replace(/(\t)/gm," ");
   content=content.replace(/  +/g, ' ');
-  content=content.replace(/"/g, '\\"');
-  content=content.replace(/'/g, "\\'");
+  content=content.replace(/"/g, "\'\'");   //this is a hack. Can't figure out how to handle " in strings
+  content=content.replace(/'/g, "\'");
+//  console.log("after "+content)
   content=content.trim();
 //  console.log("let's start here "+content);
   var myWitRdgs=[];

@@ -179,6 +179,9 @@ function transformTC1Transcript(source, mypage) {
   var firstDiv = myXMLDOM.getElementsByTagName('div')[0];  //not here guessing that body or text etc will have n, must be div of similar
   if (!firstDiv) { //empty page, no div
     var firstParent=myXMLDOM.getElementsByTagName('body')[0]
+    if (!firstParent) {
+      console.log("missing...")
+    }
   } else {
     var firstParent = firstDiv.parentElement;
     while (firstDiv && firstDiv.getAttribute("prev")) {
@@ -203,6 +206,10 @@ function transformTC1Transcript(source, mypage) {
     var newRend=myXMLDOM.createAttribute("rend");
     newRend.nodeValue=mypage.attrs.rend;
     newPb.setAttributeNode(newRend);
+  }
+  if (!firstParent) {
+    console.log("missing...")
+    return(source);
   }
   firstParent.insertBefore(newPb, firstParent.childNodes[0]);
   var newString=(new XMLSerializer()).serializeToString(myXMLDOM)

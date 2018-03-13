@@ -3,7 +3,7 @@ var $ = require('jquery')
     , config = require('../config')
 ;
 
-var punctuation=".,:-/&@¶§;⁊·⸫▽?!";
+var punctuation=".,:-/&@¶§;·⸫▽?!'"+'"';
 
 function isCEPunctuation(myChar) {
   for (var i=0; i<punctuation.length; i++) {
@@ -28,16 +28,22 @@ var FunctionService = {
     var suffix="";
     var isNewWord=false;
     var punctstr="", punctafter="", punctbefore="";
-    for (var i=0; i<content.length; i++) {
+    //ok, coz we have unicode this is NOT reliable...
+    //so rebuild the string
+    var myContent=[];
+    for (let myChar of content) {
+      myContent.push(myChar);
+    }
+    for (var i=0; i<myContent.length; i++) {
       var endtag=false;
-      if (isCEPunctuation(content.charAt(i))) {
-        punctstr+=content.charAt(i);
+      if (isCEPunctuation(myContent[i])) {
+        punctstr+=myContent[i];
           //problem here.. we might have forms "bill, $peter". We need to split this: stop at space, allocate to
           //punctafter and call routine to deal with the world; rest goes to punctbefore
           //but!!! before first word "¶§ //Peter" everything has to go in punctbefore...
         if (words.length==0 && word=="" && punctbefore=="") {
-          for (++i; i<content.length && (isCEPunctuation(content.charAt(i)) || content.charAt(i)==" "); i++) {
-            punctstr+=content.charAt(i);
+          for (++i; i<myContent.length && (isCEPunctuation(myContent[i]) || myContent[i]==" "); i++) {
+            punctstr+=myContent[i];
           }
           punctbefore=punctstr;
   //        console.log("punct before word "+punctbefore)
@@ -54,46 +60,46 @@ var FunctionService = {
             //3 "as / ,, bragot": attach / to PRECEDING word ,, to following word: precedng word punctafter is set. Everything up next word is punct before
             //4 "bragot ,,, .." where bragot is the last word in the line
             //could be char before is a space..only significant where
-            for (++i; i<content.length && (isCEPunctuation(content.charAt(i))); i++) {
-              punctstr+=content.charAt(i);
+            for (++i; i<myContent.length && (isCEPunctuation(myContent[i])); i++) {
+              punctstr+=myContent[i];
             }
-            if (content.charAt(i)!=" ") {
+            if (myContent[i]!=" ") {
               punctbefore=punctstr;  //case 1
-            } else { //space following punctuation. if punctafter on prev word not yet set. If it is, another game
+            } else {
+              //space following punctuation. if punctafter on prev word not yet set. If it is, another game
                     //could also be case 4. after last word with punctafter NOT set on prev words
               if (words[words.length-1].punctafter=="") { //2 "as / bragot"
                 //if this is last word...ok, see if rolling through tokens takes us end of content
                 //if this is preceded by space then prefix the space
                 var origi=i-punctstr.length-1;
-                for (i; i<content.length && (isCEPunctuation(content.charAt(i)) || content.charAt(i)==" "); i++) {
-                  punctstr+=content.charAt(i);
+                for (i; i<myContent.length && (isCEPunctuation(myContent[i]) || myContent[i]==" "); i++) {
+                  punctstr+=myContent[i];
                 }
   //              console.log("at i "+i+content.charAt(i)+" at i-1 "+(i-1)+content.charAt(i-1)+" at origi "+origi+content.charAt(origi)+" punct "+punctstr);
-                if (content.charAt(origi)==" ") punctstr=" "+punctstr;
+                if (myContent[origi]==" ") punctstr=" "+punctstr;
   //              console.log("in last word? "+words[words.length-1].word+" punctstr "+punctstr)
-                if (i==content.length) words[words.length-1].punctafter+=punctstr; //case 4
+                if (i==myContent.length) words[words.length-1].punctafter+=punctstr; //case 4
                 else {
                   words[words.length-1].punctafter=punctstr;  //probs have to json this
               //    i=origi;
                 }
               }
               else { //case 3. "as / ,, bragot"
-                for (i; i<content.length && (isCEPunctuation(content.charAt(i)) || content.charAt(i)==" "); i++) {
-                  punctstr+=content.charAt(i);
+                for (i; i<myContent.length && (isCEPunctuation(myContent[i]) || myContent[i]==" "); i++) {
+                  punctstr+=myContent[i];
                 }
                 //now, if this is the last word, we are at end of string.. add this to punct after on last word
-                if (i==content.length) {
+                if (i==myContent.length) {
                   words[words.length-1].punctafter+=punctstr;  //probs have to jsonify this
                 } else punctbefore=punctstr;
               }
             }
             punctstr="";
-    //        i--;
           }
           else {
             //in this case -- we stop at EITHER space or new word. In either case.. trigger word separation
-            for (++i; i<content.length && (isCEPunctuation(content.charAt(i))); i++) {
-              punctstr+=content.charAt(i);
+            for (++i; i<myContent.length && (isCEPunctuation(myContent[i])); i++) {
+              punctstr+=myContent[i];
             }
             punctafter=punctstr;
             isNewWord=true;  //trigger new word, coz maybe
@@ -109,34 +115,34 @@ var FunctionService = {
              //but if word token is not empty, and no space before: then we separate the word token into two and add this punctuation to first half of word as punct_after
 
           i--;
-        }
-      }
-      else if (content[i]=="<") {
+       }
+     }
+      else if (myContent[i]=="<") {
         var tag="<";
         var tagname="";
         var isEmpty=false;
         xmlpresent=true;
-        if (content[i+1]=="/") {
+        if (myContent[i+1]=="/") {
           tag+="/";
           endtag=true;
           i++;
         }
         i++;
-        while (content[i]!=" " && !(content[i]=="/" && content[i+1]==">") && content[i]!=">" ) {
-          tag+=content[i];
-          tagname+=content[i++];
+        while (myContent[i]!=" " && !(myContent[i]=="/" && myContent[i+1]==">") && myContent[i]!=">" ) {
+          tag+=myContent[i];
+          tagname+=myContent[i++];
         }
-        if (content[i]==" ") {
-          while (!(content[i]=="/" && content[i+1]==">") && content[i]!=">") {
-            tag+=content[i++];
+        if (myContent[i]==" ") {
+          while (!(myContent[i]=="/" && myContent[i+1]==">") && myContent[i]!=">") {
+            tag+=myContent[i++];
           }
         }
-        if (content[i]=="/" && content[i+1]==">") {
+        if (myContent[i]=="/" && myContent[i+1]==">") {
           isEmpty=true;
           tag+="/>";
           i+=2;
         }
-        if (content[i]==">") {
+        if (myContent[i]==">") {
           tag+=">";
         }
         //ok, we have the xml tag, we know it is an end tag, or empty
@@ -150,16 +156,17 @@ var FunctionService = {
           //note that we add am and ex tags to expanword too? -- take those out elsewhere? I think so...
           //we may want to introduce a distinction between forms with/without XML, and expanced/abbrev forms
           if (tagname=="am"||tagname=="ex") {
+  //          console.log("we have an expansion")
             expanword+=tag;
             expanpresent=true;
           }
           word+=tag;  //now word and expanword will differ. Note that empty tags are just ignored
                       //hence: " <pb/> " will NOT appear in our array
         }
-      } else if (content[i]==" " || isNewWord) {
+      } else if (myContent[i]==" " || isNewWord) {
         //right, we have a word..
         if (isNewWord) { //newWord invoked.. might have to go back one char?
-  //        console.log("word is "+word+" character is '"+content.charAt(i)+"' punct is '"+punctafter+"'");
+  //        console.log("word is "+word+" character is '"+myContent.charAt(i)+"' punct is '"+punctafter+"'");
         }
         isNewWord=false;
         if (word!="" && word!=" ") {
@@ -183,7 +190,7 @@ var FunctionService = {
             origword=origword.replace(re_ex2, "").replace(re_am, "$1");
           }
 //          if (punctbefore!=""||punctafter!="") console.log("word "+word+" punctbefore "+punctbefore+" punctafter "+punctafter+" character is '"+content.charAt(i)+"'");
-          if (content.charAt(i)!=" ") i--;
+          if (myContent[i]!=" ") i--;
           if (expanpresent && xmlpresent) words.push({word:xmlword, expanword:expanword, origword:origword, xmlword:word, punctbefore:punctbefore, punctafter: punctafter});
           else if (expanpresent) {words.push({word:word, expanword:expanword, origword: origword, xmlword:"", punctbefore:punctbefore, punctafter: punctafter})}
           else if (xmlpresent) {words.push({word:xmlword, xmlword:word, expanword:"", origword:"", punctbefore:punctbefore, punctafter: punctafter})}
@@ -198,9 +205,9 @@ var FunctionService = {
           } else prefix="";  //set before we start out with next word
         }
       } else {
-        word+=content[i];
-        expanword+=content[i];
-        xmlword+=content[i];
+        word+=myContent[i];
+        expanword+=myContent[i];
+        xmlword+=myContent[i];
       }
     }
     //we could have punctuation and xml words..

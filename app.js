@@ -43,17 +43,17 @@ app.use(passport.session());
 app.use(flash()); // use connect-flash for flash messages stored in session
 
 app.use(bodyParser.json({
-  limit: '20mb',
+  limit: '50mb',
 }));
 app.use(bodyParser.raw({
-  limit: '20mb',
+  limit: '50mb',
 }));
 app.use(bodyParser.text({
-  limit: '20mb',
+  limit: '50mb',
 }));
 app.use(bodyParser.urlencoded({
   extended: false,
-  limit: '20mb',
+  limit: '50mb',
 }));
 
 app.use('/api', require('./routes/api'));

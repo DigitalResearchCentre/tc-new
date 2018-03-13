@@ -22,10 +22,9 @@ var origUpdateTeis;
 
 
 var DocSchema = extendNodeSchema('Doc', {
-  name: String,
+  name: { type: [String], index: true },
   label: String,
   facs: String,
-  header: String,
   community: String,
   entities: [],
   tasks:[],
@@ -167,7 +166,7 @@ var DocSchema = extendNodeSchema('Doc', {
             cb1(err, updateTeiEls);
           });
         },
-      function adjustDeleteTeis (argument, cb1) {
+       function adjustDeleteTeis (argument, cb1) {
           if (fromVFile) {  //fix for mistake where single page deletion is blank
            TEI.findOne({docs: {$in: [docRoot._id]}}, function (err, deleteRoot) {
              if (!deleteRoot) {
