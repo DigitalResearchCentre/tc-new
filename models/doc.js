@@ -1022,7 +1022,7 @@ function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTei
   foundAncestor=otherAncestorTeis[otherAncestorTeisAA[soughtAncestor]];
   if (!foundAncestor) {
       for (var i=0; i<sourceTeis.length; i++) {
-        if (String(sourceAncestor)==String(sourceTeis[i]._id)) {
+        if (String(soughtAncestor)==String(sourceTeis[i]._id)) {
             sourceTeisAA[sourceTeis[i]._id]=i;
             return(sourceTeis[i]);
         }
@@ -1030,7 +1030,7 @@ function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTei
   }
   if (!foundAncestor) {
       for (var i=0; i<updateTeiEls.length; i++) {
-        if (String(sourceAncestor)==String(updateTeiEls[i]._id)) {
+        if (String(soughtAncestor)==String(updateTeiEls[i]._id)) {
             updateTeiElsAA[updateTeiEls[i]._id]=i;
             return(updateTeiEls[i]);
         }
@@ -1038,7 +1038,7 @@ function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTei
   }
   if (!foundAncestor) {
       for (var i=0; i<otherAncestorTeis.length; i++) {
-        if (String(sourceAncestor)==String(otherAncestorTeis[i]._id)) {
+        if (String(soughtAncestor)==String(otherAncestorTeis[i]._id)) {
             otherAncestorTeisAA[otherAncestorTeis[i]._id]=i;
             return(otherAncestorTeis[i]);
         }

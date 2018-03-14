@@ -123,7 +123,7 @@ var AddIIIFComponent = ng.core.Component({
                     matchedLabels.push({_id: facsDoc[j].attrs._id, image: canvas.images[0].resource.service['@id'], name: canvaslabel});
                   }
                 } else {  //look in pb elements
-                  var nameDoc=self.document.attrs.children.filter(function (obj){return (obj.attrs.facs && obj.attrs.name.toLowerCase()== canvaslabel.toLowerCase());});
+                  var nameDoc=self.document.attrs.children.filter(function (obj){return (obj.attrs.name && obj.attrs.name[0].toLowerCase()== canvaslabel.toLowerCase());});
                   if (nameDoc[0])  {
                     canvas.matched=true;
                     for (var j=0; j<nameDoc.length; j++) {
