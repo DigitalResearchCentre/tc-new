@@ -69,10 +69,10 @@ var AddDocumentIIIF = ng.core.Component({
       return(false);
     }  //ok. lets get this and see what we get
     self.message="";
-    self.success='Valid web address found. Testing if "'+self.doc.iiif+'" is a valid IIIF manifest'
-    $.get('http://iiif.io/api/presentation/validator/service/validate?format=json&version=2.0&url='+self.doc.iiif, function (data, status) {
-      if (data.error.toLowerCase()=="none") {
-        self.success='"'+self.doc.iiif+'" appears to be a valid IIIF manifest. Now reading it...'
+    self.success='Valid web address found. Now reading "'+self.doc.iiif;
+  //  $.get('http://iiif.io/api/presentation/validator/service/validate?format=json&version=2.0&url='+self.doc.iiif, function (data, status) {
+  //    if (data.error.toLowerCase()=="none") {
+  //      self.success='"'+self.doc.iiif+'" appears to be a valid IIIF manifest. Now reading it...'
         $.get(self.doc.iiif, function(myiiif, status) {
           if (status=="success") {
             self.success='"'+self.doc.iiif+'" successfully read. '+myiiif.sequences[0].canvases.length+' pages found. Now creating a new document "'+self.doc.name+'" with these pages.'
@@ -118,11 +118,11 @@ var AddDocumentIIIF = ng.core.Component({
               self.message='Although "'+self.doc.iiif+'" seems to be a valid IIIF manifest, something went wrong when reading it.';
             }
           });
-        }  else {
-          self.success="";
-          self.message='"'+self.doc.iiif+'" does not seem to be a valid IIIF manifest. Test it against "http://iiif.io/api/presentation/validator/service/".';
-        }
-    });
+  //      }  else {
+  //        self.success="";
+//          self.message='"'+self.doc.iiif+'" does not seem to be a valid IIIF manifest. Test it against "http://iiif.io/api/presentation/validator/service/".';
+//        }
+//    });
   },
   alreadyDoc: function(community, docname) {
     if (community.attrs.documents.length>0) {

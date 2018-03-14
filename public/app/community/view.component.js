@@ -43,6 +43,9 @@ var ViewComponent = ng.core.Component({
     });
     this.collationEditor=false;
     this.callCollationEditor='';
+//    $.get(config.BACKEND_URL+'getDocNames/?community='+this.state.community._id, function(res) {
+//      self.docnames=res;
+//    });
     $( window ).resize(function() {
       var tcWidth=$('#tcPaneViewer').width();
       var tcHeight=$('#tcPaneViewer').height();

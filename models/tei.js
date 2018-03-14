@@ -15,8 +15,8 @@ var TEISchema = extendNodeSchema('TEI', {
   entityName: { type: [String], index: true },
   entityAncestor: { type: [String], index: true },
   community: String,
-  docs: [{type: Schema.Types.ObjectId, ref: 'Doc', index: true}],
-  entityChildren: [{type: Schema.Types.ObjectId, ref: 'TEI', index: true}],
+  docs: {type: [{type: Schema.Types.ObjectId, ref: 'Doc'}], index: true },
+  entityChildren: {type : [{type: Schema.Types.ObjectId, ref: 'TEI'}], index: true},
   attrs: {type: Schema.Types.Mixed},
   doNotWrite: Boolean,
 }, {

@@ -2283,6 +2283,21 @@ function getCEWitness(witness, community, entity, callback) {
       else callback(err, result);
     })
 }
+
+router.get('/getDocNames', function(req, res, next) {
+  var community=req.query.community;
+  Community.findOne({_id: ObjectId(community)}, function(err, myCommunity){
+    async.map(myCommunity.documents, function(myDoc, cb){
+      Doc.findOne({_id: myDoc}, function (err, thisDoc){
+        cb(err, {name: thisDoc.name});
+      })
+    }, function (err, results){
+      console.log("finished")
+      res.json(results);
+    })
+  });
+});
+
 //hereon: collation editor calls
 router.get('/cewitness', function(req, res, next) {
 //  console.log(req.query.witness);

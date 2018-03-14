@@ -649,6 +649,7 @@ function processChanges(docService, page,self) {
   self.isPrevPage=self.testIsPrevPage(self.page, self.document);
   self.isNextPage=self.testIsNextPage(self.page, self.document);
   self.contentText = '';
+  //have to get the links first, else revision does not update links menu correctly 
   self.pageStatus=isPageAssigned(page,self.state.authUser, self.role);
   docService.getLinks(page).subscribe(function(links) {
     self.prevs = links.prevs.slice(0, links.prevs.length-1);

@@ -72,10 +72,10 @@ var AddIIIFComponent = ng.core.Component({
     }
     this.message="";
     addToHeight(100);
-    this.success='Valid web address found. Testing if "'+self.doc.iiif+'" is a valid IIIF manifest'
-    $.get('http://iiif.io/api/presentation/validator/service/validate?format=json&version=2.0&url='+this.doc.iiif, function (data, status) {
-      if (data.error.toLowerCase()=="none") {
-        self.success='"'+self.doc.iiif+'" appears to be a valid IIIF manifest. Now reading it...'
+    this.success='Valid web address found. Now reading "'+self.doc.iiif;
+//    $.get('http://iiif.io/api/presentation/validator/service/validate?format=json&version=2.0&url='+this.doc.iiif, function (data, status) {
+//      if (data.error.toLowerCase()=="none") {
+//        self.success='"'+self.doc.iiif+'" appears to be a valid IIIF manifest. Now reading it...'
         $.get(self.doc.iiif, function(myiiif, status) {
           if (status=="success") {
             //two choices. document has pages, in which case we try and match them. Or, no pages: then add every page in the IIIF manifest
@@ -170,12 +170,12 @@ var AddIIIFComponent = ng.core.Component({
             self.message='Although "'+self.doc.iiif+'" seems to be a valid IIIF manifest, something went wrong when reading it.';
           }
         });
-      } else {
-        self.success="";
-        $('#manageModal').height("490px");
-        self.message='"'+self.doc.iiif+'" does not seem to be a valid IIIF manifest. Test it against "http://iiif.io/api/presentation/validator/service/".';
-      }
-    });
+//      } else {
+//        self.success="";
+//        $('#manageModal').height("490px");
+//        self.message='"'+self.doc.iiif+'" does not seem to be a valid IIIF manifest. Test it against "http://iiif.io/api/presentation/validator/service/".';
+//      }
+//    });
  },
   closeModalAP: function() {
     $('#manageModal').modal('hide');
