@@ -649,11 +649,13 @@ function processChanges(docService, page,self) {
   self.isPrevPage=self.testIsPrevPage(self.page, self.document);
   self.isNextPage=self.testIsNextPage(self.page, self.document);
   self.contentText = '';
-  //have to get the links first, else revision does not update links menu correctly 
+  //have to get the links first, else revision does not update links menu correctly
   self.pageStatus=isPageAssigned(page,self.state.authUser, self.role);
   docService.getLinks(page).subscribe(function(links) {
     self.prevs = links.prevs.slice(0, links.prevs.length-1);
     docService.getRevisions(page).subscribe(function(revisions) {
+      //this is a temporary fix, in case where we inadvertently wiped out Barbara's user id
+      for (var i=0; i<revisions.length; i++) {if (!revisions[i].attrs.user) revisions[i].attrs.user={local:{name:"Barbara Bordalejo"}}};
       self.revisions = revisions;
       if (_.isEmpty(revisions)) {
         //here is where we choose.. either make it an empty page i

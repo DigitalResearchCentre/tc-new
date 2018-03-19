@@ -12,6 +12,9 @@ var ZipFileReaderComponent = ng.core.Component({
   outputs: [
     'filechange'
   ],
+  inputs: [
+    'context'
+  ],
 }).Class({
   constructor: [ElementRef, function(elementRef) {
     this._elementRef = elementRef;
@@ -25,10 +28,14 @@ var ZipFileReaderComponent = ng.core.Component({
     ;
     $el.bind('change', function(event) {
       var zip = new JSZip();
+      self.context.message="About to load "+event.target.files["0"].name+". This may take a few moments<br/>";
+      var dateBefore = new Date();
       zip.loadAsync(event.target.files[0])
         .then(function(zip){
+          var dateAfter = new Date();
+          self.context.message+="Zip file loaded in "+(dateAfter - dateBefore) +  " ms<br/> "
           self.filechange.emit(zip)
-        }, function() {alert("That is not a valid zip file")}); 
+        }, function() {alert("That is not a valid zip file")});
     });
   },
 });

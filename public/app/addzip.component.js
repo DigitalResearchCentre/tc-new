@@ -33,6 +33,7 @@ var AddZipComponent = ng.core.Component({
     this.fileNames=[];   //holds info for files which match n or facs on existing pages
     this.unmatchedFileNames=[]; //holds info for files which do not match n or facs on existing pages; used when adding images for empty document
     this.zip=null;
+    this.context=this;
     this.pageName="";
     this.state = uiService.state;
     this.isDocTranscript=true;  //reset later if false
@@ -54,7 +55,8 @@ var AddZipComponent = ng.core.Component({
     }
     this.message="<p style='text-align: left; margin-left:10px'>Zip files may only contain image files (jpg, tiff, png). \
         <br>If the document is empty: TC will use the image names to constuct a skeleton XML document.</p>\
-        <p style='text-align: left; margin-left:10px'>If the document is not empty, TC will match the file names to page names (or facs attributes) in the document.</p>"
+        <p style='text-align: left; margin-left:10px'>If the document is not empty, TC will match the file names to page names (or facs attributes) in the document.</p>\
+        <p>After choosing the zip file, wait!</p>"
   },
   filechange: function(zip) {
     var self=this;
@@ -64,10 +66,9 @@ var AddZipComponent = ng.core.Component({
     self.zip=zip;
     var docService = this._docService
     //we need to be sure the document is fully loaded before we do this...
-    self.message="Starting processing now"
+    self.message+="Starting processing now..."
     docService.refreshDocument(this.document).subscribe(function(doc) {
-      self.message="";
-      for (var key in zip.files) {
+        for (var key in zip.files) {
          var myFile=zip.files[key];
          //make a catalog of the imaage files here; check for types .jpg .tif .png
          //check against doc for matches with facs and page names
@@ -86,7 +87,7 @@ var AddZipComponent = ng.core.Component({
                self.fileNames.push({"key": key, "file":fname, "page": facsDoc[i].attrs.name, "id":facsDoc[i].attrs._id});
              }
            } else {
-             var nameDoc=self.document.attrs.children.filter(function (obj){return obj.attrs.name.toLowerCase()== pname.toLowerCase();})[0];
+             var nameDoc=self.document.attrs.children.filter(function (obj){return (obj.attrs.name && obj.attrs.name[0].toLowerCase()== pname.toLowerCase());})[0];
              if (nameDoc) {
                if (matchedFiles!="") matchedFiles+=", ";
                if (self.message!="") self.message+=", ";
@@ -103,7 +104,7 @@ var AddZipComponent = ng.core.Component({
            }
          }
       }
-      self.message+="<br/>Processed the files. Now checking the document for text. This may take a few moments."
+      self.message+="<br/>Processed the files."
       $.post(config.BACKEND_URL+'isDocTranscript?'+'docid='+self.document._id, function(res) {
         if (!res.isDocText) {
           //we have no text in this document
@@ -127,7 +128,7 @@ var AddZipComponent = ng.core.Component({
     } else {
       var self=this;
       var state=this.state;
-      if (self.isDocTranscript) self.message="Commencing upload of "+self.fileNames.length+" files to the server"
+      if (self.isDocTranscript) self.message="Commencing upload of files for "+self.fileNames.length+" pages to the server"
       else self.message="Commencing upload of "+self.unmatchedFileNames.length+" files to the server"
       var i=0;
       var url = config.IMAGE_UPLOAD_URL;
@@ -167,7 +168,7 @@ var AddZipComponent = ng.core.Component({
             });
          }, function (err) {
            if (err) console.error(err.message);
-            self.message+="<br>"+i+" files written.";
+            self.message+="<br>Images for "+i+" pages written.";
             self.fileNames=[];
             self.zip=null;
           }
@@ -225,6 +226,9 @@ var AddZipComponent = ng.core.Component({
  },
   closeModalAP: function() {
     $('#manageModal').modal('hide');
+    this.message="<p style='text-align: left; margin-left:10px'>Zip files may only contain image files (jpg, tiff, png). \
+        <br>If the document is empty: TC will use the image names to constuct a skeleton XML document.</p>\
+        <p style='text-align: left; margin-left:10px'>If the document is not empty, TC will match the file names to page names (or facs attributes) in the document.</p>"
     this.zip=null;
     this.fileNames=[];
     this.unmatchedFileNames=[];

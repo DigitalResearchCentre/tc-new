@@ -15,7 +15,7 @@
       </textarea>
     </div-->
     <div id="MMADXFdiv" class="form-group" style="margin-top: 5px; width:100%; text-align: center;">
-      <tc-zipfilereader (filechange)="filechange($event)" style="margin-top: 5px; width:100%; text-align: center;"></tc-zipfilereader>
+      <tc-zipfilereader (filechange)="filechange($event)" [context]="context" style="margin-top: 5px; width:100%; text-align: center;"></tc-zipfilereader>
       <div style="margin-top: 10px">
         <button *ngIf="showReorder" type="button" class="btn btn-primary" (click)="reorderDocument(document)">Reorder/Rename Pages</button>
         <button type="button" class="btn btn-primary" (click)="submit()">Load</button>
