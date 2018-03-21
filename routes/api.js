@@ -2289,7 +2289,7 @@ router.get('/getDocNames', function(req, res, next) {
   Community.findOne({_id: ObjectId(community)}, function(err, myCommunity){
     async.map(myCommunity.documents, function(myDoc, cb){
       Doc.findOne({_id: myDoc}, function (err, thisDoc){
-        cb(err, {name: thisDoc.name});
+        cb(err, {name: thisDoc.name, npages: thisDoc.children.length });
       })
     }, function (err, results){
       console.log("finished")

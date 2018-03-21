@@ -70,8 +70,8 @@ var CommunityService = ng.core.Injectable().Class({
             if (community.attrs.documents[i].attrs._id==thisdoc) docn=i;
           }
           docService.selectDocument(_.get(community, 'attrs.documents.'+docn, null));
-        }
-        else docService.selectDocument(_.get(community, 'attrs.documents.0', null));
+        }  //don't default to first document
+//        else docService.selectDocument(_.get(community, 'attrs.documents.0', null));
       });
     }
     uiService.setState('community', community);

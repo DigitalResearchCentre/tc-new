@@ -74,14 +74,15 @@ var DocService = ng.core.Injectable().Class({
     if (doc && state.document !== doc) {
       self.refreshDocument(doc).subscribe(function(doc) {
         var thispage=getParameterByName('page', document.location.href);
+        var page=null;
         if (thispage) {
           var pagen=0;
           for (var i=0; i<doc.attrs.children.length; i++) {
             if (doc.attrs.children[i].attrs._id==thispage) pagen=i;
           }
-          var page = doc.attrs.children[pagen];
+          page = doc.attrs.children[pagen];
         }
-        else var page = doc.getFirstChild();   //but ... doc might have no children
+  //      else var page = doc.getFirstChild();   //but ... doc might have no children
         if (page) {
           if (state.pageSelected) state.pageSelected.attrs.selected=false;
           state.pageSelected=page;

@@ -43,9 +43,13 @@ var ViewComponent = ng.core.Component({
     });
     this.collationEditor=false;
     this.callCollationEditor='';
-//    $.get(config.BACKEND_URL+'getDocNames/?community='+this.state.community._id, function(res) {
-//      self.docnames=res;
-//    });
+   $.get(config.BACKEND_URL+'getDocNames/?community='+this.state.community._id, function(res) {
+      self.docnames=res;
+      for (var i=0; i<self.state.community.attrs.documents.length; i++) {
+        self.state.community.attrs.documents[i].attrs.name=res[i].name;
+//        self.state.community.attrs.documents[i].attrs.children= new Array(res[i].npages).fill({attrs: {image: ""}});
+      }
+    });
     $( window ).resize(function() {
       var tcWidth=$('#tcPaneViewer').width();
       var tcHeight=$('#tcPaneViewer').height();
@@ -78,7 +82,8 @@ var ViewComponent = ng.core.Component({
   toggleDoc: function(doc) {
     doc.expand = !doc.expand;
     if (doc.expand) {
-      this._docService.selectDocument(doc);
+     this._docService.selectDocument(doc);
+  //refresh the document...
     }
 /*    if (doc.expand) {
       removeAllSelected(this, this.state.document.attrs.children[0]);
