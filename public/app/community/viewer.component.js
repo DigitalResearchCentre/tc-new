@@ -675,10 +675,10 @@ function processChanges(docService, page,self) {
 function isPageAssigned(page, user, role) {
   if (!page.attrs.tasks || !page.attrs.tasks.length) return({status: "NONE", access: "NONE"});
   for (var i=0; i<page.attrs.tasks.length; i++) {
-    if (page.attrs.tasks[i].userId=user.attrs._id) {
+    if (page.attrs.tasks[i].userId==user.attrs._id) {  //that was = not ==!!!! dumb
       //ok, task is addressed at this member. But depending on where it is in the cycle -- may not be assigned
-      if (page.attrs.tasks[i].status=="ASSIGNED" && role=="MEMBER") return({status: "ASSIGNED", access: "ASSIGNED"});
-      if (page.attrs.tasks[i].status=="IN_PROGRESS" && role=="MEMBER") return({status: "IN_PROGRESS", access: "ASSIGNED"});
+      if (page.attrs.tasks[i].status=="ASSIGNED" && (role=="MEMBER" || role== "APPROVER")) return({status: "ASSIGNED", access: "ASSIGNED"});
+      if (page.attrs.tasks[i].status=="IN_PROGRESS" && (role=="MEMBER" || role== "APPROVER")) return({status: "IN_PROGRESS", access: "ASSIGNED"});
       if (page.attrs.tasks[i].status=="SUBMITTED" && role=="APPROVER") return({status: "SUBMITTED", access: "ASSIGNED"});
     }
   }
