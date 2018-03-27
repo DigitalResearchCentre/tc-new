@@ -47,6 +47,9 @@ var ViewComponent = ng.core.Component({
       self.docnames=res;
       for (var i=0; i<self.state.community.attrs.documents.length; i++) {
         self.state.community.attrs.documents[i].attrs.name=res[i].name;
+        self.state.community.attrs.documents[i].attrs.entities=[];
+        self.state.community.attrs.documents[i].attrs.children=[{attrs:{image:""}}];
+
 //        self.state.community.attrs.documents[i].attrs.children= new Array(res[i].npages).fill({attrs: {image: ""}});
       }
     });

@@ -37,7 +37,9 @@ var AddZipComponent = ng.core.Component({
     this.pageName="";
     this.state = uiService.state;
     this.isDocTranscript=true;  //reset later if false
+    this.hideLoad=true;
     this.showReorder=false;
+    this.showFileChooser=true;
   }],
   ngOnInit: function() {
     var el = this._elementRef.nativeElement
@@ -115,6 +117,8 @@ var AddZipComponent = ng.core.Component({
           if (unMatchedFiles!="") message+="<p>These images do not match any page or facs attribute in this document: "+unMatchedFiles+". TC will ignore them.</p>";
         }
         self.message+=message;
+        self.hideLoad=false;
+        self.showFileChooser=false;
       });
     });
   },
@@ -127,6 +131,8 @@ var AddZipComponent = ng.core.Component({
       return;
     } else {
       var self=this;
+      self.hideLoad=true;
+      self.showFileChooser=false;
       var state=this.state;
       if (self.isDocTranscript) self.message="Commencing upload of files for "+self.fileNames.length+" pages to the server"
       else self.message="Commencing upload of "+self.unmatchedFileNames.length+" files to the server"
@@ -233,6 +239,9 @@ var AddZipComponent = ng.core.Component({
     this.fileNames=[];
     this.unmatchedFileNames=[];
     this.showReorder=false;
+    this.hideLoad=true;
+    this.showFileChooser=true;
+
   }
 });
 

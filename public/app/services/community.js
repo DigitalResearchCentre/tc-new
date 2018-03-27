@@ -50,7 +50,7 @@ var CommunityService = ng.core.Injectable().Class({
   },
   refreshCommunity: function(community) {
     return this.fetch(community.getId(), {
-      populate: JSON.stringify('documents')
+//      populate: JSON.stringify('documents')   //ok, this is slow with a community with lots of documents
     });
   },
   selectCommunity: function(community) {
