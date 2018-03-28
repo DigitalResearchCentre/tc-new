@@ -119,7 +119,11 @@ if (process.env.NODE_ENV === 'development') {
     poll: 1000,
   }, handleError);
 } else {
-  compiler.run(handleError);
+ compiler.watch({
+    aggregateTimeout: 300,
+    poll: 1000,
+  }, handleError);
+  //compiler.run(handleError);
 }
 
 function handleError(err, stats) {
