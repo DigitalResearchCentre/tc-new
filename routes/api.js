@@ -541,6 +541,7 @@ function loadTEIContent(version, content) {
       } else {
         //no content, but an element -- pb or lb or similar, ignore
         //problem! if it is reading, we need this
+        //if it is a lb: add a space, unless break
         if (version.name=="rdg") {
           var attrs="";
           if (version.attrs) {
@@ -549,6 +550,11 @@ function loadTEIContent(version, content) {
             }
           }
           content.content="<rdg"+attrs+"></rdg>";
+        }
+        if (version.name=="lb" || version.name=="cb" || version.name=="pb") {
+          if (!version.attrs || !version.attrs.break || version.attrs.break!="no") {
+            content.content=" ";
+          }
         }
       }
       deferred.resolve();

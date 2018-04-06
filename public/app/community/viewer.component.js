@@ -30,6 +30,7 @@ var ViewerComponent = ng.core.Component({
     this.contentText = '';
     this.prevs = [];
     this.prevLink = null;
+    this.isText=false;
     this.state=uiService.state;
     this.state.doNotParse=false;
     this.isVerticalSplit=true;
