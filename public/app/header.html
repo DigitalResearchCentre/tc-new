@@ -20,7 +20,7 @@
           </li>
           <li *ngIf="showNoUser()">
             <a (click)=showLoginModal()>
-              <span *ngIf="environment!='production'" class="glyphicon glyphicon-user">Sign Up/</span>
+              <span *ngIf="environment!='production'" class="glyphicon glyphicon-user"></span><span *ngIf="environment!='production'">Sign Up/</span>
               <span class="glyphicon glyphicon-log-in"></span> Log In
             </a>
           </li>
