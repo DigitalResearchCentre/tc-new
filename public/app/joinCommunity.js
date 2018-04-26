@@ -8,9 +8,12 @@ var  config = require('./config')
  ) {
   var communityleader;
   if (community.attrs.accept && community.attrs.autoaccept && community.attrs.alldolead) {
-    communityService.addMember(community, authUser, 'LEADER');
-    uiService.manageModal$.emit({type:'join-community', community: community, communityleader: "all", status:"alldolead" });
-    return;
+//    communityService.addMember(community, authUser, 'LEADER'); does not work for some reason..
+    $.post(config.BACKEND_URL+'communities/'+community._id+'/add-member/', {user:authUser._id, role:'LEADER'}, function(res) {
+      uiService.manageModal$.emit({type:'join-community', community: community, communityleader: "all", status:"alldolead" });
+      return;
+    });
+    return;  //stop going on to rest of function
   }
   //need function to get the leader of this community
   communityService.getMemberships(community)

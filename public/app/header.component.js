@@ -3,6 +3,7 @@ var _ = require('lodash')
   , UIService = require('./services/ui')
   , DocService = require('./services/doc')
   , CommunityService = require('./services/community')
+  , config = require('./config')
 ;
 
 var HeaderComponent = ng.core.Component({
@@ -26,6 +27,7 @@ var HeaderComponent = ng.core.Component({
 
     this.source="default";
     this.show=true;
+    this.environment=config.env
     this.state = uiService.state;
     this.state.showTop=true;
   }],

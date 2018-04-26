@@ -1,4 +1,6 @@
-var UIService = require('./services/ui');
+var UIService = require('./services/ui')
+, config = require('./config')
+;
 
 
 var HomeComponent = ng.core.Component({
@@ -8,6 +10,7 @@ var HomeComponent = ng.core.Component({
   constructor: [UIService, function( uiService) {
 //    console.log('Home');
     this._uiService = uiService;
+    this.environment=config.env
   }],
   getUserStatus: function() {
     /*

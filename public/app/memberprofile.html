@@ -9,8 +9,7 @@
     <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
       <thead>
         <tr>
-          <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Abbrev</th>
-          <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Name</th>
+          <th style="border-bottom-width:0px; font-size:80%" class="col-md-2">Name</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Role</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Joined</th>
           <th style="border-bottom-width:0px; font-size:80%" class="col-md-1">Assigned</th>
@@ -23,9 +22,11 @@
       </thead>
       <tbody>
         <tr *ngFor="#membership of memberships" class="commMembership">
-          <td  style="border-top-width:0px">{{membership.community.attrs.abbr}}</td>
           <td style="border-top-width:0px">{{membership.community.attrs.name}}</td>
-          <td style="border-top-width:0px">{{membership.role}}
+          <td style="border-top-width:0px">
+            <button *ngIf="membership.community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
+                        (click)="getHistory(authUser, membership.community)" style="margin-top:5px">History</button>
+            {{membership.role}}
             <span *ngIf="membership.approvername"><br>Approver: {{membership.approvername}} ({{membership.approvermail}})</span>
           </td>
           <td style="border-top-width:0px">{{formatDate(membership.created)}}</td>

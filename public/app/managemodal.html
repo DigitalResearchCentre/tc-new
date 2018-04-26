@@ -45,12 +45,17 @@
     </tc-managemodal-reorder-document>
     <tc-managemodal-assign-pages *ngSwitchWhen="'assign-pages'" [community]="community" [user]="user" [memberId]="memberId" [source]="source">
     </tc-managemodal-assign-pages>
+    <tc-managemodal-transcriber-history *ngSwitchWhen="'transcriber-history'" [community]="community" [userid]="userid" [username]="username">
+    </tc-managemodal-transcriber-history>
     <tc-managemodal-change-role *ngSwitchWhen="'change-role'" [member]="member" [user]="user" [role]="role" [community]="community">
     </tc-managemodal-change-role>
     <tc-managemodal-assign-approver *ngSwitchWhen="'assign-approver'" [member]="member" [user]="user">
     </tc-managemodal-assign-approver>
     <tc-managemodal-invite-member *ngSwitchWhen="'invite-member'" [community]="community" [inviter]="inviter">
     </tc-managemodal-invite-member>
+    <tc-managemodal-message-transcriber *ngSwitchWhen="'message-transcriber'" [community]="community" [approver]="approver" [transcriberEmail]="transcriberEmail"
+      [transcriberName]="transcriberName" [document]="document" [page]="page" [leaders]="leaders" [context]="context">
+    </tc-managemodal-message-transcriber>
     <tc-managemodal-view-allusers *ngSwitchWhen="'view-allusers'">
     </tc-managemodal-view-allusers>
     <tc-managemodal-view-allcommunities *ngSwitchWhen="'view-allcommunities'">

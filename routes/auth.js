@@ -65,13 +65,19 @@ router.post('/login', function(req, res, next) {
    });
 });
 
+router.get('/isproduction', function(req, res) {
+  res.render('isproduction.ejs');
+});
+
+
 // =====================================
 // SIGNUP ==============================
 // =====================================
 // show the signup form
 router.get('/signup', function(req, res) {
   var url=req.query.url;
-  res.render('signup.ejs', { message: "", url:url, email:""});
+  if (config.env=="production") res.render('isproduction.ejs')
+  else res.render('signup.ejs', { message: "", url:url, email:""});
 });
 
 // process the signup form
@@ -301,13 +307,15 @@ router.get('/facebook/callback', passport.authenticate('facebook', {
   //  res.redirect('/app?prompt=googleassocemail');
      User.findOne({'local.email':  req.user.facebook.email }, function(err, user) {
        if (!user) {
-          req.user.local.email= req.user.facebook.email;
-          req.user.local.name= req.user.facebook.name;
-          req.user.local.authenticated="1";
-          req.user.local.password = req.user.generateHash("default");
-          req.user.local.created=Date.now();
-          req.user.save();
-          res.redirect('/app');
+         if (config.env=="production") {res.redirect('/app?prompt=isproduction')} else {
+            req.user.local.email= req.user.facebook.email;
+            req.user.local.name= req.user.facebook.name;
+            req.user.local.authenticated="1";
+            req.user.local.password = req.user.generateHash("default");
+            req.user.local.created=Date.now();
+            req.user.save();
+            res.redirect('/app');
+          }
         } else { //got one.. link the google account to this already and tell the user
           user.facebook=req.user.facebook;
           //remove this account, to save duplication and log in as this user
@@ -547,7 +555,10 @@ router.get('/twitter/callback', passport.authenticate('twitter', {
     else res.redirect('/app');
   } else {
 //    console.log("calling twitteremail")
-    if (!req.user.local.email) res.redirect('/app?prompt=twitteremail');
+    if (!req.user.local.email) {
+      if (config.env=="production") res.redirect('/app?prompt=isproduction');
+      else res.redirect('/app?prompt=twitteremail');
+    }
     else {
       if (req.user.local.authenticated=="0") {
 //        console.log("inside authentication local 6")
@@ -695,13 +706,15 @@ router.get('/google/callback', passport.authenticate('google', {
   //  res.redirect('/app?prompt=googleassocemail');
      User.findOne({'local.email':  req.user.google.email }, function(err, user) {
        if (!user) {
-          req.user.local.email= req.user.google.email;
-          req.user.local.name= req.user.google.name;
-          req.user.local.authenticated="1";
-          req.user.local.created=Date.now();
-          req.user.local.password = req.user.generateHash("default");
-          req.user.save();
-          res.redirect('/app');
+         if (config.env=="production") {res.redirect('/app?prompt=isproduction')} else {
+            req.user.local.email= req.user.google.email;
+            req.user.local.name= req.user.google.name;
+            req.user.local.authenticated="1";
+            req.user.local.created=Date.now();
+            req.user.local.password = req.user.generateHash("default");
+            req.user.save();
+            res.redirect('/app');
+          }
         } else { //got one.. link the google account to this already and tell the user
           user.google=req.user.google;
           //remove this account, to save duplication and log in as this user

@@ -21,8 +21,12 @@
   </thead>
   <tbody>
     <tr *ngFor="#member of members" class="commMembership">
-      <td  style="border-top-width:0px">{{member.name}} ({{member.email}})</td>
-      <td style="border-top-width:0px; text-align:center">{{member.role}}
+      <td  style="border-top-width:0px">{{member.name}}
+                  ({{member.email}})</td>
+      <td style="border-top-width:0px; text-align:center">
+        <button *ngIf="community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
+                    (click)="getHistory(member.user._id, member.user.local.name)" style="margin-top:5px">History</button>
+        {{member.role}}
         <span *ngIf="!member.expand&&member.role!='CREATOR'" class="glyphicon glyphicon-triangle-right" (click)="toggleInstance(member)"></span>
         <span *ngIf="member.expand" class="glyphicon glyphicon-triangle-bottom" (click)="toggleInstance(member)"></span>
         <span *ngIf="member.expand">
@@ -87,7 +91,8 @@
       </td>
       <td  style="border-top-width:0px; padding: 0px; text-align: center">
         <button *ngIf="community.attrs.documents.length" type="button" class="btn btn-primary btn-sm"
-          (click)="assignPages(member._id, member.user)" style="margin-top:5px">Assign Pages</button> <span  *ngIf="!community.attrs.documents.length">[No documents in community]</span> </td>
+          (click)="assignPages(member._id, member.user)" style="margin-top:5px">Assign Pages</button> <span  *ngIf="!community.attrs.documents.length">[No documents in community]</span>
+        </td>
     </tr>
   </tbody>
 </table>

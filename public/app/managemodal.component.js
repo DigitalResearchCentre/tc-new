@@ -40,7 +40,9 @@ var ManageModalComponent = ng.core.Component({
     require('./viewallusers.component'),
     require('./viewallcommunities.component'),
     require('./exporttc1users.component'),
-    require('./exporttc1transcripts.component')
+    require('./exporttc1transcripts.component'),
+    require('./messagetranscriber.component'),
+    require('./transcriberhistory.component')
   ]
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -179,6 +181,11 @@ var ManageModalComponent = ng.core.Component({
           self.community=event.community;
           self.source=event.source;
           self.memberId=event.memberId;
+      } else if (event.type ==='transcriber-history'){
+          self.choice = 'transcriber-history';  //let's be economical!
+          self.userid=event.userid;
+          self.username=event.username;
+          self.community=event.community;
       } else if (event.type ==='confirm-message'){
           self.choice = event.type;
           self.page=event.page;
@@ -203,6 +210,16 @@ var ManageModalComponent = ng.core.Component({
         self.choice=event.type,
         self.community=event.community,
         self.inviter=event.inviter
+      } else if (event.type ==='message-transcriber'){
+        self.choice=event.type,
+        self.community=event.community,
+        self.approver=event.approver,
+        self.transcriberEmail=event.transcriberEmail,
+        self.transcriberName=event.transcriberName,
+        self.leaders=event.leaders,
+        self.context=event.context,
+        self.document=event.document,
+        self.page=event.page
       }
       else if (event.type ==='view-allusers'){
         self.choice=event.type

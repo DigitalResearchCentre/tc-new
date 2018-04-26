@@ -20,7 +20,7 @@
           </li>
           <li *ngIf="showNoUser()">
             <a (click)=showLoginModal()>
-              <span class="glyphicon glyphicon-user"></span>Sign Up/
+              <span *ngIf="environment!='production'" class="glyphicon glyphicon-user">Sign Up/</span>
               <span class="glyphicon glyphicon-log-in"></span> Log In
             </a>
           </li>
@@ -86,8 +86,8 @@
   </p>
 </div>
 <div *ngIf="showNoUser()&&state.showTop" class="wizard">
-  <p class="wizardp">Make the edition you want</p>
-    <a data-toggle="modal" data-target="#myModal">
+  <p  *ngIf="!state.community" class="wizardp">Make the edition you want</p>
+    <a *ngIf="environment!='production'" data-toggle="modal" data-target="#myModal">
     <button class="btn btn-lg wizardbutton"
       onmouseover="this.style.color='#ffe2be';"
       onmouseout="this.style.color='white';"

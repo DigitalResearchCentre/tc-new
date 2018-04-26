@@ -74,6 +74,9 @@ var MemberProfileComponent = ng.core.Component({
       return communityService.canJoin(community, authUser);
     });
   },
+  getHistory: function(user, community) {
+    this.uiService.manageModal$.emit ({type:'transcriber-history', userid: user._id, username: user.attrs.local.name, community: community});
+  },
   joinCommunity: function(community) {
     return joinCommunity(
       community, this.state.authUser,

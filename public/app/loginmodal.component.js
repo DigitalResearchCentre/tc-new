@@ -42,7 +42,9 @@ var LoginModalComponent = ng.core.Component({
     });
 
     if (prompt) {
-      if (prompt=="twitteremail") {
+      if (prompt=="isproduction") {
+        src = base + 'isproduction';
+      } else if (prompt=="twitteremail") {
         src = base + 'twitteremail';
       } else if (prompt=="alreadylocal") {
         src = base + 'alreadylocal?context=' + context + '&email=' + name;
@@ -52,11 +54,11 @@ var LoginModalComponent = ng.core.Component({
         src = base + 'facebooklinkemail';
       } else if (prompt=="googleassocemail") {
         src = base + 'googleassocemail';
-      } if (prompt=="facebookassocemail") {
+      } else if (prompt=="facebookassocemail") {
         src = base + 'facebookassocemail';
-      } if (prompt=="twitterassocemail") {
+      } else if (prompt=="twitterassocemail") {
         src = base + 'twitterassocemail';
-      }else if (prompt=="resetpwExpired") {
+      } else if (prompt=="resetpwExpired") {
         src = base + 'resetpwExpired';
       } else if (
         prompt=='showprofile' || (prompt=="facebookconnect" && context==="")

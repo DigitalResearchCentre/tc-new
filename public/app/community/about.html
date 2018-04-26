@@ -1,13 +1,56 @@
+<div *ngIf="message.length>0" class="alert alert-success" style="margin-bottom: 10px">
+  {{message}}
+</div>
 <p *ngIf="state.community.attrs.documents"  style="margin: 20px">
   Number of documents in this community:
   <b>{{state.community.attrs.documents.length}}</b><br/>
   Number of pages in these documents:
   <b>{{numOfPages}}</b><br/>
-  Number of pages for which transcripts have been made:
-  <b>{{state.community.attrs.status?.numOfPagesTranscribed}}</b><br/>
-  Number of transcripts made:
-  <b>{{state.community.attrs.status?.numOfTranscripts}}</b><br/>
+  Number of members of this community:
+  <b>{{state.community.attrs.members.length}}</b><br/>
+  <br/>
+  Number of pages in these documents transcribed:
+  <b>{{numOfPagesTranscribed}}</b><br/>
+  Number of transcription revisions saved:
+  <b>{{revisions}}</b><br/>
+  Number of pages assigned to transcribers, not commenced:
+  <b>{{assigned}}</b><br/>
+  Number of pages assigned to transcribers, transcription in progress:
+  <b>{{inprogress}}</b><br/>
+  Number of pages assigned to transcribers and submitted:
+  <b>{{submitted}}</b><br/>
+  Number of pages assigned to transcribers, submitted and approved:
+  <b>{{approved}}</b><br/>
+  Number of pages transcribed and committed:
+  <b>{{committed}}</b><br/>
 </p>
 <p *ngIf="!state.community.attrs.documents"  style="margin: 20px">
   No documents in this community.
 </p>
+
+<table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
+<thead>
+  <tr>
+    <th style="border-bottom-width:0px; text-align:center" class="col-md-2">From</th>
+    <th style="border-bottom-width:0px; text-align:center" class="col-md-2">To</th>
+    <th style="border-bottom-width:0px; text-align:center" class="col-md-2">Period</th>
+    <th style="border-bottom-width:0px" class="col-md-1">Assigned</th>
+    <th style="border-bottom-width:0px" class="col-md-1">In&nbsp;Progress</th>
+    <th style="border-bottom-width:0px" class="col-md-1">Submitted</th>
+    <th style="border-bottom-width:0px" class="col-md-1">Approved</th>
+    <th style="border-bottom-width:0px" class="col-md-1">Committed</th>
+  </tr>
+</thead>
+<tbody>
+  <tr *ngFor="#period of periods" class="commMembership">
+    <td style="border-top-width:0px; text-align:center">{{formatDate(period.from)}}</td>
+    <td style="border-top-width:0px; text-align:center">{{formatDate(period.to)}}</td>
+    <td style="border-top-width:0px; text-align:center">{{period.period}}</td>
+    <td style="border-top-width:0px; text-align:center">{{period.assigned}}</td>
+    <td style="border-top-width:0px; text-align:center">{{period.inprogress}}</td>
+    <td style="border-top-width:0px; text-align:center">{{period.submitted}}</td>
+    <td style="border-top-width:0px; text-align:center">{{period.approved}}</td>
+    <td style="border-top-width:0px; text-align:center">{{period.committed}}</td>
+  </tr>
+</tbody>
+</table>

@@ -1,0 +1,27 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Message to {{transcriberName}} about page {{page.attrs.name}} in document {{document.attrs.name}}
+    <button type="button" (click)="closeModalIM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div style="height:645px; overflow:scroll; position:absolute">
+    <div class="form-group" style="margin-right:15px; margin-left: 15px; margin-top: 20px;">
+      <input type="checkbox" style="margin-left: 10px" [(ngModel)]="reassignTranscript">&nbsp;Reassign transcript to {{transcriberName}}<br/>
+      <input type="checkbox" style="margin-left: 10px" [(ngModel)]="copyToLeaders">&nbsp;Copy message to community leaders<br/>
+      <table *ngIf="copyToLeaders" style="border-spacing: 10px 2px; border-collapse: separate; width:100%; margin-bottom:0px" class="table">
+          <tbody>
+              <tr *ngFor="#leader of leaders">
+                <td class="col-md-4"><input type="checkbox" style="margin-left: 10px" [(ngModel)]="leader.sendMail">&nbsp;Send message</td>
+                <td class="col-md-4">{{leader.name}}</td>
+                <td class="col-md-4">({{leader.email}})</td>
+              </tr>
+          </tbody>
+      </table>
+      <label style="margin-top: 10px">Message to {{transcriberName}} ({{transcriberEmail}}):</label>
+      <textarea class="form-control" rows="10" cols="120" placeholder="Your message"
+        [(ngModel)]="letter"></textarea>
+    </div>
+  </div>
+  <hr style="border: 1px solid #8c8b8b; margin-bottom: 15px; margin-top:15px; position: relative; top: 487px">
+    <div class="form-group" style="text-align: center; height: 18px; position: relative; top: 489px">
+      <button type="button" class="btn btn-primary" (click)="submit()">Submit/Send Message</button>
+    </div>
+</div>

@@ -46,6 +46,9 @@ var CommunityMembersComponent = ng.core.Component({
   assignPages: function(memberId, user) {
     this.uiService.manageModal$.emit ({type:'assign-pages', user: user, source: this, community: this.community, memberId:memberId});
   },
+  getHistory: function(userid, username) {
+    this.uiService.manageModal$.emit ({type:'transcriber-history', userid: userid, username: username, community: this.community});
+  },
   formatDate: function(rawdate) {
     var date = new Date(rawdate);
     var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -76,13 +79,14 @@ var CommunityMembersComponent = ng.core.Component({
 function adjustNumbers(sourceArray) {
   for (var i=0; i<sourceArray.length; i++) {
     var nlen=0;
-    if (!isNaN(sourceArray[i].name[0])) {
-      var nlen=0, newName=sourceArray[i].name;
-      while (!isNaN(sourceArray[i].name[nlen])) nlen++;
+    var name=sourceArray[i].name[0];
+    if (!isNaN(name[0])) {
+      var nlen=0, newName=name;
+      while (!isNaN(name[nlen])) nlen++;
       nlen=6-nlen;
       while (nlen> 0 ) {newName = "0" + newName; nlen--}
       sourceArray[i].sortable=newName;
-    } else sourceArray[i].sortable=sourceArray[i].name;
+    } else sourceArray[i].sortable=name;
   }
 }
 

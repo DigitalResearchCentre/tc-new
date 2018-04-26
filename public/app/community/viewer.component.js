@@ -619,6 +619,35 @@ var ViewerComponent = ng.core.Component({
   toggleSide: function() {
     this.state.showSide=!this.state.showSide;
   },
+  returnTranscript: function (page, document) {
+    var self=this;
+    var transcriberId;
+    //find the task record, set back to assigned for the transcriber, eliminate submitted record
+    //get info
+    for (var i=0; i<page.attrs.tasks.length; i++) {
+      if (page.attrs.tasks[i].status=="SUBMITTED") {  //a hack...first submitted task MUST be submitted by user
+  //      if (String(this.state.authUser.attrs._id)!=String(page.attrs.tasks[i].userId))
+          transcriberId=page.attrs.tasks[i].userId;
+          break;
+      }
+    }
+    //now change in the database and send a message to the user
+    $.post(config.BACKEND_URL+'getTranscribersInf?'+'pageId='+page.attrs._id+'&approverId='+this.state.authUser.attrs._id+'&transcriberId='+transcriberId+'&communityId='+this.community.attrs._id+'&docId='+document.attrs._id, function (res) {
+      if (res.result=="1") {
+        self._uiService.manageModal$.emit({
+          type: 'message-transcriber',
+          community:   self.state.community,
+          approver: self.state.authUser,
+          transcriberEmail: res.transcriberEmail,
+          transcriberName: res.transcriberName,
+          leaders: res.leaders,
+          document: document,
+          context: self,
+          page: page
+        });
+      }
+    })
+  },
   newText: function(page, document) {
     var self=this;
     $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
@@ -650,6 +679,9 @@ function processChanges(docService, page,self) {
   self.isPrevPage=self.testIsPrevPage(self.page, self.document);
   self.isNextPage=self.testIsNextPage(self.page, self.document);
   self.contentText = '';
+  //change url in address bar
+  var obj = { Title: self.document.attrs.name+":"+page.attrs.name, Url: '/app/community/?id='+self.state.community._id+'&route=view&document='+self.document._id+'&page='+page._id };
+  history.pushState(obj, obj.Title, obj.Url);
   //have to get the links first, else revision does not update links menu correctly
   self.pageStatus=isPageAssigned(page,self.state.authUser, self.role);
   docService.getLinks(page).subscribe(function(links) {
@@ -681,6 +713,8 @@ function isPageAssigned(page, user, role) {
       if (page.attrs.tasks[i].status=="ASSIGNED" && (role=="MEMBER" || role== "APPROVER")) return({status: "ASSIGNED", access: "ASSIGNED"});
       if (page.attrs.tasks[i].status=="IN_PROGRESS" && (role=="MEMBER" || role== "APPROVER")) return({status: "IN_PROGRESS", access: "ASSIGNED"});
       if (page.attrs.tasks[i].status=="SUBMITTED" && role=="APPROVER") return({status: "SUBMITTED", access: "ASSIGNED"});
+    } else if (role=="LEADER"||role=="CREATOR") {
+      if (page.attrs.tasks[i].status=="SUBMITTED") return ({status: "SUBMITTED", access: "ASSIGNED"});
     }
   }
   return({status: "NONE", access: "NONE"});  //default...nothing

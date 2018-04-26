@@ -1,0 +1,90 @@
+
+<div style="font-size: 110%; height:100%;">
+<div modal-draggable class="modalHeader">Transcriber history for {{username}} in "{{community.attrs.name}}"
+  <button type="button" (click)="closeModalAP()" class="close"
+  data-dismiss="modal"
+  style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;
+</button>
+</div>
+<div style="width:100%; height:650px; overflow:scroll; position:absolute">
+  <div *ngIf="message.length>0" class="alert alert-success" style="margin-bottom: 10px">
+    {{message}}
+  </div>
+  <table style="border-spacing: 10px 2px; border-collapse: separate; width:100%" class="table">
+  <thead>
+    <tr>
+      <th style="border-bottom-width:0px; text-align:center" class="col-md-2">Period</th>
+     <th style="border-bottom-width:0px; text-align:center" class="col-md-4">To</th>
+     <th style="border-bottom-width:0px" class="col-md-1">Assigned</th>
+      <th style="border-bottom-width:0px" class="col-md-1">In&nbsp;Progress</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Submitted</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Approved</th>
+      <th style="border-bottom-width:0px" class="col-md-1">Committed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="#period of periods" class="commMembership">
+      <td style="border-top-width:0px; text-align:center">One {{period.period}}</td>
+      <td style="border-top-width:0px; text-align:center">{{formatDate(period.to)}}</td>
+      <td style="border-top-width:0px; text-align:center">{{period.assigned.n}}
+        <span *ngIf="period.assarray &&  period.assarray.length  && !period.assigned.expand" (click)="toggleInstance(period.assigned)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="period.assarray &&  period.assarray.length  &&  period.assigned.expand" (click)="toggleInstance(period.assigned)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="period.assarray &&  period.assarray.length && period.assigned.expand">
+          <li *ngFor="#instance of period.assarray" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{period.inprogress.n}}
+        <span *ngIf="period.inprogarray &&  period.inprogarray.length  && !period.inprogress.expand" (click)="toggleInstance(period.inprogress)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="period.inprogarray &&  period.inprogarray.length  &&  period.inprogress.expand" (click)="toggleInstance(period.inprogress)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="period.inprogarray &&  period.inprogarray.length && period.inprogress.expand">
+          <li *ngFor="#instance of period.inprogarray" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{period.submitted.n}}
+        <span *ngIf="period.submarray &&  period.submarray.length  && !period.submitted.expand" (click)="toggleInstance(period.submitted)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="period.submarray &&  period.submarray.length  &&  period.submitted.expand" (click)="toggleInstance(period.submitted)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="period.submarray &&  period.submarray.length && period.submitted.expand">
+          <li *ngFor="#instance of period.submarray" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{period.approved.n}}
+        <span *ngIf="period.apparray &&  period.apparray.length  && !period.approved.expand" (click)="toggleInstance(period.approved)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="period.apparray &&  period.apparray.length  &&  period.approved.expand" (click)="toggleInstance(period.approved)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="period.apparray &&  period.apparray.length && period.approved.expand">
+          <li *ngFor="#instance of period.apparray" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+      <td style="border-top-width:0px; text-align:center">{{period.committed.n}}
+        <span *ngIf="period.commarray &&  period.commarray.length  && !period.committed.expand" (click)="toggleInstance(period.committed)" class="glyphicon glyphicon-triangle-right">
+        </span>
+        <span *ngIf="period.commarray &&  period.commarray.length  &&  period.committed.expand" (click)="toggleInstance(period.committed)" class="glyphicon glyphicon-triangle-bottom">
+        </span>
+        <ul *ngIf="period.commarray &&  period.commarray.length && period.committed.expand">
+          <li *ngFor="#instance of period.commarray" style="text-align:left">
+            <a (click)="showPage(community, instance.docId, instance.pageId)">{{instance.docName}}:{{instance.name}}</a></li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+  </table>
+</div>
+<hr style="border: 1px solid #8c8b8b; margin-bottom: 15px; margin-top:15px; position: relative; top: 637px">
+  <div class="form-group" style="text-align: center; height: 18px; position: relative; top: 639px">
+    <button type="button" class="btn btn-primary" (click)="submit('default')">Default</button>
+    <button type="button" class="btn btn-primary" (click)="submit('day')">By Day</button>
+    <button type="button" class="btn btn-primary" (click)="submit('week')">By Week</button>
+    <button type="button" class="btn btn-primary" (click)="submit('month')">By Month</button>
+    <button type="button" class="btn btn-primary" (click)="submit('year')">By Year</button>
+</div>

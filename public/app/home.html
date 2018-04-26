@@ -1,5 +1,6 @@
 <div style="width:100%;  background-color: #3aaff4; font: 15px/26px 'Open Sans', Helvetica, Helvetica Neue, Arial; padding-top: 5px">
-  <p style="text-align: center; font-size: 120%; color: red; font-weight: bold">Warning. Sandbox version only. Anything you do may disappear at any point</p>
+  <p *ngIf="environment!='production'" style="text-align: center; font-size: 120%; color: orange; font-weight: bold"> Sandbox version.</p>
+  <p *ngIf="environment=='production'" style="text-align: center; font-size: 120%; color: white; font-weight: bold"><a style="color: white" href="/app?prompt=isproduction">Production version</a>. Featured: <a target="new" style="color:white" href="https://textcom.usask.ca/app/community/?id=5aaa517f8d92a41bfffafacc&route=view&document=5aaac354c45ae47e9b044722&page=5aaac352131df0307e10ea8a"> Canterbury Tales</a> </p>
 </div>
 <div class="row text-center" style="padding: 25px 9px 9px 9px">
   <div class="col-sm-3"><p><span style="font-size: 150%" class="glyphicon glyphicon-paperclip" aria-hidden="true"></span></p>

@@ -27,7 +27,7 @@ var DocSchema = extendNodeSchema('Doc', {
   facs: String,
   community: String,
   entities: [],
-  tasks:[],
+  tasks:[{name:String, status:String, memberId:String, witname: String, date: {type: Date}, userId: String}],
   image: String,
   meta: Schema.Types.Mixed,
   teiHeader: String,

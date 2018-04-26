@@ -106,6 +106,7 @@ router.post('/communities/:id/add-member', function(req, res, next) {
     , role = req.body.role
     , community
   ;
+  console.log("about to add this member")
   async.parallel([
     function(cb) {
       Community.findOne({_id: communityId}).exec(cb);
@@ -1154,6 +1155,66 @@ function getEntityPaths  (entityTEI, callback) {
     }
 }
 
+router.post('/getTranscribersInf', function(req, res, next){
+  var communityId=req.query.communityId;
+  var pageId=req.query.pageId;
+  var docId=req.query.docId;
+  var approverId=req.query.approverId;
+  var transcriberId=req.query.transcriberId;
+  var transcriberEmail="", transcriberName="", leaders=[];
+  async.waterfall([
+      function(cb) {
+        User.findOne({_id:ObjectId(transcriberId)}, function(err, user){
+          transcriberEmail=user.local.email;
+          transcriberName=user.local.name;
+          cb(err,[]);
+        })
+      },
+      function(argument, cb) {  //identify leaders
+        Community.findOne({_id:ObjectId(communityId)}, function(err, mycommunity){
+          async.map(mycommunity.members, function(member, cb1) {
+            User.findOne({_id:ObjectId(member)}, function(err, myMember){
+              var thisComm=myMember.memberships.filter(function (obj){return String(obj.community)==communityId;})[0];
+              if (thisComm && (thisComm.role=="LEADER" || thisComm.role=="CREATOR"))
+                leaders.push({name:myMember.local.name, email:myMember.local.email});
+              cb1(err);
+            });
+          }, function (err){
+            cb(err, []);
+          })
+        });
+      }
+    ], function (err) {
+      if (!err) res.json({result:1, transcriberEmail: transcriberEmail, transcriberName: transcriberName, leaders: leaders })
+      else res.json({result:err});
+  });
+});
+
+router.post('/returnTranscript',  function(req, res, next) {
+  var communityId=req.query.communityId;
+  var pageId=req.query.pageId;
+  var docId=req.query.docId;
+  var approverId=req.query.approverId;
+  var transcriberId=req.query.transcriberId;
+  var transcriberEmail="", transcriberName="";
+  //adjust the page task; return success, and the email of the transcriber
+  async.waterfall([
+    function (cb) {
+        Doc.collection.update({_id:ObjectId(pageId), "tasks.userId":transcriberId}, {$set: {"tasks.$.status":"ASSIGNED"}}, function(err, result){
+        cb(err,[]);
+      })
+    },
+    function(argument, cb) {
+      Doc.collection.update({_id:ObjectId(pageId)}, {$pull:{"tasks":{status:"SUBMITTED", userId:approverId}}}, {multi: true}, function(err, result){
+          cb(err,[]);
+      });
+    }
+  ], function (err) {
+    if (!err) res.json({result:1 })
+    else res.json({result:err});
+  });
+});
+
 router.post('/changeTranscriptStatus', function(req, res, next) {
   var communityId=req.query.communityId;
   var userId=req.query.userId;
@@ -1168,7 +1229,7 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
               var witname, username, memberid;
               async.waterfall([
                 function(cb3){
-                  Doc.findOne({_id:ObjectId(docId)}, function(err, thisDoc) {witname=thisDoc.name;
+                  Doc.findOne({_id:ObjectId(docId)}, function(err, thisDoc) {witname=thisDoc.name[0];
                     cb3(err);})
                 },
                 function(cb3){User.findOne({_id:ObjectId(userId)}, function(err, thisUser){ username=thisUser.local.name;
@@ -1177,7 +1238,8 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
                 }
               ], function (err, result){
                   if (!err) {
-                    Doc.collection.update({_id:ObjectId(pageId)}, {$push: {tasks: {userId:userId, name:username, status:"IN_PROGRESS", memberId:memberid, date:Date.now(), witname:witname}}}, function (err, result){
+                    console.log("about to add new object")
+                    Doc.collection.update({_id:ObjectId(pageId)}, {$push: {"tasks": {userId:userId, name:username, status:"IN_PROGRESS", memberId:memberid, date:new Date(), witname:witname}}}, function (err, result){
                       if (!err) res.json({error:"none"})
                       else res.json({error:err});
                     })
@@ -1255,7 +1317,7 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
          async.waterfall([
            function(cb3){
              Doc.findOne({_id:ObjectId(docId)}, function(err, thisDoc){
-               witname=thisDoc.name;
+               witname=thisDoc.name[0];
                cb3(err);
              })
            },
@@ -1278,7 +1340,7 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
                tasks[tasks.length-1].status="COMMITTED";
              }
              //if there is no task for this user.. add one
-             if (!foundCommitter) tasks.push({userId:userId, name:username, status:"COMMITTED", memberId:memberid, date:Date.now(), witname:witname});
+             if (!foundCommitter) tasks.push({userId:userId, name:username, status:"COMMITTED", memberId:memberid, date:new Date(), witname:witname});
              Doc.collection.update({_id:ObjectId(pageId)}, {$set: {tasks: tasks}}, function (err, result){
                cb1(err);
              })
@@ -1477,7 +1539,7 @@ router.post('/notifyTranscriptApprover', function(req, res, next) {
       if (err) {res.json({"error":err})}
       else {
 //        console.log("pageId="+myPage._id+" userId="+myUser._id+" name="+myUser.local.name+" memberId="+memberId+" witname="+myDocument.name+" approverName="+myApprover.local.name);
-        Doc.collection.update({_id: ObjectId(myPage._id)},{$push:{"tasks":{userId:approverId, name: myApprover.local.name, status: "SUBMITTED", memberId: myApproverMembershipId, date:Date.now(), witname:myDocument.name}}}, function (err) {
+        Doc.collection.update({_id: ObjectId(myPage._id)},{$push:{"tasks":{userId:approverId, name: myApprover.local.name, status: "SUBMITTED", memberId: myApproverMembershipId, date:new Date(), witname:myDocument.name}}}, function (err) {
           if (err) {res.json({"error":err})} else {
             var message = ejs.render(
             fs.readFileSync(
@@ -1544,10 +1606,49 @@ router.post('/saveAssignPages', function(req, res, next) {
 });
 
 function saveAP (addAP, callback) {
-  Doc.collection.update({_id: ObjectId(addAP.pageId)},{$push:{"tasks":{userId:addAP.record.userId, name: addAP.record.name, status: addAP.record.status, memberId: addAP.record.memberId, date:Date.now(), witname:addAP.record.witname}}}, function (err) {
+  Doc.collection.update({_id: ObjectId(addAP.pageId)},{$push:{"tasks":{userId:addAP.record.userId, name: addAP.record.name, status: addAP.record.status, memberId: addAP.record.memberId, date: new Date(), witname:addAP.record.witname}}}, function (err) {
     callback(err)
   });
 }
+
+router.post('/sendTranscriberMessages', function(req, res, next){
+  var communityId=req.body.communityId;
+  var name=req.body.name;
+  var email=req.body.email;
+  var pageName=req.body.pageName;
+  var pageId=req.body.pageId;
+  var docName=req.body.docName;
+  var docId=req.body.docId;
+  var leaders=req.body.leaders;
+  var letter=req.body.letter;
+  var sendername=req.body.sendername;
+  var senderemail=req.body.senderemail;
+  var pageUrl=config.host_url+'/app/community/?id='+communityId+'&route=view&document='+docId+'&page='+pageId;
+  var header="Your transcription of page "+pageName+" in document "+docName;
+  var cc=[];
+  var message=sendername+" ("+senderemail+")  has sent you this message about your transcription of <a href='"+pageUrl+"'>"+docName+":"+pageName+"</a><br/><br/>"+letter;
+  for (var i=0; i<leaders.length; i++) {
+    if (leaders[i].sendMail) cc.push(leaders[i].email);
+  }
+  async.waterfall([
+    function(cb) {
+        TCMailer.localmailer.sendMail({
+        from: TCMailer.addresses.from,
+        to: email,
+        replyTo: senderemail,
+        cc: cc,
+        subject: header,
+        html: message,
+        text: message.replace(/<[^>]*>/g, '')
+      }, function (err, info) {
+        cb(err);
+      });
+    }
+ ], function (err){
+    if (!err) res.json({success:1});
+    else res.json({success:err})
+  })
+});
 
 router.post('/sendInvitation', function(req, res, next) {
   var email=req.body.email;
@@ -1602,8 +1703,7 @@ router.post('/sendInvitation', function(req, res, next) {
                 if (!err) {
                   res.json({result: "An email has been sent to "+name+", who is now registered in Textual Communities with the email "+email+", and added to the membership of this community"});
                 } else {res.json({error: err})};
-              }
-            );
+              });
            } else {res.json({error: err})};
          });
        } else {res.json({error: err})}
@@ -2290,6 +2390,270 @@ function getCEWitness(witness, community, entity, callback) {
     })
 }
 
+router.get('/getTranscriberRecord', function(req, res, next){
+  var community=req.query.community;
+  var since=parseInt(req.query.since);
+  var userId=req.query.userId;
+  var interval=req.query.period;
+  var periods=[];
+  var day=24*60*60*1000;
+  var week=7*day;
+  var month=30*day;
+  var year=365*day;
+  var now=Date.now();
+  console.log(interval);
+  if (interval=="default") var days=3, weeks=3, months=3;
+  if (interval=="day") var days=300000, weeks=0, months=0;
+  if (interval=="week") var days=0, weeks=300000, months=0;
+  if (interval=="month") var days=0, weeks=0, months=30000;
+  if (interval=="year") var days=0, weeks=0, months=0;
+  while (now>since) {
+    if (days>0) {
+      periods.push({from:now-day, to: now, period:"day"});
+      now=now-day;
+      days--;
+      continue;
+    }
+    if (weeks>0) {
+      periods.push({from:now-week, to: now, period:"week"});
+      now=now-week;
+      weeks--;
+      continue;
+    }
+    if (months>0) {
+      periods.push({from:now-month, to: now, period:"month"});
+      now=now-month;
+      months--;
+      continue;
+    }
+    if (days==0 && weeks==0 && months == 0) {
+        periods.push({from:now-year, to: now, period:"year"});
+        now=now-year;
+        continue;
+    }
+  }
+  periods[periods.length-1].from=since;
+  async.map(periods, function(period, cb1) {
+    async.parallel([
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"IN_PROGRESS", "userId": userId, "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.inprogress={n: docs.length};
+          if (docs.length) {
+            var inprogarray=[];
+            docs.forEach(function(doc){
+              for (var i=0; i<doc.tasks.length; i++) {
+                if (doc.tasks[i].userId==userId && doc.tasks[i].status=="IN_PROGRESS") inprogarray.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+              }
+            });
+            period.inprogarray=inprogarray;
+          }
+          cb2(err);
+        });
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"SUBMITTED", "userId": userId, "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.submitted={n: docs.length};
+          if (docs.length) {
+            var submarray=[];
+            docs.forEach(function(doc){
+              for (var i=0; i<doc.tasks.length; i++) {
+                if (doc.tasks[i].userId==userId && doc.tasks[i].status=="SUBMITTED") submarray.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+              }
+            });
+            period.submarray=submarray;
+          }
+          cb2(err);
+        });
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"COMMITTED", "userId": userId, "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.committed={n: docs.length};
+          if (docs.length) {
+            var commarray=[];
+            docs.forEach(function(doc){
+              for (var i=0; i<doc.tasks.length; i++) {
+                if (doc.tasks[i].userId==userId && doc.tasks[i].status=="COMMITTED") commarray.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+              }
+            });
+            period.commarray=commarray;
+          }
+          cb2(err);
+        });
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"APPROVED", "userId": userId, "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.approved={n:docs.length};
+          if (docs.length) {
+            var apparray=[];
+            docs.forEach(function(doc){
+              for (var i=0; i<doc.tasks.length; i++) {
+                if (doc.tasks[i].userId==userId && doc.tasks[i].status=="APPROVED") apparray.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+              }
+            });
+            period.apparray=apparray;
+          }
+          cb2(err);
+        });
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"ASSIGNED", "userId": userId, "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.assigned={n: docs.length};
+          if (docs.length) {
+            var assarray=[];
+            docs.forEach(function(doc){
+              for (var i=0; i<doc.tasks.length; i++) {
+                if (doc.tasks[i].userId==userId && doc.tasks[i].status=="ASSIGNED") assarray.push({pageId: doc._id, name: doc.name, docId:doc.ancestors[0], docName:doc.tasks[i].witname});
+              }
+            });
+            period.assarray=assarray;
+          }
+          cb2(err);
+        });
+      },
+    ], function(err){
+      cb1(err);
+    })
+  }, function (err) {
+    res.json(periods);
+  })
+});
+
+router.get('/getTranscriptRecord',  function(req, res, next) {
+  var community=req.query.community;
+  var since=parseInt(req.query.since);
+  //give: last three days; last three weeks; last three months; then year by year back to since
+  var periods=[];
+  var day=24*60*60*1000;
+  var week=7*day;
+  var month=30*day;
+  var year=365*day;
+  var now=Date.now();
+  var days=3, weeks=3, months=3;
+  while (now>since) {
+    if (days>0) {
+      periods.push({from:now-day, to: now, period:"day"});
+      now=now-day;
+      days--;
+      continue;
+    }
+    if (weeks>0) {
+      periods.push({from:now-week, to: now, period:"week"});
+      now=now-week;
+      weeks--;
+      continue;
+    }
+    if (months>0) {
+      periods.push({from:now-month, to: now, period:"month"});
+      now=now-month;
+      months--;
+      continue;
+    }
+    if (days==0 && weeks==0 && months == 0) {
+        periods.push({from:now-year, to: now, period:"year"});
+        now=now-year;
+        continue;
+    }
+  }
+  periods[periods.length-1].from=since;
+  async.map(periods, function(period, cb1) {
+    async.parallel([
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"IN_PROGRESS", "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.inprogress=docs.length;
+          cb2(err);
+        })
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"SUBMITTED", "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.submitted=docs.length;
+          cb2(err);
+        })
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"COMMITTED", "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.committed=docs.length;
+          cb2(err);
+        })
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"APPROVED", "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.approved=docs.length;
+          cb2(err);
+        })
+      },
+      function(cb2) {
+        Doc.find({label:"pb", community:community, "tasks": {"$elemMatch": {"status":"ASSIGNED", "date": {$lt: new Date(period.to), $gte:new Date(period.from)}}}}, function(err, docs){
+          period.assigned=docs.length;
+          cb2(err);
+        })
+      }
+    ], function(err){
+      cb1(err);
+    })
+  }, function (err) {
+    res.json(periods);
+  })
+});
+
+
+router.get('/getCommunityInf', function(req, res, next) {
+  var community=req.query.community;
+  var numOfPages=0, numOfPagesTranscribed=0, assigned=0, submitted=0, inprogress=0, approved=0, committed=0, revisions=0;
+  async.parallel([
+    function(cb) {
+      Doc.find({label:"pb", community:req.query.community}, function (err, docs){
+        if (!err)
+          numOfPages=docs.length;
+        cb(err);
+      })
+    },
+    function(cb) {
+      Doc.find({label:"pb", community:req.query.community, "tasks.status":"ASSIGNED"}, function (err, docs){
+        if (!err)
+          assigned=docs.length;
+        cb(err);
+      })
+    },
+    function(cb) {
+      Doc.find({label:"pb", community:req.query.community, "tasks.status":"SUBMITTED"}, function (err, docs){
+        if (!err)
+          submitted=docs.length;
+        cb(err);
+      })
+    },
+    function(cb) {
+      Doc.find({label:"pb", community:req.query.community, "tasks.status":"IN_PROGRESS"}, function (err, docs){
+        if (!err)
+          inprogress=docs.length;
+        cb(err);
+      })
+    },
+    function(cb) {
+      Doc.find({label:"pb", community:req.query.community, "tasks.status":"APPROVED"}, function (err, docs){
+        if (!err)
+          approved=docs.length;
+        cb(err);
+      })
+    },
+    function(cb) {
+      Doc.find({label:"pb", community:req.query.community, "tasks.status":"COMMITTED"}, function (err, docs){
+        if (!err)
+          committed=docs.length;
+        cb(err);
+      })
+    },
+    function(cb) {
+      Revision.find({community:req.query.community}, function (err, myrevisions){
+        if (!err)
+          revisions=myrevisions.length;
+        cb(err);
+      })
+    }
+  ], function(err) {
+    res.json({numOfPages:numOfPages, numOfPagesTranscribed: inprogress+submitted+approved, assigned:assigned, submitted:submitted, inprogress:inprogress, approved:approved, committed: committed, revisions: revisions});
+  });
+});
+
 router.get('/getDocNames', function(req, res, next) {
   var community=req.query.community;
   Community.findOne({_id: ObjectId(community)}, function(err, myCommunity){
@@ -2298,7 +2662,7 @@ router.get('/getDocNames', function(req, res, next) {
         cb(err, {name: thisDoc.name, npages: thisDoc.children.length });
       })
     }, function (err, results){
-      console.log("finished")
+//      console.log("finished")
       res.json(results);
     })
   });
