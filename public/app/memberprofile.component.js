@@ -38,6 +38,7 @@ var MemberProfileComponent = ng.core.Component({
     this.uiService=uiService;
     this.restService=restService;
     this.state = uiService.state;
+    this.environment=config.env;
     this.authUser = this.state.authUser;
   }],
   ngOnInit: function() {
