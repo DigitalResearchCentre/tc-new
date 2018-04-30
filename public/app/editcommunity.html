@@ -1,20 +1,24 @@
 <div style="text-align: center">
+  <hr style="border: 1px solid #8c8b8b; margin-top: 60px; margin-bottom:12px">
   <div id="ECSuccess"><div *ngIf="success" class="alert alert-success">
       {{success}}</div>
   </div>
   <div id="ECMessage"><div *ngIf="message" class="alert alert-danger">
       {{message}}</div>
   </div>
-    <label>Name</label> <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;"></span>
-    <input type="text" style="display: inline-block; border-color:#FF8C00; border-width: 3px; border-style: solid;" placeholder="(20 characters maximum)ds"
+</div>
+<div class="form-group">
+    <label>Name</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <input type="text" style="display: inline-block; border-color:red; border-width: 3px; border-style: solid;" placeholder="(20 characters maximum)ds"
     [(ngModel)]="edit.name">
+    <span class="glyphicon glyphicon-asterisk" style="font-size: 15px; font-weight:lighter; color:red" data-toggle="tooltip" title="Mandatory field"></span>
     <seg *ngIf="!community || !community.attrs.abbr" class="">
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <label>Abbreviation</label>
-      <span class="glyphicon glyphicon-asterisk" style="font-size: 10px;">
-      </span>
-      <input type="text" style="display: inline-block; border-color:#FF8C00; border-width: 3px; border-style: solid;" placeholder="(4 characters maximum)"
+      <br/>
+      <label style="margin-top: 10px">Abbreviation</label>&nbsp;
+      <input type="text" style="display: inline-block; border-color:red; border-width: 3px; border-style: solid;" placeholder="(4 characters maximum)"
       [(ngModel)]="edit.abbr">
+      <span class="glyphicon glyphicon-asterisk" style="font-size: 15px; font-weight:lighter; color:red" data-toggle="tooltip" title="Mandatory field"></span>
+
     </seg>
   </div>
   <hr style="border: 1px solid #8c8b8b; margin-top: 12px; margin-bottom:12px">

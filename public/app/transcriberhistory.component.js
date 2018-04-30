@@ -42,7 +42,8 @@ var TranscriberHistoryComponent = ng.core.Component({
     var self=this;
     this.periods=[];
     this.message="Gathering information about the transcriptions. This may take a few moments."
-    var time=new Date(this.community.attrs.created);
+    if (this.community.attrs.created) var time=new Date(this.community.attrs.created);
+    else time=new Date("2018-03-01");
     var secs=time.getTime();
     $.get(config.BACKEND_URL+'getTranscriberRecord/?userId='+this.userid+'&since='+secs+'&community='+this.community.attrs.abbr+'&period=default', function(res) {
       self.message="";
@@ -58,7 +59,8 @@ var TranscriberHistoryComponent = ng.core.Component({
   submit: function(period) {
     var self=this;
     this.message="Gathering information about the transcriptions. This may take a few moments."
-    var time=new Date(this.community.attrs.created);
+    if (this.community.attrs.created) var time=new Date(this.community.attrs.created);
+    else time=new Date("2018-03-01");
     var secs=time.getTime();
     $.get(config.BACKEND_URL+'getTranscriberRecord/?userId='+this.userid+'&since='+secs+'&community='+this.community.attrs.abbr+'&period='+period, function(res) {
       self.message="";

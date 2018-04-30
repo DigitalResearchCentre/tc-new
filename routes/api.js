@@ -408,6 +408,8 @@ router.post('/SUgetAllCommunities', function (req, res, next){
           if (!member) cb1(null, {user: "none", role: "none"})
           User.findOne({_id:member}, function(err, myUser){
             //find membership matching this communitu] -- if it is the leader or creator, say so, else move on
+          console.log(myUser)
+          console.log(community._id)
            var thisMember=myUser.memberships.filter(function (obj){return String(obj.community)== String(community._id);})[0];
             cb1(err, {user: myUser.local.email, role: thisMember.role})
           })
@@ -1867,7 +1869,8 @@ router.post('/importTC1Users', function(req, res, next){
             var newUser = new User();
             newUser._id=ObjectId();
             newUser.local.email = user.email;
-            newUser.local.name = user.name;
+            if (user.name.trim()=="") newUser.local.name=user.email.substr(0, user.email.indexOf('@'));
+            else newUser.local.name = user.name;
             newUser.local.authenticated = 1;
             newUser.local.password=newUser.generateHash("default");
             newUser.local.created=new Date(user.created);

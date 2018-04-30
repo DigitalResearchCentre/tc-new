@@ -42,7 +42,8 @@ var ManageModalComponent = ng.core.Component({
     require('./exporttc1users.component'),
     require('./exporttc1transcripts.component'),
     require('./messagetranscriber.component'),
-    require('./transcriberhistory.component')
+    require('./transcriberhistory.component'),
+    require('./exporttc1dbversion.component')
   ]
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -231,6 +232,9 @@ var ManageModalComponent = ng.core.Component({
         self.choice=event.type
       }
       else if (event.type ==='export-tc1transcripts'){
+        self.choice=event.type
+      }
+      else if (event.type ==='export-tc1dbversion'){
         self.choice=event.type
       }
       $('#manageModal').modal('show');

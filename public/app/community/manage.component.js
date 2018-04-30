@@ -75,6 +75,11 @@ var ManageCommunityComponent = ng.core.Component({
     this._uiService.manageModal$.emit({
        type: 'export-tc1users',
      });
+  },
+  exportDBVersionFromTC1: function(){
+    this._uiService.manageModal$.emit({
+       type: 'export-tc1dbversion',
+     });
   }
 });
 

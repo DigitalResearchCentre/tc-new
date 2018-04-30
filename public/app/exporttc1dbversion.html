@@ -1,0 +1,25 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">Export Transcript from TC1 Database
+    <button type="button" (click)="closeModalVM()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div *ngIf="message.length>0" class="alert alert-danger" style="overflow-y: auto; height: 60px; margin-top: 3px; margin-left:0px ">{{message}}
+  </div>
+  <div *ngIf="success.length>0" class="alert alert-success" style="overflow-y: auto; height: 200px; margin-bottom: 3px; margin-top: 3px">
+    {{success}}
+  </div>
+  <p style='text-align: left; margin-top: 15px; margin-bottom: 15px; margin-left:10px; margin-right:10px'>
+    Enter the abbreviation for the community holding the transcript whose database version you want to export from TC1.
+  </p>
+  <div style="text-align: center">
+  <input type="text" style="width: 170px; display: inline-block" class="form-control"  placeholder="Community Abbreviation" [(ngModel)]="cAbbrev">
+  </div>
+  <p style='text-align: left; margin-top: 15px; margin-bottom: 15px; margin-left:10px; margin-right:10px'>
+    Enter the sigil for the document whose database version you want to export from TC1.
+  </p>
+  <div style="text-align: center">
+  <input type="text" style="width: 170px; display: inline-block" class="form-control"  placeholder="Document Sigil" [(ngModel)]="docName">
+  </div>
+  <div style="margin-top: 10px; text-align: center">
+    <button type="button" class="btn btn-primary" (click)="exportDBVersion()">Export DB Version</button>
+  </div>
+</div>
