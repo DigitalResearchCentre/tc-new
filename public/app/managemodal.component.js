@@ -43,7 +43,8 @@ var ManageModalComponent = ng.core.Component({
     require('./exporttc1transcripts.component'),
     require('./messagetranscriber.component'),
     require('./transcriberhistory.component'),
-    require('./exporttc1dbversion.component')
+    require('./exporttc1dbversion.component'),
+    require('./community/getdocinf.component')
   ]
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -140,7 +141,7 @@ var ManageModalComponent = ng.core.Component({
             } else self.text=JSON.stringify(event.community.attrs.ceconfig);
         }
         if (event.filetype=="teiHeader") {
-            self.text=event.document.attrs.teiHeader;
+            self.text="";
             self.doc=event.document;
         }
       }  else if (event.type === 'preview-page') {
@@ -236,6 +237,11 @@ var ManageModalComponent = ng.core.Component({
       }
       else if (event.type ==='export-tc1dbversion'){
         self.choice=event.type
+      }
+      else if (event.type ==='getdocinf'){
+        self.choice=event.type;
+        self.document=event.document;
+        self.community=event.community;
       }
       $('#manageModal').modal('show');
     });

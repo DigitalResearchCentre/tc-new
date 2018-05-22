@@ -1,6 +1,7 @@
 var CommunityService = require('../services/community')
   , UIService = require('../services/ui')
   , RESTService = require('../services/rest')
+  , DocService = require('../services/doc')
 ;
 
 var UploadFileComponent = ng.core.Component({
@@ -15,9 +16,10 @@ var UploadFileComponent = ng.core.Component({
   ],
 }).Class({
   constructor: [
-    CommunityService, UIService, RESTService, function(
-      communityService, uiService, restService) {
+    CommunityService, UIService, RESTService, DocService, function(
+      communityService, uiService, restService, docService) {
     var self=this;
+    this._docService = docService;
     this._communityService = communityService;
     this._uiService = uiService;
     this.restService= restService;
@@ -25,6 +27,16 @@ var UploadFileComponent = ng.core.Component({
     $('#manageModal').width("480px");
     $('#manageModal').height("530px");
   }],
+  ngOnChanges: function(){
+    if (this.filetype=="teiHeader") {
+      var self=this;
+      var docService = this._docService
+      docService.refreshDocument(this.doc).subscribe(function(doc) {
+        self.text=doc.attrs.teiHeader;
+        self.title="TEI Header for "+doc.attrs.name+":";
+      })
+    }
+  },
   ngOnInit: function() {
     var self=this;
 //    this.text="";

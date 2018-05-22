@@ -69,6 +69,11 @@ router.get('/isproduction', function(req, res) {
   res.render('isproduction.ejs');
 });
 
+router.get('/issandbox', function(req, res) {
+  res.render('issandbox.ejs');
+});
+
+
 
 // =====================================
 // SIGNUP ==============================

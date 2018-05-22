@@ -1,0 +1,21 @@
+<div style="font-size: 110%">
+  <div modal-draggable class="modalHeader">About document {{document.attrs.name}} in community {{community.attrs.name}}
+    <button type="button" (click)="closeModalUPLC()" class="close" data-dismiss="modal" style="font-size:200%; font-weight:800; position: relative; left:-10px; top:-3px;">&times;</button>
+  </div>
+  <div style="height:580px; overflow:scroll; position:absolute">
+    <div *ngIf="success.length>0" class="alert alert-success" style="margin-bottom: 1px">
+      {{success}}
+    </div>
+    <div class="form-group" style="margin-right:15px; margin-left: 15px">
+      <textarea *ngIf="role=='LEADER'||role=='CREATOR'" class="form-control" rows="14" cols="80" placeholder="Your description (you can include HTML)"
+        [(ngModel)]="description"></textarea>
+        <label style="margin-top: 10px; margin-left:200px" *ngIf="role=='LEADER'||role=='CREATOR'">Preview Description</label>
+        <div id="InviteText" [innerHTML]="description">
+        </div>
+    </div>
+  </div>
+  <hr *ngIf="role=='LEADER'||role=='CREATOR'" style="border: 1px solid #8c8b8b; margin-bottom: 15px; margin-top:15px; position: relative; top: 573px">
+    <div *ngIf="role=='LEADER'||role=='CREATOR'" class="form-group" style="text-align: center; height: 18px; position: relative; top: 580px">
+      <button type="button" class="btn btn-primary" (click)="submit(document)">Save Description</button>
+    </div>
+</div>

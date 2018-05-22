@@ -50,6 +50,9 @@
               (click)="extractXML($event, doc)">
               <img onmouseover="this.width='36';this.height='36'" onmouseout="this.width='18'; this.height='18'" class="menuimg" height="18" width="18" src="../../images/getdocxml.png">
             </a>
+            <a target="_blank" data-toggle="tooltip" title="About this document" (click)="getDocInf(doc)">
+                <span onmouseover="this.style.fontSize='30px'" onmouseout="this.style.fontSize='15px'" class="glyphicon glyphicon-info-sign"></span>
+            </a>
             <span *ngIf="showAddFirstPage(doc)&&(role=='LEADER'||role=='CREATOR')" (click)="addFirstPage(doc)"
               class="add-page-after"></span>
           </div>

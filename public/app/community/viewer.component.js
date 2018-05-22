@@ -699,8 +699,12 @@ function processChanges(docService, page,self) {
     });
   });
   $.post(config.BACKEND_URL+'statusTranscript?'+'docid='+self.page.attrs.ancestors[0]+'&pageid='+self.page._id, function(res) {
-    self.isText=res.isThisPageText;
-    if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
+    if (self.revisions.length>0) {
+      self.isText=true;
+    } else {
+      self.isText=res.isThisPageText;
+      if (res.isPrevPageText && !res.isThisPageText) self.newText(self.page, self.document);
+    }
   });
   self.onImageChange();
 }
