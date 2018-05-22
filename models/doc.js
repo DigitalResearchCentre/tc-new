@@ -18,16 +18,20 @@ var globalDoc;
 var globalCommAbbr;
 var origUpdateTeis;
 
+var sourceTeisAA=new Object();
+var updateTeiElsAA=new Object();
+var otherAncestorTeisAA= new Object();
 
 
 
 var DocSchema = extendNodeSchema('Doc', {
-  name: { type: [String], index: true },
+  name: { type: String, index: true },
   label: String,
   facs: String,
+  docinf: String,
   community: String,
   entities: [],
-  tasks:[{name:String, status:String, memberId:String, witname: String, date: {type: Date}, userId: String}],
+  tasks:[{name:String, status:{ type: String, index: true }, memberId:String, witname: String, date: {type: Date}, userId: { type: String, index: true }}],
   image: String,
   meta: Schema.Types.Mixed,
   teiHeader: String,
@@ -147,6 +151,10 @@ var DocSchema = extendNodeSchema('Doc', {
       var uniqueEntities = [];
       var deleteEntitiesList=[];
       var updateTeiEls=[];
+      sourceTeisAA=[];
+      updateTeiElsAA=[];
+      otherAncestorTeisAA=[];
+
         //convert tei references to toplevel entities to entity ids from the database, write to entities
       var elInfo = {"currAncestor": {}, "curPath": [] };
       var fromVFile=false;
@@ -154,21 +162,23 @@ var DocSchema = extendNodeSchema('Doc', {
       //deleteTeis is always blank, but everything has to go!
 //       console.log("starting our teis")
 //      console.log(insertTeis)
+//      console.log("starting load "+communityAbbr)
       if (_.isEmpty(deleteTeis) && String(docRoot.label)=="pb") {
         fromVFile=true;
         }
         async.waterfall([
         function (cb1) {
-//          console.log("function 1");
+          console.log("function 1");
           filterEntities(docRoot, insertTeis, updateTeis, communityAbbr, elInfo, function(updateTeiElements, err) {
             topEntities=filterLiveEntities(insertTeis, insertEntities, communityAbbr);
+//            console.log("my entities"); console.log(topEntities);
             uniqueEntities = _.uniqBy(insertEntities, "entityName");
             updateTeiEls=updateTeiElements;
             cb1(err, updateTeiEls);
           });
         },
        function adjustDeleteTeis (argument, cb1) {
-//          console.log("function 2");
+          console.log("function 2");
           if (fromVFile) {  //fix for mistake where single page deletion is blank
            TEI.findOne({docs: {$in: [docRoot._id]}}, function (err, deleteRoot) {
              if (!deleteRoot) {
@@ -200,7 +210,7 @@ var DocSchema = extendNodeSchema('Doc', {
          function removeChildEntitiesUpdates (TEIDeleteChildren, cb1) {
            //take out deleted children from updateTeis
            //go through entity children in teiUpdates and remove all in deletions
-//           console.log("function 4");
+           console.log("function 4");
            for (var i=0; i<TEIDeleteChildren.length; i++) {
              for (var j=0; j<updateTeiEls.length; j++) {
                if (!_.isEmpty(updateTeiEls[j].entityChildren)) {
@@ -215,7 +225,7 @@ var DocSchema = extendNodeSchema('Doc', {
            cb1(null, TEIDeleteChildren);
          },
         function saveDocRoot (TEIDeleteChildren, cb1) {
-//          console.log("function 5");
+          console.log("function 5");
           if (!insertTeis[0].ancestors.length || fromVFile) {
             if (fromVFile) {
               Doc.collection.update({_id: docRoot.ancestors[0]}, {
@@ -292,7 +302,7 @@ var DocSchema = extendNodeSchema('Doc', {
           } else cb1(null, []);
         },  //now, figure out which are the top level docs among those added are write them to the pb
         function updateDocChildren (argument, cb1) {
-//          console.log("function 7");
+          console.log("function 7");
           if (String(docRoot.label)=="pb") {
             var topKids=[];
             for (var i = 0; i < docs.length; i++) {
@@ -305,7 +315,7 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(argument, cb1) {
           if (docs.length > 0) {
-            console.log("function 8");
+//            console.log("function 8");
   //          console.log("all our docs"); console.log(docs);
             //add community to each one
             docs.forEach(function(eachDoc){eachDoc.community=globalCommAbbr})
@@ -320,7 +330,7 @@ var DocSchema = extendNodeSchema('Doc', {
           //wierd things happening with synchronicity I think.. need to have things happen in order
           //first, remove entity children from master TEIs
           //set up waterfall to do the deletions
-//          console.log("function 9");
+          console.log("function 9");
           if (deleteTeis.length) {
             async.waterfall([
               function getEntityNames (cbAsync) {
@@ -390,7 +400,7 @@ var DocSchema = extendNodeSchema('Doc', {
             } else {cb1(null, self);}
           },
           function(argument, cb1) {
-//            console.log("function 10");
+            console.log("function 10");
             if (updateTeiEls.length > 0) {
               async.forEachOf(updateTeiEls, function(up) {
                 const cb2 = _.last(arguments);
@@ -405,7 +415,7 @@ var DocSchema = extendNodeSchema('Doc', {
             }
           },
           function insertEntitiesFunct(argument, cb1) {
-//            console.log("function 11");
+            console.log("function 11");
              var entityDict={};
              if (uniqueEntities.length > 300) {
                //get all the entities for this community
@@ -443,14 +453,14 @@ var DocSchema = extendNodeSchema('Doc', {
            },
            function insertTopEntitiesFunc(argument, cb1) {
             //remove top entity if isTerminal is true
-//            console.log("function 12");
+            console.log("function 12");
             for (var i=0; i<topEntities.length; i++) {
               if (topEntities[i].isTerminal) topEntities.splice(i, 1);
             }
             if (topEntities.length) {
               async.forEachOf(topEntities, function(up) {
                 const cb2 = _.last(arguments);
-    //            console.log(topEntities);
+                console.log(topEntities);
                 //do this differently. Check if we have an entityName in the entities array. If we do, no need to do anythiing. Else, add it
                 Community.findOne({'abbr': communityAbbr, "entities.entityName":up.entityName}, function(err,myComm){
   //                console.log(myComm);
@@ -557,7 +567,7 @@ var DocSchema = extendNodeSchema('Doc', {
     clean: function(data) {
       const nodeData = _.defaults(
         {}, _.pick(data, [
-          '_id', 'name', 'label', 'image', 'children', 'community', 'ancestors', 'facs', 'image', 'teiHeader'
+          '_id', 'name', 'label', 'g', 'children', 'community', 'ancestors', 'facs', 'image', 'teiHeader', 'docinf'
         ]), {
           ancestors: [],
           children: [],
@@ -900,10 +910,13 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
   var entities=[];
   var  updateTeiEls=[];
   var updateAncestors=[];
+//  console.log("in 19; source teis "+community);
+//  console.log(sourceTeis);
   for (var i=0; i<sourceTeis.length; i++) {
     sourceTeis[i].isEntity=false;
     sourceTeis[i].community=community;  //help with housekeeping -- each tei gets allocated to a community
   }
+//  console.log(sourceTeis);
   // either: we have a text element very early in the piece, or we are starting in media res
   // if in media res: first element will have ancestors.  Extract and populate the path
   var i=0;
@@ -918,16 +931,19 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
     //first need to get the updateTeis
     async.waterfall ([
       function getUpdateTeis (cb1) {
+//        console.log(updateTeis)
 //        console.log("function 20");
         if (updateTeis.length>0) {
           async.map(updateTeis, getTEIUpdates, function (err, results){
             updateTeiEls=results;
+//            console.log("updateelements");
+//            console.log(results);
             cb1(err, updateTeiEls);
           })
         } else cb1(null, updateTeiEls);
       },
       function getUpdateAncestors (updateTeiEls, cb1) {
-  //      console.log("function 21");
+        console.log("function 21");
         //we get all ancestorElements not present in updateTeis or in insertTeis
         for (var i = 0; i < sourceTeis.length; i++) {
            for (var j=0; j<sourceTeis[i].ancestors.length; j++) {
@@ -940,15 +956,17 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
         });
       },
       function processTeis (argument, cb1) {
-  //      console.log("function 22");
+        console.log("function 22");
         updateTeiEls=argument.updateTeiEls;
         updateAncestors=argument.updateAncestors;
+  //      console.log("updateelements2");
+  //      console.log(updateTeiEls);
         if (i<sourceTeis.length-1) {
           elInfo.curPath.push({"tei_id": sourceTeis[i].ancestors[0], "index":i,  "entName": "text" });
           elInfo.currAncestor=inInsUpsAncs(sourceTeis[i].ancestors[0],sourceTeis, updateTeiEls, updateAncestors);
 //          console.log(sourceTeis.length);
           for (i; i<sourceTeis.length; i++) {
-//            if (i % 1000 == 0) console.log("processing TEI "+i);
+            if (i % 1000 == 0) console.log("processing TEI "+i);
             processTei(elInfo, sourceTeis[i], sourceTeis, updateTeiEls, updateAncestors, i, community);
           }
           cb1(null, updateTeiEls);
@@ -958,7 +976,7 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
       callback(updateTeiEls);
     });
   } else {  //from file\
-//    console.log("function 24");
+    console.log("function 24");
     for (var i=0; !elInfo.curPath.length; i++) {
       var childEl=sourceTeis[i];
       if (childEl.name=="text") {
@@ -966,7 +984,7 @@ function filterEntities(docRoot, sourceTeis, updateTeis, community, elInfo, call
         childEl.isEntity= true;
         childEl.entityChildren=[];
         for (++i; i<sourceTeis.length; i++) {
-  //      if (i % 1000 == 0) console.log("processing TEI "+i);
+        if (i % 1000 == 0) console.log("processing TEI "+i);
           processTei(elInfo, sourceTeis[i], sourceTeis, [], [], i, community);
         }
         callback(updateTeiEls);
@@ -986,13 +1004,11 @@ function getTEIUpdates (teiID, callback) {
     callback(err, version);
   });
 }
-var sourceTeisAA=new Object();
-var updateTeiElsAA=new Object();
-var otherAncestorTeisAA= new Object();
 //when we have a LOT of teis thi will get VERY slow. May have to do 100K searches every call
 //so let's create a lookup form of these arrays so this gets WAY faster..
 //first time in, create the arrays
 function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTeis) {
+
 //  console.log("seeking "+soughtAncestor);
   var foundAncestor=null;
   if (Object.keys(sourceTeisAA).length==0) {
@@ -1001,6 +1017,11 @@ function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTei
     }
   }
   foundAncestor=sourceTeis[sourceTeisAA[soughtAncestor]];     //should be WAY faster...
+//  if (foundAncestor && foundAncestor._id!=soughtAncestor) {
+//    console.log("WTF?");
+//    console.log(sourceTeisAA);
+//    console.log(foundAncestor)
+//  }
 //  for (var i = sourceTeis.length-1; i >= 0 && !foundAncestor; i--) {
 //    if (String(soughtAncestor)==String(sourceTeis[i]._id)) foundAncestor=sourceTeis[i];  }
 //  var foundAncestor = sourceTeis.filter(function (obj){return String(obj._id) == String(soughtAncestor);})[0];
@@ -1011,6 +1032,7 @@ function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTei
     }
   }
   foundAncestor=updateTeiEls[updateTeiElsAA[soughtAncestor]];
+//  console.log("update: "); console.log(foundAncestor);
   if (foundAncestor) return(foundAncestor);
 //  foundAncestor = updateTeiEls.filter(function (obj){return String(obj._id) == String(soughtAncestor);})[0];
 //  if (foundAncestor) return(foundAncestor);
@@ -1020,6 +1042,7 @@ function inInsUpsAncs(soughtAncestor, sourceTeis, updateTeiEls, otherAncestorTei
       otherAncestorTeisAA[otherAncestorTeis[i]._id]=i;
     }
   }
+//  console.log("others: "+foundAncestor);
   foundAncestor=otherAncestorTeis[otherAncestorTeisAA[soughtAncestor]];
   if (!foundAncestor) {
       for (var i=0; i<sourceTeis.length; i++) {
@@ -1060,10 +1083,20 @@ function processTei(elInfo, childEl, sourceTeis, updateTeiEls, updateAncestors, 
     //note: this could be the top level entity
     if (String(elInfo.currAncestor._id)==String(childEl.ancestors[childEl.ancestors.length-1])) {
       //could be root..
+//      console.log("23a")
+//      console.log(childEl);
+//      console.log(elInfo);
       childEl.isEntity=true;
       childEl.isTerminal=true;
-      childEl.entityName=elInfo.currAncestor.entityName+":"+nameEntity(childEl, community, elInfo.curPath.length+1);
-      childEl.entityAncestor=elInfo.currAncestor.entityName;
+      //this coiuld be the root: in which case, ancestor is not an entity and has no entity name
+      //in that event: entityName is actually the community name
+      if (!elInfo.currAncestor.isEntity) {
+        childEl.entityName=community+":"+nameEntity(childEl, community, elInfo.curPath.length+1);
+        childEl.entityAncestor="";
+      } else {
+        childEl.entityName=elInfo.currAncestor.entityName+":"+nameEntity(childEl, community, elInfo.curPath.length+1);
+        childEl.entityAncestor=elInfo.currAncestor.entityName;
+        }
       childEl.entityAncestors=[];
       elInfo.currAncestor.entityChildren.push(childEl._id);
       elInfo.currAncestor.isTerminal=false;
@@ -1072,10 +1105,16 @@ function processTei(elInfo, childEl, sourceTeis, updateTeiEls, updateAncestors, 
       return;
     } else {
       var thisAncestor=inInsUpsAncs(childEl.ancestors[0], sourceTeis, updateTeiEls, updateAncestors);
+//      console.log("23b");
+//      console.log(childEl);
+//      console.log(elInfo);
       elInfo.curPath.splice(1,elInfo.curPath.length-1);
       elInfo.entityAncestors=[];
       for (var j = 1; j < childEl.ancestors.length; j++) {
+//        console.log(childEl.ancestors[j]);
+//        if (updateTeiEls[2]) console.log(updateTeiEls[2]._id)
         if (isEntity(inInsUpsAncs(childEl.ancestors[j], sourceTeis, updateTeiEls, updateAncestors))) {
+//          console.log("got an entity for"+childEl.ancestors[j]);
           thisAncestor=inInsUpsAncs(childEl.ancestors[j], sourceTeis, updateTeiEls, updateAncestors);
           elInfo.curPath.push({"tei_id":thisAncestor._id,  "entName": thisAncestor.name, "entity": nameEntity(thisAncestor, community, elInfo.curPath.length+1), "isTerminal":true});
           elInfo.entityAncestors.push(thisAncestor._id);
@@ -1089,13 +1128,13 @@ function processTei(elInfo, childEl, sourceTeis, updateTeiEls, updateAncestors, 
         elInfo.currAncestor.entityChildren.push(childEl._id);
         childEl.entityAncestors=elInfo.entityAncestors;
       } else {  //we must have top level entity: this is an entity with an ancestor which is NOT an entity
-        //("this is an entity")
         elInfo.currAncestor=thisAncestor;
         elInfo.entityAncestors=[];
         childEl.entityName=community+":entity="+childEl.attrs.n;
         childEl.entityAncestor="";
       }
         //write stuff to this ancestor now, and to the child
+//      console.log(elInfo.curPath);
       childEl.isEntity=true;
       childEl.isTerminal=true;
       childEl.entityChildren=[];

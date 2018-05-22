@@ -26,7 +26,11 @@ var CommunityAboutComponent = ng.core.Component({
       self.revisions=res.revisions;
       self.message="";
     });
-    var time=new Date(this.state.community.attrs.created);
+    if (!this.state.community.attrs.created) {
+      if (this.state.community.attrs.abbr=="CTP2") var time=new Date("2012-01-01");
+      else if (this.state.community.attrs.abbr=="JDDP") var time=new Date("2013-01-01");
+      else var time=new Date("2018-01-01");
+    } else var time=new Date(this.state.community.attrs.created);
     var secs=time.getTime();
     self.periods=[];
     $.get(config.BACKEND_URL+'getTranscriptRecord/?community='+this.state.community.attrs.abbr+'&since='+secs, function(res) {

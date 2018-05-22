@@ -1279,9 +1279,13 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
             //so: go through tasks, check each membership
             if (!err) {
               Doc.findOne({_id: ObjectId(pageId)}, function(err, myDoc){
+                console.log(myDoc);
                 async.map(myDoc.tasks, function(task, callback){
                   if (task.userId!=userId) {
                     //find the user for this task
+                    console.log(userId)
+                    console.log(task)
+                    console.log(task.userId)
                     User.findOne({_id:ObjectId(task.userId)}, function(err, myUser){
                       //is there a membership for this user which has the current user as approver?
                       for (var i=0; i<myUser.memberships.length; i++) {
@@ -1357,7 +1361,7 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
 });
 
 router.post('/statusTranscript', function(req, res, next) {
-  var isPrevPageText=false, isThisPageText=false, isMultiPages=false;
+  var isPrevPageText=false, isThisPageText=false, isMultiPages=false, docFound=true;
   globalTextEl=null;
 //  console.log("starting in status")
   async.waterfall([
@@ -1365,9 +1369,9 @@ router.post('/statusTranscript', function(req, res, next) {
 //      console.log("looking for "+req.query.docid);
       Doc.findOne({_id: ObjectId(req.query.docid)}, function(err, document){
         if (!document) {
-          res.json({isPrevPageText: false, isThisPageText: false, docFound: false});
-          cb("a problem",[]);
+          cb("no document",[]);
         } else {
+          docFound=true;
           cb(err, document);
         }
       })
@@ -1444,7 +1448,7 @@ router.post('/statusTranscript', function(req, res, next) {
   }
  ], function(err, results) {
 //    console.log("about to stop..")
-    res.json({isPrevPageText: isPrevPageText, isThisPageText: isThisPageText, isMultiPages: isMultiPages, docFound: true})
+    res.json({isPrevPageText: isPrevPageText, isThisPageText: isThisPageText, isMultiPages: isMultiPages, docFound: docFound})
   });
 });
 
@@ -1859,12 +1863,19 @@ router.post('/importTC1Users', function(req, res, next){
   var nusers=0;
   var importedusers=[];
   Community.findOne({abbr:cAbbrev}, function(err, community){
-    async.map(users, function(user, callback) {
+    async.mapSeries(users, function(user, callback) {
       User.findOne({"local.email": user.email}, function(err, myUser) {
         if (myUser) {
-          //assume we are already a member of this community and do nothing
-//        console.log(myUser);
-          callback(err);
+          //add membership of this community
+          //check ... already memmber of this community?
+          var is_member=myUser.memberships.filter(function(obj){return String(obj.community) == String(community._id);})[0];
+          if (!is_member) {
+            User.collection.update({_id: myUser._id}, {$push: {memberships:{community:community._id, role: "MEMBER", pages: {"assigned":0,"inprogress":0,"submitted":0, "approved":0, "committed":0}, created: new Date(), _id: ObjectId()}}}, function(err, result){
+              importedusers.push(myUser._id);
+              nusers+=1;
+              callback(err);
+            });
+          } else {callback(err);}
         } else {
             var newUser = new User();
             newUser._id=ObjectId();
@@ -2660,14 +2671,16 @@ router.get('/getCommunityInf', function(req, res, next) {
 router.get('/getDocNames', function(req, res, next) {
   var community=req.query.community;
   Community.findOne({_id: ObjectId(community)}, function(err, myCommunity){
-    async.map(myCommunity.documents, function(myDoc, cb){
-      Doc.findOne({_id: myDoc}, function (err, thisDoc){
-        cb(err, {name: thisDoc.name, npages: thisDoc.children.length });
+    if (!myCommunity) res.json({});
+    else {
+      async.map(myCommunity.documents, function(myDoc, cb){
+        Doc.findOne({_id: myDoc}, function (err, thisDoc){
+          cb(err, {name: thisDoc.name, npages: thisDoc.children.length });
+        })
+      }, function (err, results){
+        res.json(results);
       })
-    }, function (err, results){
-//      console.log("finished")
-      res.json(results);
-    })
+    }
   });
 });
 

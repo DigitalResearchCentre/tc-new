@@ -44,6 +44,8 @@ var LoginModalComponent = ng.core.Component({
     if (prompt) {
       if (prompt=="isproduction") {
         src = base + 'isproduction';
+      } else if (prompt=="issandbox") {
+        src = base + 'issandbox';
       } else if (prompt=="twitteremail") {
         src = base + 'twitteremail';
       } else if (prompt=="alreadylocal") {

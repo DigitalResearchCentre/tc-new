@@ -47,8 +47,8 @@ var ViewComponent = ng.core.Component({
       self.docnames=res;
       for (var i=0; i<self.state.community.attrs.documents.length; i++) {
         self.state.community.attrs.documents[i].attrs.name=res[i].name;
-        self.state.community.attrs.documents[i].attrs.entities=[];
-        self.state.community.attrs.documents[i].attrs.children=[{attrs:{image:""}}];
+  //      self.state.community.attrs.documents[i].attrs.entities=[];
+  //      self.state.community.attrs.documents[i].attrs.children=[{attrs:{image:""}}];
 
 //        self.state.community.attrs.documents[i].attrs.children= new Array(res[i].npages).fill({attrs: {image: ""}});
       }
@@ -350,6 +350,9 @@ var ViewComponent = ng.core.Component({
   },
   editTEIHeader: function(doc) {
     this._uiService.manageModal$.emit({type: "uploadfile-community", community: this.state.community, document: doc, filetype:"teiHeader"});
+  },
+  getDocInf: function(doc) {
+    this._uiService.manageModal$.emit({type: "getdocinf", community: this.state.community, document: doc});
   },
   extractXML: function($event, doc) {
     var self=this;

@@ -5,9 +5,9 @@ var mongoose = require('mongoose')
 ;
 
 const EntitySchema = extendNodeSchema('Entity', {
-  name: { type: [String], index: true },
-  entityName: { type: [String], index: true },
-  ancestorName: { type: [String], index: true },
+  name: { type: String, index: true },
+  entityName: { type: String, index: true },
+  ancestorName: { type: String, index: true },
   isTerminal: Boolean,
   hasCollation: Boolean,
   childOrder: [],
