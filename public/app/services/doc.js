@@ -112,7 +112,7 @@ var DocService = ng.core.Injectable().Class({
     });
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
-  //      console.log(res.json);
+        console.log("function 1");
         if (!res._body) {
           return {};
         }
@@ -126,7 +126,7 @@ var DocService = ng.core.Injectable().Class({
             return childId;
           });
         });
-  //      console.log('hello');
+        console.log('function 2');
         _.each(nodesMap, function(node) {
           if (_.isEmpty(node.ancestors)) {
             root = node;
@@ -179,20 +179,19 @@ var DocService = ng.core.Injectable().Class({
       , teiRoot = {}
     ;
     if (text) {
-//      console.log("PRtext is "+text);
+  //    self._uiService.changeMessage$.emit({type: 'commit', page: "document",   docname: docRoot.name, message: "Parsing the tree"});
+      console.log("function 10");
       var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
         , docQueue = []
         , cur, prevDoc, curDoc, index, label
       ;
       teiRoot = xmlDoc2json(xmlDoc);
-//      console.log("after making the root")
-//      console.log(teiRoot);
+      console.log("function 1");
       if (docRoot.label === 'text') {
         prevDoc = docRoot;
       }
       _.dfs([teiRoot], function(cur) {
-//        console.log(cur.attrs);
         if (!_.startsWith(cur.name, '#')) {
           index = docTags.indexOf(cur.name);
           // if node is doc
@@ -241,6 +240,7 @@ var DocService = ng.core.Injectable().Class({
           cur.doc = prevDoc._id;
         }
       });
+      console.log("function 13");
     }
     if (docRoot._id) {
       return this.update(docRoot._id, {
@@ -275,8 +275,11 @@ var DocService = ng.core.Injectable().Class({
         commit: true,
       })).map(function(doc, err) {
 //        console.log("after commit create"); console.log(doc);
+        if (doc.attrs.error) {
+          alert(doc.attrs.error.message)
+        }
         self._uiService.createDocument(doc);
-        TCstate.lastDocCreated=doc;  //put it all here? necessary because we do NOT return the doc
+        TCstate.lastDocCreated=doc;  //put it all here? necessary because we do NOT return the do
       });
     }
   },
@@ -436,6 +439,7 @@ function xmlDoc2json(xmlDoc) {
     , text = xpath(xmlDoc, '//tei:text|//text').iterateNext()
     , obj = createObjTree(text, queue)
   ;
+  console.log("function 15a")
   while (queue.length > 0) {
     var item = queue.shift()
       , parent = item.parent
@@ -446,6 +450,7 @@ function xmlDoc2json(xmlDoc) {
     }
     parent.children.push(child);
   }
+  console.log("function 15")
   return obj;
 }
 

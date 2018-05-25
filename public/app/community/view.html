@@ -15,7 +15,7 @@
         <li *ngFor="#doc of state.community.attrs.documents"
           [class.collapse-node]="!doc.expand">
           <div>
-            <span class="icon" aria-hidden="true"
+            <span *ngIf="!showAddFirstPage(doc)" class="icon" aria-hidden="true"
               (click)="toggleDoc(doc)"></span>
             <a (click)="toggleDoc(doc)">
               {{doc.attrs.name}}

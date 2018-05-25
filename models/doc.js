@@ -21,7 +21,7 @@ var origUpdateTeis;
 var sourceTeisAA=new Object();
 var updateTeiElsAA=new Object();
 var otherAncestorTeisAA= new Object();
-
+var inProcess=false;
 
 
 var DocSchema = extendNodeSchema('Doc', {
@@ -52,6 +52,7 @@ var DocSchema = extendNodeSchema('Doc', {
         , topEntities = []
         , communityAbbr = docRoot.community
       ;
+      console.log("function 0")
       if (self.ancestors.length === 0) {
         docEl = {name: 'text'};
       } else {
@@ -102,7 +103,7 @@ var DocSchema = extendNodeSchema('Doc', {
           }
         );
       }
-
+      console.log("function 0a")
       let boundsMap = _boundsMap(leftBound, rightBound);
       let errors = _linkBounds(docEl, leftBound, rightBound, teiRoot);
 
@@ -139,7 +140,7 @@ var DocSchema = extendNodeSchema('Doc', {
           child.next = el.children[i+1];
         });
       });
-
+      console.log("function 0b")
       let results = _parseBound(boundsMap);
       errors = errors.concat(results.errors);
       deleteTeis = deleteTeis.concat(results.deleteTeis);
@@ -154,7 +155,7 @@ var DocSchema = extendNodeSchema('Doc', {
       sourceTeisAA=[];
       updateTeiElsAA=[];
       otherAncestorTeisAA=[];
-
+      console.log("function 0c")
         //convert tei references to toplevel entities to entity ids from the database, write to entities
       var elInfo = {"currAncestor": {}, "curPath": [] };
       var fromVFile=false;
@@ -166,7 +167,7 @@ var DocSchema = extendNodeSchema('Doc', {
       if (_.isEmpty(deleteTeis) && String(docRoot.label)=="pb") {
         fromVFile=true;
         }
-        async.waterfall([
+      async.waterfall([
         function (cb1) {
           console.log("function 1");
           filterEntities(docRoot, insertTeis, updateTeis, communityAbbr, elInfo, function(updateTeiElements, err) {
@@ -182,8 +183,10 @@ var DocSchema = extendNodeSchema('Doc', {
           if (fromVFile) {  //fix for mistake where single page deletion is blank
            TEI.findOne({docs: {$in: [docRoot._id]}}, function (err, deleteRoot) {
              if (!deleteRoot) {
+                console.log("function 2a");
                 cb1(null, []);
              } else {
+               console.log("function 2b");
                deleteTeis.push(deleteRoot.ancestors[0]);
                cb1(null, []);
              }
@@ -191,7 +194,7 @@ var DocSchema = extendNodeSchema('Doc', {
          } else  {cb1(null, [])}
        },
        function identifyTEIDeleteChildren (argument, cb1) {
-//          console.log("function 3");
+          console.log("function 3");
            TEI.find({$or: [{ancestors: {$in: deleteTeis}}, {_id: {$in: deleteTeis}},]}, function (err, results) {
              deleteTeis=[];
              for (var i = 0; i < results.length; i++) {
@@ -289,7 +292,7 @@ var DocSchema = extendNodeSchema('Doc', {
             //old docs for this page are NOT deleted, nor are doc children for the pb updated. We do that here
             //if pb doc has children docs already: delete them, update links to new docs
         function checkOldPb (argument, cb1) {
-//          console.log("function 6");
+          console.log("function 6");
           if (String(docRoot.label)=="pb") {
             Doc.findOne({_id: docRoot._id}, function(err, document){
               var docChildren=document.children;
@@ -315,7 +318,7 @@ var DocSchema = extendNodeSchema('Doc', {
         },
         function(argument, cb1) {
           if (docs.length > 0) {
-//            console.log("function 8");
+            console.log("function 8");
   //          console.log("all our docs"); console.log(docs);
             //add community to each one
             docs.forEach(function(eachDoc){eachDoc.community=globalCommAbbr})
@@ -458,9 +461,11 @@ var DocSchema = extendNodeSchema('Doc', {
               if (topEntities[i].isTerminal) topEntities.splice(i, 1);
             }
             if (topEntities.length) {
+//              console.log(topEntities);
+              console.log("function 12a");
               async.forEachOf(topEntities, function(up) {
+//                console.log(up)
                 const cb2 = _.last(arguments);
-                console.log(topEntities);
                 //do this differently. Check if we have an entityName in the entities array. If we do, no need to do anythiing. Else, add it
                 Community.findOne({'abbr': communityAbbr, "entities.entityName":up.entityName}, function(err,myComm){
   //                console.log(myComm);
@@ -475,9 +480,12 @@ var DocSchema = extendNodeSchema('Doc', {
             } else cb1(null, self);
           },
           function(argument, cb1) {
+            console.log("function 12c");
             if (insertTeis.length > 0) {
       //        insertTeis.forEach(function(eachTEI){eachTEI.community=globalCommAbbr})
               TEI.collection.insert(insertTeis, function(err) {
+                console.log("function 12d");
+                console.log(err);
                 cb1(err, self);
               });
             } else {
@@ -525,18 +533,28 @@ var DocSchema = extendNodeSchema('Doc', {
           } else cb1(null, []);
         } */
       ], function (err) {
-  //        console.log("at the end of it all..")
+          console.log("at the end of it all..")
+          inProcess=false;
           callback(null);
         }
        );
     },
     commit: function(data, callback) {
-//      console.log("function 14");
+      console.log("function comm 1");
+      console.log(inProcess);
       var self = this
         , teiRoot = data.tei || {}
         , docRoot = _.defaults(data.doc, self.toObject())
         , revision = data.revision
       ;
+      console.log(docRoot);
+      if (inProcess) { //can happen with browser resending call
+        //
+        callback({error:true, message:"Error: likely because you are loading a very largcdocument. It is possible the document loaded correctly, but there may be an empty duplicate. Check and delete any empty duplicate"})
+        return;
+      }
+      inProcess=true;
+
       async.waterfall([
         function(cb1) {
           Doc.getOutterTextBounds(self._id, cb1);
@@ -552,7 +570,7 @@ var DocSchema = extendNodeSchema('Doc', {
                 );
               });
             });
-          }
+          } else {inProcess=false}
           self._commit(
             teiRoot, docRoot, leftBound, rightBound,
             function(err) {
@@ -560,7 +578,8 @@ var DocSchema = extendNodeSchema('Doc', {
             }
           );
         },
-      ], callback);
+      ], callback
+      );
     },
   },
   statics: {
@@ -1457,6 +1476,7 @@ function vaporizeEntity (entityEl, isTopEntity, callback) {
     callback(err, true);
   });
 }
+
 
 const Doc = mongoose.model('Doc', DocSchema);
 module.exports = Doc;

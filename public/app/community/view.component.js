@@ -47,10 +47,8 @@ var ViewComponent = ng.core.Component({
       self.docnames=res;
       for (var i=0; i<self.state.community.attrs.documents.length; i++) {
         self.state.community.attrs.documents[i].attrs.name=res[i].name;
-  //      self.state.community.attrs.documents[i].attrs.entities=[];
-  //      self.state.community.attrs.documents[i].attrs.children=[{attrs:{image:""}}];
-
-//        self.state.community.attrs.documents[i].attrs.children= new Array(res[i].npages).fill({attrs: {image: ""}});
+        if (self.state.community.attrs.documents[i].attrs.children.length==0 && res[i].npages!=0)
+          self.state.community.attrs.documents[i].attrs.children[0]={attrs:"dummy"}  //idea is to force not to show add page if we have pages */
       }
     });
     $( window ).resize(function() {
@@ -238,7 +236,7 @@ var ViewComponent = ng.core.Component({
      ], function (err) {
        if (!err) {
          self.collationEditor=true;
-         var src="http://127.0.0.1:8080/collation/?dbUrl="+config.BACKEND_URL+"&entity="+entity.entityName+"&community="+this.state.community.attrs.abbr;
+         var src=config.COLLATE_URL+"/collation/?dbUrl="+config.BACKEND_URL+"&entity="+entity.entityName+"&community="+this.state.community.attrs.abbr;
          $('#ce_iframe').attr('src', src);
         }
        }

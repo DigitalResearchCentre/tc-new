@@ -838,7 +838,7 @@ router.post('/deleteDocument', function(req, res, next) {
     async.waterfall([
       function(cb) {
         Doc.findOne({_id: ObjectId(docroot)}, function(err, document) {
-    //      console.log(document);
+          console.log(document);
           pages=document.children;
           globalDoc=document;
           npages=document.children.length;
@@ -850,8 +850,14 @@ router.post('/deleteDocument', function(req, res, next) {
         //find the tei  which is ancestor text of this doc
         TEI.findOne({docs: docroot}, function (err, deleteRoot) {
           if (!deleteRoot) {
-    //         console.log("did not find root")
-             cb(null, []);
+             console.log("did not find root") //could happen if this doc is the result of an error in writing a large doc
+             //in this case: delete the doc, remove from community, return...
+             Community.update({'abbr': globalCommAbbr}, { $pull: { documents: docroot } }, function(err){
+               Doc.collection.remove({_id: ObjectId(docroot)}, function(err) {
+                 console.log("destroy")
+                 cb({error:"doc vestige here only"}, []);
+               });
+             });
           } else {
             if (deleteRoot.name=="text") {
               deleteTeis.push(deleteRoot._id);
