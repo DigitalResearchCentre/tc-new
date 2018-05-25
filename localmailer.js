@@ -8,6 +8,6 @@ let transporter = nodemailer.createTransport({
 
 exports.localmailer = transporter;
 exports.addresses = {
-	from: 'peter@sd-editions.com',
-	replyto: 'peter@sd-editions.com'
+	from: 'textualcommunities@usask.ca',
+	replyto: 'textualcommunities@usask.ca'
 };
