@@ -132,30 +132,6 @@ var AddDocumentXMLComponent = ng.core.Component({
             if (result!="success") {
               self.message="The save failed. Maybe you have lost your internet connection.";
               self.success="";
-            } else if (self.state.community.attrs.abbr=="JDDP")
-            {  //make a revision page for each page. We need this when importing transcripts so let's have it anyway
-              self.success+=" Now making default revisions for "+mydoc.attrs.children.length+" pages: "
-              var counter=0;
-              async.mapSeries(mydoc.attrs.children, function(page, callback){
-                counter++;
-                if (counter%5==0) self.success+=counter+" ";
-                docService.getTextTree(page).subscribe(function(teiRoot) {
-                  var isDefault=false;
-                  var dbRevision = self.json2xml(prettyTei(teiRoot));
-                    docService.addRevision({
-                    doc: page.getId(),
-                    text: dbRevision,
-                    user: self.state.authUser._id,
-                    community: self.state.community.attrs.abbr,
-                    committed: new Date(),
-                    status: 'COMMITTED',
-                  }).subscribe(function(revision){
-                    callback(null);
-                  })
-                })
-              }, function(err){
-                self.success="Document loaded, default page revisions written."
-              });
             }
           });
           //is this community visible...

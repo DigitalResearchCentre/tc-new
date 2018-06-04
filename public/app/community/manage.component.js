@@ -80,6 +80,11 @@ var ManageCommunityComponent = ng.core.Component({
     this._uiService.manageModal$.emit({
        type: 'export-tc1dbversion',
      });
+  },
+  createDefaultTranscripts: function(){
+    this._uiService.manageModal$.emit({
+       type: 'create-defaulttranscripts',
+     });
   }
 });
 

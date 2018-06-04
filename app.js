@@ -56,6 +56,7 @@ app.use(bodyParser.urlencoded({
   limit: '50mb',
 }));
 
+app.use('/uri', require('./routes/uri'));
 app.use('/api', require('./routes/api'));
 app.use('/auth', require('./routes/auth'));
 app.all('/app/*', function(req, res) {

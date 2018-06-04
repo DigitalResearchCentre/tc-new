@@ -112,7 +112,7 @@ var DocService = ng.core.Injectable().Class({
     });
     return this.http.get(url, this.prepareOptions({}))
       .map(function(res) {
-        console.log("function 1");
+  //      console.log("function 1");
         if (!res._body) {
           return {};
         }
@@ -126,7 +126,7 @@ var DocService = ng.core.Injectable().Class({
             return childId;
           });
         });
-        console.log('function 2');
+  //      console.log('function 2');
         _.each(nodesMap, function(node) {
           if (_.isEmpty(node.ancestors)) {
             root = node;
@@ -180,14 +180,14 @@ var DocService = ng.core.Injectable().Class({
     ;
     if (text) {
   //    self._uiService.changeMessage$.emit({type: 'commit', page: "document",   docname: docRoot.name, message: "Parsing the tree"});
-      console.log("function 10");
+  //    console.log("function 10");
       var xmlDoc = parseTEI(text || '')
         , docTags = ['pb', 'cb', 'lb']
         , docQueue = []
         , cur, prevDoc, curDoc, index, label
       ;
       teiRoot = xmlDoc2json(xmlDoc);
-      console.log("function 1");
+//      console.log("function 1");
       if (docRoot.label === 'text') {
         prevDoc = docRoot;
       }
@@ -240,7 +240,7 @@ var DocService = ng.core.Injectable().Class({
           cur.doc = prevDoc._id;
         }
       });
-      console.log("function 13");
+//      console.log("function 13");
     }
     if (docRoot._id) {
       return this.update(docRoot._id, {
@@ -439,7 +439,7 @@ function xmlDoc2json(xmlDoc) {
     , text = xpath(xmlDoc, '//tei:text|//text').iterateNext()
     , obj = createObjTree(text, queue)
   ;
-  console.log("function 15a")
+//  console.log("function 15a")
   while (queue.length > 0) {
     var item = queue.shift()
       , parent = item.parent
@@ -450,7 +450,7 @@ function xmlDoc2json(xmlDoc) {
     }
     parent.children.push(child);
   }
-  console.log("function 15")
+//  console.log("function 15")
   return obj;
 }
 

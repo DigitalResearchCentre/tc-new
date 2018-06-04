@@ -485,7 +485,7 @@ var DocSchema = extendNodeSchema('Doc', {
       //        insertTeis.forEach(function(eachTEI){eachTEI.community=globalCommAbbr})
               TEI.collection.insert(insertTeis, function(err) {
                 console.log("function 12d");
-                console.log(err);
+//                console.log(err);
                 cb1(err, self);
               });
             } else {
@@ -547,7 +547,7 @@ var DocSchema = extendNodeSchema('Doc', {
         , docRoot = _.defaults(data.doc, self.toObject())
         , revision = data.revision
       ;
-      console.log(docRoot);
+//      console.log(docRoot);
       if (inProcess) { //can happen with browser resending call
         //
         callback({error:true, message:"Error: likely because you are loading a very largcdocument. It is possible the document loaded correctly, but there may be an empty duplicate. Check and delete any empty duplicate"})

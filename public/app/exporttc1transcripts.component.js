@@ -85,7 +85,11 @@ var ExportTC1TranscriptsComponent = ng.core.Component({
                   //match against teiPages\
                   if (matchpage) {
                     var teipage=teiPages.filter(function (obj){return (obj.name== mypages[i].name);})[0];
-                    mypages[i].attrs=teipage.attrs;
+                    if (teipage) mypages[i].attrs=teipage.attrs;
+                    else {
+                      var bill=1;
+                      mypages[i].attrs={n:"ERROR"};
+                    }
                   }
                 }
                 if (unmatched!="") self.message+=" Unmatched pages in TC1, not in TC2: "+unmatched;

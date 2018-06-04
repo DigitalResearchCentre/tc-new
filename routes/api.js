@@ -106,7 +106,7 @@ router.post('/communities/:id/add-member', function(req, res, next) {
     , role = req.body.role
     , community
   ;
-  console.log("about to add this member")
+//  console.log("about to add this member")
   async.parallel([
     function(cb) {
       Community.findOne({_id: communityId}).exec(cb);
@@ -408,8 +408,8 @@ router.post('/SUgetAllCommunities', function (req, res, next){
           if (!member) cb1(null, {user: "none", role: "none"})
           User.findOne({_id:member}, function(err, myUser){
             //find membership matching this communitu] -- if it is the leader or creator, say so, else move on
-          console.log(myUser)
-          console.log(community._id)
+//          console.log(myUser)
+//          console.log(community._id)
            var thisMember=myUser.memberships.filter(function (obj){return String(obj.community)== String(community._id);})[0];
             cb1(err, {user: myUser.local.email, role: thisMember.role})
           })
@@ -1246,7 +1246,7 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
                 }
               ], function (err, result){
                   if (!err) {
-                    console.log("about to add new object")
+//                    //("about to add new object")
                     Doc.collection.update({_id:ObjectId(pageId)}, {$push: {"tasks": {userId:userId, name:username, status:"IN_PROGRESS", memberId:memberid, date:new Date(), witname:witname}}}, function (err, result){
                       if (!err) res.json({error:"none"})
                       else res.json({error:err});
@@ -1285,13 +1285,13 @@ router.post('/changeTranscriptStatus', function(req, res, next) {
             //so: go through tasks, check each membership
             if (!err) {
               Doc.findOne({_id: ObjectId(pageId)}, function(err, myDoc){
-                console.log(myDoc);
+//                console.log(myDoc);
                 async.map(myDoc.tasks, function(task, callback){
                   if (task.userId!=userId) {
                     //find the user for this task
-                    console.log(userId)
-                    console.log(task)
-                    console.log(task.userId)
+//                    console.log(userId)
+//                    console.log(task)
+//                    console.log(task.userId)
                     User.findOne({_id:ObjectId(task.userId)}, function(err, myUser){
                       //is there a membership for this user which has the current user as approver?
                       for (var i=0; i<myUser.memberships.length; i++) {
@@ -2285,10 +2285,10 @@ router.use(function(err, req, res, next) {
 
 //load all the witnesses in one operation
 router.post('/getCEWitnesses', function(req, res, next) {
-  console.log(req.query.community);
-  console.log(req.body.witnesses);
-  console.log(req.body.base);
-  console.log(req.body.entity);
+//   console.log(req.query.community);
+//  console.log(req.body.witnesses);
+//  console.log(req.body.base);
+//  console.log(req.body.entity);
   var witnesses=req.body.witnesses;
   var community=req.query.community;
   var base=req.body.base;
@@ -2403,10 +2403,13 @@ function getCEWitness(witness, community, entity, callback) {
       }
     ], function (err, result){
       if (err=="no witness") {
-        console.log("no text found for "+witness)
+//        //("no text found for "+witness)
         callback(null, {})
       }
-      else callback(err, result);
+      else {
+        console.log(result);
+        callback(err, result);
+      }
     })
 }
 
@@ -2421,7 +2424,7 @@ router.get('/getTranscriberRecord', function(req, res, next){
   var month=30*day;
   var year=365*day;
   var now=Date.now();
-  console.log(interval);
+//  console.log(interval);
   if (interval=="default") var days=3, weeks=3, months=3;
   if (interval=="day") var days=300000, weeks=0, months=0;
   if (interval=="week") var days=0, weeks=300000, months=0;
@@ -2756,6 +2759,7 @@ router.get('/cewitness', function(req, res, next) {
 //      console.log("ms is"+result);
       //save it to the tei for this entity in this ms...
 //      console.log("to save it we need ms "+req.query.witness+" community "+req.query.community+" entity "+req.query.entity)
+      console.log(result);
       res.json(JSON.parse(result));
     }
   });
@@ -2910,7 +2914,7 @@ router.post('/getRulesByIds', function(req, res, next){
 
 
 router.get('/isAlreadyCollation', function(req, res, next) {
-  console.log("entity "+req.query.entity+" status "+req.query.status+" commiunity "+req.query.community);
+//  console.log("entity "+req.query.entity+" status "+req.query.status+" commiunity "+req.query.community);
   Collation.find({entity:req.query.entity, model:"collation", status: req.query.status, community: req.query.community}, function(err, found){
 //    console.log(err);
     if (found.length>0) res.json({status:true});

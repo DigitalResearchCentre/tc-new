@@ -180,7 +180,7 @@ var FunctionService = {
           word+=suffix;
           //hmm.. if expanword contains <am>, push it. Note that we might also treat other 'mirror elements' similarly
           //ok, deal with am ex here
-          if (expanword.search("<am")!=-1) {
+          if (expanword.indexOf("<am")!=-1) {
             origword = expanword;
             var re_am2 = /<am(.*?)<\/am>/g;
             var re_ex = /<ex>(.*?)<\/ex>/g;
@@ -224,7 +224,23 @@ var FunctionService = {
     }
     else words.push({word:word, expanword:"", xmlword:"", origword:"", punctbefore: punctbefore, punctafter:punctafter});
   }
-//  console.log(words)
+  console.log("my words");
+  console.log(words);
+  //fix here for problems in treatment of abbreviations
+  for (var i=0; i<words.length; i++) {
+    if (words[i].origword=="" && words[i].xmlword!="" && words[i].xmlword.indexOf("<am")!=-1) {
+      var re_am2 = /<am(.*?)<\/am>/g;
+      var re_ex = /<ex>(.*?)<\/ex>/g;
+      var re_ex2= /<ex(.*?)<\/ex>/g;
+      var re_am = /<am>(.*?)<\/am>/g;
+      words[i].origword=words[i].expanword.replace(re_ex2, "").replace(re_am, "$1");
+      words[i].expanword=words[i].expanword.replace(re_am2, "").replace(re_ex, "$1");
+    } else if (words[i].word=="" && words[i].xmlword!=""){
+      //we can end up with fqke entry... this takes it out
+      words.splice(i, 1);
+      i--;
+    }
+  }
   return(words);
 },
  getRdgTypes: function(content, witness) {
