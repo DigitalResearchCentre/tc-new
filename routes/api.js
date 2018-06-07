@@ -14,6 +14,7 @@ var _ = require('lodash')
   , config = require('../config')
   , gridfs = require('../utils/gridfs')
   , libxml = require('libxmljs')
+  , defer = require("promise-defer")
   , Community = models.Community
   , Action = models.Action
   , User = models.User
@@ -530,7 +531,7 @@ function procTEIs (teiID, callback) {
 }
 
 function loadTEIContent(version, content) {
-  var deferred = Promise.defer();
+  var deferred = defer();
   if (version.children.length) {
     async.map(version.children, procTEIs, function (err, results) {
         var newContent="";

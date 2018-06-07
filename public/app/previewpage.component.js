@@ -53,7 +53,7 @@ window.uploadDone=function(){
 		p4=p4.replace(/<\/cell/g, "</td");
     p4=p4.replace(/ rend=/g, " class=");
   $('#previewdiv').contents().find('body').html(p4);  //should we update this? probably. No need to stay with 1.10 version
-  self.restService.http.get('https://code.jquery.com/jquery-1.10.2.min.js').subscribe(function(jqueryfile) {
+  self.restService.http.get('https://code.jquery.com/jquery-2.2.3.min.js').subscribe(function(jqueryfile) {
      $('#previewdiv').contents().find('head').append("<script type='text/javascript'>"+jqueryfile._body+"</script>\r");
      self.restService.http.get('/app/data/default.css').subscribe(function(cssfile) {
         $('#previewdiv').contents().find('head').append("<style>"+cssfile._body+"</style>\r");

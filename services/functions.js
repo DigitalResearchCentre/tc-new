@@ -236,7 +236,7 @@ var FunctionService = {
       words[i].origword=words[i].expanword.replace(re_ex2, "").replace(re_am, "$1");
       words[i].expanword=words[i].expanword.replace(re_am2, "").replace(re_ex, "$1");
     } else if (words[i].word=="" && words[i].xmlword!=""){
-      //we can end up with fqke entry... this takes it out
+      //we can end up with fqke entry, like xml encoding around a space... this takes it out
       words.splice(i, 1);
       i--;
     }

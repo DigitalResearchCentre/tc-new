@@ -3,22 +3,22 @@
 var prepareMe = function(){
 
  //if we contain <abbr> or <expan> tags: lets toggle between views.. no longer support mirror tags
- var $expan=$('#previewdiv').contents().find('expan');
- var $abbr=$('#previewdiv').contents().find('abb');
- var $am=$('#previewdiv').contents().find('am');
- var $ex=$('#previewdiv').contents().find('ex');
- var $sic=$('#previewdiv').contents().find('sic');
- var $corr=$('#previewdiv').contents().find('corr');
- var $reg=$('#previewdiv').contents().find('reg');
- var $orig=$('#previewdiv').contents().find('orig');
- var $choice=$('#previewdiv').contents().find('choice');
- var $app=$('#previewdiv').contents().find('app');
- var $gap=$('#previewdiv').contents().find('gap');
- var $unclear=$('#previewdiv').contents().find('unclear');
+ var $expan=$('expan')
+ var $abbr=$('abb');
+ var $am=$('am');
+ var $ex=$('ex');
+ var $sic=$('sic');
+ var $corr=$('corr');
+ var $reg=$('reg');
+ var $orig=$('orig');
+ var $choice=$('choice');
+ var $app=$('app');
+ var $gap=$('gap');
+ var $unclear=$('unclear');
   //put everything in a container div, except select div
 // $('#previewBody').css({"margin-left":"15px", "margin-right":"18px"});
- $('#previewdiv').contents().find('body').css({"margin-left":"15px", "margin-right":"18px"});
- $('#previewdiv').contents().find('body').children().wrapAll('<div id="TCPContainer" style="margin-top: 10px;  padding-top:10px">');  //this will contain what we are editing -- margin divs go left, right, above, below
+ $('body').css({"margin-left":"15px", "margin-right":"18px"});
+ $('body').children().wrapAll('<div id="TCPContainer" style="margin-top: 10px;  padding-top:10px">');  //this will contain what we are editing -- margin divs go left, right, above, below
  if ($expan.length || $abbr.length || $sic.length || $corr.length || $reg.length || $orig.length || $choice.length || $am.length || $ex.length) {
    makeSelectMenu();
    toggleOrig();
@@ -59,7 +59,7 @@ function doTables() {
 }
 
 function doBreaks() {
-  $('#previewdiv').contents().find('lb').each (function (i){
+  $('lb').each (function (i){
     if ($(this).is("[break]"))
 			var wbreak=$(this).attr("break");
 		else var wbreak="yes";
@@ -92,7 +92,7 @@ function doGaps() {
 
 function makeAppReadingsMenu(){
 	var rdgs = new Object();
-	$('#previewdiv').contents().find('app').each (function (i) {
+	$('app').each (function (i) {
 		var titletip="";
 		$(this).children('rdg').each (function (j) {
 			if (j!=0) titletip+="\n";
@@ -117,13 +117,13 @@ function makeAppReadingsMenu(){
 			select.appendChild(option);
 		 }
 	}
-	if ($('#previewdiv').contents().find('#sdiv').length!=0) $('#previewdiv').contents().find('#sdiv').append(select);
+	if ($('#sdiv').length!=0) $('#sdiv').append(select);
 	else {
 		var selectdiv=document.createElement('div');
 	 	selectdiv.id="sdiv";
 	 	selectdiv.style.textAlign="center";
 		selectdiv.appendChild(select);
-		var body=$('#previewdiv').contents().find('body');
+		var body=$('body');
     $body.prepend(selectdiv);
 	}
 }
@@ -133,54 +133,53 @@ function makeAppReadingsMenu(){
   var rightonly=0;
  	var leftonly=0;
  	var leftandright=0;
- 	if ($('#previewdiv').contents().find('#TCrm').length!=0 && $('#previewdiv').contents().find('#TClm').length==0) rightonly=1;
- 	else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length==0) leftonly=1;
-  else if ($('#previewdiv').contents().find('#TClm').length!=0 && $('#previewdiv').contents().find('#TCrm').length!=0) leftandright=1;
+ 	if ($('#TCrm').length!=0 && $('#TClm').length==0) rightonly=1;
+ 	else if ($('#TClm').length!=0 && $('#TCrm').length==0) leftonly=1;
+  else if ($('#TClm').length!=0 && $('#TCrm').length!=0) leftandright=1;
 //  console.log("rightonly "+rightonly+" leftonly "+leftonly+" rightandleft "+leftandright)
-    var origwidth=$('#previewdiv').contents().find('body').width();
-    $('#previewdiv').contents().find('body').css({"width":"3000px"});
-    $('#previewdiv').contents().find('#TCPContainer').css({"float":"left"});
-    var width = $('#previewdiv').contents().find('#TCPContainer').width();
-    $('#previewdiv').contents().find('body').css({"width":""});
+    var origwidth=$('body').width();
+    $('body').css({"width":"3000px"});
+    $('#TCPContainer').css({"float":"left"});
+    var width = $('#TCPContainer').width();
+    $('body').css({"width":""});
     //set minwidth...
     var minwidth=width;
     if (rightonly==1) minwidth=width+width/4+10;
     if (leftonly==1) minwidth=width+width/4+10;
     if (leftandright==1) minwidth=width+(width*0.4)+10;
     if (minwidth>1200) minwidth=1200;
-    $('#previewdiv').contents().find('body').css({"min-width": minwidth+"px"});
+    $('body').css({"min-width": minwidth+"px"});
  // 	$('body').width(width);
- 	if ($('#previewdiv').contents().find('#TCtm').length!=0) {
- 		$('#previewdiv').contents().find('#TCtm').css({"position":"relative", "width":"100%"}) ;
-		if ($('#previewdiv').contents().find('#tl').length!=0) $('#previewdiv').contents().find('#tl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
-		if ($('#previewdiv').contents().find('#tm').length!=0) $('#previewdiv').contents().find('#tm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
-		if ($('#previewdiv').contents().find('#tr').length!=0) $('#previewdiv').contents().find('#tr').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
+ 	if ($('#TCtm').length!=0) {
+ 		$('#TCtm').css({"position":"relative", "width":"100%"}) ;
+		if ($('#tl').length!=0) $('#tl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
+		if ($('#tm').length!=0) $('#tm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
+		if ($('#tr').length!=0) $('#tr').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
 		//add dummy div here, to clear
-		if ($('#previewdiv').contents().find('#TCdummy').length==0)  $('#previewdiv').contents().find('#TCtm').after('<div id="TCdummy" style="clear: both"></div>');
+		if ($('#TCdummy').length==0)  $('#TCtm').after('<div id="TCdummy" style="clear: both"></div>');
 	}
-	if ($('#previewdiv').contents().find('#TCbm').length!=0) {
-		$('#previewdiv').contents().find('#TCbm').css({"position":"relative", "width":"100%", "margin-top":"20px", "top":"20"}) ;
-		if ($('#previewdiv').contents().find('#bl').length!=0) $('#previewdiv').contents().find('#bl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
-		if ($('#previewdiv').contents().find('#bm').length!=0) $('#previewdiv').contents().find('#bm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
-		if ($('#previewdiv').contents().find('#br').length!=0) $('#previewdiv').contents().find('#br').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
+	if ($('#TCbm').length!=0) {
+		$('#TCbm').css({"position":"relative", "width":"100%", "margin-top":"20px", "top":"20"}) ;
+		if ($('#bl').length!=0) $('#bl').css({"left": "0px", "margin-top": "0px", "position" : "absolute", "width":"20%"});
+		if ($('#bm').length!=0) $('#bm').css({"position":"absolute", "left": "15%", "margin-top": "0px", "width" : "60%", "text-align": "center"});
+		if ($('#br').length!=0) $('#br').css({"right": "10%", "position":"absolute",  "margin-top": "0px", "text-align": "right", "width": "20%"});
 		//add dummy div here, to clear
-		if ($('#previewdiv').contents().find('#TCdummy2').length==0)  $('#previewdiv').contents().find('#TCbm').after('<div id="TCdummy2" style="clear: both;">&nbsp;</div>');
+		if ($('#TCdummy2').length==0)  $('#TCbm').after('<div id="TCdummy2" style="clear: both;">&nbsp;</div>');
 	}
 
- 	if ($('#previewdiv').contents().find('#TCrm').length==0 && $('#previewdiv').contents().find('#TClm').length==0) {
- 		$('#previewdiv').contents().find('#TCPContainer').css({"margin-left": "15px", "margin-right": "15px"});
+ 	if ($('#TCrm').length==0 && $('#TClm').length==0) {
+ 		$('#TCPContainer').css({"margin-left": "15px", "margin-right": "15px"});
  	}
-
   if (leftandright==1) {
-    $('#previewdiv').contents().find('#TClm').css({"width": "20%", "float":"left"});
-    $('#previewdiv').contents().find('#TCPContainer').css({"width": "50%", "float":"left"});
-    $('#previewdiv').contents().find('#TCrm').css({"width": "20%", "float":"left"});
+    $('#TClm').css({"width": "20%", "float":"left"});
+    $('#TCPContainer').css({"width": "50%", "float":"left"});
+    $('#TCrm').css({"width": "20%", "float":"left"});
   } else if (rightonly) {
-    $('#previewdiv').contents().find('#TCrm').css({"width": "20%", "float":"left"});
-    $('#previewdiv').contents().find('#TCPContainer').css({"width": "75%", "float":"left"});
+    $('#TCrm').css({"width": "20%", "float":"left"});
+    $('#TCPContainer').css({"width": "75%", "float":"left"});
   } else if (leftonly) {
-    $('#previewdiv').contents().find('#TClm').css({"width": "20%", "float":"left"});
-    $('#previewdiv').contents().find('#TCPContainer').css({"width": "75%", "float":"left"});
+    $('#TClm').css({"width": "20%", "float":"left"});
+    $('#TCPContainer').css({"width": "75%", "float":"left"});
   }
  }
 
@@ -191,20 +190,20 @@ function makeAppReadingsMenu(){
 	notesdiv.id="TCnotes";
 	notesdiv.style.width="100%";
  	notesdiv.style.clear="both";
-	$('#previewdiv').contents().find('#TCPContainer').after(notesdiv);
+	$('#TCPContainer').after(notesdiv);
  	var notenum=0;
  	//in older tei: we used rend.  Now, we use place
-  	$('#previewdiv').contents().find('note').each (function (i) {
-//      console.log(this);
+  	$("note").each (function (i) {
+      console.log(this);
   	// here is the logic.  simple rend=marg or marg-right: put it in the right margin, aligned at same height as original
   		if ($(this).attr('place')=='margin' || $(this).attr('place')=='margin-right' ) {
   			var top=$(this).position().top;
 //        console.log("top1 "+top);
-        if ($('#previewdiv').contents().find('#TCrm').length==0) {
+        if ($('#TCrm').length==0) {
   				rmdiv=document.createElement('div');
   				rmdiv.id="TCrm";
   				rmdiv.style.marginRight="15px";
-  				$('#previewdiv').contents().find('#TCPContainer').after(rmdiv);
+  				$('#TCPContainer').after(rmdiv);
   			}
 			var newnote=document.createElement('note');
 			newnote.innerHTML=$(this).html();
@@ -214,16 +213,16 @@ function makeAppReadingsMenu(){
 //      console.log("top2 "+top);
 			newnote.style.top=""+top+'px';
   //    console.log(newnote);
-			$('#previewdiv').contents().find('#TCrm').append(newnote);
+			$('#TCrm').append(newnote);
 			$(this).hide();
 
   		} else if ($(this).attr('place')=='margin-left') {
   			var top=$(this).position().top;
-  			if ($('#previewdiv').contents().find('#TClm').length==0) {
+  			if ($('#TClm').length==0) {
   				lmdiv=document.createElement('div');
   				lmdiv.id="TClm";
   				lmdiv.style.marginLeft="15px";
-  				$('#previewdiv').contents().find('#TCPContainer').before(lmdiv);
+  				$('#TCPContainer').before(lmdiv);
   			}
 			var newnote=document.createElement('note');
 			newnote.innerHTML=$(this).html();
@@ -231,11 +230,11 @@ function makeAppReadingsMenu(){
 			newnote.id='TCnote'+i;
 			$(this).attr('data-id','TCnote'+i);
 			newnote.style.top=top+'px';
-			$('#previewdiv').contents().find('#TClm').append(newnote);
+			$('#TClm').append(newnote);
 			$(this).hide();
   		} else if ( $(this).attr('type')=='ed') {
  			notenum+=1;
- 			if (notenum=="1") $('#previewdiv').contents().find('#TCnotes').append("<hr/>");
+ 			if (notenum=="1") $('#TCnotes').append("<hr/>");
   			var mynote='<a href="#n'+notenum+'">'+notenum+'</a>. '+ $(this).html();
   			if ($(this).attr('resp'))
   				mynote+="&nbsp;("+$(this).attr('resp')+")&nbsp;&nbsp;&nbsp;";
@@ -243,7 +242,7 @@ function makeAppReadingsMenu(){
   			var newnote=document.createElement('note');
   			newnote.innerHTML=mynote
   			newnote.id=notenum;
-  			$('#previewdiv').contents().find('#TCnotes').append(newnote);
+  			$('#TCnotes').append(newnote);
   		} else if ($(this).attr('place')) {
   			var rendval=$(this).attr('place');
   			createTBMNote(rendval, $(this));
@@ -252,7 +251,7 @@ function makeAppReadingsMenu(){
  }
 
 function doFrame() {
-	$('#previewdiv').contents().find('fw').each (function (i) {
+	$('fw').each (function (i) {
 //    console.log("got a fw")
 		var rendval=$(this).attr('place');
 		createTBMNote(rendval, $(this));
@@ -265,35 +264,35 @@ function doFrame() {
 			 case 'tm':
 			 case 'tl':
 			 case 'tr':
-				if ($('#previewdiv').contents().find('#TCtm').length==0) {
+				if ($('#TCtm').length==0) {
 					TCtmdiv=document.createElement('div');
 					TCtmdiv.id='TCtm';
 					TCtmdiv.style.marginTop="10px";
-					if ($('#previewdiv').contents().find('#TClm').length!=0) $('#previewdiv').contents().find('#TClm').before(TCtmdiv);
-					else $('#previewdiv').contents().find('#TCPContainer').before(TCtmdiv);
+					if ($('#TClm').length!=0) $('#TClm').before(TCtmdiv);
+					else $('#TCPContainer').before(TCtmdiv);
 					var thisdiv=TCtmdiv;
 					break;
-				} else var thisdiv=$('#previewdiv').contents().find('#TCtm');
+				} else var thisdiv=$('#TCtm');
 				break;
 			case 'bm':
 			case 'bl':
 			case 'br':
 			default:
-				if ($('#previewdiv').contents().find('#TCbm').length==0) {
+				if ($('#TCbm').length==0) {
 					TCbmdiv=document.createElement('div');
 					TCbmdiv.id='TCbm';
 					TCbmdiv.style.clear="both";
-					if ($('#previewdiv').contents().find('#TCrm').length!=0) $('#TCrm').after(TCbmdiv);
-					else $('#previewdiv').contents().find('#TCPContainer').after(TCbmdiv);
+					if ($('#TCrm').length!=0) $('#TCrm').after(TCbmdiv);
+					else $('#TCPContainer').after(TCbmdiv);
 					var thisdiv=TCbmdiv;
 					break;
-				} else var thisdiv=$('#previewdiv').contents().find('#TCbm')
+				} else var thisdiv=$('#TCbm')
 		}
 	    if ($('#'+rendval).length==0) {
 				var innerdiv=document.createElement('div');
 				innerdiv.id=rendval;
 				thisdiv.appendChild(innerdiv)
-      } else var innerdiv=$('#previewdiv').contents().find('#'+rendval);
+      } else var innerdiv=$('#'+rendval);
 		var newnote=document.createElement('note');
 		if (thiselement.prop("tagName")=="FW") {
 			switch (thiselement.attr("type")) {
@@ -328,14 +327,14 @@ function doFrame() {
 	selectdiv.appendChild(select);
 	var btn=document.createTextNode(" ");
 	selectdiv.appendChild(btn);
-    var $body=$('#previewdiv').contents().find('body')
+    var $body=$('body')
     $body.prepend(selectdiv);
 //    console.log(selectdiv)
  }
 
  function chooseReadings(){
- 	var rdgtype=$('#previewdiv').contents().find("#selectrdg").val();
- 	$('#previewdiv').contents().find('app').each (function (i) {
+ 	var rdgtype=$("#selectrdg").val();
+ 	$('app').each (function (i) {
  		var foundrdg=false;
  		$(this).children('rdg').each (function (j) {
 			if ($(this).attr('type')==rdgtype) {
@@ -354,23 +353,23 @@ function doFrame() {
  }
 
  function toggleOrig() {
-   if ($('#previewdiv').contents().find("#selectshow").val() =="original") {
-      $('#previewdiv').contents().find('expan').hide();
-      $('#previewdiv').contents().find('abbr').show();
-      $('#previewdiv').contents().find('ex').hide();
-     	$('#previewdiv').contents().find('am').show();
-      $('#previewdiv').contents().find('corr').hide();
-      $('#previewdiv').contents().find('sic').show();
-      $('#previewdiv').contents().find('reg').hide();
-      $('#previewdiv').contents().find('orig').show();
+   if ($("#selectshow").val() =="original") {
+      $('expan').hide();
+      $('abbr').show();
+      $('ex').hide();
+     	$('am').show();
+      $('corr').hide();
+      $('sic').show();
+      $('reg').hide();
+      $('orig').show();
    	} else {
-      $('#previewdiv').contents().find('expan').show();
-      $('#previewdiv').contents().find('abbr').hide();
-      $('#previewdiv').contents().find('ex').show();
-      $('#previewdiv').contents().find('am').hide();
-      $('#previewdiv').contents().find('corr').show();
-      $('#previewdiv').contents().find('sic').hide();
-      $('#previewdiv').contents().find('reg').show();
-      $('#previewdiv').contents().find('orig').hide();
+      $('expan').show();
+      $('abbr').hide();
+      $('ex').show();
+      $('am').hide();
+      $('corr').show();
+      $('sic').hide();
+      $('reg').show();
+      $('orig').hide();
   	}
  }
