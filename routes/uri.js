@@ -96,7 +96,7 @@ router.get('**', function(req, res, next) {
                 var children=[];
                 if (err) {next(err)} else {
                   //ok. what are we returning. If it is a page, we are currently supporting xml and a full html page
-                  if (foundDoc.label=="pb") {
+                  if (foundDoc.label=="pb" || foundDoc.label=="lb" || foundDoc.label=="cb" ){
                     Doc.getTexts(foundDoc._id, function(err, texts) {
                       if (err) { next(err)} else {
                         if (req.query.type=="transcript" && req.query.format=="xml") {
