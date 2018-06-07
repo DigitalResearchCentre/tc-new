@@ -224,8 +224,8 @@ var FunctionService = {
     }
     else words.push({word:word, expanword:"", xmlword:"", origword:"", punctbefore: punctbefore, punctafter:punctafter});
   }
-  console.log("my words");
-  console.log(words);
+//  console.log("my words");
+//  console.log(words);
   //fix here for problems in treatment of abbreviations
   for (var i=0; i<words.length; i++) {
     if (words[i].origword=="" && words[i].xmlword!="" && words[i].xmlword.indexOf("<am")!=-1) {

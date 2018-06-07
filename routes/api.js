@@ -839,7 +839,7 @@ router.post('/deleteDocument', function(req, res, next) {
     async.waterfall([
       function(cb) {
         Doc.findOne({_id: ObjectId(docroot)}, function(err, document) {
-          console.log(document);
+    //      console.log(document);
           pages=document.children;
           globalDoc=document;
           npages=document.children.length;
@@ -851,11 +851,11 @@ router.post('/deleteDocument', function(req, res, next) {
         //find the tei  which is ancestor text of this doc
         TEI.findOne({docs: docroot}, function (err, deleteRoot) {
           if (!deleteRoot) {
-             console.log("did not find root") //could happen if this doc is the result of an error in writing a large doc
+  //           console.log("did not find root") //could happen if this doc is the result of an error in writing a large doc
              //in this case: delete the doc, remove from community, return...
              Community.update({'abbr': globalCommAbbr}, { $pull: { documents: docroot } }, function(err){
                Doc.collection.remove({_id: ObjectId(docroot)}, function(err) {
-                 console.log("destroy")
+  //               console.log("destroy")
                  cb({error:"doc vestige here only"}, []);
                });
              });
@@ -2408,7 +2408,7 @@ function getCEWitness(witness, community, entity, callback) {
         callback(null, {})
       }
       else {
-        console.log(result);
+  //      console.log(result);
         callback(err, result);
       }
     })
@@ -2760,7 +2760,7 @@ router.get('/cewitness', function(req, res, next) {
 //      console.log("ms is"+result);
       //save it to the tei for this entity in this ms...
 //      console.log("to save it we need ms "+req.query.witness+" community "+req.query.community+" entity "+req.query.entity)
-      console.log(result);
+//      console.log(result);
       res.json(JSON.parse(result));
     }
   });
