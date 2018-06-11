@@ -45,7 +45,8 @@ var ManageModalComponent = ng.core.Component({
     require('./transcriberhistory.component'),
     require('./exporttc1dbversion.component'),
     require('./community/getdocinf.component'),
-    require('./createdefaulttranscripts.component')
+    require('./createdefaulttranscripts.component'),
+    require('./retrievecollation.component')
   ]
 }).Class({
   constructor: [CommunityService, UIService, RESTService, function(communityService, uiService, restService) {
@@ -241,6 +242,10 @@ var ManageModalComponent = ng.core.Component({
       }
       else if (event.type ==='create-defaulttranscripts'){
         self.choice=event.type
+      }
+      else if (event.type ==='retrievecollation'){
+        self.choice=event.type;
+        self.community=event.community;
       }
       else if (event.type ==='getdocinf'){
         self.choice=event.type;

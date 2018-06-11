@@ -89,8 +89,9 @@ router.get('**', function(req, res, next) {
             if (detparts[1].indexOf("entity=")!=-1 && detparts[1].indexOf("document=")!=-1) {
               res.send(" text found: "+detparts[1]);
             } else if (detparts[1].indexOf("entity=")!=-1) {
-
-              res.send(" entity found: "+detparts[1]);
+              entityRequest(req, res, community.entities, detparts[1], entityparts, 0, authparts[4], function(err, foundEntity) {
+                if (!err) res.json(foundEntity);
+              });
             } else if (detparts[1].indexOf("document=")!=-1) {
               docRequest(req, res, community.documents, detparts[1], docparts, 0, function(err, foundDoc) {
                 var children=[];
@@ -173,21 +174,100 @@ function formatXML(texts, isXML) {
   return(myPage);
 }
 
+function entityRequest(req, res, entities, name, entityparts, i, community, callback) {
+  if (entityparts[i].value=="*") { //wild card for docs at this level
+    if (entityparts[i].property=="*"|| (i==0 && entityparts[i].property=="entity")) {
+      async.mapSeries(entities, function(myEntity, cb){ //how many children does each one have
+        Entity.find({ancestorName:myEntity.entityName}, function(err, myentities){
+          cb(err, {name:myEntity.name, label:entityparts[i].property, nparts: myentities.length})
+        });
+      }, function (err, results) {
+  //      console.log(results);
+        if (!err) res.json(results);
+        else res.send(err);
+      })
+    } else {//find by property value
+      //no need to search for entities, we got them already...just return the entities matching this property value
+      async.mapSeries(entities, function(myEntity, cb) {
+        var thisEntityProperty=myEntity.entityName.slice(myEntity.entityName.lastIndexOf(":"),myEntity.entityName.lastIndexOf("="));
+        console.log(thisEntityProperty);
+        if (thisEntityProperty==entityparts[i].property) {
+          Entity.find({ancestorName:myEntity.entityName}, function(err, myentities){
+            cb(err, {name:myEntity.name, label:entityparts[i].property, nparts: myentities.length})
+          });
+        } else cb(err, null);
+      }, function (err, results) {
+          for (var j=0; j<results.length; j++){ if (!results[j]) results.splice(j--,1)};
+          if (!err) res.json(results);
+          else res.send(err);
+      });
+    }
+  } else {//recurse till we hit end, or hit *
+    //construct the entity name to this point..are we matching up to now?
+
+    var thisEnt=community;
+    var foundEnt=false;
+    console.log(entityparts);
+    for (var k=0; k<entityparts.length && k<=i; k++) {thisEnt+=":"+entityparts[k].property+"="+entityparts[k].value}
+    console.log(thisEnt);
+    for (var j=0; j<entities.length; j++) {
+      if (thisEnt==entities[j].entityName.slice(0, thisEnt.length)) {
+        //we match!
+        foundEnt=true;
+        if (i==entityparts.length-1) {//the one we wanted..
+          console.log("here!")
+          callback(null, entities[j]);
+        } else { //go round again
+            //but... only go if this entity has children... else error
+            console.log("again!");
+            Entity.find({ancestorName:thisEnt}, function(err, myentities){
+              if (myentities.length==0) {
+                res.status(400).send('Found "'+thisEnt+'" as part of "'+name+'", but this has no children');
+              } else {
+                entityRequest(req, res, myentities, name, entityparts, i+1, community, callback);
+              }
+            });
+        }
+      }
+    } //if we got here, no match!
+    if (!foundEnt) res.status(400).send("Cannot find "+name);
+  }
+};
+
 function docRequest(req, res, documents, name, docparts, i, callback) {
   if (docparts[i].value=="*") { //wild card for docs at this level
-    var foundline=0;
-    async.mapSeries(documents, function(myDoc, cb){
-      Doc.findOne({_id: myDoc}, function (err, thisDoc){
-        if (!thisDoc.hasOwnProperty('name') && thisDoc.label=="lb") {
-          foundline++;
-          cb(err, {name: foundline, nparts: thisDoc.children.length });
-        }
-        else cb(err, {name: thisDoc.name, nparts: thisDoc.children.length });
-      })
-    }, function (err, results){
-      if (!err) res.json(results);
-      else res.send(err);
-    });
+    if (docparts[i].property=="*" || (i==0 && docparts[i].property=="document")) {
+      var foundline=0;
+      async.mapSeries(documents, function(myDoc, cb){
+        Doc.findOne({_id: myDoc}, function (err, thisDoc){
+          if (!thisDoc.hasOwnProperty('name') && thisDoc.label=="lb") {
+            foundline++;
+            cb(err, {name: foundline, nparts: thisDoc.children.length, label:thisDoc.label,hasImage: thisDoc.hasOwnProperty("image")});
+          }
+          else cb(err, {name: thisDoc.name, nParts: thisDoc.children.length, label:thisDoc.label, hasImage: thisDoc.hasOwnProperty("image")});
+        })
+      }, function (err, results){
+        if (!err) res.json(results);
+        else res.send(err);
+      });
+    } else { //we have a defined property. Filter documents by property name
+      var foundline=0;
+      async.mapSeries(documents, function(myDoc, cb){
+        Doc.findOne({_id: myDoc, label:docparts[i].property}, function (err, thisDoc){
+          if (thisDoc) {
+            if (docparts[i].property=="lb" && !thisDoc.hasOwnProperty('name')) {
+              foundline++;
+              cb(err, {name: foundline, nparts: thisDoc.children.length, label:thisDoc.label, hasImage: thisDoc.hasOwnProperty("image")});
+            } else cb(err, {name: thisDoc.name, nparts: thisDoc.children.length, label:thisDoc.label, hasImage: thisDoc.hasOwnProperty("image") });
+          } else cb(err, null)
+        });
+      }, function (err, results) {
+        //remove non-matching pages
+        for (var i=0; i<results.length; i++){ if (!results[i]) results.splice(i--,1)};
+        if (!err) res.json(results);
+        else res.send(err);
+      });
+    }
   }
   else {
     var foundDoc={};
@@ -229,7 +309,6 @@ function docRequest(req, res, documents, name, docparts, i, callback) {
   }
   //ok, we are asking for a document..
   //first, could be we are looking for all the documents, or all the parts of one part of a document
-
 }
 
 
