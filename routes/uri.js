@@ -87,6 +87,7 @@ router.get('**', function(req, res, next) {
           else { //fun starts! we got a community. Now, what do we have??? are we looking for just entity, just document, or text
             //ok.. we have only entity search, document search, or text search
             if (detparts[1].indexOf("entity=")!=-1 && detparts[1].indexOf("document=")!=-1) {
+              console.log(detparts[1]);
               res.send(" text found: "+detparts[1]);
             } else if (detparts[1].indexOf("entity=")!=-1) {
               entityRequest(req, res, community.entities, detparts[1], entityparts, 0, authparts[4], function(err, foundEntity) {
@@ -97,22 +98,22 @@ router.get('**', function(req, res, next) {
                 var children=[];
                 if (err) {next(err)} else {
                   //ok. what are we returning. If it is a page, we are currently supporting xml and a full html page
-                  if (foundDoc.label=="pb" || foundDoc.label=="lb" || foundDoc.label=="cb" ){
+                  if (req.query.type=="transcript" && (foundDoc.label=="pb" || foundDoc.label=="lb" || foundDoc.label=="cb" )){
                     Doc.getTexts(foundDoc._id, function(err, texts) {
                       if (err) { next(err)} else {
-                        if (req.query.type=="transcript" && req.query.format=="xml") {
+                        if (req.query.format=="xml") {
                           res.send(formatXML(texts, true));
-                        } else if (req.query.type=="transcript" && req.query.format=="html") {
+                        } else if (req.query.format=="html") {
                           var xml=formatXML(texts, false);
                           res.render('dettranscript.ejs', { source: formatHTML(xml), url: config.host_url});
                         } else { //deal with images, or whatevs
                           var key, result="?";
                           for (key in req.query) { if (req.query.hasOwnProperty(key)) {result+=key + "=" + req.query[key]+"&";}}; result=result.slice(0, -1);
-                          res.status(400).send('Cannot deal with request query "'+result+'"')
+                          res.status(400).json({error: "Cannot deal with request query '"+result+"'"})
                         }
                       }
                     });
-                  } else res.json(foundDoc);
+                  } else res.json({name:foundDoc.name, label:foundDoc.label, nparts: foundDoc.children.length, hasImage: foundDoc.hasOwnProperty("image")});
                 }
               })
             }
@@ -178,8 +179,9 @@ function entityRequest(req, res, entities, name, entityparts, i, community, call
   if (entityparts[i].value=="*") { //wild card for docs at this level
     if (entityparts[i].property=="*"|| (i==0 && entityparts[i].property=="entity")) {
       async.mapSeries(entities, function(myEntity, cb){ //how many children does each one have
+        var thisEntityProperty=myEntity.entityName.slice(myEntity.entityName.lastIndexOf(":")+1,myEntity.entityName.lastIndexOf("="));
         Entity.find({ancestorName:myEntity.entityName}, function(err, myentities){
-          cb(err, {name:myEntity.name, label:entityparts[i].property, nparts: myentities.length})
+          cb(err, {name:myEntity.name, label:thisEntityProperty, nparts: myentities.length})
         });
       }, function (err, results) {
   //      console.log(results);
@@ -189,13 +191,12 @@ function entityRequest(req, res, entities, name, entityparts, i, community, call
     } else {//find by property value
       //no need to search for entities, we got them already...just return the entities matching this property value
       async.mapSeries(entities, function(myEntity, cb) {
-        var thisEntityProperty=myEntity.entityName.slice(myEntity.entityName.lastIndexOf(":"),myEntity.entityName.lastIndexOf("="));
-        console.log(thisEntityProperty);
+        var thisEntityProperty=myEntity.entityName.slice(myEntity.entityName.lastIndexOf(":")+1,myEntity.entityName.lastIndexOf("="));
         if (thisEntityProperty==entityparts[i].property) {
           Entity.find({ancestorName:myEntity.entityName}, function(err, myentities){
-            cb(err, {name:myEntity.name, label:entityparts[i].property, nparts: myentities.length})
+            cb(err, {name:myEntity.name, label:thisEntityProperty, nparts: myentities.length})
           });
-        } else cb(err, null);
+        } else cb(null, null);
       }, function (err, results) {
           for (var j=0; j<results.length; j++){ if (!results[j]) results.splice(j--,1)};
           if (!err) res.json(results);
@@ -207,19 +208,23 @@ function entityRequest(req, res, entities, name, entityparts, i, community, call
 
     var thisEnt=community;
     var foundEnt=false;
-    console.log(entityparts);
     for (var k=0; k<entityparts.length && k<=i; k++) {thisEnt+=":"+entityparts[k].property+"="+entityparts[k].value}
-    console.log(thisEnt);
     for (var j=0; j<entities.length; j++) {
-      if (thisEnt==entities[j].entityName.slice(0, thisEnt.length)) {
+      //have to ensure we have match of full entity name. Either, matching whole string, or matching includes following :
+      if (thisEnt==entities[j].entityName || thisEnt+":"==entities[j].entityName.slice(0, thisEnt.length+1)) {
         //we match!
         foundEnt=true;
-        if (i==entityparts.length-1) {//the one we wanted..
-          console.log("here!")
-          callback(null, entities[j]);
+          if (i==entityparts.length-1) {//the one we wanted..
+          var thisEntityProperty=entities[j].entityName.slice(entities[j].entityName.lastIndexOf(":")+1, entities[j].entityName.lastIndexOf("="));
+          if (!entities[j].isTerminal) {
+            var thisEntity=entities[j];
+            Entity.find({ancestorName: thisEntity.entityName}, function(err, myentities){
+              callback(err, {name: thisEntity.name, nparts:myentities.length, ancestorName: ("ancestorName" in entities[j])?thisEntity.ancestorName:"", entityName:thisEntity.entityName, label:thisEntityProperty});
+            });
+          }
+          else callback(null, {name: entities[j].name, nparts:0, ancestorName: ("ancestorName" in entities[j])?entities[j].ancestorName:"", entityName:entities[j].entityName, label:thisEntityProperty});
         } else { //go round again
             //but... only go if this entity has children... else error
-            console.log("again!");
             Entity.find({ancestorName:thisEnt}, function(err, myentities){
               if (myentities.length==0) {
                 res.status(400).send('Found "'+thisEnt+'" as part of "'+name+'", but this has no children');
@@ -281,6 +286,7 @@ function docRequest(req, res, documents, name, docparts, i, callback) {
           if (foundline==docparts[i].value) {
 //            console.log("got the line?")
             foundDoc=thisDoc;
+            foundDoc.name=""+foundline;
             cb("found document");
           } else cb(err);
         }
