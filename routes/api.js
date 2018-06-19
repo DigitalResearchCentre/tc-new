@@ -479,93 +479,6 @@ router.post('/getDocEntities', function(req, res, next) {
 });
 
 
-
-router.post('/getEntityVersions', function(req, res, next) {
-//  console.log("looking for versions of identifier "+req.query.id)
-  var foundVersions=[];
-  TEI.find({"entityName":req.query.id}, function(err, versions) {
-    var nversions=versions.length;
-    var nprocessed=0;
-    async.forEachOf(versions, function(version) {
-      const cb2 = _.last(arguments);
-      async.waterfall([
-        function(callback) {
-         Doc.findOne({_id:version.docs[0]}, function (err, myDoc) {
-            callback(err, myDoc);
-          });
-        },
-        function(myDoc, callback) {
-          //use async recursive to pull these together
-          var teiContent={"content":""};
-          loadTEIContent(version, teiContent).then(function (){
-            nprocessed++;
-            foundVersions.push({"sigil":myDoc.name, "version":teiContent.content})
-            if (nprocessed==nversions) res.json({foundVersions});
-          });
-        },
-      ])
-    });
-  });
-});
-
-function procTEIs (teiID, callback) {
-    TEI.findOne({_id:teiID}, function (err, version) {
-      var tei={"content":""};
-      loadTEIContent(version, tei).then(function (){
-        //might here have to wrap element content in xml stuff?
-        //test: is this an element...if it is, bookend with xml
-        //when preparing for collation .. drop note elements here
-        if (version.children.length && version.name!="#text") {
-          var attrs="";
-          if (version.attrs) {
-            for (var key in version.attrs) {
-              attrs+=" "+key+"=\""+version.attrs[key]+"\"";
-            }
-          }
-          tei.content="<"+version.name+attrs+">"+tei.content+"</"+version.name+">";
-        }
-//        console.log("adding the tei "+tei.content)
-        callback(err, tei.content);
-      });
-    });
-}
-
-function loadTEIContent(version, content) {
-  var deferred = defer();
-  if (version.children.length) {
-    async.map(version.children, procTEIs, function (err, results) {
-        var newContent="";
-        for (var i=0; i<results.length; i++) {newContent+=results[i];}
-        content.content=newContent;
-        deferred.resolve();
-    })
-  } else { //only one! add this to the tei
-      if (version.name=="#text") {
-        content.content+=version.text;
-      } else {
-        //no content, but an element -- pb or lb or similar, ignore
-        //problem! if it is reading, we need this
-        //if it is a lb: add a space, unless break
-        if (version.name=="rdg") {
-          var attrs="";
-          if (version.attrs) {
-            for (var key in version.attrs) {
-              attrs+=" "+key+"=\""+version.attrs[key]+"\"";
-            }
-          }
-          content.content="<rdg"+attrs+"></rdg>";
-        }
-        if (version.name=="lb" || version.name=="cb" || version.name=="pb") {
-          if (!version.attrs || !version.attrs.break || version.attrs.break!="no") {
-            content.content=" ";
-          }
-        }
-      }
-      deferred.resolve();
-  }
-  return deferred.promise;
-}
-
 //get all pages with tasks for this id, return info so we can create links to each page
 router.post('/getMemberTasks', function(req, res, next) {
   Doc.find({"tasks.memberId":req.query.id}, function (err, docs){
@@ -2327,12 +2240,12 @@ router.post('/getCEWitnesses', function(req, res, next) {
               async.mapSeries(teis, function(thisTei){
                 const cb2 = _.last(arguments);
                 teiContent={"content":""};
-                loadTEIContent(thisTei, teiContent).then(function (){
+                FunctionService.loadTEIContent(thisTei, teiContent).then(function (){
                   if (teiContent.content!="") {
                     if (counter>0) {
-                      content+=","+makeJsonList(teiContent.content, witness+"("+counter+")")
+                      content+=","+FunctionService.makeJsonList(teiContent.content, witness+"("+counter+")")
                     }
-                    else content+=makeJsonList(teiContent.content, witness);
+                    else content+=FunctionService.makeJsonList(teiContent.content, witness);
                     counter++;
                     cb2(null);
                   } else cb2(null);
@@ -2384,12 +2297,12 @@ function getCEWitness(witness, community, entity, callback) {
               async.mapSeries(teis, function(thisTei){
                 const cb2 = _.last(arguments);
                 teiContent={"content":""};
-                loadTEIContent(thisTei, teiContent).then(function (){
+                FunctionService.loadTEIContent(thisTei, teiContent).then(function (){
                   if (teiContent.content!="") {
                     if (counter>0) {
-                      content+=","+makeJsonList(teiContent.content, witness+"("+counter+")")
+                      content+=","+FunctionService.makeJsonList(teiContent.content, witness+"("+counter+")")
                     }
-                    else content+=makeJsonList(teiContent.content, witness);
+                    else content+=FunctionService.makeJsonList(teiContent.content, witness);
                     counter++;
                     cb2(null);
                   } else cb2(null);
@@ -2727,20 +2640,20 @@ router.get('/cewitness', function(req, res, next) {
               cb("no witness", []);
             } else {  //we have to deal with multiple texts for this witness
 //              console.log("number versions "+teis.length)
-              var content='{"_id": "'+req.query.witness+'_'+req.query.entity+'", "context": "'+req.query.entity+'","tei":"", "transcription_id": "'+req.query.witness+'","transcription_siglum": "'+req.query.witness+'","siglum": "'+req.query.witness+'"';
-              var teiContent={"content":""}; //make this a loop if more than one wit here
+                var content='{"_id": "'+req.query.witness+'_'+req.query.entity+'", "context": "'+req.query.entity+'","tei":"", "transcription_id": "'+req.query.witness+'","transcription_siglum": "'+req.query.witness+'","siglum": "'+req.query.witness+'"';
+                var teiContent={"content":""}; //make this a loop if more than one wit here
               content+=',"witnesses":['
               var counter=0;
               async.mapSeries(teis, function(thisTei){
                 const cb2 = _.last(arguments);
 //                console.log(counter+" "+thisTei)
                 teiContent={"content":""};
-                loadTEIContent(thisTei, teiContent).then(function (){
+                FunctionService.loadTEIContent(thisTei, teiContent).then(function (){
                   if (teiContent.content!="") {
                     if (counter>0) {
-                      content+=","+makeJsonList(teiContent.content, req.query.witness+"("+counter+")")
+                      content+=","+FunctionService.makeJsonList(teiContent.content, req.query.witness+"("+counter+")")
                     }
-                    else content+=makeJsonList(teiContent.content, req.query.witness);
+                    else content+=FunctionService.makeJsonList(teiContent.content, req.query.witness);
                     counter++;
                     cb2(null);
                   } else cb2(null);
@@ -2767,99 +2680,6 @@ router.get('/cewitness', function(req, res, next) {
 });
 
 //turns our content string into collation editor ready json
-function makeJsonList(content, witness) {
-  var thistext="";
-  //remove line breaks,tabs, etc
-//  thistext+=content.replace(/(\r\n|\n|\r)/gm,"");
-//  console.log("before "+content)
-  content=content.replace(/(\r\n|\n|\r)/gm,"");
-  content=content.replace(/<note(.*?)<\/note>/gm,"");
-  content=content.replace(/(\t)/gm," ");
-  content=content.replace(/  +/g, ' ');
-  content=content.replace(/"/g, "\'\'");   //this is a hack. Can't figure out how to handle " in strings
-  content=content.replace(/'/g, "\'");
-//  console.log("after "+content)
-  content=content.trim();
-//  console.log("let's start here "+content);
-  var myWitRdgs=[];
-  //is there an app here..
-  if (content.indexOf("<app>")!=-1) {
-    //ok we got app elements
-//    console.log("got some apps");
-     var myRdgTypes=FunctionService.getRdgTypes(content);
-     //myRdgTypes);
-     var myWitRdgs=FunctionService.createRdgContent(content, myRdgTypes, witness);
-//     console.log("back in api "); console.log(myWitRdgs);
-     //now, manufacture a string for each app
-  }
-  if (myWitRdgs.length==0)
-     myWitRdgs.push({witness: witness, content: content})
-  else {
-    for (var j=0; j<myWitRdgs.length; j++) {
-      myWitRdgs[j].witness=witness+"-"+myWitRdgs[j].type;
-    }
-  }
-//  console.log(myWitRdgs);
-  //ok, process into an array with word and  elements
-  for (var j=0; j<myWitRdgs.length; j++) {
-    thistext+='{"id":"'+myWitRdgs[j].witness+'","tokens":[';
-//    console.log("about to call CE array :"+thistext);
-    var myWords=FunctionService.makeCeArray(myWitRdgs[j].content);
-//    console.log(thistext);
-//    console.log(myWords);
-  //  var myWords=content.split(" ");
-    for (var i = 0; i < myWords.length; i++) {
-      var index=(i+1)*2;
-      //also put uncap version of word in rule match too
-      var rule_match_cap="";
-      if (myWords[i].word!=(myWords[i].word.toLowerCase()))
-        rule_match_cap=',"'+myWords[i].word.toLowerCase()+'"';
-      var rule_match='"rule_match":["'+myWords[i].word+'"'+rule_match_cap+']';
-      var token = '"t":"'+myWords[i].word+'"';
-      if (myWords[i].origword=="") var original='"original":"'+myWords[i].word+'"';
-      else var original='"original":"'+myWords[i].origword+'"';
-      if (myWords[i].expanword=="") var expanded="";
-      else var expanded=',"expanded":"'+myWords[i].expanword+'"';
-      if (myWords[i].xmlword=="") var xmlWordStr="";
-      else var xmlWordStr=',"fullxml":"'+myWords[i].xmlword.replace(" ","&nbsp;")+'"';
-      if (myWords[i].punctbefore=="") var punctbeforeStr="";
-      else var punctbeforeStr=',"pc_before":"'+myWords[i].punctbefore.replace(" ","&nbsp;")+'"';
-      if (myWords[i].punctafter=="") var punctafterStr="";
-      else var punctafterStr=',"pc_after":"'+myWords[i].punctafter.replace(" ","&nbsp;")+'"';
-      //test: are there expansions for this word? does this word contain <am>/<ex>? look for xml forms too
-
-      if (myWords[i].expanword!="" && myWords[i].xmlword!="") {
-        var rmExword="";
-        var rmExmlword="";
-        var expanword=myWords[i].expanword;
-        var xmlword=myWords[i].xmlword;
-        if (expanword!=expanword.toLowerCase()) rmExword=',"'+expanword.toLowerCase()+'"';
-        if (xmlword!=xmlword.toLowerCase()) rmExmlword=',"'+xmlword.toLowerCase()+'"';
-        token='"t":"'+myWords[i].origword+'"';
-        rule_match='"rule_match":["'+expanword+'","'+myWords[i].origword+'","'+xmlword+'"'+rmExword+rmExmlword+']';
-      }
-      else if (myWords[i].xmlword!="") {
-        var rmExmlword="";
-        if (myWords[i].word!=myWords[i].word.toLowerCase()) rmExmlword=',"'+myWords[i].word.toLowerCase()+'"';
-        token='"t":"'+myWords[i].word+'"';
-        rule_match='"rule_match":["'+myWords[i].word+'","'+myWords[i].xmlword+'"'+rmExmlword+']';
-      }
-      else if (myWords[i].expanword!="") {
-        var rmExword="";
-        var expanword=myWords[i].expanword;
-        if (expanword!=expanword.toLowerCase()) rmExword=',"'+expanword.toLowerCase()+'"';
-        token='"t":"'+myWords[i].origword+'"';
-        rule_match='"rule_match":["'+myWords[i].expanword+'","'+myWords[i].word+'","'+myWords[i].origword+'"'+rmExword+']';
-      }
-      thistext+='{"index":"'+index+'",'+token+","+rule_match+',"reading":"'+myWitRdgs[j].witness+'",'+original+expanded+xmlWordStr+punctbeforeStr+punctafterStr+'}';
-      if (i<myWords.length-1) thistext+=',';
-    }
-    thistext+=']}'
-    if (j<myWitRdgs.length-1) thistext+=',';
-  }
-//  console.log(thistext);
-  return(thistext);
-}
 
 router.post('/isAlreadyCommunity', function(req, res, next) {
   Community.findOne({$or: [{abbr: req.query.abbr}, {name: req.query.name}]}, function(err, community) {

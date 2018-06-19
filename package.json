@@ -16,6 +16,7 @@
     "body-parser": "^1.15.0",
     "bootstrap": "^3.3.6",
     "bson": "^0.4.23",
+    "check-node-version": "^3.2.0",
     "codemirror": "^5.23.0",
     "connect-flash": "^0.1.1",
     "connect-mongo": "^1.1.0",

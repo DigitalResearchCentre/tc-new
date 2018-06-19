@@ -1,9 +1,14 @@
 var $ = require('jquery')
     , URI = require('urijs')
+    , async = require('async')
+    , defer = require("promise-defer")
     , config = require('../config')
+    , models = require('../models')
+    , TEI = models.TEI
 ;
 
 var punctuation=".,:-/&@¶§;·⸫▽?!'"+'"';
+
 
 function isCEPunctuation(myChar) {
   for (var i=0; i<punctuation.length; i++) {
@@ -365,9 +370,158 @@ var FunctionService = {
     return(rdgsContent);
       //here we add to the rest of our string...
     //let's see what we have!
+  },
+  loadTEIContent: function(version, content) {
+    var deferred = defer();
+    if (version.children.length) {
+      async.map(version.children, procTEIs, function (err, results) {
+          var newContent="";
+          for (var i=0; i<results.length; i++) {newContent+=results[i];}
+          content.content=newContent;
+          deferred.resolve();
+      })
+    } else { //only one! add this to the tei
+        if (version.name=="#text") {
+          content.content+=version.text;
+        } else {
+          //no content, but an element -- pb or lb or similar, ignore
+          //problem! if it is reading, we need this
+          //if it is a lb: add a space, unless break
+          if (version.name=="rdg") {
+            var attrs="";
+            if (version.attrs) {
+              for (var key in version.attrs) {
+                attrs+=" "+key+"=\""+version.attrs[key]+"\"";
+              }
+            }
+            content.content="<rdg"+attrs+"></rdg>";
+          }
+          if (version.name=="lb" || version.name=="cb" || version.name=="pb") {
+            if (!version.attrs || !version.attrs.break || version.attrs.break!="no") {
+              content.content=" ";
+            }
+          }
+        }
+        deferred.resolve();
+    }
+    return deferred.promise;
+  },
+  makeJsonList: function (content, witness) {
+    var thistext="";
+    //remove line breaks,tabs, etc
+  //  thistext+=content.replace(/(\r\n|\n|\r)/gm,"");
+  //  console.log("before "+content)
+    content=content.replace(/(\r\n|\n|\r)/gm,"");
+    content=content.replace(/<note(.*?)<\/note>/gm,"");
+    content=content.replace(/(\t)/gm," ");
+    content=content.replace(/  +/g, ' ');
+    content=content.replace(/"/g, "\'\'");   //this is a hack. Can't figure out how to handle " in strings
+    content=content.replace(/'/g, "\'");
+  //  console.log("after "+content)
+    content=content.trim();
+  //  console.log("let's start here "+content);
+    var myWitRdgs=[];
+    //is there an app here..
+    if (content.indexOf("<app>")!=-1) {
+      //ok we got app elements
+  //    console.log("got some apps");
+       var myRdgTypes=FunctionService.getRdgTypes(content);
+       //myRdgTypes);
+       var myWitRdgs=FunctionService.createRdgContent(content, myRdgTypes, witness);
+  //     console.log("back in api "); console.log(myWitRdgs);
+       //now, manufacture a string for each app
+    }
+    if (myWitRdgs.length==0)
+       myWitRdgs.push({witness: witness, content: content})
+    else {
+      for (var j=0; j<myWitRdgs.length; j++) {
+        myWitRdgs[j].witness=witness+"-"+myWitRdgs[j].type;
+      }
+    }
+  //  console.log(myWitRdgs);
+    //ok, process into an array with word and  elements
+    for (var j=0; j<myWitRdgs.length; j++) {
+      thistext+='{"id":"'+myWitRdgs[j].witness+'","tokens":[';
+  //    console.log("about to call CE array :"+thistext);
+      var myWords=FunctionService.makeCeArray(myWitRdgs[j].content);
+  //    console.log(thistext);
+  //    console.log(myWords);
+    //  var myWords=content.split(" ");
+      for (var i = 0; i < myWords.length; i++) {
+        var index=(i+1)*2;
+        //also put uncap version of word in rule match too
+        var rule_match_cap="";
+        if (myWords[i].word!=(myWords[i].word.toLowerCase()))
+          rule_match_cap=',"'+myWords[i].word.toLowerCase()+'"';
+        var rule_match='"rule_match":["'+myWords[i].word+'"'+rule_match_cap+']';
+        var token = '"t":"'+myWords[i].word+'"';
+        if (myWords[i].origword=="") var original='"original":"'+myWords[i].word+'"';
+        else var original='"original":"'+myWords[i].origword+'"';
+        if (myWords[i].expanword=="") var expanded="";
+        else var expanded=',"expanded":"'+myWords[i].expanword+'"';
+        if (myWords[i].xmlword=="") var xmlWordStr="";
+        else var xmlWordStr=',"fullxml":"'+myWords[i].xmlword.replace(" ","&nbsp;")+'"';
+        if (myWords[i].punctbefore=="") var punctbeforeStr="";
+        else var punctbeforeStr=',"pc_before":"'+myWords[i].punctbefore.replace(" ","&nbsp;")+'"';
+        if (myWords[i].punctafter=="") var punctafterStr="";
+        else var punctafterStr=',"pc_after":"'+myWords[i].punctafter.replace(" ","&nbsp;")+'"';
+        //test: are there expansions for this word? does this word contain <am>/<ex>? look for xml forms too
+
+        if (myWords[i].expanword!="" && myWords[i].xmlword!="") {
+          var rmExword="";
+          var rmExmlword="";
+          var expanword=myWords[i].expanword;
+          var xmlword=myWords[i].xmlword;
+          if (expanword!=expanword.toLowerCase()) rmExword=',"'+expanword.toLowerCase()+'"';
+          if (xmlword!=xmlword.toLowerCase()) rmExmlword=',"'+xmlword.toLowerCase()+'"';
+          token='"t":"'+myWords[i].origword+'"';
+          rule_match='"rule_match":["'+expanword+'","'+myWords[i].origword+'","'+xmlword+'"'+rmExword+rmExmlword+']';
+        }
+        else if (myWords[i].xmlword!="") {
+          var rmExmlword="";
+          if (myWords[i].word!=myWords[i].word.toLowerCase()) rmExmlword=',"'+myWords[i].word.toLowerCase()+'"';
+          token='"t":"'+myWords[i].word+'"';
+          rule_match='"rule_match":["'+myWords[i].word+'","'+myWords[i].xmlword+'"'+rmExmlword+']';
+        }
+        else if (myWords[i].expanword!="") {
+          var rmExword="";
+          var expanword=myWords[i].expanword;
+          if (expanword!=expanword.toLowerCase()) rmExword=',"'+expanword.toLowerCase()+'"';
+          token='"t":"'+myWords[i].origword+'"';
+          rule_match='"rule_match":["'+myWords[i].expanword+'","'+myWords[i].word+'","'+myWords[i].origword+'"'+rmExword+']';
+        }
+        thistext+='{"index":"'+index+'",'+token+","+rule_match+',"reading":"'+myWitRdgs[j].witness+'",'+original+expanded+xmlWordStr+punctbeforeStr+punctafterStr+'}';
+        if (i<myWords.length-1) thistext+=',';
+      }
+      thistext+=']}'
+      if (j<myWitRdgs.length-1) thistext+=',';
+    }
+  //  console.log(thistext);
+    return(thistext);
   }
 }
 
+function procTEIs (teiID, callback) {
+    TEI.findOne({_id:teiID}, function (err, version) {
+      var tei={"content":""};
+      FunctionService.loadTEIContent(version, tei).then(function (){
+        //might here have to wrap element content in xml stuff?
+        //test: is this an element...if it is, bookend with xml
+        //when preparing for collation .. drop note elements here
+        if (version.children.length && version.name!="#text") {
+          var attrs="";
+          if (version.attrs) {
+            for (var key in version.attrs) {
+              attrs+=" "+key+"=\""+version.attrs[key]+"\"";
+            }
+          }
+          tei.content="<"+version.name+attrs+">"+tei.content+"</"+version.name+">";
+        }
+//        console.log("adding the tei "+tei.content)
+        callback(err, tei.content);
+      });
+    });
+}
 //used when we need to parse the query string
 
 module.exports = FunctionService;
